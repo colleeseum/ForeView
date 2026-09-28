@@ -3,10 +3,11 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/js/*.test.mjs",
-    "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=8 --branches=50 --functions=48 --lines=8 npm test",
+    "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=96 --branches=80 --functions=93 --lines=96 npm test",
     "audit": "npm audit --audit-level=high"
   },
   "devDependencies": {
-    "c8": "10.1.3"
+    "c8": "10.1.3",
+    "jsdom": "^22.1.0"
   }
 }

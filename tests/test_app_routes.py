@@ -93,6 +93,7 @@ class AppRouteTests(unittest.TestCase):
             "setup-values.mjs",
             "setup.mjs",
             "transactions-render.mjs",
+            "transaction-import-message.mjs",
             "transactions.mjs",
             "accounts.mjs",
             "account-dialog.mjs",

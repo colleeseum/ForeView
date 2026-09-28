@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Settings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">Application</p>
+    <h1>Settings</h1>
+    <p class="lede">Application-wide configuration and trusted public data.</p>
+  </header>
+  <div class="page-shell">
+    <aside class="side-menu">
+      <div class="side-menu-brand">Retirement model</div>
+      <a href="{{ url_for('index') }}">Summary</a>
+      <a href="{{ url_for('accounts_page') }}">Assets</a>
+      <a href="{{ url_for('transactions_page') }}">Transactions</a>
+      <a href="{{ url_for('connections_page') }}">Connections</a>
+      <a class="active" href="{{ url_for('public_rules.settings') }}">Settings</a>
+    </aside>
+    <div class="page-content">
+      <section class="connection-toolbar">
+        <div>
+          <h2>Public rules</h2>
+          <p>Review government rules stored with the application and approve their exact content hash for this runtime.</p>
+        </div>
+      </section>
+
+      {% if jurisdictions %}
+      <nav class="view-tabs public-rule-tabs" aria-label="Rule jurisdiction" role="tablist">
+        {% for jurisdiction in jurisdictions %}
+        <a class="view-tab{% if jurisdiction.code == selected_jurisdiction %} active{% endif %}"
+           role="tab"
+           aria-selected="{{ 'true' if jurisdiction.code == selected_jurisdiction else 'false' }}"
+           href="{{ url_for('public_rules.settings', jurisdiction=jurisdiction.code) }}">{{ jurisdiction.label }}</a>
+        {% endfor %}
+      </nav>
+
+      <form class="public-rule-year-filter" method="get" action="{{ url_for('public_rules.settings') }}">
+        <input type="hidden" name="jurisdiction" value="{{ selected_jurisdiction }}">
+        <label for="public-rule-year">Tax year</label>
+        <select id="public-rule-year" name="year" onchange="this.form.submit()">
+          {% for year in years %}<option value="{{ year }}"{% if year == selected_year %} selected{% endif %}>{{ year }}</option>{% endfor %}
+        </select>
+        <button class="view-action" type="submit">View</button>
+      </form>
+      {% endif %}
+
+      {% if combined_rates %}
+      <section class="public-rule-card">
+        <p class="eyebrow">Federal + {{ selected_jurisdiction }}</p>
+        <h2>Effective combined marginal tax</h2>
+        <p class="connection-status">Ordinary taxable income using the basic personal amount. Includes the federal BPA phaseout and applicable jurisdiction rules such as the Quebec abatement, Manitoba BPA phaseout, and Ontario surtaxes. Excludes the Ontario Health Premium and income-specific treatment for capital gains and dividends.</p>
+        <table class="rule-table">
+          <thead><tr><th>Taxable income up to</th><th>Marginal rate</th></tr></thead>
+          <tbody>{% for bracket in combined_rates %}<tr><td>{{ bracket.upper_bound or 'No limit' }}</td><td>{{ bracket.rate }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </section>
+      {% endif %}
+
+      <div class="public-rule-list">
+        {% for row in rows %}{% set package = row.package %}{% set rules = package.rule_set %}
+        <section class="public-rule-card">
+          <div class="public-rule-heading">
+            <div>
+              <p class="eyebrow">{{ rules.jurisdiction }} · {{ rules.tax_year }}</p>
+              <h2>{{ rules.rule_set_id }}</h2>
+              <p class="connection-status">Hash <code>{{ package.content_hash }}</code></p>
+            </div>
+            {% if row.approval %}
+            <div class="public-rule-approval-actions">
+              <span class="approval-badge approved">Approved {{ row.approval.approved_at }}</span>
+              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+            </div>
+            {% else %}
+            <div class="public-rule-approval-actions">
+              <form method="post" action="{{ url_for('public_rules.approve_public_rule', rule_set_id=rules.rule_set_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="content_hash" value="{{ package.content_hash }}">
+                <button class="view-action" type="submit">Approve exact hash</button>
+              </form>
+              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+            </div>
+            {% endif %}
+          </div>
+          {% for schedule in rules.tax_brackets %}
+          <h3>{{ schedule.code|replace('_', ' ')|title }}</h3>
+          <table class="rule-table">
+            <thead><tr><th>Upper bound</th><th>Rate</th></tr></thead>
+            <tbody>{% for bracket in schedule.brackets %}<tr><td>{% if bracket.upper_bound is none %}No limit{% else %}${{ bracket.upper_bound }}{% endif %}</td><td>{{ bracket.rate * 100 }}%</td></tr>{% endfor %}</tbody>
+          </table>
+          {% endfor %}
+          {% set parameters = rules.payroll_parameters + rules.contribution_limits + rules.credits + rules.other_parameters %}
+          {% if parameters %}
+          <h3>Parameters</h3>
+          <table class="rule-table">
+            <thead><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr></thead>
+            <tbody>{% for parameter in parameters %}<tr><td>{{ parameter.code|replace('_', ' ') }}</td><td>{{ parameter.value }}</td><td>{{ parameter.unit }}</td></tr>{% endfor %}</tbody>
+          </table>
+          {% endif %}
+          <details>
+            <summary>{{ rules.sources|length }} official sources</summary>
+            <ul>{% for source in rules.sources %}<li><a href="{{ source.url }}" rel="noreferrer">{{ source.publisher }}: {{ source.title }}</a> · accessed {{ source.accessed_on }}</li>{% endfor %}</ul>
+          </details>
+        </section>
+        {% else %}<p class="empty-panel">No version-controlled public-rule packages were found.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script><script src="{{ url_for('static', filename='help.js', v='20260928-1') }}"></script></body></html>

@@ -1,0 +1,196 @@
+{
+  "initial": {
+    "primary": {
+      "accounts": [
+        {
+          "number": "SYN-QT-CASH-001",
+          "type": "Margin",
+          "balance": 25000.0,
+          "positions": [],
+          "executions": [],
+          "activities": [
+            {
+              "transactionDate": "2026-08-01T12:00:00Z",
+              "netAmount": 25000.0,
+              "type": "Deposit",
+              "description": "Synthetic opening deposit"
+            }
+          ]
+        },
+        {
+          "number": "SYN-QT-TFSA-001",
+          "type": "TFSA",
+          "balance": 120000.0,
+          "positions": [
+            {
+              "symbol": "XEQT.TO",
+              "openQuantity": 2500.0,
+              "currentPrice": 40.0,
+              "currentMarketValue": 100000.0
+            }
+          ],
+          "executions": [{"id": 101}],
+          "activities": [
+            {
+              "transactionDate": "2026-08-31T12:00:00Z",
+              "netAmount": 125.0,
+              "type": "Dividend",
+              "symbol": "XEQT.TO",
+              "description": "Synthetic distribution"
+            }
+          ]
+        },
+        {
+          "number": "SYN-QT-RRSP-001",
+          "type": "RRSP",
+          "balance": 300000.0,
+          "positions": [
+            {
+              "symbol": "EQUITY.TO",
+              "openQuantity": 2000.0,
+              "currentPrice": 100.0,
+              "currentMarketValue": 200000.0
+            },
+            {
+              "symbol": "BOND.TO",
+              "openQuantity": 2000.0,
+              "currentPrice": 50.0,
+              "currentMarketValue": 100000.0
+            }
+          ],
+          "executions": [{"id": 201}],
+          "activities": [
+            {
+              "transactionDate": "2026-09-01T12:00:00Z",
+              "netAmount": 0.0,
+              "grossAmount": 42.5,
+              "type": "Dividend",
+              "action": "Reinvest",
+              "symbol": "EQUITY.TO",
+              "description": "Synthetic reinvested distribution"
+            }
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "accounts": [
+        {
+          "number": "SYN-QT-TFSA-002",
+          "type": "TFSA",
+          "balance": 80000.0,
+          "positions": [
+            {
+              "symbol": "VBAL.TO",
+              "openQuantity": 2500.0,
+              "currentPrice": 30.0,
+              "currentMarketValue": 75000.0
+            }
+          ],
+          "executions": [],
+          "activities": []
+        }
+      ]
+    }
+  },
+  "updated": {
+    "primary": {
+      "accounts": [
+        {
+          "number": "SYN-QT-CASH-001",
+          "type": "Margin",
+          "balance": 24990.0,
+          "positions": [],
+          "executions": [],
+          "activities": [
+            {
+              "transactionDate": "2026-09-25T12:00:00Z",
+              "netAmount": -10.0,
+              "type": "Fee",
+              "description": "Synthetic account fee"
+            },
+            {
+              "transactionDate": "2026-08-01T12:00:00Z",
+              "netAmount": 25000.0,
+              "type": "Deposit",
+              "description": "Synthetic opening deposit"
+            }
+          ]
+        },
+        {
+          "number": "SYN-QT-TFSA-001",
+          "type": "TFSA",
+          "balance": 122000.0,
+          "positions": [
+            {
+              "symbol": "XEQT.TO",
+              "openQuantity": 2500.0,
+              "currentPrice": 40.8,
+              "currentMarketValue": 102000.0
+            }
+          ],
+          "executions": [{"id": 101}],
+          "activities": [
+            {
+              "transactionDate": "2026-08-31T12:00:00Z",
+              "netAmount": 125.0,
+              "type": "Dividend",
+              "symbol": "XEQT.TO",
+              "description": "Synthetic distribution"
+            }
+          ]
+        },
+        {
+          "number": "SYN-QT-RRSP-001",
+          "type": "RRSP",
+          "balance": 305000.0,
+          "positions": [
+            {
+              "symbol": "EQUITY.TO",
+              "openQuantity": 2050.0,
+              "currentPrice": 100.0,
+              "currentMarketValue": 205000.0
+            }
+          ],
+          "executions": [{"id": 202}],
+          "activities": [
+            {
+              "transactionDate": "2026-09-20T12:00:00Z",
+              "netAmount": -25.0,
+              "type": "Fee",
+              "description": "Synthetic plan fee"
+            },
+            {
+              "transactionDate": "2026-09-01T12:00:00Z",
+              "netAmount": 0.0,
+              "grossAmount": 42.5,
+              "type": "Dividend",
+              "action": "Reinvest",
+              "symbol": "EQUITY.TO",
+              "description": "Synthetic reinvested distribution"
+            }
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "accounts": [
+        {
+          "number": "SYN-QT-TFSA-002",
+          "type": "TFSA",
+          "balance": 81000.0,
+          "positions": [
+            {
+              "symbol": "VBAL.TO",
+              "openQuantity": 2500.0,
+              "currentPrice": 30.4,
+              "currentMarketValue": 76000.0
+            }
+          ],
+          "executions": [],
+          "activities": []
+        }
+      ]
+    }
+  }
+}

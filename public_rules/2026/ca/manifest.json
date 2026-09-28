@@ -1,0 +1,46 @@
+{
+  "jurisdiction": "CA",
+  "provider_id": "ca.federal",
+  "rule_sets": [
+    {
+      "filename": "ca-2026-official.json",
+      "rule_set_id": "ca-2026-official",
+      "sha256": "987460d7ded76f581da46baa4dbfb72cb026879083984ea76cee87f928d3c6e3"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-federal-brackets-2026.html",
+      "retrieved_at": "2026-09-28T00:29:49.531450+00:00",
+      "sha256": "ea09815c99f52f47eda3d7471437dd06dcea222666323cabe94ab396d0e88d0e",
+      "source_id": "cra-federal-brackets-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-registered-plan-limits.html",
+      "retrieved_at": "2026-09-28T00:29:52.648960+00:00",
+      "sha256": "9941c103e569a5a60aa2eb7bcc18a8fcbddcb1c0c7312a790239782a2059f9bb",
+      "source_id": "cra-registered-plan-limits",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-rrsp-deduction-limit-formula.html",
+      "retrieved_at": "2026-09-28T00:29:54.784951+00:00",
+      "sha256": "1782b242ab14b5d9bbc40af1aaea91f6ba5e203080a75336b7a0a66ee28e1699",
+      "source_id": "cra-rrsp-deduction-limit-formula",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans/contributing-a-rrsp-prpp/contributions-affect-your-rrsp-prpp-deduction-limit.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-payroll-tables-on-2026.html",
+      "retrieved_at": "2026-09-28T00:29:57.011066+00:00",
+      "sha256": "672d2313998a7204fddc6ff08458470281a7816f43d432121a6b3392a663dcf8",
+      "source_id": "cra-payroll-tables-on-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2026
+}

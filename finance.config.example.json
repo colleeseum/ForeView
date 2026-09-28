@@ -1,0 +1,20 @@
+{
+  "QUESTRADE_CONNECTIONS": [
+    {
+      "name": "Primary",
+      "consumer_key": "paste-primary-consumer-key-here",
+      "client_secret": "",
+      "history_start": "2020-01-01"
+    },
+    {
+      "name": "Spouse",
+      "consumer_key": "paste-spouse-consumer-key-here",
+      "client_secret": ""
+    }
+  ],
+  "QUESTRADE_REDIRECT_URI": "https://finance.example.com:5123/questrade/callback",
+  "TLS_CERT_FILE": "/path/to/fullchain.pem",
+  "TLS_KEY_FILE": "/path/to/private-key.pem",
+  "RETIREMENT_TOKEN_KEY": "generate-a-fernet-key-and-paste-it-here",
+  "RETIREMENT_APP_SECRET": "generate-a-long-random-session-secret-here"
+}

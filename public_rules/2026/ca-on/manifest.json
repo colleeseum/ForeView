@@ -1,0 +1,38 @@
+{
+  "jurisdiction": "CA-ON",
+  "provider_id": "ca.on",
+  "rule_sets": [
+    {
+      "filename": "ca-on-2026-official.json",
+      "rule_set_id": "ca-on-2026-official",
+      "sha256": "1fa41a9fe0bea3922ee89c1e25d98a43cd0575d275f2b5075dfd6c0079255913"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-on-brackets-2026.html",
+      "retrieved_at": "2026-09-28T00:30:30.391438+00:00",
+      "sha256": "f2b63692d2f6933057972efb8743d8af93bce12e9d943773eebbfae16c7e1c51",
+      "source_id": "cra-on-brackets-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/esdc-cpp-figures-2026.html",
+      "retrieved_at": "2026-09-28T00:30:32.504026+00:00",
+      "sha256": "ced6478a544522eb2014c8ad0f2d9318ca784f665cf4e8a35c96558f39a9a25c",
+      "source_id": "esdc-cpp-figures-2026",
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-july-september.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-payroll-tables-on-2026.html",
+      "retrieved_at": "2026-09-28T00:30:35.729547+00:00",
+      "sha256": "46e8224ab19d2f9a5922264b3e14e5972b4ce68bb404f1575f02cb7c7ee0bf46",
+      "source_id": "cra-payroll-tables-on-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2026
+}

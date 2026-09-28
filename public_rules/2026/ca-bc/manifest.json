@@ -1,0 +1,30 @@
+{
+  "jurisdiction": "CA-BC",
+  "provider_id": "ca.bc",
+  "rule_sets": [
+    {
+      "filename": "ca-bc-2026-official.json",
+      "rule_set_id": "ca-bc-2026-official",
+      "sha256": "cd26bf7f7dd10da8c79599668bbae9459ec1794b08b32743de966d132aa062fe"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-bc-brackets-2026.html",
+      "retrieved_at": "2026-09-28T00:11:16.615585+00:00",
+      "sha256": "e90fa0b4667fecbf75ff9bb5d5e800693514072ac6766cf1e605536480fd9261",
+      "source_id": "cra-bc-brackets-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/esdc-cpp-figures-2026.html",
+      "retrieved_at": "2026-09-28T00:11:17.722446+00:00",
+      "sha256": "6c818b32d72b4ba882af67cfa9ae63f45375dba87d3c6b62d1ade905545ca228",
+      "source_id": "esdc-cpp-figures-2026",
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-july-september.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2026
+}

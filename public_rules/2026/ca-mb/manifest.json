@@ -1,0 +1,46 @@
+{
+  "jurisdiction": "CA-MB",
+  "provider_id": "ca.mb",
+  "rule_sets": [
+    {
+      "filename": "ca-mb-2026-official.json",
+      "rule_set_id": "ca-mb-2026-official",
+      "sha256": "865470f0691c0d5d90933210b475c1a666c9eb6ee585437247234df80cf361dc"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-mb-brackets-2026.html",
+      "retrieved_at": "2026-09-28T00:40:41.129803+00:00",
+      "sha256": "54c27eb95bc584e5a68eef6ac75496e9effcb7e8bc9d74a7b3261dba984876d4",
+      "source_id": "cra-mb-brackets-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/esdc-cpp-figures-2026.html",
+      "retrieved_at": "2026-09-28T00:40:42.360448+00:00",
+      "sha256": "5d1581f95ad19df9c8e55322e981e2f9db94aee9b1c8ffff1e3036517a4bd456",
+      "source_id": "esdc-cpp-figures-2026",
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-july-september.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-payroll-tables-mb-2026.html",
+      "retrieved_at": "2026-09-28T00:40:45.485614+00:00",
+      "sha256": "4ac25362c515645069c97d12e2855963cbdc500ef3b47e4f2064ffe2de5ad72d",
+      "source_id": "cra-payroll-tables-mb-2026",
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032mb-jan/t4032mb-january-general-information.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-manitoba-bpa-phaseout.html",
+      "retrieved_at": "2026-09-28T00:40:47.650501+00:00",
+      "sha256": "6b311e9b260944792299b85e5ea39aff0567eaf342affae72907c0470f819dfd",
+      "source_id": "cra-manitoba-bpa-phaseout",
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables-previous-years/t4032mb-january-2025/t4032mb-january-general-information.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2026
+}

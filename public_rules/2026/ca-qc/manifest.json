@@ -1,0 +1,38 @@
+{
+  "jurisdiction": "CA-QC",
+  "provider_id": "ca.qc",
+  "rule_sets": [
+    {
+      "filename": "ca-qc-2026-official.json",
+      "rule_set_id": "ca-qc-2026-official",
+      "sha256": "2f2a5df15e378ca86d57d33d89da42682e0e8f24033f432dff18e57136bd0e55"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/rq-income-tax-rates-2026.html",
+      "retrieved_at": "2026-09-28T00:29:57.145830+00:00",
+      "sha256": "c9e97f0a41c132fcbaaf86019ba5b7f3ac3ab11f2a0d8d3a517df2f43cdb5790",
+      "source_id": "rq-income-tax-rates-2026",
+      "url": "https://www.revenuquebec.ca/en/citizens/income-tax-return/completing-your-income-tax-return/income-tax-rates/?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/rq-qpp-pensionable-earnings-contributions.html",
+      "retrieved_at": "2026-09-28T00:29:57.283374+00:00",
+      "sha256": "b3ab9579cf4ca9bde1a58efdecd47e85773ab44b854590fa14562bfc755f6d38",
+      "source_id": "rq-qpp-pensionable-earnings-contributions",
+      "url": "https://www.retraitequebec.gouv.qc.ca/en/programs/quebec-pension-plan/work-contributions/pensionable-earnings-contributions"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/finance-canada-quebec-abatement.html",
+      "retrieved_at": "2026-09-28T00:29:59.429271+00:00",
+      "sha256": "aa65755b58a9a97254dec2630aa5a4ac06c90f21dd5d3a7c0e14771f042736b0",
+      "source_id": "finance-canada-quebec-abatement",
+      "url": "https://www.canada.ca/en/department-finance/programs/federal-transfers/quebec-abatement.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2026
+}

@@ -1,0 +1,30 @@
+{
+  "jurisdiction": "CA-SK",
+  "provider_id": "ca.sk",
+  "rule_sets": [
+    {
+      "filename": "ca-sk-2025-official.json",
+      "rule_set_id": "ca-sk-2025-official",
+      "sha256": "4d1a93da298999b4bf3a2a8458c93ace874412f636792d50bc87791064d26f60"
+    }
+  ],
+  "sources": [
+    {
+      "content_type": "text/html",
+      "filename": "sources/cra-sk-brackets-2025.html",
+      "retrieved_at": "2026-09-28T00:11:23.271644+00:00",
+      "sha256": "b88c33b0825dc1521b2dd7e37859fa285a495c8ae633c452d2fb3660dde7d17b",
+      "source_id": "cra-sk-brackets-2025",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/last-year.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/html",
+      "filename": "sources/esdc-cpp-figures-2025.html",
+      "retrieved_at": "2026-09-28T00:11:24.374835+00:00",
+      "sha256": "536a1975ec253a1a55be6152a7335c1612d961b104ea7056b27a986038734ba4",
+      "source_id": "esdc-cpp-figures-2025",
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2025-quarterly-july-september.html?wbdisable=true"
+    }
+  ],
+  "tax_year": 2025
+}

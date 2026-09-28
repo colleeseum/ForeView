@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Set up the retirement model</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">2026 baseline</p>
+      <h1>Set up the model</h1>
+      <p class="lede">Enter the people, accounts, current balances, and fixed-term deposits used by retirement projections.</p>
+      <p><a class="setup-link" href="{{ url_for('index') }}">Back to summary</a></p>
+    </header>
+    <div id="setup-message" class="form-message" role="status"></div>
+    <nav class="setup-tabs" aria-label="Setup sections">
+      <button class="setup-tab active" data-tab="people-panel" type="button">People</button>
+      <button class="setup-tab" data-tab="accounts-panel" type="button">Accounts</button>
+      <button class="setup-tab" data-tab="balances-panel" type="button">Balances and GICs</button>
+      <button class="setup-tab" data-tab="scenario-panel" type="button">Scenario</button>
+    </nav>
+    <section class="setup-grid">
+      <article class="setup-panel active" id="people-panel">
+        <p class="eyebrow">1. People</p>
+        <h2>People</h2>
+        <form id="person-form" class="setup-form">
+          <label>Name<input name="name" required placeholder="Alex Example"></label>
+          <label>Birth date<input name="birth_date" type="date" required></label>
+          <button type="submit">Add person</button>
+        </form>
+        <ul id="people-list" class="record-list"></ul>
+      </article>
+      <article class="setup-panel" id="accounts-panel">
+        <p class="eyebrow">2. Accounts</p>
+        <h2>Accounts</h2>
+        <form id="account-form" class="setup-form">
+          <label>Institution<input name="institution" required placeholder="Questrade or EQ"></label>
+          <label>Account name<input name="name" placeholder="Optional description"></label>
+          <label>Account number<input name="account_number" required placeholder="Required bank or broker number"></label>
+          <label>Category<select name="category"><option value="non_registered">Non-registered savings</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option></select></label>
+          <fieldset><legend>Ownership</legend><div id="owner-fields"></div></fieldset>
+          <button type="submit">Add account</button>
+        </form>
+        <div id="accounts-list" class="record-list"></div>
+      </article>
+      <article class="setup-panel" id="balances-panel">
+        <p class="eyebrow">3. Baseline values</p>
+        <h2>Balances and GICs</h2>
+        <form id="balance-form" class="setup-form">
+          <label>Account<select name="account_id" id="balance-account" required></select></label>
+          <label>Date<input name="date" type="date" value="2026-01-01" required></label>
+          <label>Total balance<input name="amount" type="number" min="0" step="0.01" required></label>
+          <label>Current annual rate (%), optional<input name="interest_rate" type="number" min="0" step="0.01" placeholder="2.75"><small>Enter the rate as a percentage.</small></label>
+          <button type="submit">Save balance</button>
+        </form>
+        <form id="gic-form" class="setup-form subform">
+          <label>GIC account<select name="account_id" id="gic-account" required></select></label>
+          <label>Name<input name="name" required placeholder="RBC GIC 1"></label>
+          <label>Principal<input name="principal" type="number" min="0" step="0.01" required></label>
+          <label>Interest rate<input name="interest_rate" type="number" min="0" step="0.0001" required placeholder="0.0565"></label>
+          <label>Start date<input name="start_date" type="date" required></label>
+          <label>Maturity date<input name="maturity_date" type="date" required></label>
+          <label class="checkbox"><input name="redeemable" type="checkbox"> Redeemable before maturity</label>
+          <button type="submit">Add GIC</button>
+        </form>
+      </article>
+      <article class="setup-panel" id="scenario-panel">
+        <p class="eyebrow">4. Scenario</p>
+        <h2>Baseline scenario</h2>
+        <form id="scenario-form" class="setup-form">
+          <label>Name<input name="name" value="Baseline 2026" required></label>
+          <label>Baseline date<input name="baseline_date" type="date" value="2026-01-01" required></label>
+          <label>General annual growth<input name="growth_rate" type="number" value="0.04" step="0.001" required></label>
+          <button type="submit">Create scenario</button>
+        </form>
+      </article>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+  <script src="{{ url_for('static', filename='setup.js', v='20260924-2') }}"></script>
+</body>
+</html>

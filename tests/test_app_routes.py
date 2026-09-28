@@ -71,6 +71,31 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/import", json={}).status_code, 404)
         self.assertEqual(self.client.get("/api/taxes/years").status_code, 404)
 
+    def test_account_page_loads_native_javascript_modules(self):
+        page = self.client.get("/accounts")
+
+        self.assertIn(b'type="module"', page.data)
+        self.assertIn(b"accounts.mjs", page.data)
+        for filename in (
+            "accounts.mjs",
+            "account-dialog.mjs",
+            "accounts-api.mjs",
+            "accounts-format.mjs",
+            "accounts-real-estate.mjs",
+            "accounts-render.mjs",
+            "accounts-state.mjs",
+            "form-state.mjs",
+            "gic-dialog.mjs",
+            "ownership-fields.mjs",
+        ):
+            with self.subTest(filename=filename):
+                response = self.client.get(f"/static/{filename}")
+                try:
+                    self.assertEqual(response.status_code, 200)
+                    self.assertIn("javascript", response.content_type)
+                finally:
+                    response.close()
+
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()
         page = untrusted_client.get("/accounts")

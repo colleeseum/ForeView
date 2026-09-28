@@ -1,9 +1,10 @@
-.PHONY: install-dev format format-check lint javascript typecheck test coverage integration-coverage coverage-target security audit qa load-questrade-dev update-public-rules
+.PHONY: install-dev format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target security audit qa load-questrade-dev update-public-rules
 
 PYTHON := .venv/bin/python
 
 install-dev:
 	$(PYTHON) -m pip install -r requirements-dev.txt
+	npm ci
 
 format:
 	$(PYTHON) -m ruff format .
@@ -17,7 +18,13 @@ lint:
 
 javascript:
 	@for file in static/*.mjs; do node --check $$file || exit 1; done
-	node --test tests/js/*.test.mjs
+	npm test
+
+javascript-coverage:
+	npm run coverage
+
+javascript-audit:
+	npm run audit
 
 typecheck:
 	$(PYTHON) -m mypy
@@ -49,4 +56,4 @@ load-questrade-dev:
 update-public-rules:
 	$(PYTHON) update_public_rules.py
 
-qa: format-check lint javascript typecheck coverage integration-coverage security audit
+qa: format-check lint javascript javascript-coverage javascript-audit typecheck coverage integration-coverage security audit

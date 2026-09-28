@@ -1,0 +1,12 @@
+{
+  "name": "retirement-model-browser",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/js/*.test.mjs",
+    "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=8 --branches=50 --functions=48 --lines=8 npm test",
+    "audit": "npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "c8": "10.1.3"
+  }
+}

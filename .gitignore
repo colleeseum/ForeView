@@ -23,3 +23,5 @@ coverage*.xml
 .pytest_cache/
 .ruff_cache/
 htmlcov/
+coverage/
+node_modules/

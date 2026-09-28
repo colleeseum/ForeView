@@ -298,6 +298,17 @@ class AppRouteTests(unittest.TestCase):
             ).fetchone()
         self.assertEqual(stored, (10000000000000001,))
 
+    def test_invalid_money_inputs_return_clear_client_errors(self):
+        account_id = self.client.get("/api/model/accounts").get_json()["accounts"][0]["id"]
+        for amount in ("abc", "", "12,50", "inf"):
+            with self.subTest(amount=amount):
+                response = self.client.post(
+                    f"/api/model/accounts/{account_id}/balance",
+                    json={"date": "2026-09-28", "amount": amount},
+                )
+                self.assertEqual(response.status_code, 400)
+                self.assertIn("Invalid amount", response.get_json()["error"])
+
     def test_real_estate_api_preserves_decimal_text_until_cents_storage(self):
         with closing(sqlite3.connect(self.database)) as connection:
             person_id = connection.execute("SELECT id FROM people ORDER BY id LIMIT 1").fetchone()[

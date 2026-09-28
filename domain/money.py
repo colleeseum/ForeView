@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import TypeAlias
 
 MoneyInput: TypeAlias = Decimal | int | float | str
@@ -10,7 +10,13 @@ HUNDRED = Decimal(100)
 
 def as_decimal(value: MoneyInput) -> Decimal:
     """Convert external numeric input without inheriting binary-float arithmetic."""
-    return Decimal(str(value)).quantize(CENT, rounding=ROUND_HALF_UP)
+    try:
+        amount = Decimal(str(value))
+        if not amount.is_finite():
+            raise ValueError(f"Invalid amount: {value!r}")
+        return amount.quantize(CENT, rounding=ROUND_HALF_UP)
+    except InvalidOperation as error:
+        raise ValueError(f"Invalid amount: {value!r}") from error
 
 
 def to_cents(value: MoneyInput) -> int:

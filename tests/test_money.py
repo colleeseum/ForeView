@@ -20,6 +20,11 @@ class MoneyTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             from_cents(12.5)
 
+    def test_invalid_and_non_finite_amounts_are_rejected_as_value_errors(self):
+        for value in ("abc", "", "12,50", "inf", "-Infinity", "nan"):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "Invalid amount"):
+                as_decimal(value)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,18 +1,19 @@
 import {isSecurityAccount, money} from './accounts-format.mjs';
 import {renderRealEstate} from './accounts-real-estate.mjs';
 import {assetGroups, assetState} from './accounts-state.mjs';
+import {escapeHtml} from './html.mjs';
 
 function renderHoldings(accountId) {
   const accountHoldings = assetState.holdings.filter((item) => Number(item.account_id) === Number(accountId));
   const account = assetState.accounts.find((item) => Number(item.id) === Number(accountId));
   if (!account || (!accountHoldings.length && !isSecurityAccount(account))) return '';
   const total = accountHoldings.reduce((sum, item) => sum + Number(item.market_value || 0), 0);
-  const rows = accountHoldings.map((item) => `<tr><td>${item.fund_code} ${item.fund_name}</td><td>${item.asset_class || ''}</td><td>${Number(item.units).toLocaleString(undefined, {minimumFractionDigits: 3, maximumFractionDigits: 5})}</td><td>${money(item.unit_price)}</td><td>${money(item.market_value)}</td><td>${item.allocation_pct == null ? '' : `${Number(item.allocation_pct).toFixed(1)}%`}</td><td>${item.valuation_date}</td></tr>`).join('');
+  const rows = accountHoldings.map((item) => `<tr><td>${escapeHtml(item.fund_code)} ${escapeHtml(item.fund_name)}</td><td>${escapeHtml(item.asset_class)}</td><td>${Number(item.units).toLocaleString(undefined, {minimumFractionDigits: 3, maximumFractionDigits: 5})}</td><td>${money(item.unit_price)}</td><td>${money(item.market_value)}</td><td>${item.allocation_pct == null ? '' : `${Number(item.allocation_pct).toFixed(1)}%`}</td><td>${escapeHtml(item.valuation_date)}</td></tr>`).join('');
   const accountTotal = account.latest_amount == null ? null : Number(account.latest_amount);
   const cash = accountTotal == null ? null : Math.max(0, accountTotal - total);
-  const summary = `${account.institution || ''} · ${account.account_number || ''} · ${accountHoldings.length} securities · securities ${money(total)}${accountTotal == null ? '' : ` · cash ${money(cash)} · account total ${money(accountTotal)}`}`;
+  const summary = `${escapeHtml(account.institution)} · ${escapeHtml(account.account_number)} · ${accountHoldings.length} securities · securities ${money(total)}${accountTotal == null ? '' : ` · cash ${money(cash)} · account total ${money(accountTotal)}`}`;
   const valuationDate = accountHoldings[0]?.valuation_date || account.latest_date || '';
-  const cashRow = cash == null ? '' : `<tr class="portfolio-cash-row"><td colspan="4">Cash not invested</td><td>${money(cash)}</td><td></td><td>${valuationDate}</td></tr>`;
+  const cashRow = cash == null ? '' : `<tr class="portfolio-cash-row"><td colspan="4">Cash not invested</td><td>${money(cash)}</td><td></td><td>${escapeHtml(valuationDate)}</td></tr>`;
   const completeTotal = accountTotal == null ? total : accountTotal;
   return `<section id="portfolio-${accountId}" class="asset-section portfolio-section" hidden><div class="section-heading"><div><h2>Portfolio</h2><p class="section-total">${summary}</p></div></div><div class="table-card"><table><thead><tr><th>Fund</th><th>Asset class</th><th>Units</th><th>Unit price</th><th>Market value</th><th>Allocation</th><th>As of</th></tr></thead><tbody>${rows}${cashRow}</tbody><tfoot><tr><th colspan="4">Securities total</th><th>${money(total)}</th><th colspan="2"></th></tr><tr class="total-row"><th colspan="4">Total account value</th><th>${money(completeTotal)}</th><th colspan="2"></th></tr></tfoot></table></div></section>`;
 }
@@ -25,7 +26,7 @@ function accountRow(account, items, hasMaturity, hasNotInvested) {
     : null;
   const notInvestedCell = notInvested == null ? '' : `<span class="attention-value">${money(notInvested)}</span>`;
   const displayedBalance = account.parent_account_id ? account.latest_amount : account.rollup_amount;
-  const row = `<tr class="${account.asset_kind === 'gic' ? 'subaccount-row' : 'parent-row'}">${account.asset_kind === 'gic' ? `<td colspan="2"><span class="tree-branch">└─</span>${account.name || ''}</td>` : `<td>${account.institution || ''} · ${account.account_number || ''}</td><td>${account.name || ''}</td>`}${hasMaturity ? `<td>${account.maturity_date || ''}</td>` : ''}<td>${displayedBalance == null ? '' : Number(displayedBalance).toLocaleString()}</td>${hasNotInvested ? `<td>${notInvestedCell}</td>` : ''}<td>${account.interest_rate == null ? '' : `${(Number(account.interest_rate) * 100).toFixed(2)}%`}</td><td>${account.asset_kind === 'gic' ? (account.redeemable ? 'Yes' : 'No') : ''}</td><td><button class="table-action" type="button" data-edit-account="${account.id}">Edit</button>${account.asset_kind !== 'gic' ? ` <button class="table-action" type="button" data-add-subaccount="${account.id}">Add subaccount</button>` : ''}${isSecurityAccount(account) ? ` <button class="table-action" type="button" data-toggle-portfolio="${account.id}">Portfolio</button>` : ''}</td></tr>`;
+  const row = `<tr class="${account.asset_kind === 'gic' ? 'subaccount-row' : 'parent-row'}">${account.asset_kind === 'gic' ? `<td colspan="2"><span class="tree-branch">└─</span>${escapeHtml(account.name)}</td>` : `<td>${escapeHtml(account.institution)} · ${escapeHtml(account.account_number)}</td><td>${escapeHtml(account.name)}</td>`}${hasMaturity ? `<td>${escapeHtml(account.maturity_date)}</td>` : ''}<td>${displayedBalance == null ? '' : Number(displayedBalance).toLocaleString()}</td>${hasNotInvested ? `<td>${notInvestedCell}</td>` : ''}<td>${account.interest_rate == null ? '' : `${(Number(account.interest_rate) * 100).toFixed(2)}%`}</td><td>${account.asset_kind === 'gic' ? (account.redeemable ? 'Yes' : 'No') : ''}</td><td><button class="table-action" type="button" data-edit-account="${Number(account.id)}">Edit</button>${account.asset_kind !== 'gic' ? ` <button class="table-action" type="button" data-add-subaccount="${Number(account.id)}">Add subaccount</button>` : ''}${isSecurityAccount(account) ? ` <button class="table-action" type="button" data-toggle-portfolio="${Number(account.id)}">Portfolio</button>` : ''}</td></tr>`;
   const hasGicChildren = account.asset_kind !== 'gic'
     && items.some((child) => child.parent_account_id === account.id && child.asset_kind === 'gic');
   if (!hasGicChildren) return row;

@@ -71,12 +71,29 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/import", json={}).status_code, 404)
         self.assertEqual(self.client.get("/api/taxes/years").status_code, 404)
 
-    def test_account_page_loads_native_javascript_modules(self):
-        page = self.client.get("/accounts")
-
-        self.assertIn(b'type="module"', page.data)
-        self.assertIn(b"accounts.mjs", page.data)
+    def test_pages_load_native_javascript_modules(self):
+        expected_entries = {
+            "/": "dashboard.mjs",
+            "/setup": "setup.mjs",
+            "/accounts": "accounts.mjs",
+            "/connections": "connections.mjs",
+            "/transactions": "transactions.mjs",
+        }
+        for path, filename in expected_entries.items():
+            with self.subTest(path=path):
+                page = self.client.get(path)
+                self.assertIn(b'type="module"', page.data)
+                self.assertIn(filename.encode(), page.data)
         for filename in (
+            "button-action.mjs",
+            "connections.mjs",
+            "dashboard.mjs",
+            "html.mjs",
+            "latest-request.mjs",
+            "setup-values.mjs",
+            "setup.mjs",
+            "transactions-render.mjs",
+            "transactions.mjs",
             "accounts.mjs",
             "account-dialog.mjs",
             "accounts-api.mjs",

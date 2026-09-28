@@ -1,5 +1,6 @@
+import {escapeHtml} from './html.mjs';
+
 const money = (value) => Number(value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
 
 async function loadDashboard() {
   const response = await fetch('/api/dashboard');
@@ -15,7 +16,7 @@ async function loadDashboard() {
   const uninvestedCard = `<a href="/accounts" class="summary-pill summary-pill-alert"><p>Cash in security accounts</p><strong>$${money(data.uninvested_security_value)}</strong><small>Not in securities or GICs · review Assets</small></a>`;
   const lowRateCard = `<a href="/accounts" class="summary-pill summary-pill-alert"><p>Savings below ${(data.savings_threshold * 100).toFixed(2)}%</p><strong>$${money(data.low_rate_value)}</strong><small>Review accounts below threshold · review Assets</small></a>`;
   document.querySelector('#dashboard-metrics').innerHTML = regularMetrics.map(([label, value, note]) => `<article class="summary-pill"><p>${label}</p><strong>${value}</strong><small>${note}</small></article>`).join('') + uninvestedCard + lowRateCard;
-  document.querySelector('#dashboard-categories').innerHTML = data.categories.map((item) => `<div class="dashboard-line"><span>${item.label} <small>${item.count} account${item.count === 1 ? '' : 's'}</small></span><strong>$${money(item.total)}</strong></div>`).join('');
+  document.querySelector('#dashboard-categories').innerHTML = data.categories.map((item) => `<div class="dashboard-line"><span>${escapeHtml(item.label)} <small>${Number(item.count)} account${item.count === 1 ? '' : 's'}</small></span><strong>$${money(item.total)}</strong></div>`).join('');
   const categoryLabels = {non_registered: 'Non-registered', tfsa: 'TFSA', rrsp: 'RRSP'};
   document.querySelector('#dashboard-liquidity').innerHTML = `${Object.entries(data.liquidity_by_type).filter(([type]) => type !== 'rrsp').map(([type, value]) => `<div class="dashboard-line"><span>${categoryLabels[type]}</span><strong>$${money(value)}</strong></div>`).join('')}<div class="dashboard-line"><span>RRSP uninvested <small>Pre-tax and excluded from liquidity</small></span><strong>$${money(data.rrsp_uninvested)}</strong></div>`;
   document.querySelector('#dashboard-maturities').innerHTML = data.maturities.length

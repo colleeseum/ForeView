@@ -1,3 +1,5 @@
+import {escapeHtml} from './html.mjs';
+
 function shareInput(container, ownerId) {
   return container.querySelector(`[data-owner-share="${ownerId}"]`);
 }
@@ -22,7 +24,7 @@ export function renderOwnershipFields(container, people, selected = [], onChange
     const label = document.createElement('label');
     const share = selectedById.get(person.id) || 100;
     label.className = 'owner-field';
-    label.innerHTML = `<input type="checkbox" data-owner-id="${person.id}" ${selectedById.has(person.id) ? 'checked' : ''}> <span>${person.name}</span><input type="number" data-owner-share="${person.id}" value="${share}" min="0.01" max="100" step="0.01">%`;
+    label.innerHTML = `<input type="checkbox" data-owner-id="${Number(person.id)}" ${selectedById.has(person.id) ? 'checked' : ''}> <span>${escapeHtml(person.name)}</span><input type="number" data-owner-share="${Number(person.id)}" value="${share}" min="0.01" max="100" step="0.01">%`;
     label.querySelector('input[type="checkbox"]').addEventListener('change', () => {
       adjustDefaultShares(container);
       onChange();

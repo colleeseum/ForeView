@@ -1,10 +1,9 @@
+import {runButtonAction} from './button-action.mjs';
+import {escapeHtml} from './html.mjs';
+
 const connectionList = document.querySelector('#connection-list');
 const syncAllButton = document.querySelector('#sync-all');
 let connectedInstitutions = [];
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (character) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
-}
 
 async function loadConnections() {
   const discoveryResponse = await fetch('/api/institutions');
@@ -43,7 +42,7 @@ async function loadConnections() {
       ? `<div class="connection-actions"><button class="view-action sync-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">Sync ${escapeHtml(institution.display_name)} ${escapeHtml(name)}</button>`
         + `<label class="refetch-field" title="Fetch this login's activity again from a date, for example when a reconciled balance no longer matches. Already-imported activity is skipped.">Re-fetch from <input class="refetch-date" type="date" data-connection="${escapeHtml(name)}"></label>`
         + `<button class="view-action refetch-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">Re-fetch</button></div>`
-      : `<a class="view-action" href="${institution.connection.connect_path}?connection=${encodeURIComponent(name)}">Connect ${escapeHtml(institution.display_name)} ${escapeHtml(name)}</a>`;
+      : `<a class="view-action" href="${escapeHtml(institution.connection.connect_path)}?connection=${encodeURIComponent(name)}">Connect ${escapeHtml(institution.display_name)} ${escapeHtml(name)}</a>`;
     return `<article class="connection-card"><div><p class="eyebrow">${escapeHtml(institution.display_name)}</p><h2>${escapeHtml(name)}</h2><p class="connection-status">${detail}</p></div>${action}</article>`;
   }).join('');
 }
@@ -51,8 +50,6 @@ async function loadConnections() {
 async function sync(provider, connection = null, reload = true, fetchFrom = null) {
   const institution = connectedInstitutions.find((item) => item.key === provider);
   if (!institution) throw new Error(`Unknown connection provider: ${provider}`);
-  const button = connection ? document.querySelector(`[data-provider="${CSS.escape(provider)}"][data-connection="${CSS.escape(connection)}"]`) : syncAllButton;
-  if (button) { button.disabled = true; button.textContent = 'Syncing...'; }
   const payload = connection ? {connection} : {};
   if (fetchFrom) payload.fetch_from = fetchFrom;
   const response = await fetch(institution.connection.sync_path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
@@ -86,17 +83,33 @@ function showError(error) {
   connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice error" role="alert">${escapeHtml(error.message)}</p>`);
 }
 
-connectionList.addEventListener('click', (event) => {
+connectionList.addEventListener('click', async (event) => {
   const button = event.target.closest('.sync-connection');
-  if (button) sync(button.dataset.provider, button.dataset.connection).catch(showError);
+  if (button) {
+    try {
+      await runButtonAction(button, 'Syncing...', () => sync(button.dataset.provider, button.dataset.connection));
+    } catch (error) {
+      showError(error);
+    }
+    return;
+  }
   const refetch = event.target.closest('.refetch-connection');
   if (refetch) {
-    const input = connectionList.querySelector(`.refetch-date[data-connection="${CSS.escape(refetch.dataset.connection)}"]`);
+    const input = refetch.closest('.connection-actions')?.querySelector('.refetch-date');
     if (!input?.value) {
       showError(new Error('Choose the date to re-fetch activity from.'));
       return;
     }
-    sync(refetch.dataset.provider, refetch.dataset.connection, true, input.value).catch(showError);
+    try {
+      await runButtonAction(refetch, 'Re-fetching...', () => sync(
+        refetch.dataset.provider,
+        refetch.dataset.connection,
+        true,
+        input.value,
+      ));
+    } catch (error) {
+      showError(error);
+    }
   }
 });
 loadConnections().catch((error) => { connectionList.innerHTML = `<div class="empty-panel"><p>Could not load connections: ${escapeHtml(error.message)}</p></div>`; });

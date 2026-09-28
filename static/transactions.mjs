@@ -1,3 +1,6 @@
+import {createLatestRequestGate} from './latest-request.mjs';
+import {importHistoryHtml, transactionsTableHtml} from './transactions-render.mjs';
+
 const tabs = document.querySelectorAll('.view-tab');
 const importDialog = document.querySelector('#import-dialog');
 const importForm = document.querySelector('#transaction-import-form');
@@ -20,6 +23,8 @@ const pageParams = new URLSearchParams(window.location.search);
 const validTypes = ['non_registered', 'tfsa', 'rrsp'];
 let transactionType = validTypes.includes(pageParams.get('type')) ? pageParams.get('type') : 'non_registered';
 let requestedAccountId = pageParams.get('account_id') || '';
+const transactionsGate = createLatestRequestGate();
+const historyGate = createLatestRequestGate();
 
 const typeLabels = {non_registered: 'Non-registered', tfsa: 'TFSA', rrsp: 'RRSP'};
 
@@ -166,60 +171,30 @@ async function loadAccounts() {
 }
 
 async function loadTransactions() {
+  const isCurrent = transactionsGate.begin();
   const params = new URLSearchParams({account_type: transactionType});
   if (accountFilter.value) params.set('account_id', accountFilter.value);
   const query = `?${params.toString()}`;
   const response = await fetch(`/api/model/transactions${query}`);
   if (!response.ok) throw new Error('Could not refresh transactions.');
   const { transactions, opening_balances: openingBalances = [] } = await response.json();
-  const target = document.querySelector('#transactions-table-content');
-  const rows = [...transactions, ...openingBalances].sort((left, right) => {
-    const dateOrder = String(right.transaction_date).localeCompare(String(left.transaction_date));
-    if (dateOrder) return dateOrder;
-    return Number(Boolean(left.is_opening_balance)) - Number(Boolean(right.is_opening_balance));
-  });
-  if (!rows.length) {
-    target.innerHTML = '<div class="empty-panel"><h2>No transactions yet</h2><p>Use Import to add bank statements.</p></div>';
-    return;
-  }
-  const balanceValue = (item, key) => {
-    const value = item[key];
-    return value == null ? '' : Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  };
-  const accountLabel = (item) => {
-    if (item.asset_kind === 'gic') {
-      const parent = [item.parent_institution, item.parent_account_number].filter(Boolean).join(' · ');
-      return `GIC · ${parent}${item.account_name ? ` · ${item.account_name}` : ''}`;
-    }
-    const account = [item.institution, item.account_number].filter(Boolean).join(' · ');
-    return `Cash · ${account || item.account_name || ''}`;
-  };
-  const balanceHeaders = accountFilter.value ? '<th>Balance after</th>' : '<th>Account balance</th><th>Combined balance</th>';
-  target.innerHTML = `<table><thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Amount</th>${balanceHeaders}<th>Cash-flow category</th></tr></thead><tbody>${rows.map((item) => {
-    const balances = accountFilter.value
-      ? `<td>${balanceValue(item, 'balance_after')}</td>`
-      : `<td>${balanceValue(item, 'balance_after')}</td><td>${balanceValue(item, 'combined_balance_after')}</td>`;
-    const amount = item.is_opening_balance ? '' : money(item.amount);
-    const category = item.is_opening_balance ? 'Balance anchor' : (item.category || 'Unclassified');
-    return `<tr${item.is_opening_balance ? ' class="opening-balance-row"' : ''}><td>${item.transaction_date}</td><td>${accountLabel(item)}</td><td>${item.description || ''}</td><td>${amount}</td>${balances}<td>${category}</td></tr>`;
-  }).join('')}</tbody></table>`;
+  if (!isCurrent()) return;
+  document.querySelector('#transactions-table-content').innerHTML = transactionsTableHtml(
+    transactions,
+    openingBalances,
+    Boolean(accountFilter.value),
+  );
 }
 
 async function loadImportHistory() {
+  const isCurrent = historyGate.begin();
   const params = new URLSearchParams({account_type: transactionType});
   if (accountFilter.value) params.set('account_id', accountFilter.value);
   const response = await fetch(`/api/model/import-history?${params.toString()}`);
   if (!response.ok) throw new Error('Could not load import history.');
   const { imports } = await response.json();
-  const target = document.querySelector('#import-history-content');
-  if (!imports.length) {
-    target.innerHTML = '<p class="field-note history-empty">No imports yet.</p>';
-    return;
-  }
-  target.innerHTML = `<div class="table-card"><table><thead><tr><th>Imported</th><th>File</th><th>Account</th><th>Rows</th><th>Status</th></tr></thead><tbody>${imports.map((item) => {
-    const status = item.reconciliation_status ? `Reconciliation: ${item.reconciliation_status}` : 'Imported';
-    return `<tr><td>${item.imported_at}</td><td>${item.filename}</td><td>${item.account_number || ''}</td><td>${item.row_count}</td><td>${status}</td></tr>`;
-  }).join('')}</tbody></table></div>`;
+  if (!isCurrent()) return;
+  document.querySelector('#import-history-content').innerHTML = importHistoryHtml(imports);
 }
 
 fileInputs.forEach((input) => input.addEventListener('change', updateImportButton));

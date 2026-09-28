@@ -1,3 +1,6 @@
+import {escapeHtml} from './html.mjs';
+import {editableAccountValues} from './setup-values.mjs';
+
 const message = document.querySelector('#setup-message');
 const peopleList = document.querySelector('#people-list');
 const accountsList = document.querySelector('#accounts-list');
@@ -46,7 +49,7 @@ async function api(url, options = {}) {
 function renderPeople() {
   peopleList.replaceChildren(...people.map((person) => {
     const item = document.createElement('li');
-    item.innerHTML = `<strong>${person.name}</strong><label class="inline-date">Birth date<input type="date" data-birth-date="${person.id}" data-original-date="${person.birth_date || ''}" value="${person.birth_date || ''}" required></label><button type="button" data-save-person="${person.id}" hidden>Save</button>`;
+    item.innerHTML = `<strong>${escapeHtml(person.name)}</strong><label class="inline-date">Birth date<input type="date" data-birth-date="${Number(person.id)}" data-original-date="${escapeHtml(person.birth_date)}" value="${escapeHtml(person.birth_date)}" required></label><button type="button" data-save-person="${Number(person.id)}" hidden>Save</button>`;
     return item;
   }));
   peopleList.querySelectorAll('[data-birth-date]').forEach((input) => input.addEventListener('input', () => {
@@ -62,7 +65,7 @@ function renderPeople() {
   ownerFields.replaceChildren(...people.map((person) => {
     const label = document.createElement('label');
     label.className = 'owner-field';
-    label.innerHTML = `<input type="checkbox" data-person-id="${person.id}"> <span>${person.name}</span><input type="number" data-share-id="${person.id}" value="100" min="0.01" max="100" step="0.01">%`;
+    label.innerHTML = `<input type="checkbox" data-person-id="${Number(person.id)}"> <span>${escapeHtml(person.name)}</span><input type="number" data-share-id="${Number(person.id)}" value="100" min="0.01" max="100" step="0.01">%`;
     return label;
   }));
 }
@@ -70,8 +73,13 @@ function renderPeople() {
 function renderAccounts() {
   accountsList.replaceChildren(...accounts.map((account) => {
     const item = document.createElement('div');
+    const values = editableAccountValues(account);
     item.className = 'account-row';
-    item.innerHTML = `<label>Institution<input data-account-field="institution" data-account-id="${account.id}" data-original-value="${account.institution || ''}" value="${account.institution || ''}"></label><label>Name<input data-account-field="name" data-account-id="${account.id}" data-original-value="${account.name || ''}" value="${account.name || ''}"></label><label>${account.asset_kind === 'gic' ? 'Reference (optional)' : 'Account number'}<input data-account-field="account_number" data-account-id="${account.id}" data-original-value="${account.account_number || ''}" value="${account.asset_kind === 'gic' ? '' : (account.account_number || '')}" ${account.asset_kind === 'gic' ? '' : 'required'}></label><span>${account.account_type} · ${account.owners || 'ownership not assigned'}</span><button type="button" data-save-account="${account.id}" hidden>Save changes</button>`;
+    item.innerHTML = `<label>Institution<input data-account-field="institution" data-account-id="${Number(account.id)}"></label><label>Name<input data-account-field="name" data-account-id="${Number(account.id)}"></label><label>${account.asset_kind === 'gic' ? 'Reference (optional)' : 'Account number'}<input data-account-field="account_number" data-account-id="${Number(account.id)}" ${account.asset_kind === 'gic' ? '' : 'required'}></label><span>${escapeHtml(account.account_type)} · ${escapeHtml(account.owners || 'ownership not assigned')}</span><button type="button" data-save-account="${Number(account.id)}" hidden>Save changes</button>`;
+    item.querySelectorAll('[data-account-field]').forEach((input) => {
+      input.value = values[input.dataset.accountField];
+      input.dataset.originalValue = values[input.dataset.accountField];
+    });
     return item;
   }));
   accountsList.querySelectorAll('[data-account-field]').forEach((input) => input.addEventListener('input', () => {

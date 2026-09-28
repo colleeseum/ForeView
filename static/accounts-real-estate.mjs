@@ -2,6 +2,7 @@ import {saveJson} from './accounts-api.mjs';
 import {money} from './accounts-format.mjs';
 import {assetState} from './accounts-state.mjs';
 import {formSignature, showError} from './form-state.mjs';
+import {escapeHtml} from './html.mjs';
 import {
   ownershipSignature,
   ownershipTotal,
@@ -58,9 +59,9 @@ export function renderRealEstate(target) {
   const assets = assetState.realEstateAssets;
   const rows = assets.map((asset) => {
     const owners = (asset.owners || []).length
-      ? asset.owners.map((owner) => `${owner.name} (${(Number(owner.share) * 100).toFixed(0)}%)`).join(', ')
+      ? asset.owners.map((owner) => `${escapeHtml(owner.name)} (${(Number(owner.share) * 100).toFixed(0)}%)`).join(', ')
       : 'Unassigned';
-    return `<tr class="real-estate-primary-row"><td>${asset.name}</td><td>${asset.property_type || ''}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? 'Yes' : 'No'}</td><td>${asset.valuation_date}</td><td><button class="table-action" type="button" data-edit-real-estate="${asset.id}">Edit</button></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>Owners:</strong> ${owners}</td></tr>`;
+    return `<tr class="real-estate-primary-row"><td>${escapeHtml(asset.name)}</td><td>${escapeHtml(asset.property_type)}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? 'Yes' : 'No'}</td><td>${escapeHtml(asset.valuation_date)}</td><td><button class="table-action" type="button" data-edit-real-estate="${Number(asset.id)}">Edit</button></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>Owners:</strong> ${owners}</td></tr>`;
   }).join('');
   const total = assets.reduce((sum, asset) => sum + Number(asset.estimated_value || 0), 0);
   target.innerHTML = `<section class="asset-section"><div class="section-heading"><div><h2>Real estate</h2><p class="section-total">${assets.length} asset${assets.length === 1 ? '' : 's'} · current estimated value ${money(total)}</p></div><button class="view-action section-add-account" type="button" data-add-real-estate>+ Add</button></div>${assets.length ? `<div class="table-card"><table class="real-estate-table"><thead><tr><th>Asset</th><th>Type</th><th>Estimated value</th><th>ACB</th><th>Ownership</th><th>Principal residence</th><th>As of</th><th></th></tr></thead><tbody>${rows}</tbody><tfoot><tr class="total-row"><th colspan="2">Total current value</th><th>${money(total)}</th><th colspan="5"></th></tr></tfoot></table></div>` : '<div class="empty-panel"><p>No real-estate assets yet.</p></div>'}</section>`;

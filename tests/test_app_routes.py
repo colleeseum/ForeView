@@ -258,13 +258,17 @@ class AppRouteTests(unittest.TestCase):
             },
         )
         self.assertEqual(gic.status_code, 201)
-        account = next(
-            item
-            for item in self.client.get("/api/model/accounts").get_json()["accounts"]
-            if item["id"] == account_id
-        )
+        account_data = self.client.get("/api/model/accounts").get_json()["accounts"]
+        account = next(item for item in account_data if item["id"] == account_id)
         self.assertEqual(account["latest_amount"], 1100)
         self.assertEqual(account["interest_rate"], 0.0375)
+        child = next(item for item in account_data if item["parent_account_id"] == account_id)
+        self.assertEqual(child["asset_kind"], "gic")
+        self.assertEqual(child["name"], "Route GIC")
+        self.assertEqual(child["latest_amount"], 500)
+        self.assertEqual(child["interest_rate"], 0.04)
+        self.assertTrue(child["redeemable"])
+        self.assertEqual(child["owner_details"], f"{owner_id}:1.0")
         self.assertEqual(self.client.post("/api/model/accounts", json={}).status_code, 400)
 
     def test_account_balance_api_preserves_decimal_text_until_cents_storage(self):

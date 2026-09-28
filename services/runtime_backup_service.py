@@ -54,12 +54,12 @@ class RuntimeBackupService:
     ) -> Path | None:
         backup = backup.expanduser().resolve()
         files = self._verify(backup)
-        existing = runtime.database_path.exists() or runtime.config_path.exists()
-        if existing and not replace:
+        existing_database = runtime.database_path.exists()
+        if existing_database and not replace:
             raise RuntimeError("Runtime already contains data; pass --replace to restore over it")
 
         safety_backup = None
-        if existing:
+        if existing_database:
             stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
             safety_backup = runtime.data_dir.with_name(
                 f"{runtime.data_dir.name}.pre-restore-{stamp}-{uuid.uuid4().hex[:8]}"

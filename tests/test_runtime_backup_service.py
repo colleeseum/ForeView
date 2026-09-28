@@ -51,6 +51,27 @@ class RuntimeBackupServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "checksum failed"):
             self.service.restore(backup, RuntimeConfig(self.root / "restored"))
 
+    def test_restore_allows_a_runtime_containing_only_configuration(self):
+        backup = self.service.create(self.runtime, self.root / "backup")
+
+        for replace in (False, True):
+            with self.subTest(replace=replace):
+                target = RuntimeConfig(self.root / f"config-only-{replace}")
+                target.data_dir.mkdir()
+                target.config_path.write_text(json.dumps({"placeholder": True}))
+
+                safety_backup = self.service.restore(backup, target, replace=replace)
+
+                self.assertIsNone(safety_backup)
+                self.assertTrue(target.database_path.is_file())
+                self.assertEqual(
+                    json.loads(target.config_path.read_text()),
+                    {"RUNTIME_ENVIRONMENT": "synthetic"},
+                )
+                with target.connect() as connection:
+                    people = [row[0] for row in connection.execute("SELECT name FROM people")]
+                self.assertEqual(people, ["Original Person"])
+
 
 if __name__ == "__main__":
     unittest.main()

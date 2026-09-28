@@ -119,6 +119,7 @@ class PublicRuleUpdateService:
             "text/html": ".html",
             "application/xhtml+xml": ".html",
             "application/json": ".json",
+            "text/csv": ".csv",
             "text/plain": ".txt",
         }.get(content_type, ".bin")
 

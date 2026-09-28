@@ -90,6 +90,18 @@ CPP_HTML = b"""
 <tr><td>Employee/employer maximum contribution</td><td>$4,230.45</td><td>$416.00</td></tr>
 </table>
 """
+EI_CSV = b"""Table 8.7 Employment Insurance 2026 rates and amounts,,,,,\n
+EI,Maximum Annual Insurable Earnings,Employee Contribution Rate,Employer Contribution Rate,Maximum Annual Employee Premium,Maximum Annual Employer Premium\n
+Canada except QC,"68,900.00",0.0163,0.02282,"1,123.07","1,572.30"\n
+QC,"68,900.00",0.013,0.0182,895.7,"1,253.98"\n
+"""
+QPIP_CSV = b"""Table 8.8 Quebec Parental Insurance Plan 2026 rates and amounts,,,,,\n
+QPIP,Maximum Annual Insurable Earnings,Employee Contribution Rate,Employer Contribution Rate,Maximum Annual Employee Premium,Maximum Annual Employer Premium\n
+QC,"103,000.00",0.0043,0.00602,442.90,620.06\n
+"""
+QPIP_CSV_WITH_SELF_EMPLOYED = b"""QPIP,Maximum Annual Insurable Earnings,Employee Contribution Rate,Employer Contribution Rate,Self-employed Contribution Rate,Maximum Annual Employee Premium,Maximum Annual Employer Premium,Maximum Annual Self-employed Premium\r
+QC,"98,000.00",0.00494,0.00692,0.00878,484.12,678.16,860.44\r
+"""
 
 
 class FakeRetriever:
@@ -175,6 +187,8 @@ class PublicRuleProviderTests(unittest.TestCase):
                 "rq-income-tax-rates-2026": QUEBEC_TAX_HTML,
                 "rq-qpp-pensionable-earnings-contributions": QPP_HTML,
                 "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
+                "cra-ei-rates-2026": EI_CSV,
+                "cra-qpip-rates-2026": QPIP_CSV,
             }
         )
         rules = QuebecRuleProvider().fetch(2026, retriever)[0]
@@ -185,8 +199,46 @@ class PublicRuleProviderTests(unittest.TestCase):
         self.assertEqual(parameters["qpp_yampe"], 85000)
         self.assertEqual(parameters["qpp_employee_rate_first"], Decimal("0.063"))
         self.assertEqual(parameters["qpp_employee_rate_second"], Decimal("0.04"))
+        self.assertEqual(parameters["ei_employee_rate"], Decimal("0.013"))
+        self.assertEqual(parameters["ei_employee_max_premium"], Decimal("895.7"))
+        self.assertEqual(parameters["qpip_max_insurable_earnings"], Decimal("103000"))
+        self.assertEqual(parameters["qpip_employee_rate"], Decimal("0.0043"))
         other = {item.code: item.value for item in rules.other_parameters}
         self.assertEqual(other["quebec_federal_tax_abatement_rate"], Decimal("0.165"))
+
+    def test_payroll_csv_sources_accept_carriage_return_line_endings(self):
+        retriever = FakeRetriever(
+            {
+                "rq-income-tax-rates-2026": QUEBEC_TAX_HTML,
+                "rq-qpp-pensionable-earnings-contributions": QPP_HTML,
+                "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
+                "cra-ei-rates-2026": EI_CSV.replace(b"\n", b"\r"),
+                "cra-qpip-rates-2026": QPIP_CSV.replace(b"\n", b"\r"),
+            }
+        )
+
+        rules = QuebecRuleProvider().fetch(2026, retriever)[0]
+
+        parameters = {item.code: item.value for item in rules.payroll_parameters}
+        self.assertEqual(parameters["ei_employee_rate"], Decimal("0.013"))
+        self.assertEqual(parameters["qpip_employee_rate"], Decimal("0.0043"))
+
+    def test_qpip_parser_uses_headers_when_a_year_has_extra_columns(self):
+        retriever = FakeRetriever(
+            {
+                "rq-income-tax-rates-2026": QUEBEC_TAX_HTML,
+                "rq-qpp-pensionable-earnings-contributions": QPP_HTML,
+                "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
+                "cra-ei-rates-2026": EI_CSV,
+                "cra-qpip-rates-2026": QPIP_CSV_WITH_SELF_EMPLOYED,
+            }
+        )
+
+        rules = QuebecRuleProvider().fetch(2026, retriever)[0]
+
+        parameters = {item.code: item.value for item in rules.payroll_parameters}
+        self.assertEqual(parameters["qpip_employee_rate"], Decimal("0.00494"))
+        self.assertEqual(parameters["qpip_employee_max_premium"], Decimal("484.12"))
 
     def test_ontario_provider_extracts_tax_and_cpp_rules(self):
         retriever = FakeRetriever(
@@ -194,6 +246,7 @@ class PublicRuleProviderTests(unittest.TestCase):
                 "cra-on-brackets-2026": FEDERAL_TAX_HTML,
                 "esdc-cpp-figures-2026": CPP_HTML,
                 "cra-payroll-tables-on-2026": PAYROLL_TABLE_HTML,
+                "cra-ei-rates-2026": EI_CSV,
             }
         )
         provider = next(
@@ -206,6 +259,9 @@ class PublicRuleProviderTests(unittest.TestCase):
         self.assertEqual(parameters["cpp_basic_exemption"], 3500)
         self.assertEqual(parameters["cpp_employee_max_first"], Decimal("4230.45"))
         self.assertEqual(parameters["cpp_employee_rate_first"], Decimal("0.0595"))
+        self.assertEqual(parameters["ei_max_insurable_earnings"], Decimal("68900"))
+        self.assertEqual(parameters["ei_employee_rate"], Decimal("0.0163"))
+        self.assertEqual(parameters["ei_employee_max_premium"], Decimal("1123.07"))
         other = {item.code: item.value for item in rules.other_parameters}
         self.assertEqual(other["ontario_basic_personal_amount"], Decimal("12989"))
         self.assertEqual(other["ontario_surtax_threshold_first"], Decimal("5818"))

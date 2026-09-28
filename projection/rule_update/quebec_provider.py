@@ -16,6 +16,7 @@ from projection.public_rules import (
     TaxBracketSchedule,
 )
 
+from .cra_payroll_csv import payroll_record
 from .errors import RuleSourceFormatError
 from .html_document import OfficialHtmlDocument
 from .parsing import (
@@ -44,6 +45,13 @@ class QuebecRuleProvider:
         "https://www.canada.ca/en/department-finance/programs/federal-transfers/"
         "quebec-abatement.html?wbdisable=true"
     )
+    EI_URL_TEMPLATE = (
+        "https://www.canada.ca/content/dam/cra-arc/formspubs/pub/t4127-jan/ei-01-{year_short}e.csv"
+    )
+    QPIP_URL_TEMPLATE = (
+        "https://www.canada.ca/content/dam/cra-arc/formspubs/pub/"
+        "t4127-jan/qpip-01-{year_short}e.csv"
+    )
     USER_AGENT = "RetirementFinanceRuleUpdater/1.0 (+private-use)"
 
     def fetch(self, tax_year: int, retriever: SourceRetriever) -> tuple[PublicRuleSet, ...]:
@@ -67,6 +75,18 @@ class QuebecRuleProvider:
             publisher="Department of Finance Canada",
             url=self.ABATEMENT_URL,
         )
+        ei = retriever.retrieve(
+            source_id=f"cra-ei-rates-{tax_year}",
+            title=f"Employment Insurance rates and amounts for {tax_year}",
+            publisher="Canada Revenue Agency",
+            url=self.EI_URL_TEMPLATE.format(year_short=str(tax_year)[-2:]),
+        )
+        qpip = retriever.retrieve(
+            source_id=f"cra-qpip-rates-{tax_year}",
+            title=f"Quebec Parental Insurance Plan rates and amounts for {tax_year}",
+            publisher="Canada Revenue Agency",
+            url=self.QPIP_URL_TEMPLATE.format(year_short=str(tax_year)[-2:]),
+        )
         tax_document = OfficialHtmlDocument(tax.content)
         section = tax_document.section(
             f"Income tax rates for {tax_year}", f"Income tax rates for {tax_year - 1}"
@@ -76,6 +96,8 @@ class QuebecRuleProvider:
         if len(rows) < 2 or len(rows[0]) < 7 or len(rows[1]) < 7:
             raise RuleSourceFormatError(f"Incomplete QPP contribution rows for {tax_year}")
         first, second = rows[0], rows[1]
+        ei_values = payroll_record(ei.content, "EI", "QC", ei.source_id)
+        qpip_values = payroll_record(qpip.content, "QPIP", "QC", qpip.source_id)
         payroll = (
             self._money("qpp_basic_exemption", first[1], qpp.source_id),
             self._money("qpp_ympe", first[2], qpp.source_id),
@@ -84,6 +106,34 @@ class QuebecRuleProvider:
             self._rate("qpp_employee_rate_second", second[3], qpp.source_id),
             self._money("qpp_employee_max_first", first[5], qpp.source_id),
             self._money("qpp_employee_max_second", second[5], qpp.source_id),
+            self._money_decimal(
+                "ei_max_insurable_earnings",
+                ei_values["Maximum Annual Insurable Earnings"],
+                ei.source_id,
+            ),
+            self._rate_decimal(
+                "ei_employee_rate", ei_values["Employee Contribution Rate"], ei.source_id
+            ),
+            self._statutory_money(
+                "ei_employee_max_premium",
+                ei_values["Maximum Annual Employee Premium"],
+                ei.source_id,
+            ),
+            self._money_decimal(
+                "qpip_max_insurable_earnings",
+                qpip_values["Maximum Annual Insurable Earnings"],
+                qpip.source_id,
+            ),
+            self._rate_decimal(
+                "qpip_employee_rate",
+                qpip_values["Employee Contribution Rate"],
+                qpip.source_id,
+            ),
+            self._statutory_money(
+                "qpip_employee_max_premium",
+                qpip_values["Maximum Annual Employee Premium"],
+                qpip.source_id,
+            ),
         )
         abatement_match = re.search(
             r"reduction of\s+(16\.5)\s+percentage points",
@@ -101,7 +151,13 @@ class QuebecRuleProvider:
                 status=RuleStatus.OFFICIAL,
                 effective_from=date(tax_year, 1, 1),
                 effective_to=date(tax_year, 12, 31),
-                sources=(rule_source(tax), rule_source(qpp), rule_source(abatement)),
+                sources=(
+                    rule_source(tax),
+                    rule_source(qpp),
+                    rule_source(abatement),
+                    rule_source(ei),
+                    rule_source(qpip),
+                ),
                 tax_brackets=(
                     TaxBracketSchedule(
                         code="quebec_income_tax",
@@ -144,6 +200,36 @@ class QuebecRuleProvider:
             code=code,
             value=rate_value(value),
             unit=RuleUnit.RATE,
+            source_ids=(source_id,),
+            indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
+        )
+
+    @staticmethod
+    def _money_decimal(code: str, value: Decimal, source_id: str) -> RuleParameter:
+        return RuleParameter(
+            code=code,
+            value=value,
+            unit=RuleUnit.CAD,
+            source_ids=(source_id,),
+            indexing=IndexingMetadata(mechanism=IndexingMechanism.WAGE_GROWTH),
+        )
+
+    @staticmethod
+    def _rate_decimal(code: str, value: Decimal, source_id: str) -> RuleParameter:
+        return RuleParameter(
+            code=code,
+            value=value,
+            unit=RuleUnit.RATE,
+            source_ids=(source_id,),
+            indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
+        )
+
+    @staticmethod
+    def _statutory_money(code: str, value: Decimal, source_id: str) -> RuleParameter:
+        return RuleParameter(
+            code=code,
+            value=value,
+            unit=RuleUnit.CAD,
             source_ids=(source_id,),
             indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
         )

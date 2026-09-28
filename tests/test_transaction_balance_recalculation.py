@@ -195,6 +195,32 @@ class TransactionBalanceRecalculationTests(unittest.TestCase):
                 self.assertEqual(balances, expected_balances)
                 self.assertEqual(updated, expected_updates)
 
+    def test_source_exclusion_does_not_depend_on_account_institution(self):
+        with self._connection() as connection:
+            account = (
+                AccountRepository(connection)
+                .create("TFSA", "tfsa", account_number="NO-INSTITUTION", institution=None)
+                .id
+            )
+            self._add_rows(
+                connection,
+                account,
+                [
+                    ("2026-02-10", 10.0, None, {"source": "rbc_tfsa_pdf"}),
+                    ("2026-03-10", 20.0, None, None),
+                ],
+            )
+            BalanceSnapshotRepository(connection).add(account, "2026-03-31", 1000.0)
+
+            updated = TransactionService(connection).recalculate_balances(account)
+
+            balances = [
+                transaction.balance_after
+                for transaction in TransactionRepository(connection).list_for_account(account)
+            ]
+            self.assertEqual(balances, [None, 1000.0])
+            self.assertEqual(updated, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

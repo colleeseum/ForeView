@@ -35,12 +35,11 @@ class CsvImportService:
         account = self._accounts.get(account_id)
         if account is None:
             raise ValueError("Account not found")
-        provider = institution_registry().find(account.institution) if account.institution else None
-        rows = (
-            provider.csv_parser(content, account.account_number, filename)
-            if provider and provider.csv_parser
-            else None
-        )
+        rows = None
+        for parser in institution_registry().csv_parsers(account.institution):
+            rows = parser(content, account.account_number, filename)
+            if rows is not None:
+                break
         if rows is None:
             rows = parse_csv_transactions(
                 content,

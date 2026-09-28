@@ -63,7 +63,7 @@ class TransactionService:
             if account is not None and account.institution
             else None
         )
-        excluded_sources = provider.balance_excluded_sources if provider else ()
+        excluded_sources = institution_registry().balance_excluded_sources()
         include_excluded = bool(
             account
             and (

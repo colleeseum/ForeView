@@ -88,6 +88,21 @@ class CsvImportServiceTests(unittest.TestCase):
             self.assertEqual(duplicate["status"], "already_imported")
             self.assertEqual(duplicate["duplicates"], 1)
 
+    def test_rbc_csv_is_recognized_without_institution_metadata(self):
+        content = (
+            "Type de compte,Numéro du compte,Date de l'opération,Description 1,"
+            "Description 2,CAD$\n"
+            "Chèques,99999-7777777,2025-02-01,DÉPÔT,CHÈQUE,21.98\n"
+        ).encode()
+        with self._connection() as connection:
+            account = self._account(connection, institution="", number="99999-7777777")
+
+            result = CsvImportService(connection).import_transactions(account, "rbc.csv", content)
+
+            self.assertEqual(result["imported"], 1)
+            [row] = self._stored_rows(connection)
+            self.assertEqual(row[:4], ("2025-02-01", 21.98, "DÉPÔT CHÈQUE", None))
+
     def test_parser_validation_has_no_persistence_side_effects(self):
         with self._connection() as connection:
             account = self._account(connection, institution="RBC", number="123-456")

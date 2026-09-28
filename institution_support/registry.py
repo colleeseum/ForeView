@@ -6,6 +6,7 @@ import importlib
 import pkgutil
 from collections.abc import Callable, Iterable
 
+from institution_support.csv_parser import CsvParser
 from institution_support.document_importer import DocumentImporter
 from institution_support.institution_provider import InstitutionProvider
 
@@ -48,6 +49,19 @@ class InstitutionRegistry:
         return frozenset(
             source for provider in self._providers for source in provider.statement_sources
         )
+
+    def balance_excluded_sources(self) -> frozenset[str]:
+        return frozenset(
+            source for provider in self._providers for source in provider.balance_excluded_sources
+        )
+
+    def csv_parsers(self, institution: str | None = None) -> tuple[CsvParser, ...]:
+        """Return the account provider's parser first, then content-detecting fallbacks."""
+        selected = self.find(institution) if institution else None
+        ordered = ((selected,) if selected else ()) + tuple(
+            provider for provider in self._providers if provider is not selected
+        )
+        return tuple(provider.csv_parser for provider in ordered if provider.csv_parser)
 
     def holds_securities(self, institution: str | None) -> bool:
         provider = self.find(institution) if institution else None

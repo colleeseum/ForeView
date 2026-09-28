@@ -30,6 +30,9 @@ class InstitutionRegistryTests(unittest.TestCase):
         self.assertIsNotNone(rbc.csv_parser)
         self.assertEqual(rbc.balance_excluded_sources, ("rbc_tfsa_pdf",))
         self.assertEqual(rbc.balance_including_snapshot_sources, ("RBC TFSA PDF",))
+        self.assertIn("rbc_tfsa_pdf", registry.balance_excluded_sources())
+        self.assertIs(registry.csv_parsers("RBC")[0], rbc.csv_parser)
+        self.assertIn(rbc.csv_parser, registry.csv_parsers())
 
         questrade = registry.find("Questrade")
         self.assertEqual(questrade.importers, ())

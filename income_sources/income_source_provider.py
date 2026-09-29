@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from domain.parsed_annual_employment_actual import ParsedAnnualEmploymentActual
 
 IncomeParser = Callable[[bytes], ParsedAnnualEmploymentActual]
+IncomeDetector = Callable[[bytes], bool]
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,3 +19,5 @@ class IncomeSourceProvider:
     source_label: str
     help_text: str
     last_changed: str
+    detects: IncomeDetector | None = None
+    version: str = "0.1.0"

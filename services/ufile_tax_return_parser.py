@@ -16,6 +16,15 @@ class UFileTaxReturnParser:
     _SUMMARY = re.compile(r"Tax return Summary\s+for (\d{4}) taxation year", re.I)
     _NUMBER = re.compile(r"^\(?[\d,]+(?:\.\d{2})?\)?$")
 
+    @staticmethod
+    def detects(content: bytes) -> bool:
+        try:
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                text = "\n".join((page.extract_text() or "") for page in pdf.pages)
+        except (OSError, ValueError):
+            return False
+        return bool(re.search(r"Tax return Summary|UFile", text, re.IGNORECASE))
+
     def parse(self, content: bytes) -> ParsedUFileTaxReturn:
         with pdfplumber.open(io.BytesIO(content)) as pdf:
             pages = list(pdf.pages)

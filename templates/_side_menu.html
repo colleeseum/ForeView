@@ -17,5 +17,6 @@
     <a{% if active_page == 'connections' %} class="active"{% endif %} href="{{ url_for('connections_page') }}">Connections</a>
     <a{% if active_page == 'tax_rules' %} class="active"{% endif %} href="{{ url_for('public_rules.settings') }}">Tax rules</a>
     <a{% if active_page == 'settings' %} class="active"{% endif %} href="{{ url_for('pages.application_settings') }}">Settings</a>
+    <a{% if active_page == 'about' %} class="active"{% endif %} href="{{ url_for('pages.about_page') }}">About</a>
   </section>
 </aside>

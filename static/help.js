@@ -1,4 +1,8 @@
 const helpContent = {
+  income: {
+    title: 'Employment income',
+    body: 'Annual employment records are factual values retained by person and tax year. Load T1 detects the supported PDF source, previews its values, and does not save them until you review and submit. Source-specific retrieval instructions are available in the import dialog.'
+  },
   assets: {
     title: 'Assets',
     body: 'Accounts are separated by their retirement and tax rules. Non-registered, TFSA, and RRSP balances are shown independently. Property will be added as a separate asset type later.'

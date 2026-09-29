@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
+import re
 from collections.abc import Callable, Iterable
 
 from institution_support.csv_parser import CsvParser
@@ -27,6 +28,10 @@ class InstitutionRegistry:
         for provider in self._providers:
             if not provider.key or not provider.display_name:
                 raise ValueError("Institution providers require a key and display name")
+            if not re.fullmatch(
+                r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", provider.version
+            ):
+                raise ValueError(f"Institution '{provider.key}' must use SemVer")
             for name in provider.names():
                 normalized = _normalize(name)
                 existing = self._names.get(normalized)

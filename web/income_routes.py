@@ -74,8 +74,14 @@ def preview_income_source():
     if uploaded is None:
         return jsonify({"error": "An income source PDF is required"}), 400
     try:
-        source = income_source_registry.get(request.form.get("source", "ufile"))
-        parsed = source.parser(uploaded.read())
+        content = uploaded.read()
+        requested_source = request.form.get("source", "auto")
+        source = (
+            income_source_registry.detect(content)
+            if requested_source in {"", "auto"}
+            else income_source_registry.get(requested_source)
+        )
+        parsed = source.parser(content)
         return jsonify(
             {
                 "year": parsed.tax_year,
@@ -91,6 +97,11 @@ def preview_income_source():
                 "federal_tax": _money(parsed.federal_tax),
                 "provincial_tax": _money(parsed.provincial_tax),
                 "source": source.source_label,
+                "source_key": source.key,
+                "source_name": source.display_name,
+                "source_version": source.version,
+                "source_last_changed": source.last_changed,
+                "source_help": source.help_text,
                 "province_of_employment": parsed.province_of_employment or "",
                 "taxpayer_name": parsed.taxpayer_name or "",
             }
@@ -103,6 +114,24 @@ def preview_income_source():
 def preview_ufile_tax_return():
     """Compatibility endpoint for existing clients."""
     return preview_income_source()
+
+
+@blueprint.get("/api/income/sources")
+def income_sources():
+    return jsonify(
+        {
+            "sources": [
+                {
+                    "key": source.key,
+                    "display_name": source.display_name,
+                    "version": source.version,
+                    "last_changed": source.last_changed,
+                    "help_text": source.help_text,
+                }
+                for source in income_source_registry.providers
+            ]
+        }
+    )
 
 
 def _amount(payload: dict[str, Any], name: str) -> Decimal:

@@ -40,6 +40,21 @@ class FakePdf:
 
 
 class UFileTaxReturnParserTests(unittest.TestCase):
+    def test_detects_ufile_pdf_by_extracted_text(self) -> None:
+        pages = [FakePage("Tax return Summary\nfor 2024 taxation year")]
+        with patch(
+            "services.ufile_tax_return_parser.pdfplumber.open",
+            return_value=FakePdf(pages),
+        ):
+            self.assertTrue(UFileTaxReturnParser.detects(b"synthetic pdf"))
+
+    def test_does_not_detect_invalid_pdf(self) -> None:
+        with patch(
+            "services.ufile_tax_return_parser.pdfplumber.open",
+            side_effect=ValueError("not a PDF"),
+        ):
+            self.assertFalse(UFileTaxReturnParser.detects(b"not a PDF"))
+
     def test_extracts_primary_taxpayer_summary_by_government_line_number(self) -> None:
         pages = [
             FakePage("Tax return Summary - Combined\nfor 2024 taxation year"),

@@ -33,7 +33,16 @@ def income_page():
     return render_template(
         "income.html",
         latest_tax_year=date.today().year - 1,
-        ufile_source=income_source_registry.get("ufile"),
+        income_sources=income_source_registry.providers,
+    )
+
+
+@blueprint.get("/about")
+def about_page():
+    return render_template(
+        "about.html",
+        income_sources=income_source_registry.providers,
+        institutions=institution_registry().providers,
     )
 
 

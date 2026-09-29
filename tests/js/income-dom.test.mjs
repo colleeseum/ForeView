@@ -52,8 +52,8 @@ test('income screen previews a UFile return and saves only after review', async 
     if (String(url).startsWith('/api/income?')) {
       return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})]})};
     }
-    if (url === '/api/income/import/ufile/preview') {
-      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC', taxpayer_name: 'Alex'})};
+    if (url === '/api/income/import/preview') {
+      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '0.1.0'})};
     }
     if (String(url).startsWith('/api/income/people/')) {
       saved = true;
@@ -118,7 +118,7 @@ test('income screen rejects a document for another person', async () => {
   globalThis.fetch = async (url) => {
     if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
     if (String(url).startsWith('/api/income?')) return {ok: true, json: async () => ({records: []})};
-    if (url === '/api/income/import/ufile/preview') {
+    if (url === '/api/income/import/preview') {
       return {ok: true, json: async () => ({...annualRecord(), taxpayer_name: 'Jordan'})};
     }
     throw new Error(`Unexpected URL ${url}`);

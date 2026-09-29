@@ -17,6 +17,8 @@ class InstitutionProvider:
 
     key: str
     display_name: str
+    version: str = "0.1.0"
+    last_changed: str = "2026-09-29"
     aliases: tuple[str, ...] = ()
     importers: tuple[DocumentImporter, ...] = ()
     connection: ConnectionCapability | None = None

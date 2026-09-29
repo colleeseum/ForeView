@@ -13,6 +13,8 @@ const elements = {
   importClose: document.querySelector('#ufile-dialog-close'),
   importForm: document.querySelector('#ufile-form'),
   importPerson: document.querySelector('#ufile-person'),
+  importHelpText: document.querySelector('#income-import-help-text'),
+  importModuleMeta: document.querySelector('#income-import-module-meta'),
   salaryRate: document.querySelector('#income-salary-rate'),
 };
 
@@ -154,7 +156,7 @@ elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(elements.importForm);
   try {
-    const preview = await fetch('/api/income/import/ufile/preview', {
+    const preview = await fetch('/api/income/import/preview', {
       method: 'POST', body: data,
     }).then(json);
     const person = selectedPerson();
@@ -163,11 +165,17 @@ elements.importForm.addEventListener('submit', async (event) => {
     }
     elements.importDialog.hidden = true;
     elements.importForm.reset();
+    if (elements.importHelpText && preview.source_help) {
+      elements.importHelpText.textContent = preview.source_help;
+    }
+    if (elements.importModuleMeta && preview.source_name) {
+      elements.importModuleMeta.textContent = `Detected module: ${preview.source_name} ${preview.source_version} · last changed ${preview.source_last_changed}`;
+    }
     openEditor(preview);
     const identity = preview.taxpayer_name
       ? `PDF taxpayer: ${preview.taxpayer_name}. `
       : 'The PDF did not expose a taxpayer name. Verify the document before saving. ';
-    showMessage(`${identity}UFile values loaded for review. Enter any bonus, verify the values, then save.`);
+    showMessage(`${identity}${preview.source_name || 'T1'} values loaded for review. Enter any bonus, verify the values, then save.`);
   } catch (error) { showMessage(error.message, true); }
 });
 elements.form.addEventListener('submit', async (event) => {

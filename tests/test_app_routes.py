@@ -86,6 +86,7 @@ class AppRouteTests(unittest.TestCase):
             "/transactions",
             "/settings",
             "/application-settings",
+            "/about",
             "/salary-projection",
         ):
             with self.subTest(path=path):
@@ -399,10 +400,15 @@ class AppRouteTests(unittest.TestCase):
             taxpayer_name="Alex Example",
         )
         with patch(
-            "web.income_routes.income_source_registry.get"
-        ) as get_source:
-            get_source.return_value.parser.return_value = parsed
-            get_source.return_value.source_label = "UFile T1"
+            "web.income_routes.income_source_registry.detect"
+        ) as detect_source:
+            detect_source.return_value.parser.return_value = parsed
+            detect_source.return_value.source_label = "UFile T1"
+            detect_source.return_value.key = "ufile"
+            detect_source.return_value.display_name = "UFile T1 PDF"
+            detect_source.return_value.version = "0.1.0"
+            detect_source.return_value.last_changed = "2026-09-29"
+            detect_source.return_value.help_text = "Help"
             response = self.client.post(
                 "/api/income/import/ufile/preview",
                 data={"file": (io.BytesIO(b"synthetic"), "return.pdf")},
@@ -529,6 +535,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(
             providers["questrade"]["connection"]["sync_path"], "/api/connections/questrade/sync"
         )
+        self.assertRegex(providers["questrade"]["version"], r"^\d+\.\d+\.\d+$")
         self.assertIn(
             "connection", {topic["key"] for topic in providers["questrade"]["help_topics"]}
         )
@@ -538,6 +545,17 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertIn(b"Tax Return - view or download", page.data)
         self.assertIn(b"Importer last changed: 2026-09-29", page.data)
+
+        sources = self.client.get("/api/income/sources")
+        self.assertEqual(sources.status_code, 200)
+        source = sources.get_json()["sources"][0]
+        self.assertEqual(source["key"], "ufile")
+        self.assertRegex(source["version"], r"^\d+\.\d+\.\d+$")
+
+        about = self.client.get("/about")
+        self.assertIn(b"Income source modules", about.data)
+        self.assertIn(b"Institution modules", about.data)
+        self.assertIn(b"UFile T1 PDF", about.data)
 
     def test_people_can_be_created_and_updated(self):
         created = self.client.post(

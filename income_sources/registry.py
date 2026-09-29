@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from income_sources.income_source_provider import IncomeSourceProvider
@@ -12,6 +13,9 @@ class IncomeSourceRegistry:
     """Resolve factual-income importers without coupling the UI to one format."""
 
     def __init__(self, providers: tuple[IncomeSourceProvider, ...]) -> None:
+        for provider in providers:
+            if not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", provider.version):
+                raise ValueError(f"Income source '{provider.key}' must use SemVer")
         self._providers = {provider.key: provider for provider in providers}
 
     @property
@@ -24,6 +28,18 @@ class IncomeSourceRegistry:
         except KeyError as error:
             raise ValueError(f"Unsupported income source: {key}") from error
 
+    def detect(self, content: bytes) -> IncomeSourceProvider:
+        matches = tuple(
+            provider
+            for provider in self._providers.values()
+            if provider.detects and provider.detects(content)
+        )
+        if len(matches) == 1:
+            return matches[0]
+        if not matches:
+            raise ValueError("The PDF format was not recognized as a supported T1 source")
+        raise ValueError("The PDF matches more than one income source")
+
 
 income_source_registry = IncomeSourceRegistry(
     (
@@ -34,6 +50,8 @@ income_source_registry = IncomeSourceRegistry(
             source_label="UFile T1",
             help_text=_UFIlE_HELP,
             last_changed="2026-09-29",
+            detects=UFileTaxReturnParser.detects,
+            version="0.1.0",
         ),
     )
 )

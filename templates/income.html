@@ -10,7 +10,7 @@
 <body><main>
   <header>
     <p class="eyebrow">Financial records</p>
-    <h1>Employment income</h1>
+    <h1>Employment income <button class="help-button" type="button" data-help-key="income" aria-label="Employment income help">?</button></h1>
     <p class="lede">Factual annual totals retained by person and tax year.</p>
   </header>
   <div class="page-shell">
@@ -20,7 +20,7 @@
         <div class="income-toolbar">
           <div id="income-tabs" class="view-tabs" role="tablist"></div>
           <button id="income-add" class="view-action" type="button">+ Add annual record</button>
-          <button id="income-import" class="view-action" type="button">Load UFile PDF</button>
+          <button id="income-import" class="view-action" type="button">Load T1</button>
         </div>
         <p id="income-message" class="field-note" aria-live="polite"></p>
         <div id="income-history"></div>
@@ -112,21 +112,28 @@
   <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="ufile-dialog-title">
     <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
     <p class="eyebrow">Employment income</p>
-    <h2 id="ufile-dialog-title">Load UFile tax return</h2>
+    <h2 id="ufile-dialog-title">Load T1</h2>
     <p id="ufile-person" class="field-note"></p>
     <form id="ufile-form" class="income-import-form">
-      <label>UFile PDF <input name="file" type="file" accept="application/pdf" required></label>
+      <label>T1 PDF <input name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
       <details class="income-import-help">
-        <summary>How to get this PDF</summary>
-        <p>{{ ufile_source.help_text }}</p>
-        <small>Importer last changed: {{ ufile_source.last_changed }}</small>
+        <summary>Source help</summary>
+        <p id="income-import-help-text">The PDF source is detected automatically.</p>
+        {% for source in income_sources %}
+        <article class="income-source-help">
+          <strong>{{ source.display_name }} {{ source.version }}</strong>
+          <p>{{ source.help_text }}</p>
+          <small>Importer last changed: {{ source.last_changed }}</small>
+        </article>
+        {% endfor %}
+        <small id="income-import-module-meta"></small>
       </details>
       <button class="primary-action" type="submit">Preview annual values</button>
     </form>
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-5') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-6') }}"></script>
 </body>
 </html>

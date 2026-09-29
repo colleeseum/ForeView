@@ -117,6 +117,11 @@
     <form id="ufile-form" class="income-import-form">
       <label>UFile PDF <input name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
+      <details class="income-import-help">
+        <summary>How to get this PDF</summary>
+        <p>{{ ufile_source.help_text }}</p>
+        <small>Importer last changed: {{ ufile_source.last_changed }}</small>
+      </details>
       <button class="primary-action" type="submit">Preview annual values</button>
     </form>
   </section>

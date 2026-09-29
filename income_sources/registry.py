@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from income_sources.income_source_provider import IncomeSourceProvider
 from services.ufile_tax_return_parser import UFileTaxReturnParser
+
+_UFIlE_HELP = (Path(__file__).with_name("ufile_help.md")).read_text(encoding="utf-8")
 
 
 class IncomeSourceRegistry:
@@ -28,6 +32,8 @@ income_source_registry = IncomeSourceRegistry(
             display_name="UFile T1 PDF",
             parser=UFileTaxReturnParser().parse,
             source_label="UFile T1",
+            help_text=_UFIlE_HELP,
+            last_changed="2026-09-29",
         ),
     )
 )

@@ -533,6 +533,12 @@ class AppRouteTests(unittest.TestCase):
             "connection", {topic["key"] for topic in providers["questrade"]["help_topics"]}
         )
 
+    def test_income_source_contract_exposes_retrieval_help_and_change_date(self):
+        page = self.client.get("/income")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"Tax Return - view or download", page.data)
+        self.assertIn(b"Importer last changed: 2026-09-29", page.data)
+
     def test_people_can_be_created_and_updated(self):
         created = self.client.post(
             "/api/model/people", json={"name": "Casey Example", "birth_date": "1980-04-03"}

@@ -16,3 +16,5 @@ class IncomeSourceProvider:
     display_name: str
     parser: IncomeParser
     source_label: str
+    help_text: str
+    last_changed: str

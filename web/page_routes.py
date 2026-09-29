@@ -2,6 +2,7 @@ from datetime import date
 
 from flask import Blueprint, render_template
 
+from income_sources import income_source_registry
 from institution_support import institution_registry
 
 blueprint = Blueprint("pages", __name__)
@@ -29,7 +30,11 @@ def accounts_page():
 
 @blueprint.get("/income")
 def income_page():
-    return render_template("income.html", latest_tax_year=date.today().year - 1)
+    return render_template(
+        "income.html",
+        latest_tax_year=date.today().year - 1,
+        ufile_source=income_source_registry.get("ufile"),
+    )
 
 
 @blueprint.get("/connections")

@@ -138,6 +138,9 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-summary-grid strong { font-size: 1.25rem; }
 .income-import-form { display: grid; gap: 14px; }
 .income-import-form label { display: grid; gap: 5px; }
+.income-import-help { white-space: pre-line; }
+.income-import-help p { margin: 10px 0; }
+.income-import-help small { color: var(--muted); }
 .income-editor-dialog { width: min(1100px, 96vw); }
 .income-history-table { min-width: 1750px; }
 .income-history-table th, .income-history-table td { white-space: nowrap; }

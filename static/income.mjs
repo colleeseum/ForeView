@@ -8,13 +8,14 @@ const elements = {
   form: document.querySelector('#income-form'),
   editor: document.querySelector('#income-dialog-backdrop'),
   editorClose: document.querySelector('#income-dialog-close'),
+  editorPerson: document.querySelector('#income-editor-person'),
   importButton: document.querySelector('#income-import'),
   importDialog: document.querySelector('#ufile-dialog-backdrop'),
   importClose: document.querySelector('#ufile-dialog-close'),
   importForm: document.querySelector('#ufile-form'),
   importFile: document.querySelector('#income-import-file'),
   importPreview: document.querySelector('#income-import-preview'),
-  importPerson: document.querySelector('#ufile-person'),
+  importProgress: document.querySelector('#income-import-progress'),
   importHelpText: document.querySelector('#income-import-help-text'),
   importModuleMeta: document.querySelector('#income-import-module-meta'),
   salaryRate: document.querySelector('#income-salary-rate'),
@@ -43,6 +44,14 @@ function selectedPerson() {
 function updateImportAction() {
   if (elements.importPreview && elements.importFile) {
     elements.importPreview.disabled = elements.importFile.files.length === 0;
+  }
+}
+
+function setImportBusy(busy) {
+  if (elements.importProgress) elements.importProgress.hidden = !busy;
+  if (elements.importFile) elements.importFile.disabled = busy;
+  if (elements.importPreview) {
+    elements.importPreview.disabled = busy || !elements.importFile?.files.length;
   }
 }
 
@@ -109,6 +118,10 @@ function fillForm(record = {}) {
 
 function openEditor(record = {}) {
   fillForm(record);
+  if (elements.editorPerson) {
+    const personName = record.taxpayer_name || selectedPerson()?.name;
+    elements.editorPerson.textContent = personName ? `Person: ${personName}` : '';
+  }
   elements.editor.hidden = false;
 }
 
@@ -151,12 +164,6 @@ elements.add.addEventListener('click', () => openEditor());
 elements.editorClose.addEventListener('click', () => { elements.editor.hidden = true; });
 elements.form.addEventListener('input', updateSalaryRate);
 elements.importButton.addEventListener('click', () => {
-  const person = selectedPerson();
-  if (elements.importPerson) {
-    elements.importPerson.textContent = person
-      ? `Loading for: ${person.name}`
-      : 'Select a person before loading a document.';
-  }
   updateImportAction();
   elements.importDialog.hidden = false;
 });
@@ -165,13 +172,20 @@ elements.importFile?.addEventListener('change', updateImportAction);
 elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(elements.importForm);
+  setImportBusy(true);
   try {
     const preview = await fetch('/api/income/import/preview', {
       method: 'POST', body: data,
     }).then(json);
-    const person = selectedPerson();
-    if (preview.taxpayer_name && person && normalizedName(preview.taxpayer_name) !== normalizedName(person.name)) {
-      throw new Error(`This PDF is for ${preview.taxpayer_name}, but the selected person is ${person.name}. Nothing was loaded.`);
+    if (preview.taxpayer_name) {
+      const taxpayer = people.find(
+        (person) => normalizedName(person.name) === normalizedName(preview.taxpayer_name),
+      );
+      if (!taxpayer) {
+        throw new Error(`This PDF is for ${preview.taxpayer_name}, but that person is not configured. Nothing was loaded.`);
+      }
+      selectedPersonId = taxpayer.id;
+      renderTabs();
     }
     elements.importDialog.hidden = true;
     elements.importForm.reset();
@@ -187,7 +201,11 @@ elements.importForm.addEventListener('submit', async (event) => {
       ? `PDF taxpayer: ${preview.taxpayer_name}. `
       : 'The PDF did not expose a taxpayer name. Verify the document before saving. ';
     showMessage(`${identity}${preview.source_name || 'T1'} values loaded for review. Enter any bonus, verify the values, then save.`);
-  } catch (error) { showMessage(error.message, true); }
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    setImportBusy(false);
+  }
 });
 elements.form.addEventListener('submit', async (event) => {
   event.preventDefault();

@@ -77,6 +77,7 @@ class UFileTaxReturnParser:
             r"^(?:Taxpayer|Taxpayer name|Your name)\s*:\s*(.+?)\s*$",
             r"^(?:Nom|Nom du contribuable)\s*:\s*(.+?)\s*$",
             rf"Tax return for {tax_year} prepared for\s+(.+?)\s+by\s+UFile(?:\.ca)?",
+            r"Name:\s*([A-Za-z][A-Za-z .'-]*?)(?=\s+(?:Date of birth|SIN):)",
             r"Name:\s*SIN:\s*([A-Za-z][A-Za-z .'-]*?)(?=\s+\d{3}[- ]\d{3}[- ]\d{3}|\s+\d{9}|$)",
         )
         for pattern in patterns[:2]:

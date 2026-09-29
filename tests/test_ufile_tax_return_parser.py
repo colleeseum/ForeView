@@ -115,6 +115,20 @@ class UFileTaxReturnParserTests(unittest.TestCase):
 
         self.assertEqual(parsed.taxpayer_name, "Serge Colle")
 
+    def test_finds_name_from_ufile_name_and_birth_date_layout(self) -> None:
+        pages = [
+            FakePage("Tax return Summary\nfor 2024 taxation year", {"10100": "10000000", "30800": "300000", "42000": "100000"}),
+            FakePage("Quebec return", {"432": "100000"}),
+            FakePage("Name: Serge Colle Date of birth: 29-03-1970"),
+        ]
+        with patch(
+            "services.ufile_tax_return_parser.pdfplumber.open",
+            return_value=FakePdf(pages),
+        ):
+            parsed = UFileTaxReturnParser().parse(b"synthetic pdf")
+
+        self.assertEqual(parsed.taxpayer_name, "Serge Colle")
+
 
 if __name__ == "__main__":
     unittest.main()

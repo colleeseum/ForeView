@@ -38,6 +38,7 @@
     <button id="income-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
     <p class="eyebrow">Financial record</p>
     <h2 id="income-dialog-title">Annual employment income</h2>
+    <p id="income-editor-person" class="field-note"></p>
     <form id="income-form" class="income-actual-form">
       <label>Tax year
         <span class="field-note">Calendar year</span>
@@ -113,7 +114,6 @@
     <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
     <p class="eyebrow">Employment income</p>
     <h2 id="ufile-dialog-title">Load T1</h2>
-    <p id="ufile-person" class="field-note"></p>
     <form id="ufile-form" class="income-import-form">
       <label>T1 PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
@@ -129,11 +129,15 @@
         {% endfor %}
         <small id="income-import-module-meta"></small>
       </details>
+      <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
+        <progress aria-label="Analysing PDF"></progress>
+        <span>Analysing PDF…</span>
+      </div>
       <button id="income-import-preview" class="primary-action" type="submit" disabled>Preview annual values</button>
     </form>
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-7') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-8') }}"></script>
 </body>
 </html>

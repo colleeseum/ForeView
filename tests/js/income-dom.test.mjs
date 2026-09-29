@@ -13,12 +13,11 @@ function installDom() {
   const dom = new JSDOM(`<!doctype html><body>
     <div id="income-tabs"></div><p id="income-message"></p><div id="income-history"></div>
     <button id="income-add"></button><button id="income-import"></button>
-    <div id="income-dialog-backdrop" hidden></div><button id="income-dialog-close"></button>
+    <div id="income-dialog-backdrop" hidden></div><button id="income-dialog-close"></button><p id="income-editor-person"></p>
     <form id="income-form"><input name="tax_year" value="2025"><select name="province_of_employment"><option value=""></option><option value="ON">ON</option><option value="QC">QC</option></select>${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
     <output id="income-salary-rate"></output>
     <div id="ufile-dialog-backdrop" hidden></div><button id="ufile-dialog-close"></button>
-    <p id="ufile-person"></p>
-    <form id="ufile-form"><input id="income-import-file" name="file" type="file"><button id="income-import-preview" type="submit" disabled></button></form>
+    <form id="ufile-form"><input id="income-import-file" name="file" type="file"><div id="income-import-progress" hidden></div><button id="income-import-preview" type="submit" disabled></button></form>
   </body>`, {url: 'http://localhost/income'});
   Object.assign(globalThis, {
     window: dom.window,
@@ -83,7 +82,6 @@ test('income screen previews a UFile return and saves only after review', async 
 
   document.querySelector('#income-import').click();
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, false);
-  assert.match(document.querySelector('#ufile-person').textContent, /Alex/);
   const importFile = document.querySelector('#income-import-file');
   const importPreview = document.querySelector('#income-import-preview');
   assert.equal(importPreview.disabled, true);
@@ -97,11 +95,14 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, true);
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  assert.equal(document.querySelector('#income-import-progress').hidden, false);
   await tick(); await tick();
+  assert.equal(document.querySelector('#income-import-progress').hidden, true);
   assert.equal(document.querySelector('[name="tax_year"]').value, '2024');
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, false);
   assert.equal(document.querySelector('[name="employment_income"]').value, '100000.00');
   assert.equal(document.querySelector('[name="province_of_employment"]').value, 'QC');
+  assert.equal(document.querySelector('#income-editor-person').textContent, 'Person: Alex');
   assert.match(document.querySelector('#income-message').textContent, /loaded for review/);
   assert.match(document.querySelector('#income-message').textContent, /PDF taxpayer: Alex/);
   assert.equal(calls.some(({url}) => url.startsWith('/api/income/people/')), false);
@@ -122,7 +123,7 @@ test('income screen previews a UFile return and saves only after review', async 
   dom.window.close();
 });
 
-test('income screen rejects a document for another person', async () => {
+test('income screen rejects a document for a person who is not configured', async () => {
   const dom = installDom();
   globalThis.fetch = async (url) => {
     if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
@@ -137,8 +138,32 @@ test('income screen rejects a document for another person', async () => {
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
-  assert.match(document.querySelector('#income-message').textContent, /selected person is Alex/);
+  assert.match(document.querySelector('#income-message').textContent, /not configured/);
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, true);
+  dom.window.close();
+});
+
+test('income screen selects the person identified by the PDF', async () => {
+  const dom = installDom();
+  globalThis.fetch = async (url) => {
+    if (url === '/api/model/people') {
+      return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}, {id: 2, name: 'Jordan'}]})};
+    }
+    if (String(url).startsWith('/api/income?')) {
+      return {ok: true, json: async () => ({records: []})};
+    }
+    if (url === '/api/income/import/preview') {
+      return {ok: true, json: async () => ({...annualRecord(), taxpayer_name: 'Jordan'})};
+    }
+    throw new Error(`Unexpected URL ${url}`);
+  };
+  await import(`../../static/income.mjs?identified=${Date.now()}`);
+  await tick(); await tick();
+  document.querySelector('#income-import').click();
+  document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  await tick(); await tick();
+  assert.equal(document.querySelector('#income-editor-person').textContent, 'Person: Jordan');
+  assert.equal(document.querySelector('[data-person-id="2"]').classList.contains('active'), true);
   dom.window.close();
 });
 

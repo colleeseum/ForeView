@@ -140,6 +140,9 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-import-form label { display: grid; gap: 5px; }
 .primary-action { min-height: 39px; border: 1px solid var(--accent); padding: 8px 12px; color: white; background: var(--accent); font: inherit; cursor: pointer; }
 .primary-action:disabled { border-color: var(--line); color: var(--muted); background: #eef1ec; cursor: not-allowed; }
+.income-import-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; color: var(--muted); font: 700 .75rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.income-import-progress[hidden] { display: none; }
+.income-import-progress progress { width: 100%; accent-color: var(--accent); }
 .income-import-help { white-space: pre-line; }
 .income-import-help p { margin: 10px 0; }
 .income-import-help small { color: var(--muted); }

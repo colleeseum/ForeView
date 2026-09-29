@@ -14,7 +14,7 @@ function installDom() {
     <div id="income-tabs"></div><p id="income-message"></p><div id="income-history"></div>
     <button id="income-add"></button><button id="income-import"></button>
     <div id="income-dialog-backdrop" hidden></div><button id="income-dialog-close"></button>
-    <form id="income-form"><input name="tax_year" value="2025">${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
+    <form id="income-form"><input name="tax_year" value="2025"><select name="province_of_employment"><option value=""></option><option value="ON">ON</option><option value="QC">QC</option></select>${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
     <output id="income-salary-rate"></output>
     <div id="ufile-dialog-backdrop" hidden></div><button id="ufile-dialog-close"></button>
     <form id="ufile-form"><input name="file" type="file"><button type="submit"></button></form>
@@ -30,6 +30,7 @@ function installDom() {
 function annualRecord(overrides = {}) {
   return {
     id: 4, person_id: 1, year: 2025, employment_income: '100000.00',
+    province_of_employment: 'ON', payroll_plan: 'CPP',
     bonus: '5000.00', salary_rate: '95000.00', other_income: '1000.00',
     gross_income: '101000.00', cpp_qpp: '4000.00', ei: '900.00', qpip: '400.00',
     rrsp_contribution: '10000.00', rrsp_deduction: '10000.00',
@@ -72,6 +73,7 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, false);
   assert.equal(document.querySelector('[name="tax_year"]').value, '2024');
   assert.equal(document.querySelector('[name="tax_year"]').disabled, true);
+  assert.equal(document.querySelector('[name="province_of_employment"]').value, 'ON');
   document.querySelector('#income-dialog-close').click();
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, true);
   document.querySelector('#income-add').click();

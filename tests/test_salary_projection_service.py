@@ -78,6 +78,7 @@ class SalaryProjectionServiceTests(unittest.TestCase):
             self.person_id,
             2025,
             "105000",
+            province_of_employment="QC",
             bonus="5000",
         )
 
@@ -87,6 +88,7 @@ class SalaryProjectionServiceTests(unittest.TestCase):
 
         self.assertEqual(rows[0].annual_salary_rate, Decimal("104000.00"))
         self.assertEqual(rows[0].raise_rate, Decimal("0.04"))
+        self.assertGreater(rows[0].qpip, Decimal("0"))
 
 
 if __name__ == "__main__":

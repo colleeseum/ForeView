@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 from decimal import Decimal
 
-from domain.employment_baseline import EmploymentBaseline
 from domain.employment_projection_override import EmploymentProjectionOverride
 from domain.employment_projection_settings import EmploymentProjectionSettings
 from projection.salary import EmploymentIncomeProjector
@@ -11,15 +10,6 @@ from projection.salary import EmploymentIncomeProjector
 
 class EmploymentIncomeProjectorTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.baseline = EmploymentBaseline(
-            id=1,
-            person_id=2,
-            effective_date="2026-01-01",
-            annual_salary=Decimal("100000"),
-            province_of_employment="ON",
-            payroll_plan="CPP",
-            source="manual",
-        )
         self.settings = EmploymentProjectionSettings(
             scenario_id=3,
             person_id=2,
@@ -37,7 +27,8 @@ class EmploymentIncomeProjectorTests(unittest.TestCase):
         )
 
         rows = EmploymentIncomeProjector().project(
-            self.baseline,
+            Decimal("100000"),
+            2026,
             self.settings,
             overrides,
             start_year=2026,
@@ -68,7 +59,8 @@ class EmploymentIncomeProjectorTests(unittest.TestCase):
         )
 
         rows = EmploymentIncomeProjector().project(
-            self.baseline,
+            Decimal("100000"),
+            2028,
             settings,
             (),
             start_year=2028,
@@ -94,7 +86,8 @@ class EmploymentIncomeProjectorTests(unittest.TestCase):
         )
 
         row = EmploymentIncomeProjector().project(
-            self.baseline,
+            Decimal("100000"),
+            2026,
             self.settings,
             (override,),
             start_year=2026,
@@ -108,14 +101,13 @@ class EmploymentIncomeProjectorTests(unittest.TestCase):
 
     def test_factual_salary_anchor_compounds_through_hidden_years(self) -> None:
         rows = EmploymentIncomeProjector().project(
-            self.baseline,
+            Decimal("100000"),
+            2024,
             self.settings,
             (),
             start_year=2026,
             end_year=2027,
             birth_date=None,
-            salary_anchor=Decimal("100000"),
-            salary_anchor_year=2024,
         )
 
         self.assertEqual(

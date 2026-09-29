@@ -50,6 +50,7 @@ function renderHistory() {
   }
   const body = records.map((record, index) => `<tr>
     <th>${record.year}${index === 0 ? ' <span class="latest-record">Latest</span>' : ''}</th>
+    <td>${escapeHtml(record.province_of_employment || '—')}</td>
     <td>${money(record.employment_income)}</td><td>${money(record.bonus)}</td>
     <td><strong>${money(record.salary_rate)}</strong></td><td>${money(record.other_income)}</td>
     <td>${money(record.gross_income)}</td><td>${money(record.cpp_qpp)}</td>
@@ -61,7 +62,7 @@ function renderHistory() {
     <td><button class="table-action" type="button" data-edit-year="${record.year}">Edit</button></td>
   </tr>`).join('');
   elements.history.innerHTML = `<div class="table-wrap"><table class="income-history-table">
-    <thead><tr><th>Year</th><th>Employment income</th><th>Bonus</th><th>Salary rate</th>
+    <thead><tr><th>Year</th><th>Employment province</th><th>Employment income</th><th>Bonus</th><th>Salary rate</th>
     <th>Other income</th><th>Gross</th><th>CPP/QPP</th><th>EI</th><th>QPIP</th>
     <th>RRSP contribution</th><th>RRSP deduction</th><th>Federal tax</th>
     <th>Provincial tax</th><th>Disposable</th><th>Source</th><th></th></tr></thead>
@@ -81,6 +82,7 @@ function fillForm(record = {}) {
   ]) elements.form.elements[name].value = record[name] || '0';
   elements.form.elements.tax_year.value = record.year || defaultTaxYear;
   elements.form.elements.tax_year.disabled = Boolean(record.id);
+  elements.form.elements.province_of_employment.value = record.province_of_employment || '';
   const source = ['T1', 'UFile T1', 'Manual'].includes(record.source) ? record.source : 'T1';
   elements.form.elements.source.value = source;
   updateSalaryRate();

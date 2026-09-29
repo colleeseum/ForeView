@@ -9,6 +9,10 @@ const elements = {
   tabs: document.querySelector('#salary-tabs'),
   setup: document.querySelector('#salary-setup'),
   sourceNote: document.querySelector('#salary-source-note'),
+  currentRate: document.querySelector('#salary-current-rate'),
+  currentYear: document.querySelector('#salary-current-year'),
+  currentProvince: document.querySelector('#salary-current-province'),
+  currentPayroll: document.querySelector('#salary-current-payroll'),
   form: document.querySelector('#salary-settings-form'),
   table: document.querySelector('#salary-table'),
 };
@@ -81,17 +85,20 @@ function fillForm(person) {
   const baseline = person.baseline || {};
   const settings = person.settings || {};
   const values = {
-    annual_salary: baseline.annual_salary || '', effective_date: baseline.effective_date || `${model.start_year}-01-01`,
-    province_of_employment: baseline.province_of_employment || 'ON', payroll_plan: baseline.payroll_plan || 'CPP',
     default_raise: settings.default_raise == null ? '0' : Number(settings.default_raise) * 100,
     retirement_date: settings.retirement_date || '', recurring_rrsp_contribution: settings.recurring_rrsp_contribution || '0',
     recurring_rrsp_deduction: settings.recurring_rrsp_deduction || '0', recurring_other_income: settings.recurring_other_income || '0',
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
+  const anchor = person.salary_anchor;
+  if (elements.currentRate) elements.currentRate.textContent = anchor ? money(anchor.annual_salary_rate) : '—';
+  if (elements.currentYear) elements.currentYear.textContent = anchor ? String(anchor.year) : '—';
+  if (elements.currentProvince) elements.currentProvince.textContent = anchor?.province_of_employment || '—';
+  if (elements.currentPayroll) elements.currentPayroll.textContent = anchor?.payroll_plan || '—';
   if (elements.sourceNote) {
     elements.sourceNote.innerHTML = person.salary_anchor
       ? `Salary starts from the latest factual Income record: <strong>${escapeHtml(String(person.salary_anchor.year))}</strong>, ${money(person.salary_anchor.annual_salary_rate)} after subtracting the recorded bonus. <a href="/income">View income history</a>.`
-      : 'No factual Income record exists. The fallback annual salary below starts the projection.';
+      : 'No factual Income record exists. Add one on the <a href="/income">Income</a> screen before projecting employment.';
   }
 }
 
@@ -148,10 +155,6 @@ elements.form?.addEventListener('submit', async (event) => {
   if (!person) return;
   const values = Object.fromEntries(new FormData(elements.form));
   try {
-    await api(`/api/salary-projection/people/${person.id}/baseline`, {method: 'PUT', body: JSON.stringify({
-      annual_salary: values.annual_salary, effective_date: values.effective_date,
-      province_of_employment: values.province_of_employment, payroll_plan: values.payroll_plan,
-    })});
     await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/settings`, {method: 'PUT', body: JSON.stringify({
       default_raise: Number(values.default_raise || 0) / 100, retirement_date: values.retirement_date,
       recurring_rrsp_contribution: values.recurring_rrsp_contribution,

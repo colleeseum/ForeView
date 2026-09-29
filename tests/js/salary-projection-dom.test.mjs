@@ -23,7 +23,7 @@ function model() {
       id: 2, name: 'Alex', birth_date: '1980-04-15', error: null,
       baseline: {annual_salary: '100000.00', effective_date: '2026-01-01', province_of_employment: 'ON', payroll_plan: 'CPP'},
       settings: {default_raise: '0.04', retirement_date: null, recurring_rrsp_contribution: '10000.00', recurring_rrsp_deduction: '10000.00', recurring_other_income: '0.00'},
-      salary_anchor: {year: 2025, annual_salary_rate: '95000.00'},
+      salary_anchor: {year: 2025, annual_salary_rate: '95000.00', province_of_employment: 'ON', payroll_plan: 'CPP'},
       overrides: [], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
     }],
     household: [{...projection(2026)}, {...projection(2027, '104000.00')}],
@@ -33,10 +33,12 @@ function model() {
 test('salary projection loads, edits assumptions and annual overrides, and shows household', async () => {
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
-    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden><p id="salary-source-note"></p></section>
+    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden><p id="salary-source-note"></p>
+      <output id="salary-current-rate"></output><output id="salary-current-year"></output>
+      <output id="salary-current-province"></output><output id="salary-current-payroll"></output>
+    </section>
     <form id="salary-settings-form">
-      <input name="annual_salary"><input name="effective_date"><select name="province_of_employment"><option>ON</option><option>QC</option></select>
-      <select name="payroll_plan"><option>CPP</option><option>QPP</option></select><input name="default_raise"><input name="retirement_date">
+      <input name="default_raise"><input name="retirement_date">
       <input name="recurring_rrsp_contribution"><input name="recurring_rrsp_deduction"><input name="recurring_other_income">
     </form><div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
@@ -54,6 +56,9 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.match(document.querySelector('#salary-table').innerHTML, /100,000/);
   assert.equal(document.querySelector('[name="default_raise"]').value, '4');
   assert.match(document.querySelector('#salary-source-note').textContent, /2025/);
+  assert.match(document.querySelector('#salary-current-rate').textContent, /95,000/);
+  assert.equal(document.querySelector('#salary-current-province').textContent, 'ON');
+  assert.equal(document.querySelector('#salary-current-payroll').textContent, 'CPP');
   assert.equal(module.money('12.50'), '$13');
   assert.match(module.projectionTable([]), /No projection/);
 
@@ -64,7 +69,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
 
   document.querySelector('#salary-settings-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
-  assert.ok(calls.some((item) => item.url.endsWith('/baseline') && item.options.method === 'PUT'));
+  assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
   assert.ok(calls.some((item) => item.url.endsWith('/settings') && item.options.method === 'PUT'));
 
   const salaryInput = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
@@ -115,7 +120,7 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
     <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup"></section>
-    <form id="salary-settings-form"><input name="annual_salary"><input name="effective_date"><select name="province_of_employment"><option>ON</option></select><select name="payroll_plan"><option>CPP</option></select><input name="default_raise"><input name="retirement_date"><input name="recurring_rrsp_contribution"><input name="recurring_rrsp_deduction"><input name="recurring_other_income"></form>
+    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"><input name="recurring_rrsp_contribution"><input name="recurring_rrsp_deduction"><input name="recurring_other_income"></form>
     <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
@@ -123,14 +128,13 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   globalThis.URLSearchParams = dom.window.URLSearchParams;
   globalThis.fetch = async () => ({ok: true, json: async () => ({
     scenarios: [{id: 1, name: 'Test'}], selected_scenario_id: 1, start_year: 2026, end_year: 2026,
-    people: [{id: 9, name: 'No baseline', baseline: null, settings: null, overrides: [], actuals: [], projection: [], error: 'Add an employment baseline'}], household: [],
+    people: [{id: 9, name: 'No income', baseline: null, settings: null, salary_anchor: null, overrides: [], actuals: [], projection: [], error: 'Add a factual Income record'}], household: [],
   })});
 
   await import(`../../static/salary-projection.mjs?defaults=${Date.now()}`);
   await tick();
-  assert.equal(document.querySelector('[name="effective_date"]').value, '2026-01-01');
   assert.equal(document.querySelector('[name="default_raise"]').value, '0');
-  assert.match(document.querySelector('#salary-message').textContent, /employment baseline/);
+  assert.match(document.querySelector('#salary-message').textContent, /factual Income record/);
   assert.equal(document.querySelector('#salary-message').classList.contains('error'), true);
   document.querySelector('#salary-tabs').click();
 });

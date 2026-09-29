@@ -43,6 +43,19 @@
         <span class="field-note">Calendar year</span>
         <input name="tax_year" type="number" min="1900" value="{{ latest_tax_year }}" required>
       </label>
+      <label>Province of employment
+        <span class="field-note">Determines CPP or QPP payroll contributions</span>
+        <select name="province_of_employment" required>
+          <option value="">Select province or territory</option>
+          <option value="AB">Alberta</option><option value="BC">British Columbia</option>
+          <option value="MB">Manitoba</option><option value="NB">New Brunswick</option>
+          <option value="NL">Newfoundland and Labrador</option><option value="NS">Nova Scotia</option>
+          <option value="NT">Northwest Territories</option><option value="NU">Nunavut</option>
+          <option value="ON">Ontario</option><option value="PE">Prince Edward Island</option>
+          <option value="QC">Quebec</option><option value="SK">Saskatchewan</option>
+          <option value="YT">Yukon</option>
+        </select>
+      </label>
       <label>Employment income
         <span class="field-note">T1 line 10100</span>
         <input name="employment_income" type="number" min="0" step="0.01" required>
@@ -72,11 +85,11 @@
         <input name="qpip" type="number" min="0" step="0.01" value="0">
       </label>
       <label>RRSP contribution
-        <span class="field-note">Cash contributed during the year</span>
+        <span class="field-note">Cash deposited during the year, not contribution room</span>
         <input name="rrsp_contribution" type="number" min="0" step="0.01" value="0">
       </label>
       <label>RRSP deduction
-        <span class="field-note">T1 line 20800</span>
+        <span class="field-note">Amount claimed on T1 line 20800</span>
         <input name="rrsp_deduction" type="number" min="0" step="0.01" value="0">
       </label>
       <label>Net federal tax
@@ -108,6 +121,6 @@
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-3') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-4') }}"></script>
 </body>
 </html>

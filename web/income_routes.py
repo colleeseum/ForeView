@@ -51,6 +51,7 @@ def save_income_record(person_id: int, year: int):
                 person_id,
                 year,
                 _amount(payload, "employment_income"),
+                province_of_employment=str(payload.get("province_of_employment") or ""),
                 bonus=_amount(payload, "bonus"),
                 other_income=_amount(payload, "other_income"),
                 rrsp_contribution=_amount(payload, "rrsp_contribution"),
@@ -89,6 +90,7 @@ def preview_ufile_tax_return():
                 "federal_tax": _money(parsed.federal_tax),
                 "provincial_tax": _money(parsed.provincial_tax),
                 "source": "UFile T1",
+                "province_of_employment": "",
             }
         )
     except (TypeError, ValueError) as error:
@@ -108,6 +110,8 @@ def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
         "id": record.id,
         "person_id": record.person_id,
         "year": record.tax_year,
+        "province_of_employment": record.province_of_employment,
+        "payroll_plan": record.payroll_plan,
         "employment_income": _money(record.salary_income),
         "bonus": _money(record.bonus),
         "salary_rate": _money(record.salary_rate),

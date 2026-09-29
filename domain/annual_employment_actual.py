@@ -11,6 +11,7 @@ class AnnualEmploymentActual:
     id: int
     person_id: int
     tax_year: int
+    province_of_employment: str | None
     salary_income: Decimal
     bonus: Decimal
     other_income: Decimal
@@ -30,6 +31,12 @@ class AnnualEmploymentActual:
     @property
     def salary_rate(self) -> Decimal:
         return self.salary_income - self.bonus
+
+    @property
+    def payroll_plan(self) -> str | None:
+        if self.province_of_employment is None:
+            return None
+        return "QPP" if self.province_of_employment == "QC" else "CPP"
 
     @property
     def disposable_income(self) -> Decimal:

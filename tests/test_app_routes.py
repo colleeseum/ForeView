@@ -187,6 +187,7 @@ class AppRouteTests(unittest.TestCase):
             f"/api/salary-projection/people/{person_id}/actuals/2025",
             json={
                 "salary_income": "95000",
+                "province_of_employment": "ON",
                 "rrsp_contribution": "9000",
                 "rrsp_deduction": "9000",
                 "cpp_qpp": "4000",
@@ -237,7 +238,12 @@ class AppRouteTests(unittest.TestCase):
         person_id = self._people()[0]["id"]
         response = self.client.put(
             f"/api/income/people/{person_id}/years/2024",
-            json={"employment_income": "90000", "bonus": "5000", "source": "T1"},
+            json={
+                "employment_income": "90000",
+                "bonus": "5000",
+                "province_of_employment": "ON",
+                "source": "T1",
+            },
         )
         self.assertEqual(response.status_code, 200)
 
@@ -248,6 +254,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertGreaterEqual(len(records), 2)
         self.assertEqual([record["year"] for record in records[:2]], [2025, 2024])
         self.assertEqual(records[1]["salary_rate"], "85000.00")
+        self.assertEqual(records[1]["province_of_employment"], "ON")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()

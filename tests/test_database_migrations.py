@@ -7,6 +7,9 @@ from contextlib import closing
 from pathlib import Path
 
 import app as application
+from infrastructure.migrations.annual_employment_province_backfill import (
+    AnnualEmploymentProvinceBackfillMigration,
+)
 from infrastructure.runtime_config import RuntimeConfig
 
 
@@ -31,6 +34,8 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (4, "questrade_activity_identity"),
                     (5, "employment_projection"),
                     (6, "employment_income_records"),
+                    (7, "annual_employment_province"),
+                    (8, "annual_employment_province_backfill"),
                 ],
             )
 
@@ -61,6 +66,36 @@ class DatabaseMigrationTests(unittest.TestCase):
                     for row in connection.execute("PRAGMA table_info(annual_employment_actuals)")
                 }
             self.assertIn("bonus_cents", columns)
+            self.assertIn("province_of_employment", columns)
+
+    def test_legacy_income_province_uses_nearest_known_employment_setup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = RuntimeConfig(Path(directory))
+            application.initialize(runtime)
+            with runtime.connect() as connection:
+                person_id = connection.execute(
+                    "INSERT INTO people(name) VALUES ('Example')"
+                ).lastrowid
+                connection.execute(
+                    """INSERT INTO employment_baselines(
+                           person_id, effective_date, annual_salary_cents,
+                           province_of_employment, payroll_plan
+                       ) VALUES (?, '2026-01-01', 10000000, 'ON', 'CPP')""",
+                    (person_id,),
+                )
+                connection.execute(
+                    """INSERT INTO annual_employment_actuals(
+                           person_id, tax_year, salary_income_cents
+                       ) VALUES (?, 2025, 9500000)""",
+                    (person_id,),
+                )
+
+                AnnualEmploymentProvinceBackfillMigration().apply(connection)
+
+                province = connection.execute(
+                    "SELECT province_of_employment FROM annual_employment_actuals"
+                ).fetchone()[0]
+            self.assertEqual(province, "ON")
 
     def test_monetary_migration_backfills_and_tracks_legacy_writes(self):
         with tempfile.TemporaryDirectory() as directory:

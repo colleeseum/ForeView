@@ -9,6 +9,8 @@ from domain.money import MoneyInput, from_cents, to_cents
 class AnnualEmploymentActualRepository:
     """Persist historical annual employment facts."""
 
+    _PROVINCES = {"AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"}
+
     _MONEY_FIELDS = (
         "salary_income",
         "other_income",
@@ -30,6 +32,7 @@ class AnnualEmploymentActualRepository:
         tax_year: int,
         salary_income: MoneyInput,
         *,
+        province_of_employment: str,
         bonus: MoneyInput = 0,
         other_income: MoneyInput = 0,
         rrsp_contribution: MoneyInput = 0,
@@ -43,6 +46,9 @@ class AnnualEmploymentActualRepository:
     ) -> AnnualEmploymentActual:
         if tax_year < 1900:
             raise ValueError("Tax year must be 1900 or later")
+        province = province_of_employment.strip().upper()
+        if province not in self._PROVINCES:
+            raise ValueError("Province of employment is required")
         values = tuple(
             to_cents(value)
             for value in (
@@ -66,8 +72,9 @@ class AnnualEmploymentActualRepository:
             """INSERT INTO annual_employment_actuals(
                    person_id, tax_year, salary_income_cents, bonus_cents, other_income_cents,
                    rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
-                   ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
+                   province_of_employment
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(person_id, tax_year) DO UPDATE SET
                    salary_income_cents = excluded.salary_income_cents,
                    bonus_cents = excluded.bonus_cents,
@@ -79,8 +86,9 @@ class AnnualEmploymentActualRepository:
                    qpip_cents = excluded.qpip_cents,
                    federal_tax_cents = excluded.federal_tax_cents,
                    provincial_tax_cents = excluded.provincial_tax_cents,
-                   source = excluded.source""",
-            (person_id, tax_year, *values, source or None),
+                   source = excluded.source,
+                   province_of_employment = excluded.province_of_employment""",
+            (person_id, tax_year, *values, source or None, province),
         )
         result = self.get(person_id, tax_year)
         if result is None:  # pragma: no cover
@@ -92,7 +100,7 @@ class AnnualEmploymentActualRepository:
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                       ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
-                      bonus_cents
+                      bonus_cents, province_of_employment
                  FROM annual_employment_actuals
                 WHERE person_id = ? AND tax_year = ?""",
             (person_id, tax_year),
@@ -104,7 +112,7 @@ class AnnualEmploymentActualRepository:
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                       ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
-                      bonus_cents
+                      bonus_cents, province_of_employment
                  FROM annual_employment_actuals WHERE person_id = ? ORDER BY tax_year""",
             (person_id,),
         ).fetchall()
@@ -117,6 +125,7 @@ class AnnualEmploymentActualRepository:
             id=AnnualEmploymentActualRepository._required_int(row[0]),
             person_id=AnnualEmploymentActualRepository._required_int(row[1]),
             tax_year=AnnualEmploymentActualRepository._required_int(row[2]),
+            province_of_employment=str(row[14]) if row[14] is not None else None,
             salary_income=amounts[0],
             bonus=from_cents(row[13]),
             other_income=amounts[1],

@@ -4,7 +4,6 @@ import calendar
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
-from domain.employment_baseline import EmploymentBaseline
 from domain.employment_projection_override import EmploymentProjectionOverride
 from domain.employment_projection_settings import EmploymentProjectionSettings
 from domain.employment_year_plan import EmploymentYearPlan
@@ -17,34 +16,32 @@ class EmploymentIncomeProjector:
 
     def project(
         self,
-        baseline: EmploymentBaseline,
+        starting_salary: Decimal,
+        starting_year: int,
         settings: EmploymentProjectionSettings,
         overrides: tuple[EmploymentProjectionOverride, ...],
         *,
         start_year: int,
         end_year: int,
         birth_date: str | None,
-        salary_anchor: Decimal | None = None,
-        salary_anchor_year: int | None = None,
     ) -> tuple[EmploymentYearPlan, ...]:
         if end_year < start_year:
             raise ValueError("Projection end year cannot precede start year")
         by_year = {item.projection_year: item for item in overrides}
-        salary_rate = salary_anchor if salary_anchor is not None else baseline.annual_salary
-        anchor_year = salary_anchor_year if salary_anchor_year is not None else start_year
+        salary_rate = starting_salary
         rows = []
-        for year in range(min(start_year, anchor_year + 1), end_year + 1):
+        for year in range(min(start_year, starting_year + 1), end_year + 1):
             override = by_year.get(year)
             raise_rate = (
                 None
-                if year == start_year and salary_anchor is None
+                if year == start_year and starting_year == start_year
                 else (
                     override.raise_rate
                     if override and override.raise_rate is not None
                     else settings.default_raise
                 )
             )
-            if year > anchor_year:
+            if year > starting_year:
                 if raise_rate is None:  # pragma: no cover - guarded by year branch
                     raise RuntimeError("Projected year is missing a raise rate")
                 salary_rate = self._money(salary_rate * (Decimal("1") + raise_rate))

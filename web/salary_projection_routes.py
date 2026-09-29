@@ -193,6 +193,7 @@ def save_employment_actual(person_id: int, tax_year: int):
                 person_id,
                 tax_year,
                 as_decimal(payload["salary_income"]),
+                province_of_employment=str(payload.get("province_of_employment") or ""),
                 bonus=as_decimal(payload.get("bonus", 0)),
                 other_income=as_decimal(payload.get("other_income", 0)),
                 rrsp_contribution=as_decimal(payload.get("rrsp_contribution", 0)),
@@ -245,6 +246,8 @@ def _settings_json(item: EmploymentProjectionSettings | None) -> dict[str, objec
 def _actual_json(item: AnnualEmploymentActual) -> dict[str, object]:
     return {
         "year": item.tax_year,
+        "province_of_employment": item.province_of_employment,
+        "payroll_plan": item.payroll_plan,
         "salary_income": _money(item.salary_income),
         "bonus": _money(item.bonus),
         "annual_salary_rate": _money(item.salary_rate),

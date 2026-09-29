@@ -227,9 +227,7 @@ class RuntimeProfileTests(unittest.TestCase):
                 {person["name"] for person in salary_projection["people"]},
                 {"Alex Example", "Jordan Example"},
             )
-            people_by_name = {
-                person["name"]: person for person in salary_projection["people"]
-            }
+            people_by_name = {person["name"]: person for person in salary_projection["people"]}
             self.assertEqual(
                 people_by_name["Alex Example"]["salary_anchor"]["annual_salary_rate"],
                 "101500.00",

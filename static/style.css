@@ -198,6 +198,8 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .salary-toolbar input, .salary-toolbar select, .salary-settings-grid input, .salary-settings-grid select { min-height: 32px; border: 1px solid var(--line); padding: 6px 7px; background: white; font: inherit; }
 .salary-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 8px 10px; }
 .salary-settings-grid .view-action { align-self: end; min-height: 32px; }
+.salary-readonly-field { display: grid; gap: 4px; color: var(--muted); font: .72rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.salary-readonly-field output { min-height: 32px; padding: 7px; border: 1px solid var(--line); background: #eef1ec; color: var(--ink); font-weight: 700; }
 .salary-table-panel { overflow: hidden; padding: 0; }
 .salary-projection-table { min-width: 1800px; }
 .salary-projection-table th { position: static; text-align: left; }

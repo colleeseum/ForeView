@@ -17,7 +17,6 @@ def institutions():
                 "key": provider.key,
                 "display_name": provider.display_name,
                 "version": provider.version,
-                "last_changed": provider.last_changed,
                 "aliases": list(provider.aliases),
                 "importers": [
                     {

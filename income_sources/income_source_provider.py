@@ -18,6 +18,5 @@ class IncomeSourceProvider:
     parser: IncomeParser
     source_label: str
     help_text: str
-    last_changed: str
+    version: str = "2026.09.29"
     detects: IncomeDetector | None = None
-    version: str = "0.1.0"

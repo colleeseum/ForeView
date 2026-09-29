@@ -52,7 +52,7 @@ test('income screen previews a UFile return and saves only after review', async 
       return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})]})};
     }
     if (url === '/api/income/import/preview') {
-      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '0.1.0'})};
+      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '2026.09.29'})};
     }
     if (String(url).startsWith('/api/income/people/')) {
       saved = true;

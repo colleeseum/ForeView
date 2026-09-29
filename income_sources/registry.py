@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
+from domain.calver import is_calver
 from income_sources.income_source_provider import IncomeSourceProvider
 from services.ufile_tax_return_parser import UFileTaxReturnParser
 
@@ -14,8 +14,8 @@ class IncomeSourceRegistry:
 
     def __init__(self, providers: tuple[IncomeSourceProvider, ...]) -> None:
         for provider in providers:
-            if not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", provider.version):
-                raise ValueError(f"Income source '{provider.key}' must use SemVer")
+            if not is_calver(provider.version):
+                raise ValueError(f"Income source '{provider.key}' must use CalVer")
         self._providers = {provider.key: provider for provider in providers}
 
     @property
@@ -49,9 +49,8 @@ income_source_registry = IncomeSourceRegistry(
             parser=UFileTaxReturnParser().parse,
             source_label="UFile T1",
             help_text=_UFIlE_HELP,
-            last_changed="2026-09-29",
             detects=UFileTaxReturnParser.detects,
-            version="0.1.0",
+            version="2026.09.29",
         ),
     )
 )

@@ -19,18 +19,18 @@
       <section class="dashboard-panel">
         <h2>Income source modules</h2>
         <div class="table-wrap"><table>
-          <thead><tr><th>Module</th><th>Key</th><th>Version</th><th>Last changed</th></tr></thead>
-          <tbody>{% for source in income_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td><td>{{ source.last_changed }}</td></tr>{% endfor %}</tbody>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for source in income_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <section class="dashboard-panel">
         <h2>Institution modules</h2>
         <div class="table-wrap"><table>
-          <thead><tr><th>Module</th><th>Key</th><th>Version</th><th>Last changed</th></tr></thead>
-          <tbody>{% for institution in institutions %}<tr><td>{{ institution.display_name }}</td><td>{{ institution.key }}</td><td>{{ institution.version }}</td><td>{{ institution.last_changed }}</td></tr>{% endfor %}</tbody>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for institution in institutions %}<tr><td>{{ institution.display_name }}</td><td>{{ institution.key }}</td><td>{{ institution.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
-      <p class="field-note">Module versions use Semantic Versioning. Last changed records the date the module contract or implementation was last reviewed.</p>
+      <p class="field-note">Module versions use calendar versioning: YYYY.MM.DD, with an optional numeric revision for multiple changes on the same day.</p>
     </div>
   </div>
 </main>

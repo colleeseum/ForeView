@@ -100,7 +100,6 @@ def preview_income_source():
                 "source_key": source.key,
                 "source_name": source.display_name,
                 "source_version": source.version,
-                "source_last_changed": source.last_changed,
                 "source_help": source.help_text,
                 "province_of_employment": parsed.province_of_employment or "",
                 "taxpayer_name": parsed.taxpayer_name or "",
@@ -125,7 +124,6 @@ def income_sources():
                     "key": source.key,
                     "display_name": source.display_name,
                     "version": source.version,
-                    "last_changed": source.last_changed,
                     "help_text": source.help_text,
                 }
                 for source in income_source_registry.providers

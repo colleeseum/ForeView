@@ -406,8 +406,7 @@ class AppRouteTests(unittest.TestCase):
             detect_source.return_value.source_label = "UFile T1"
             detect_source.return_value.key = "ufile"
             detect_source.return_value.display_name = "UFile T1 PDF"
-            detect_source.return_value.version = "0.1.0"
-            detect_source.return_value.last_changed = "2026-09-29"
+            detect_source.return_value.version = "2026.09.29"
             detect_source.return_value.help_text = "Help"
             response = self.client.post(
                 "/api/income/import/ufile/preview",
@@ -540,12 +539,12 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(
             providers["questrade"]["connection"]["sync_path"], "/api/connections/questrade/sync"
         )
-        self.assertRegex(providers["questrade"]["version"], r"^\d+\.\d+\.\d+$")
+        self.assertEqual(providers["questrade"]["version"], "2026.09.29")
         self.assertIn(
             "connection", {topic["key"] for topic in providers["questrade"]["help_topics"]}
         )
 
-    def test_income_source_contract_exposes_retrieval_help_and_change_date(self):
+    def test_income_source_contract_exposes_retrieval_help_and_calver(self):
         page = self.client.get("/income")
         self.assertEqual(page.status_code, 200)
         self.assertIn(b'data-help-article="income-source-ufile"', page.data)
@@ -554,8 +553,8 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(sources.status_code, 200)
         source = sources.get_json()["sources"][0]
         self.assertEqual(source["key"], "ufile")
-        self.assertRegex(source["version"], r"^\d+\.\d+\.\d+$")
-        self.assertEqual(source["last_changed"], "2026-09-29")
+        self.assertEqual(source["version"], "2026.09.29")
+        self.assertNotIn("last_changed", source)
         self.assertIn("Tax Return - view or download", source["help_text"])
 
         help_catalog = self.client.get("/api/help").get_json()

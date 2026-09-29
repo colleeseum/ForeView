@@ -22,7 +22,7 @@ class InstitutionRegistryTests(unittest.TestCase):
         rbc = registry.find("Royal Bank of Canada")
         self.assertIsNotNone(rbc)
         self.assertEqual(rbc.key, "rbc")
-        self.assertEqual(len(rbc.importers), 3)
+        self.assertEqual(len(rbc.importers), 4)
         self.assertEqual(
             {importer.document_type for importer in rbc.importers},
             {"account", "gic", "tfsa"},
@@ -48,8 +48,8 @@ class InstitutionRegistryTests(unittest.TestCase):
     def test_registry_limits_importers_to_known_institution_aliases(self):
         registry = institution_registry()
 
-        self.assertEqual(len(registry.importers("RBC")), 3)
-        self.assertEqual(len(registry.importers("Royal Bank")), 3)
+        self.assertEqual(len(registry.importers("RBC")), 4)
+        self.assertEqual(len(registry.importers("Royal Bank")), 4)
         self.assertEqual(registry.importers("Unknown Bank"), ())
         self.assertGreater(len(registry.importers()), 3)
 

@@ -22,12 +22,22 @@ def provider() -> InstitutionProvider:
         DocumentImporter(
             "RBC GIC transaction history",
             "gic",
-            document_importers.is_rbc_gic_transaction_history_pdf,
+            document_importers.is_rbc_tfsa_gic_transaction_history_pdf,
             document_importers.import_rbc_gic_transaction_history_pdf,
             "import_rbc_gic_transaction_history_pdf",
             "RBC online-banking GIC transaction history PDFs",
             account_number=document_importers.gic_history_account_number,
             account_type="tfsa",
+        ),
+        DocumentImporter(
+            "RBC RESP GIC transaction history",
+            "gic",
+            document_importers.is_rbc_resp_gic_transaction_history_pdf,
+            document_importers.import_rbc_resp_gic_transaction_history_pdf,
+            "import_rbc_resp_gic_transaction_history_pdf",
+            "RBC online-banking RESP GIC transaction history PDFs",
+            account_number=document_importers.gic_history_account_number,
+            account_type="resp",
         ),
         DocumentImporter(
             "RBC TFSA statement",

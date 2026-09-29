@@ -517,7 +517,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         providers = {item["key"]: item for item in response.get_json()["institutions"]}
 
-        self.assertEqual(len(providers["rbc"]["importers"]), 3)
+        self.assertEqual(len(providers["rbc"]["importers"]), 4)
         self.assertIsNone(providers["rbc"]["connection"])
         self.assertEqual(
             providers["questrade"]["connection"]["sync_path"], "/api/connections/questrade/sync"

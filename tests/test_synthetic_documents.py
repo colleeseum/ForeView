@@ -53,7 +53,7 @@ class SyntheticDocumentIntegrationTests(unittest.TestCase):
 
     def test_fixture_matrix_contains_nine_pdfs_and_three_csvs(self):
         suffixes = [path.suffix for path in self.fixtures.values()]
-        self.assertEqual(suffixes.count(".pdf"), 9)
+        self.assertEqual(suffixes.count(".pdf"), 10)
         self.assertEqual(suffixes.count(".csv"), 3)
 
     def test_every_pdf_is_visibly_marked_synthetic(self):
@@ -127,6 +127,28 @@ class SyntheticDocumentIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(snapshots[parent], 107.5)
         self.assertEqual(snapshots[child[0]], 10450)
+
+    def test_rbc_resp_history_auto_creates_resp_parent_and_gic_child(self):
+        detected, parent, result = self._auto_import("rbc_resp_pdf")
+        self.assertEqual(detected.spec.name, "RBC RESP GIC transaction history")
+        self.assertEqual(result["imported"], 3)
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT account_number FROM accounts WHERE id = ?", (parent,)
+            ).fetchone()[0],
+            "999888777",
+        )
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT account_type FROM accounts WHERE id = ?", (parent,)
+            ).fetchone()[0],
+            "resp",
+        )
+        child = self.connection.execute(
+            "SELECT id FROM accounts WHERE parent_account_id = ? AND asset_kind = 'gic'",
+            (parent,),
+        ).fetchone()
+        self.assertIsNotNone(child)
 
     def test_rbc_tfsa_statement_auto_creates_account_and_gic(self):
         detected, account, result = self._auto_import("rbc_tfsa_pdf")

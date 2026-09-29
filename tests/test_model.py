@@ -74,7 +74,7 @@ Your plan assets are not locked in.
         from unittest.mock import patch
 
         with patch(
-            "institutions.rbc.document_importers.is_rbc_gic_transaction_history_pdf",
+            "institutions.rbc.document_importers.is_rbc_tfsa_gic_transaction_history_pdf",
             return_value=True,
         ):
             detected = detect_importer(b"%PDF-test", "RBC")

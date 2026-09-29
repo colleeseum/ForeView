@@ -32,11 +32,11 @@
           <div class="salary-readonly-field"><span>Latest income year</span><output id="salary-current-year">—</output></div>
           <div class="salary-readonly-field"><span>Province of employment</span><output id="salary-current-province">—</output></div>
           <div class="salary-readonly-field"><span>Payroll plan</span><small>Derived from employment province</small><output id="salary-current-payroll">—</output></div>
+          <div class="salary-readonly-field"><span>Current RRSP contribution</span><small>Cash deposited, not contribution room</small><output id="salary-current-rrsp-contribution">—</output></div>
+          <div class="salary-readonly-field"><span>Current RRSP deduction</span><small>Amount claimed against taxable income</small><output id="salary-current-rrsp-deduction">—</output></div>
+          <div class="salary-readonly-field"><span>Current other employment income</span><output id="salary-current-other-income">—</output></div>
           <label>Default annual raise % <input name="default_raise" type="number" step="0.001"></label>
           <label>First non-working day <input name="retirement_date" type="date"></label>
-          <label>Projected annual RRSP contribution <small>Cash deposited, not contribution room</small><input name="recurring_rrsp_contribution" type="number" min="0" step="0.01"></label>
-          <label>Projected annual RRSP deduction claimed <small>Amount deducted from taxable income; it may differ from the contribution</small><input name="recurring_rrsp_deduction" type="number" min="0" step="0.01"></label>
-          <label>Projected annual other employment income <input name="recurring_other_income" type="number" min="0" step="0.01"></label>
           <button class="view-action" type="submit">Save projection assumptions</button>
         </form>
       </section>
@@ -48,5 +48,5 @@
   </div>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-2') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-3') }}"></script>
 </body></html>

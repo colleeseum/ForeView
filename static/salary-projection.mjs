@@ -13,6 +13,9 @@ const elements = {
   currentYear: document.querySelector('#salary-current-year'),
   currentProvince: document.querySelector('#salary-current-province'),
   currentPayroll: document.querySelector('#salary-current-payroll'),
+  currentRrspContribution: document.querySelector('#salary-current-rrsp-contribution'),
+  currentRrspDeduction: document.querySelector('#salary-current-rrsp-deduction'),
+  currentOtherIncome: document.querySelector('#salary-current-other-income'),
   form: document.querySelector('#salary-settings-form'),
   table: document.querySelector('#salary-table'),
 };
@@ -86,8 +89,7 @@ function fillForm(person) {
   const settings = person.settings || {};
   const values = {
     default_raise: settings.default_raise == null ? '0' : Number(settings.default_raise) * 100,
-    retirement_date: settings.retirement_date || '', recurring_rrsp_contribution: settings.recurring_rrsp_contribution || '0',
-    recurring_rrsp_deduction: settings.recurring_rrsp_deduction || '0', recurring_other_income: settings.recurring_other_income || '0',
+    retirement_date: settings.retirement_date || '',
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
   const anchor = person.salary_anchor;
@@ -95,6 +97,9 @@ function fillForm(person) {
   if (elements.currentYear) elements.currentYear.textContent = anchor ? String(anchor.year) : '—';
   if (elements.currentProvince) elements.currentProvince.textContent = anchor?.province_of_employment || '—';
   if (elements.currentPayroll) elements.currentPayroll.textContent = anchor?.payroll_plan || '—';
+  if (elements.currentRrspContribution) elements.currentRrspContribution.textContent = anchor ? money(anchor.rrsp_contribution) : '—';
+  if (elements.currentRrspDeduction) elements.currentRrspDeduction.textContent = anchor ? money(anchor.rrsp_deduction) : '—';
+  if (elements.currentOtherIncome) elements.currentOtherIncome.textContent = anchor ? money(anchor.other_income) : '—';
   if (elements.sourceNote) {
     elements.sourceNote.innerHTML = person.salary_anchor
       ? `Salary starts from the latest factual Income record: <strong>${escapeHtml(String(person.salary_anchor.year))}</strong>, ${money(person.salary_anchor.annual_salary_rate)} after subtracting the recorded bonus. <a href="/income">View income history</a>.`
@@ -157,8 +162,6 @@ elements.form?.addEventListener('submit', async (event) => {
   try {
     await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/settings`, {method: 'PUT', body: JSON.stringify({
       default_raise: Number(values.default_raise || 0) / 100, retirement_date: values.retirement_date,
-      recurring_rrsp_contribution: values.recurring_rrsp_contribution,
-      recurring_rrsp_deduction: values.recurring_rrsp_deduction, recurring_other_income: values.recurring_other_income,
     })});
     showMessage('Projection settings saved.');
     await loadProjection();

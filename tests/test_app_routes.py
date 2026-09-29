@@ -155,6 +155,13 @@ class AppRouteTests(unittest.TestCase):
             },
         )
         self.assertEqual(settings.status_code, 200)
+        partial_settings = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/settings",
+            json={"default_raise": "0.04"},
+        )
+        self.assertEqual(partial_settings.status_code, 200)
+        self.assertEqual(partial_settings.get_json()["recurring_rrsp_contribution"], "10000.00")
+        self.assertEqual(partial_settings.get_json()["recurring_other_income"], "1000.00")
         with self.runtime_config.connect() as connection:
             approvals = PublicRuleApprovalRepository(connection)
             catalog = PublicRuleCatalog(application.ROOT / "public_rules")

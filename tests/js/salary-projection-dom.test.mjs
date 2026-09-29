@@ -23,7 +23,10 @@ function model() {
       id: 2, name: 'Alex', birth_date: '1980-04-15', error: null,
       baseline: {annual_salary: '100000.00', effective_date: '2026-01-01', province_of_employment: 'ON', payroll_plan: 'CPP'},
       settings: {default_raise: '0.04', retirement_date: null, recurring_rrsp_contribution: '10000.00', recurring_rrsp_deduction: '10000.00', recurring_other_income: '0.00'},
-      salary_anchor: {year: 2025, annual_salary_rate: '95000.00', province_of_employment: 'ON', payroll_plan: 'CPP'},
+      salary_anchor: {
+        year: 2025, annual_salary_rate: '95000.00', province_of_employment: 'ON', payroll_plan: 'CPP',
+        rrsp_contribution: '10000.00', rrsp_deduction: '9000.00', other_income: '1500.00',
+      },
       overrides: [], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
     }],
     household: [{...projection(2026)}, {...projection(2027, '104000.00')}],
@@ -36,10 +39,11 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
     <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden><p id="salary-source-note"></p>
       <output id="salary-current-rate"></output><output id="salary-current-year"></output>
       <output id="salary-current-province"></output><output id="salary-current-payroll"></output>
+      <output id="salary-current-rrsp-contribution"></output><output id="salary-current-rrsp-deduction"></output>
+      <output id="salary-current-other-income"></output>
     </section>
     <form id="salary-settings-form">
       <input name="default_raise"><input name="retirement_date">
-      <input name="recurring_rrsp_contribution"><input name="recurring_rrsp_deduction"><input name="recurring_other_income">
     </form><div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
@@ -59,6 +63,9 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.match(document.querySelector('#salary-current-rate').textContent, /95,000/);
   assert.equal(document.querySelector('#salary-current-province').textContent, 'ON');
   assert.equal(document.querySelector('#salary-current-payroll').textContent, 'CPP');
+  assert.match(document.querySelector('#salary-current-rrsp-contribution').textContent, /10,000/);
+  assert.match(document.querySelector('#salary-current-rrsp-deduction').textContent, /9,000/);
+  assert.match(document.querySelector('#salary-current-other-income').textContent, /1,500/);
   assert.equal(module.money('12.50'), '$13');
   assert.match(module.projectionTable([]), /No projection/);
 
@@ -71,6 +78,8 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   await tick(); await tick();
   assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
   assert.ok(calls.some((item) => item.url.endsWith('/settings') && item.options.method === 'PUT'));
+  const settingsCall = calls.find((item) => item.url.endsWith('/settings') && item.options.method === 'PUT');
+  assert.deepEqual(Object.keys(JSON.parse(settingsCall.options.body)).sort(), ['default_raise', 'retirement_date']);
 
   const salaryInput = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
   salaryInput.value = '120000';
@@ -120,7 +129,7 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
     <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup"></section>
-    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"><input name="recurring_rrsp_contribution"><input name="recurring_rrsp_deduction"><input name="recurring_other_income"></form>
+    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"></form>
     <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;

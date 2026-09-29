@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import replace
 from pathlib import Path
 
 from domain.projected_employment_year import ProjectedEmploymentYear
@@ -70,6 +71,13 @@ class SalaryProjectionService:
             starting_salary = baseline.annual_salary
             starting_year = start_year
             province = baseline.province_of_employment
+        if latest_actual is not None:
+            settings = replace(
+                settings,
+                recurring_rrsp_contribution=latest_actual.rrsp_contribution,
+                recurring_rrsp_deduction=latest_actual.rrsp_deduction,
+                recurring_other_income=latest_actual.other_income,
+            )
         payroll_plan = "QPP" if province == "QC" else "CPP"
         projection_start = (
             max(start_year, latest_actual.tax_year + 1) if latest_actual is not None else start_year

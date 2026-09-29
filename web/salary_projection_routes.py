@@ -132,16 +132,31 @@ def save_employment_settings(scenario_id: int, person_id: int):
     payload = request.get_json(silent=True) or {}
     try:
         with dependency("connect")() as connection:
-            settings = EmploymentProjectionSettingsRepository(connection).upsert(
+            repository = EmploymentProjectionSettingsRepository(connection)
+            current = repository.get(scenario_id, person_id)
+            settings = repository.upsert(
                 scenario_id,
                 person_id,
                 default_raise=as_decimal(payload.get("default_raise", 0)),
                 retirement_date=payload.get("retirement_date") or None,
                 recurring_rrsp_contribution=as_decimal(
-                    payload.get("recurring_rrsp_contribution", 0)
+                    payload.get(
+                        "recurring_rrsp_contribution",
+                        current.recurring_rrsp_contribution if current else 0,
+                    )
                 ),
-                recurring_rrsp_deduction=as_decimal(payload.get("recurring_rrsp_deduction", 0)),
-                recurring_other_income=as_decimal(payload.get("recurring_other_income", 0)),
+                recurring_rrsp_deduction=as_decimal(
+                    payload.get(
+                        "recurring_rrsp_deduction",
+                        current.recurring_rrsp_deduction if current else 0,
+                    )
+                ),
+                recurring_other_income=as_decimal(
+                    payload.get(
+                        "recurring_other_income",
+                        current.recurring_other_income if current else 0,
+                    )
+                ),
             )
         return jsonify(_settings_json(settings))
     except (TypeError, ValueError, sqlite3.IntegrityError) as error:

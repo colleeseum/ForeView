@@ -80,6 +80,9 @@ class SalaryProjectionServiceTests(unittest.TestCase):
             "105000",
             province_of_employment="QC",
             bonus="5000",
+            other_income="300",
+            rrsp_contribution="5000",
+            rrsp_deduction="4000",
         )
 
         rows = SalaryProjectionService(self.connection, Path("public_rules")).project_person(
@@ -89,6 +92,9 @@ class SalaryProjectionServiceTests(unittest.TestCase):
         self.assertEqual(rows[0].annual_salary_rate, Decimal("104000.00"))
         self.assertEqual(rows[0].raise_rate, Decimal("0.04"))
         self.assertGreater(rows[0].qpip, Decimal("0"))
+        self.assertEqual(rows[0].other_income, Decimal("300.00"))
+        self.assertEqual(rows[0].rrsp_contribution, Decimal("5000.00"))
+        self.assertEqual(rows[0].rrsp_deduction, Decimal("4000.00"))
 
 
 if __name__ == "__main__":

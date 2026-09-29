@@ -37,7 +37,7 @@
           <div class="salary-readonly-field"><span>Current other employment income</span><output id="salary-current-other-income">—</output></div>
           <label>Default annual raise % <input name="default_raise" type="number" step="0.001"></label>
           <label>First non-working day <input name="retirement_date" type="date"></label>
-          <button class="view-action" type="submit">Save projection assumptions</button>
+          <button id="salary-save" class="view-action" type="submit" disabled>Save projection assumptions</button>
         </form>
       </section>
       <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values.</p>
@@ -48,5 +48,5 @@
   </div>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-3') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-4') }}"></script>
 </body></html>

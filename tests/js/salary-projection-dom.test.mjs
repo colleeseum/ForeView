@@ -44,6 +44,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
     </section>
     <form id="salary-settings-form">
       <input name="default_raise"><input name="retirement_date">
+      <button id="salary-save" type="submit" disabled></button>
     </form><div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
@@ -66,6 +67,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.match(document.querySelector('#salary-current-rrsp-contribution').textContent, /10,000/);
   assert.match(document.querySelector('#salary-current-rrsp-deduction').textContent, /9,000/);
   assert.match(document.querySelector('#salary-current-other-income').textContent, /1,500/);
+  assert.equal(document.querySelector('#salary-save').disabled, true);
   assert.equal(module.money('12.50'), '$13');
   assert.match(module.projectionTable([]), /No projection/);
 
@@ -74,8 +76,12 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(document.querySelector('#salary-setup').hidden, true);
   document.querySelector('[data-person-key="2"]').click();
 
+  document.querySelector('[name="default_raise"]').value = '4.5';
+  document.querySelector('[name="default_raise"]').dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  assert.equal(document.querySelector('#salary-save').disabled, false);
   document.querySelector('#salary-settings-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
+  assert.equal(document.querySelector('#salary-save').disabled, true);
   assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
   assert.ok(calls.some((item) => item.url.endsWith('/settings') && item.options.method === 'PUT'));
   const settingsCall = calls.find((item) => item.url.endsWith('/settings') && item.options.method === 'PUT');
@@ -129,7 +135,7 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
     <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup"></section>
-    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"></form>
+    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"><button id="salary-save" type="submit"></button></form>
     <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;

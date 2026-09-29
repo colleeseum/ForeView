@@ -1,4 +1,5 @@
 import {escapeHtml} from './html.mjs';
+import {formSignature} from './form-state.mjs';
 
 const elements = {
   scenario: document.querySelector('#salary-scenario'),
@@ -17,11 +18,13 @@ const elements = {
   currentRrspDeduction: document.querySelector('#salary-current-rrsp-deduction'),
   currentOtherIncome: document.querySelector('#salary-current-other-income'),
   form: document.querySelector('#salary-settings-form'),
+  save: document.querySelector('#salary-save'),
   table: document.querySelector('#salary-table'),
 };
 
 let model = null;
 let selectedKey = null;
+let savedFormSignature = '';
 
 export function money(value) {
   const amount = Number(value || 0);
@@ -74,6 +77,10 @@ function selectedPerson() {
   return model?.people.find((person) => String(person.id) === selectedKey) || null;
 }
 
+function updateSaveState() {
+  if (elements.save) elements.save.disabled = formSignature(elements.form) === savedFormSignature;
+}
+
 function renderControls() {
   elements.scenario.innerHTML = model.scenarios.map((item) => `<option value="${item.id}"${item.id === model.selected_scenario_id ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('');
   elements.startYear.value = model.start_year;
@@ -85,13 +92,14 @@ function renderControls() {
 function fillForm(person) {
   elements.setup.hidden = !person || !model.selected_scenario_id;
   if (!person || !model.selected_scenario_id) return;
-  const baseline = person.baseline || {};
   const settings = person.settings || {};
   const values = {
     default_raise: settings.default_raise == null ? '0' : Number(settings.default_raise) * 100,
     retirement_date: settings.retirement_date || '',
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
+  savedFormSignature = formSignature(elements.form);
+  updateSaveState();
   const anchor = person.salary_anchor;
   if (elements.currentRate) elements.currentRate.textContent = anchor ? money(anchor.annual_salary_rate) : '—';
   if (elements.currentYear) elements.currentYear.textContent = anchor ? String(anchor.year) : '—';
@@ -153,6 +161,8 @@ elements.tabs?.addEventListener('click', (event) => {
 
 elements.view?.addEventListener('click', () => loadProjection().catch((error) => showMessage(error.message, true)));
 elements.scenario?.addEventListener('change', () => loadProjection().catch((error) => showMessage(error.message, true)));
+elements.form?.addEventListener('input', updateSaveState);
+elements.form?.addEventListener('change', updateSaveState);
 
 elements.form?.addEventListener('submit', async (event) => {
   event.preventDefault();

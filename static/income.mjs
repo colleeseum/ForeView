@@ -12,6 +12,7 @@ const elements = {
   importDialog: document.querySelector('#ufile-dialog-backdrop'),
   importClose: document.querySelector('#ufile-dialog-close'),
   importForm: document.querySelector('#ufile-form'),
+  importPerson: document.querySelector('#ufile-person'),
   salaryRate: document.querySelector('#income-salary-rate'),
 };
 
@@ -29,6 +30,14 @@ function money(value) {
 function showMessage(message, error = false) {
   elements.message.textContent = message;
   elements.message.classList.toggle('error', error);
+}
+
+function selectedPerson() {
+  return people.find((person) => person.id === selectedPersonId) || null;
+}
+
+function normalizedName(value) {
+  return String(value || '').toLocaleLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 }
 
 async function json(response) {
@@ -131,7 +140,13 @@ elements.history.addEventListener('click', (event) => {
 elements.add.addEventListener('click', () => openEditor());
 elements.editorClose.addEventListener('click', () => { elements.editor.hidden = true; });
 elements.form.addEventListener('input', updateSalaryRate);
-elements.importButton.addEventListener('click', () => { elements.importDialog.hidden = false; });
+elements.importButton.addEventListener('click', () => {
+  const person = selectedPerson();
+  elements.importPerson.textContent = person
+    ? `Loading for: ${person.name}`
+    : 'Select a person before loading a document.';
+  elements.importDialog.hidden = false;
+});
 elements.importClose.addEventListener('click', () => { elements.importDialog.hidden = true; });
 elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -140,10 +155,17 @@ elements.importForm.addEventListener('submit', async (event) => {
     const preview = await fetch('/api/income/import/ufile/preview', {
       method: 'POST', body: data,
     }).then(json);
+    const person = selectedPerson();
+    if (preview.taxpayer_name && person && normalizedName(preview.taxpayer_name) !== normalizedName(person.name)) {
+      throw new Error(`This PDF is for ${preview.taxpayer_name}, but the selected person is ${person.name}. Nothing was loaded.`);
+    }
     elements.importDialog.hidden = true;
     elements.importForm.reset();
     openEditor(preview);
-    showMessage('UFile values loaded for review. Enter any bonus, verify the values, then save.');
+    const identity = preview.taxpayer_name
+      ? `PDF taxpayer: ${preview.taxpayer_name}. `
+      : 'The PDF did not expose a taxpayer name. Verify the document before saving. ';
+    showMessage(`${identity}UFile values loaded for review. Enter any bonus, verify the values, then save.`);
   } catch (error) { showMessage(error.message, true); }
 });
 elements.form.addEventListener('submit', async (event) => {

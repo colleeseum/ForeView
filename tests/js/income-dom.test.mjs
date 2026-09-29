@@ -17,6 +17,7 @@ function installDom() {
     <form id="income-form"><input name="tax_year" value="2025"><select name="province_of_employment"><option value=""></option><option value="ON">ON</option><option value="QC">QC</option></select>${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
     <output id="income-salary-rate"></output>
     <div id="ufile-dialog-backdrop" hidden></div><button id="ufile-dialog-close"></button>
+    <p id="ufile-person"></p>
     <form id="ufile-form"><input name="file" type="file"><button type="submit"></button></form>
   </body>`, {url: 'http://localhost/income'});
   Object.assign(globalThis, {
@@ -52,7 +53,7 @@ test('income screen previews a UFile return and saves only after review', async 
       return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})]})};
     }
     if (url === '/api/income/import/ufile/preview') {
-      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC'})};
+      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC', taxpayer_name: 'Alex'})};
     }
     if (String(url).startsWith('/api/income/people/')) {
       saved = true;
@@ -82,6 +83,7 @@ test('income screen previews a UFile return and saves only after review', async 
 
   document.querySelector('#income-import').click();
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, false);
+  assert.match(document.querySelector('#ufile-person').textContent, /Alex/);
   document.querySelector('#ufile-dialog-close').click();
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, true);
   document.querySelector('#income-import').click();
@@ -92,6 +94,7 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.equal(document.querySelector('[name="employment_income"]').value, '100000.00');
   assert.equal(document.querySelector('[name="province_of_employment"]').value, 'QC');
   assert.match(document.querySelector('#income-message').textContent, /loaded for review/);
+  assert.match(document.querySelector('#income-message').textContent, /PDF taxpayer: Alex/);
   assert.equal(calls.some(({url}) => url.startsWith('/api/income/people/')), false);
 
   const bonus = document.querySelector('[name="bonus"]');
@@ -107,6 +110,26 @@ test('income screen previews a UFile return and saves only after review', async 
   document.querySelector('[data-person-id="2"]').click();
   await tick();
   assert.ok(calls.some(({url}) => url === '/api/income?person_id=2'));
+  dom.window.close();
+});
+
+test('income screen rejects a document for another person', async () => {
+  const dom = installDom();
+  globalThis.fetch = async (url) => {
+    if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
+    if (String(url).startsWith('/api/income?')) return {ok: true, json: async () => ({records: []})};
+    if (url === '/api/income/import/ufile/preview') {
+      return {ok: true, json: async () => ({...annualRecord(), taxpayer_name: 'Jordan'})};
+    }
+    throw new Error(`Unexpected URL ${url}`);
+  };
+  await import(`../../static/income.mjs?mismatch=${Date.now()}`);
+  await tick(); await tick();
+  document.querySelector('#income-import').click();
+  document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  await tick(); await tick();
+  assert.match(document.querySelector('#income-message').textContent, /selected person is Alex/);
+  assert.equal(document.querySelector('#income-dialog-backdrop').hidden, true);
   dom.window.close();
 });
 

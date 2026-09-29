@@ -19,3 +19,4 @@ class ParsedAnnualEmploymentActual:
     federal_tax: Decimal
     provincial_tax: Decimal
     province_of_employment: str | None = None
+    taxpayer_name: str | None = None

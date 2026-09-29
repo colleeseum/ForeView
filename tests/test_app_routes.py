@@ -396,6 +396,7 @@ class AppRouteTests(unittest.TestCase):
             rrsp_deduction=Decimal("14000.00"),
             federal_tax=Decimal("12000.00"),
             provincial_tax=Decimal("13000.00"),
+            taxpayer_name="Alex Example",
         )
         with patch(
             "web.income_routes.income_source_registry.get"
@@ -410,6 +411,7 @@ class AppRouteTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()["employment_income"], "100000.00")
+        self.assertEqual(response.get_json()["taxpayer_name"], "Alex Example")
         record = self.client.get(f"/api/income?person_id={person_id}&year=2024").get_json()
         self.assertIsNone(record["record"])
 

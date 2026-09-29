@@ -21,6 +21,7 @@ class UFileTaxReturnParser:
             pages = list(pdf.pages)
             summary_index, tax_year = self._find_individual_summary(pages)
             federal_page = pages[summary_index]
+            taxpayer_name = self._taxpayer_name(federal_page)
             quebec_page = pages[summary_index + 1] if summary_index + 1 < len(pages) else None
             if quebec_page is None or "Quebec return" not in (quebec_page.extract_text() or ""):
                 raise ValueError("The UFile Quebec summary page was not found")
@@ -43,6 +44,7 @@ class UFileTaxReturnParser:
                 federal_tax=self._required_line(federal_page, "42000"),
                 provincial_tax=self._required_line(quebec_page, "432"),
                 province_of_employment="QC",
+                taxpayer_name=taxpayer_name,
             )
 
     def _find_individual_summary(self, pages: list[Any]) -> tuple[int, int]:
@@ -52,6 +54,27 @@ class UFileTaxReturnParser:
             if match and "Combined" not in text[:200]:
                 return index, int(match.group(1))
         raise ValueError("This PDF does not contain an individual UFile tax return summary")
+
+    @staticmethod
+    def _taxpayer_name(page: Any) -> str | None:
+        """Read an explicitly labelled taxpayer name when UFile includes one.
+
+        The name is deliberately optional. UFile layouts can omit it from the
+        summary pages, and guessing from an arbitrary line could identify the
+        wrong person. The UI asks for manual verification when it is absent.
+        """
+        text = page.extract_text() or ""
+        patterns = (
+            r"^(?:Taxpayer|Taxpayer name|Your name)\s*:\s*(.+?)\s*$",
+            r"^(?:Nom|Nom du contribuable)\s*:\s*(.+?)\s*$",
+        )
+        for line in text.splitlines():
+            candidate = line.strip()
+            for pattern in patterns:
+                match = re.match(pattern, candidate, re.IGNORECASE)
+                if match and match.group(1).strip():
+                    return match.group(1).strip()
+        return None
 
     def _required_line(self, page: Any, line_number: str) -> Decimal:
         value = self._line_amount(page, line_number)

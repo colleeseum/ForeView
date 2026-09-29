@@ -92,6 +92,7 @@ def preview_income_source():
                 "provincial_tax": _money(parsed.provincial_tax),
                 "source": source.source_label,
                 "province_of_employment": parsed.province_of_employment or "",
+                "taxpayer_name": parsed.taxpayer_name or "",
             }
         )
     except (TypeError, ValueError) as error:

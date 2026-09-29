@@ -21,7 +21,7 @@ class UFileTaxReturnParser:
             pages = list(pdf.pages)
             summary_index, tax_year = self._find_individual_summary(pages)
             federal_page = pages[summary_index]
-            taxpayer_name = self._taxpayer_name(federal_page)
+            taxpayer_name = self._taxpayer_name(pages, summary_index, tax_year)
             quebec_page = pages[summary_index + 1] if summary_index + 1 < len(pages) else None
             if quebec_page is None or "Quebec return" not in (quebec_page.extract_text() or ""):
                 raise ValueError("The UFile Quebec summary page was not found")
@@ -56,24 +56,29 @@ class UFileTaxReturnParser:
         raise ValueError("This PDF does not contain an individual UFile tax return summary")
 
     @staticmethod
-    def _taxpayer_name(page: Any) -> str | None:
+    def _taxpayer_name(pages: list[Any], summary_index: int, tax_year: int) -> str | None:
         """Read an explicitly labelled taxpayer name when UFile includes one.
 
         The name is deliberately optional. UFile layouts can omit it from the
         summary pages, and guessing from an arbitrary line could identify the
         wrong person. The UI asks for manual verification when it is absent.
         """
-        text = page.extract_text() or ""
+        text = "\n".join((page.extract_text() or "") for page in pages[summary_index:])
         patterns = (
             r"^(?:Taxpayer|Taxpayer name|Your name)\s*:\s*(.+?)\s*$",
             r"^(?:Nom|Nom du contribuable)\s*:\s*(.+?)\s*$",
+            rf"Tax return for {tax_year} prepared for\s+(.+?)\s+by\s+UFile(?:\.ca)?",
+            r"Name:\s*SIN:\s*([A-Za-z][A-Za-z .'-]*?)(?=\s+\d{3}[- ]\d{3}[- ]\d{3}|\s+\d{9}|$)",
         )
-        for line in text.splitlines():
-            candidate = line.strip()
-            for pattern in patterns:
-                match = re.match(pattern, candidate, re.IGNORECASE)
+        for pattern in patterns[:2]:
+            for line in text.splitlines():
+                match = re.match(pattern, line.strip(), re.IGNORECASE)
                 if match and match.group(1).strip():
                     return match.group(1).strip()
+        for pattern in patterns[2:]:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and match.group(1).strip():
+                return match.group(1).strip()
         return None
 
     def _required_line(self, page: Any, line_number: str) -> Decimal:

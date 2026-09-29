@@ -27,6 +27,7 @@ from repositories.public_rule_approval_repository import PublicRuleApprovalRepos
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from repositories.real_estate_ownership_repository import RealEstateOwnershipRepository
 from repositories.scenario_repository import ScenarioRepository
+from repositories.transaction_repository import TransactionRepository
 from services.csv_import_service import CsvImportService
 from services.database_initialization import ensure_domain_schema
 from services.document_import_account_resolver import DocumentImportAccountResolver
@@ -206,6 +207,43 @@ def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
                 None,
                 "synthetic-fixture",
             )
+
+        resp = accounts.create(
+            "Synthetic RESP · education savings",
+            "resp",
+            account_number="SYN-RESP-001",
+            institution="Synthetic RESP Provider",
+        ).id
+        account_owners.replace(resp, [(alex, 1.0)])
+        balances.add(resp, "2026-09-01", 28750)
+        resp_transactions = TransactionRepository(connection)
+        resp_transactions.create(
+            resp,
+            "2026-01-15",
+            2500,
+            description="Synthetic RESP contribution",
+            balance_after=2500,
+            category="contribution",
+            transaction_type="deposit",
+        )
+        resp_transactions.create(
+            resp,
+            "2026-03-15",
+            500,
+            description="Synthetic education grant",
+            balance_after=3000,
+            category="grant",
+            transaction_type="deposit",
+        )
+        resp_transactions.create(
+            resp,
+            "2026-09-01",
+            25750,
+            description="Synthetic RESP opening balance",
+            balance_after=28750,
+            category="balance anchor",
+            transaction_type="opening_balance",
+        )
 
         gic = accounts.create(
             "GIC · linked subaccount",

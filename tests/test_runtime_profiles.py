@@ -171,6 +171,11 @@ class RuntimeProfileTests(unittest.TestCase):
             accounts_by_number = {item["account_number"]: item for item in accounts}
             self.assertEqual(accounts_by_number["SYN-SAV-001"]["latest_amount"], 24500)
             self.assertEqual(accounts_by_number["SYN-CALC-001"]["latest_amount"], 5000)
+            self.assertEqual(accounts_by_number["SYN-RESP-001"]["latest_amount"], 28750)
+            self.assertEqual(
+                accounts_by_number["SYN-RESP-001"]["name"],
+                "Synthetic RESP · education savings",
+            )
             self.assertEqual(accounts_by_number["99900011122233"]["latest_amount"], 90000)
             self.assertEqual(
                 accounts_by_number["SYN-SAV-001"]["name"],
@@ -196,11 +201,14 @@ class RuntimeProfileTests(unittest.TestCase):
             self.assertEqual(account_totals["tfsa"]["total"], 178607.5)
             self.assertEqual(account_totals["tfsa"]["count"], 4)
             self.assertEqual(account_totals["tfsa"]["gic_count"], 5)
+            self.assertEqual(account_totals["resp"]["total"], 28750)
+            self.assertEqual(account_totals["resp"]["count"], 1)
             dashboard = dashboard_response.get_json()
             category_totals = {item["type"]: item["total"] for item in dashboard["categories"]}
             self.assertEqual(category_totals["non_registered"], 31652.5)
             self.assertEqual(category_totals["tfsa"], 178607.5)
             self.assertEqual(category_totals["rrsp"], 315000)
+            self.assertEqual(category_totals["resp"], 28750)
             self.assertEqual(dashboard["gic_value"], 56750)
             self.assertEqual(dashboard["immovable_value"], 610000)
             land = next(

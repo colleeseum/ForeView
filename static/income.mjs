@@ -142,9 +142,11 @@ elements.editorClose.addEventListener('click', () => { elements.editor.hidden = 
 elements.form.addEventListener('input', updateSalaryRate);
 elements.importButton.addEventListener('click', () => {
   const person = selectedPerson();
-  elements.importPerson.textContent = person
-    ? `Loading for: ${person.name}`
-    : 'Select a person before loading a document.';
+  if (elements.importPerson) {
+    elements.importPerson.textContent = person
+      ? `Loading for: ${person.name}`
+      : 'Select a person before loading a document.';
+  }
   elements.importDialog.hidden = false;
 });
 elements.importClose.addEventListener('click', () => { elements.importDialog.hidden = true; });

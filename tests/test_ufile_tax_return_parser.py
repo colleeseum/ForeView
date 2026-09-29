@@ -62,6 +62,8 @@ class UFileTaxReturnParserTests(unittest.TestCase):
                 "Taxpayer: Alex Example\nTax return Summary\nfor 2024 taxation year",
                 {
                     "10100": "123,45678",
+                    "12100": "1,23456",
+                    "15000": "124,69134",
                     "20800": "20,00000",
                     "22215": "80000",
                     "30800": "3,20000",
@@ -82,6 +84,12 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         self.assertEqual(parsed.tax_year, 2024)
         self.assertEqual(parsed.employment_income, Decimal("123456.78"))
         self.assertEqual(parsed.other_employment_income, Decimal("0.00"))
+        tax_values = {value.concept: value for value in parsed.tax_values}
+        self.assertEqual(
+            tax_values["interest_investment_income"].reported_amount,
+            Decimal("1234.56"),
+        )
+        self.assertEqual(tax_values["total_income"].reported_amount, Decimal("124691.34"))
         self.assertEqual(parsed.cpp_qpp, Decimal("4000.00"))
         self.assertEqual(parsed.rrsp_contribution, Decimal("22000.00"))
         self.assertEqual(parsed.rrsp_deduction, Decimal("20000.00"))

@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
+from domain.parsed_tax_value import ParsedTaxValue
+
 
 @dataclass(frozen=True, slots=True)
 class ParsedAnnualEmploymentActual:
@@ -21,3 +23,4 @@ class ParsedAnnualEmploymentActual:
     province_of_residence: str | None = None
     payroll_plan: str | None = None
     taxpayer_name: str | None = None
+    tax_values: tuple[ParsedTaxValue, ...] = ()

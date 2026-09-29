@@ -19,4 +19,4 @@ class TaxNoticeProvider:
     parser: TaxNoticeParser
     detects: TaxNoticeDetector
     help_text: str
-    version: str = "2026.09.29"
+    version: str = "2026.09.29.1"

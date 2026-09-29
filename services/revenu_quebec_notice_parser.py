@@ -9,6 +9,7 @@ import pdfplumber
 from pdfplumber.utils.exceptions import PdfminerException
 
 from domain.parsed_tax_assessment import ParsedTaxAssessment
+from domain.parsed_tax_value import ParsedTaxValue
 
 
 class RevenuQuebecNoticeParser:
@@ -56,7 +57,66 @@ class RevenuQuebecNoticeParser:
             additional_contributions=self._line(text, "439", "QPIP premium", multiline=True),
             tax_withheld=self._line(text, "454", "Transferable portion", multiline=True),
             balance=balance,
+            tax_values=self._tax_values(text, year),
         )
+
+    def _tax_values(self, text: str, tax_year: int) -> tuple[ParsedTaxValue, ...]:
+        values: list[ParsedTaxValue] = []
+        for line, concept, description in (
+            ("96", "cpp_qpp_contributions", "CPP or QPP contributions"),
+            ("101", "employment_income", "Employment income"),
+            ("107", "other_employment_income", "Other employment income"),
+            ("114", "oas_income", "Old Age Security pension"),
+            ("119", "cpp_qpp_benefits", "CPP or QPP benefits"),
+            ("122", "other_pension_income", "Other pension income"),
+            ("130", "interest_investment_income", "Interest and other investment income"),
+            ("136", "taxable_canadian_dividends", "Taxable Canadian dividends"),
+            ("139", "taxable_capital_gains", "Taxable capital gains"),
+            ("164", "net_business_income", "Net business income"),
+            ("199", "total_income", "Total income"),
+            ("201", "worker_deduction", "Deduction for workers"),
+            ("214", "rrsp_deduction", "RRSP or PRPP deduction"),
+            ("248", "enhanced_contribution_deduction", "Enhanced payroll contribution deduction"),
+            ("275", "net_income", "Net income"),
+            ("299", "taxable_income", "Taxable income"),
+            ("350", "basic_personal_amount", "Basic personal amount"),
+            ("377", "personal_tax_credit_base", "Amounts used for personal tax credits"),
+            ("377.1", "personal_tax_credit", "Personal tax credit"),
+            ("399", "non_refundable_tax_credits", "Non-refundable tax credits"),
+            ("401", "tax_on_taxable_income", "Income tax on taxable income"),
+            ("406", "non_refundable_tax_credit_amount", "Non-refundable tax credit amount"),
+            ("432", "quebec_income_tax", "Quebec income tax"),
+            ("439", "qpip_additional_premium", "Additional QPIP premium"),
+            ("450", "income_tax_and_contributions", "Income tax and contributions"),
+            ("454", "tax_withheld_transferred", "Tax withheld transferred from another province"),
+            ("479", "balance_due", "Balance due"),
+        ):
+            amounts = self._line_amounts(text, line)
+            if amounts:
+                values.append(
+                    ParsedTaxValue(
+                        concept=concept,
+                        description=description,
+                        reported_amount=amounts[0] if len(amounts) > 1 else None,
+                        determined_amount=amounts[-1],
+                        line_code=line,
+                        effective_year=tax_year,
+                    )
+                )
+        balance_interest = self._optional_amount(
+            text, r"Interest on the balance\s*\+?\s*\$?\s*([\d,]+\.\d{2})"
+        )
+        if balance_interest is not None:
+            values.append(
+                ParsedTaxValue(
+                    "assessment_balance_interest",
+                    "Interest on the assessed balance",
+                    None,
+                    balance_interest,
+                    effective_year=tax_year,
+                )
+            )
+        return tuple(values)
 
     @staticmethod
     def _text(content: bytes) -> str:
@@ -91,6 +151,32 @@ class RevenuQuebecNoticeParser:
         if not values:
             raise ValueError(f"Revenu Québec notice line {number} amount was not found")
         return self._amount(values[-1])
+
+    def _line_amounts(self, text: str, number: str) -> tuple[Decimal, ...]:
+        lines = text.splitlines()
+        matching = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if re.match(rf"^{re.escape(number)}(?:\s|$)", line)
+            ),
+            None,
+        )
+        if matching is None:
+            return ()
+        selected = lines[matching]
+        for following in lines[matching + 1 : matching + 3]:
+            if re.match(r"^\d+(?:\.\d+)?(?:\s|$)", following):
+                break
+            selected += " " + following
+        return tuple(
+            self._amount(raw)
+            for raw in re.findall(r"(?<!\d)([\d,]+\.\d{2})(?!\d)", selected)
+        )
+
+    def _optional_amount(self, text: str, pattern: str) -> Decimal | None:
+        match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE)
+        return self._amount(match.group(1)) if match else None
 
     @staticmethod
     def _taxpayer_name(text: str) -> str | None:

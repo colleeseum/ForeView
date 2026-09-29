@@ -26,6 +26,7 @@ let people = [];
 let records = [];
 let selectedPersonId = null;
 let pendingImport = null;
+let pendingTaxReturn = null;
 const defaultTaxYear = elements.form.elements.tax_year.value;
 
 function money(value) {
@@ -92,6 +93,7 @@ function renderHistory() {
     <td>${escapeHtml(record.province_of_residence || '—')}</td>
     <td>${money(record.employment_income)}</td><td>${money(record.bonus)}</td>
     <td><strong>${money(record.salary_rate)}</strong></td><td>${money(record.other_income)}</td>
+    <td>${money(record.interest_income)}</td>
     <td>${money(record.gross_income)}</td><td>${money(record.cpp_qpp)}</td>
     <td>${money(record.ei)}</td><td>${money(record.qpip)}</td>
     <td>${money(record.rrsp_contribution)}</td><td>${money(record.rrsp_deduction)}</td>
@@ -102,13 +104,13 @@ function renderHistory() {
   </tr>`).join('');
   elements.history.innerHTML = `<div class="table-wrap"><table class="income-history-table">
     <thead><tr><th>Year</th><th>Residence</th><th>Employment income</th><th>Bonus</th><th>Salary rate</th>
-    <th>Other employment income</th><th>Gross</th><th>CPP/QPP</th><th>EI</th><th>QPIP</th>
+    <th>Other employment income</th><th>Interest and investment income</th><th>Employment gross</th><th>CPP/QPP</th><th>EI</th><th>QPIP</th>
     <th>RRSP contribution</th><th>RRSP deduction</th><th>Federal tax</th>
     <th>Provincial tax</th><th>Disposable</th><th>Source</th><th></th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
 }
 
-function renderSupplementary(assessments, rooms, pension) {
+function renderSupplementary(assessments, rooms, pension, taxValues) {
   const assessmentRows = assessments.map((item) => `<tr>
     <td>${item.year}</td><td>${escapeHtml(item.jurisdiction)}</td><td>${escapeHtml(item.issued_on)}</td>
     <td>${money(item.total_income)}</td><td>${money(item.net_income)}</td><td>${money(item.taxable_income)}</td>
@@ -128,7 +130,18 @@ function renderSupplementary(assessments, rooms, pension) {
     <td>${item.year}</td><td>${money(item.qpp_earnings)}</td><td>${money(item.cpp_earnings)}</td>
     <td>${escapeHtml(item.status || '')}</td>
   </tr>`).join('') || '';
+  const taxValueRows = taxValues.map((item) => `<tr>
+    <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
+    <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
+    <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
+    <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
+    <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
+    <td>${escapeHtml(item.source)}</td>
+  </tr>`).join('');
   elements.supplementary.innerHTML = `
+    <section class="income-record-section"><h2>Tax document details</h2>${taxValueRows
+      ? `<details><summary>${taxValues.length} retained tax concepts</summary><div class="table-wrap"><table><thead><tr><th>Tax year</th><th>Document</th><th>Jurisdiction</th><th>Effective year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead><tbody>${taxValueRows}</tbody></table></div></details>`
+      : '<p class="empty-panel">No detailed tax-document values loaded.</p>'}</section>
     <section class="income-record-section"><h2>Tax assessments</h2>${assessmentRows
       ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th>Jurisdiction</th><th>Issued</th><th>Total income</th><th>Net income</th><th>Taxable income</th><th>Net tax</th><th>Other contributions</th><th>Tax withheld</th><th>Balance</th><th>Source</th></tr></thead><tbody>${assessmentRows}</tbody></table></div>`
       : '<p class="empty-panel">No assessment notices loaded.</p>'}</section>
@@ -150,7 +163,7 @@ function updateSalaryRate() {
 
 function fillForm(record = {}) {
   for (const name of [
-    'employment_income', 'bonus', 'other_income', 'cpp_qpp', 'ei', 'qpip',
+    'employment_income', 'bonus', 'other_income', 'interest_income', 'cpp_qpp', 'ei', 'qpip',
     'rrsp_contribution', 'rrsp_deduction', 'federal_tax', 'provincial_tax',
   ]) elements.form.elements[name].value = record[name] || '0';
   elements.form.elements.tax_year.value = record.year || defaultTaxYear;
@@ -189,7 +202,10 @@ async function load() {
   const result = await fetch(`/api/income?person_id=${selectedPersonId}`).then(json);
   records = result.records;
   renderHistory();
-  renderSupplementary(result.assessments || [], result.registered_rooms || [], result.public_pension);
+  renderSupplementary(
+    result.assessments || [], result.registered_rooms || [], result.public_pension,
+    result.tax_values || [],
+  );
   showMessage(records.length
     ? `${records.length} annual record${records.length === 1 ? '' : 's'}, newest first.`
     : 'No annual employment records have been saved.');
@@ -205,9 +221,15 @@ elements.history.addEventListener('click', (event) => {
   const button = event.target.closest('[data-edit-year]');
   if (!button) return;
   const record = records.find((item) => item.year === Number(button.dataset.editYear));
-  if (record) openEditor(record);
+  if (record) {
+    pendingTaxReturn = null;
+    openEditor(record);
+  }
 });
-elements.add.addEventListener('click', () => openEditor());
+elements.add.addEventListener('click', () => {
+  pendingTaxReturn = null;
+  openEditor();
+});
 elements.editorClose.addEventListener('click', () => { elements.editor.hidden = true; });
 elements.form.addEventListener('input', updateSalaryRate);
 elements.importButton.addEventListener('click', () => {
@@ -238,6 +260,7 @@ elements.importForm.addEventListener('submit', async (event) => {
       elements.importDialog.hidden = true;
       elements.importForm.reset();
       updateImportAction();
+      pendingTaxReturn = preview;
       openEditor(preview);
     } else {
       pendingImport = preview;
@@ -247,7 +270,8 @@ elements.importForm.addEventListener('submit', async (event) => {
       if (preview.kind === 'tax_assessment') {
         elements.importReview.innerHTML = `<h3>${escapeHtml(preview.source_name)}</h3>
           <p>${preview.tax_year}, issued ${escapeHtml(preview.issued_on)}. Net tax ${money(preview.net_tax)}; balance ${money(preview.balance)}.</p>
-          ${preview.rrsp_effective_year ? `<p>RRSP room for ${preview.rrsp_effective_year}: <strong>${money(preview.rrsp_available_room)}</strong>.</p>` : ''}`;
+          ${preview.rrsp_effective_year ? `<p>RRSP room for ${preview.rrsp_effective_year}: <strong>${money(preview.rrsp_available_room)}</strong>.</p>` : ''}
+          <p>${preview.tax_values?.length || 0} detailed tax concepts will be retained.</p>`;
       } else {
         elements.importReview.innerHTML = `<h3>${escapeHtml(preview.source_name)}</h3>
           <p>Issued ${escapeHtml(preview.issued_on)} with ${preview.earnings.length} years of pensionable earnings and ${preview.estimates.length} estimates.</p>
@@ -285,6 +309,11 @@ elements.importConfirm.addEventListener('click', async () => {
 elements.form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const values = Object.fromEntries(new FormData(elements.form));
+  if (pendingTaxReturn) {
+    values.tax_values = pendingTaxReturn.tax_values || [];
+    values.source_version = pendingTaxReturn.source_version;
+    values.document_hash = pendingTaxReturn.document_hash;
+  }
   const year = Number(elements.form.elements.tax_year.value);
   try {
     await fetch(
@@ -292,6 +321,7 @@ elements.form.addEventListener('submit', async (event) => {
       {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(values)},
     ).then(json);
     elements.editor.hidden = true;
+    pendingTaxReturn = null;
     showMessage(`${year} annual employment record saved.`);
     await load();
   } catch (error) { showMessage(error.message, true); }

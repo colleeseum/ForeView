@@ -13,6 +13,7 @@ from unittest.mock import patch
 import app as application
 from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
 from domain.parsed_tax_assessment import ParsedTaxAssessment
+from domain.parsed_tax_value import ParsedTaxValue
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 from infrastructure.runtime_config import RuntimeConfig
 from institutions.questrade.client import QuestradeClient
@@ -401,6 +402,15 @@ class AppRouteTests(unittest.TestCase):
             federal_tax=Decimal("12000.00"),
             provincial_tax=Decimal("13000.00"),
             taxpayer_name="Alex Example",
+            tax_values=(
+                ParsedTaxValue(
+                    "interest_investment_income",
+                    "Interest and other investment income",
+                    Decimal("725.50"),
+                    line_code="12100",
+                    effective_year=2024,
+                ),
+            ),
         )
         with patch("web.income_routes.income_source_registry.detect") as detect_source:
             detect_source.return_value.parser.return_value = parsed
@@ -418,6 +428,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()["employment_income"], "100000.00")
         self.assertEqual(response.get_json()["taxpayer_name"], "Alex Example")
+        self.assertEqual(response.get_json()["interest_income"], "725.50")
         record = self.client.get(f"/api/income?person_id={person_id}&year=2024").get_json()
         self.assertIsNone(record["record"])
 
@@ -441,6 +452,15 @@ class AppRouteTests(unittest.TestCase):
             rrsp_new_room=Decimal("19000.00"),
             rrsp_unused_contributions=Decimal("1200.00"),
             rrsp_available_room=Decimal("20800.00"),
+            tax_values=(
+                ParsedTaxValue(
+                    "canada_training_credit_limit",
+                    "Canada training credit limit",
+                    None,
+                    Decimal("250"),
+                    effective_year=2026,
+                ),
+            ),
         )
         with patch("web.income_routes.tax_notice_registry.detect") as detect_notice:
             detect_notice.return_value.parser.return_value = parsed
@@ -468,6 +488,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(income["assessments"][0]["net_tax"], "17500.00")
         self.assertEqual(income["registered_rooms"][0]["effective_year"], 2026)
         self.assertEqual(income["registered_rooms"][0]["available_room"], "20800.00")
+        self.assertEqual(income["tax_values"][0]["concept"], "canada_training_credit_limit")
 
     def test_pension_preview_and_confirmation_save_earnings_and_estimates(self):
         person_id = self._people()[0]["id"]
@@ -525,6 +546,7 @@ class AppRouteTests(unittest.TestCase):
                 "bonus": "5000",
                 "province_of_residence": "ON",
                 "source": "T1",
+                "interest_income": "425.75",
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -537,6 +559,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual([record["year"] for record in records[:2]], [2025, 2024])
         self.assertEqual(records[1]["salary_rate"], "85000.00")
         self.assertEqual(records[1]["province_of_residence"], "ON")
+        self.assertEqual(records[1]["interest_income"], "425.75")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()
@@ -649,7 +672,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(sources.status_code, 200)
         source = sources.get_json()["sources"][0]
         self.assertEqual(source["key"], "ufile")
-        self.assertEqual(source["version"], "2026.09.29")
+        self.assertEqual(source["version"], "2026.09.29.1")
         self.assertNotIn("last_changed", source)
         self.assertIn("Tax Return - view or download", source["help_text"])
 

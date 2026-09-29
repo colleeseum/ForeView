@@ -9,6 +9,7 @@ from infrastructure.migrations.annual_employment_province import (
 from infrastructure.migrations.annual_employment_province_backfill import (
     AnnualEmploymentProvinceBackfillMigration,
 )
+from infrastructure.migrations.annual_tax_values import AnnualTaxValuesMigration
 from infrastructure.migrations.baseline_domain_schema import BaselineDomainSchemaMigration
 from infrastructure.migrations.employment_income_records import EmploymentIncomeRecordsMigration
 from infrastructure.migrations.employment_projection import EmploymentProjectionMigration
@@ -44,6 +45,7 @@ def ensure_domain_schema(connection: Connection) -> None:
             AnnualEmploymentProvinceBackfillMigration(),
             HouseholdExpensesMigration(),
             TaxAndPublicPensionRecordsMigration(),
+            AnnualTaxValuesMigration(),
         ),
     ).apply()
 

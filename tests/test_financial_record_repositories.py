@@ -6,8 +6,10 @@ from decimal import Decimal
 from pathlib import Path
 
 import app as application
+from domain.parsed_tax_value import ParsedTaxValue
 from infrastructure.runtime_config import RuntimeConfig
 from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
+from repositories.annual_tax_value_repository import AnnualTaxValueRepository
 from repositories.person_repository import PersonRepository
 from repositories.public_pension_statement_repository import PublicPensionStatementRepository
 from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
@@ -73,6 +75,83 @@ class FinancialRecordRepositoryTests(unittest.TestCase):
         self.assertTrue(statement.excludes_second_enhancement)
         self.assertEqual(repository.earnings(statement.id)[0].cpp_earnings, Decimal("81200.00"))
         self.assertEqual(len(repository.estimates(statement.id)), 2)
+
+    def test_tax_document_values_preserve_reported_and_determined_concepts(self) -> None:
+        repository = AnnualTaxValueRepository(self.connection)
+        values = repository.replace_document(
+            self.person_id,
+            2025,
+            "assessment",
+            "CA-QC",
+            "Revenu Quebec NOA",
+            "2026.09.29.1",
+            "hash",
+            (
+                ParsedTaxValue(
+                    "interest_investment_income",
+                    "Interest and other investment income",
+                    Decimal("3900"),
+                    Decimal("3925.26"),
+                    "130",
+                    2025,
+                ),
+                ParsedTaxValue(
+                    "canada_training_credit_limit",
+                    "Canada training credit limit",
+                    None,
+                    Decimal("250"),
+                    effective_year=2026,
+                ),
+            ),
+        )
+
+        self.assertEqual(len(values), 2)
+        interest = next(item for item in values if item.concept == "interest_investment_income")
+        self.assertEqual(interest.reported_amount, Decimal("3900.00"))
+        self.assertEqual(interest.determined_amount, Decimal("3925.26"))
+        self.assertEqual(
+            repository.get(
+                self.person_id,
+                2025,
+                "assessment",
+                "CA-QC",
+                "canada_training_credit_limit",
+                2026,
+            ).determined_amount,
+            Decimal("250.00"),
+        )
+
+        replaced = repository.replace_document(
+            self.person_id,
+            2025,
+            "assessment",
+            "CA-QC",
+            "Revenu Quebec NOA",
+            "2026.09.29.1",
+            "new-hash",
+            (
+                ParsedTaxValue(
+                    "interest_investment_income",
+                    "Interest and other investment income",
+                    Decimal("3925.26"),
+                    Decimal("3925.26"),
+                    "130",
+                    2025,
+                ),
+            ),
+        )
+        self.assertEqual(len(replaced), 1)
+        self.assertEqual(replaced[0].reported_amount, Decimal("3925.26"))
+        self.assertIsNone(
+            repository.get(
+                self.person_id,
+                2025,
+                "assessment",
+                "CA-QC",
+                "canada_training_credit_limit",
+                2026,
+            )
+        )
 
 
 if __name__ == "__main__":

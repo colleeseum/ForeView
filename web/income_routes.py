@@ -9,10 +9,12 @@ from flask import Blueprint, jsonify, request
 
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.money import as_decimal
+from domain.parsed_tax_value import ParsedTaxValue
 from income_sources import income_source_registry
 from public_pension_sources import public_pension_source_registry
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
+from repositories.annual_tax_value_repository import AnnualTaxValueRepository
 from repositories.person_repository import PersonRepository
 from repositories.public_pension_statement_repository import PublicPensionStatementRepository
 from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
@@ -34,6 +36,8 @@ def income_record():
         assessments = AnnualTaxAssessmentRepository(connection).list_for_person(person_id)
         rooms = RegisteredPlanRoomRepository(connection).list_for_person(person_id)
         pension_repository = PublicPensionStatementRepository(connection)
+        tax_value_repository = AnnualTaxValueRepository(connection)
+        tax_values = tax_value_repository.list_for_person(person_id)
         pension = pension_repository.latest_for_person(person_id)
         if year is None:
             records = list(reversed(repository.list_for_person(person_id)))
@@ -47,11 +51,12 @@ def income_record():
             "people": [{"id": person.id, "name": person.name} for person in people],
             "person_id": person_id,
             "year": year,
-            "record": _record_json(record) if record else None,
-            "records": [_record_json(item) for item in records],
+            "record": _record_json(record, tax_values) if record else None,
+            "records": [_record_json(item, tax_values) for item in records],
             "assessments": [_assessment_json(item) for item in assessments],
             "registered_rooms": [_room_json(item) for item in rooms],
             "public_pension": public_pension,
+            "tax_values": [_tax_value_json(item) for item in tax_values],
         }
     )
 
@@ -78,7 +83,40 @@ def save_income_record(person_id: int, year: int):
                 provincial_tax=_amount(payload, "provincial_tax"),
                 source=str(payload.get("source") or "T1 / manual"),
             )
-        return jsonify(_record_json(record))
+            tax_repository = AnnualTaxValueRepository(connection)
+            source = str(payload.get("source") or "Manual")
+            source_version = str(payload.get("source_version") or "manual")
+            document_hash = str(payload.get("document_hash") or "manual")
+            if "tax_values" in payload:
+                tax_repository.replace_document(
+                    person_id,
+                    year,
+                    "return",
+                    "CA",
+                    source,
+                    source_version,
+                    document_hash,
+                    _parsed_tax_values(payload.get("tax_values")),
+                )
+            elif "interest_income" in payload:
+                tax_repository.upsert_value(
+                    person_id,
+                    year,
+                    "return",
+                    "CA",
+                    source,
+                    source_version,
+                    document_hash,
+                    ParsedTaxValue(
+                        "interest_investment_income",
+                        "Interest and other investment income",
+                        _amount(payload, "interest_income"),
+                        line_code="12100",
+                        effective_year=year,
+                    ),
+                )
+            tax_values = tax_repository.list_for_document(person_id, year, "return", "CA")
+        return jsonify(_record_json(record, tax_values))
     except (TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
@@ -122,6 +160,9 @@ def preview_income_source():
                     "source_name": notice_source.display_name,
                     "source_version": notice_source.version,
                     "document_hash": content_hash,
+                    "tax_values": [
+                        _parsed_tax_value_json(value) for value in parsed_notice.tax_values
+                    ],
                 }
             )
         pension_source = public_pension_source_registry.detect(content)
@@ -187,6 +228,12 @@ def preview_income_source():
                 "province_of_residence": parsed.province_of_residence or "",
                 "payroll_plan": parsed.payroll_plan or "",
                 "taxpayer_name": parsed.taxpayer_name or "",
+                "jurisdiction": "CA",
+                "document_hash": content_hash,
+                "interest_income": _parsed_concept_amount(
+                    parsed.tax_values, "interest_investment_income"
+                ),
+                "tax_values": [_parsed_tax_value_json(value) for value in parsed.tax_values],
             }
         )
     except (TypeError, ValueError) as error:
@@ -227,6 +274,17 @@ def save_tax_assessment(person_id: int):
                     available_room=_amount(payload, "rrsp_available_room"),
                     source=str(payload["source"]),
                     source_version=str(payload["source_version"]),
+                )
+            if "tax_values" in payload:
+                AnnualTaxValueRepository(connection).replace_document(
+                    person_id,
+                    int(payload["tax_year"]),
+                    "assessment",
+                    str(payload["jurisdiction"]),
+                    str(payload["source"]),
+                    str(payload["source_version"]),
+                    str(payload["document_hash"]),
+                    _parsed_tax_values(payload.get("tax_values")),
                 )
         return jsonify(_assessment_json(assessment)), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
@@ -306,7 +364,24 @@ def _optional_money(value: Decimal | None) -> str | None:
     return _money(value) if value is not None else None
 
 
-def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
+def _record_json(
+    record: AnnualEmploymentActual, tax_values: list[Any] | tuple[Any, ...] = ()
+) -> dict[str, Any]:
+    record_values = [
+        value
+        for value in tax_values
+        if value.tax_year == record.tax_year
+        and value.document_kind == "return"
+        and value.jurisdiction == "CA"
+    ]
+    interest = next(
+        (
+            value.reported_amount
+            for value in record_values
+            if value.concept == "interest_investment_income"
+        ),
+        Decimal("0"),
+    )
     return {
         "id": record.id,
         "person_id": record.person_id,
@@ -317,6 +392,7 @@ def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
         "bonus": _money(record.bonus),
         "salary_rate": _money(record.salary_rate),
         "other_income": _money(record.other_income),
+        "interest_income": _money(interest or Decimal("0")),
         "gross_income": _money(record.gross_income),
         "rrsp_contribution": _money(record.rrsp_contribution),
         "rrsp_deduction": _money(record.rrsp_deduction),
@@ -327,6 +403,70 @@ def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
         "provincial_tax": _money(record.provincial_tax),
         "disposable_income": _money(record.disposable_income),
         "source": record.source or "T1 / manual",
+        "tax_values": [_tax_value_json(value) for value in record_values],
+    }
+
+
+def _parsed_tax_values(raw_values: Any) -> tuple[ParsedTaxValue, ...]:
+    if not isinstance(raw_values, list):
+        raise ValueError("Tax values must be a list")
+    return tuple(
+        ParsedTaxValue(
+            concept=str(item["concept"]),
+            description=str(item["description"]),
+            reported_amount=(
+                as_decimal(item["reported_amount"])
+                if item.get("reported_amount") is not None
+                else None
+            ),
+            determined_amount=(
+                as_decimal(item["determined_amount"])
+                if item.get("determined_amount") is not None
+                else None
+            ),
+            line_code=str(item["line_code"]) if item.get("line_code") else None,
+            effective_year=(
+                int(item["effective_year"]) if item.get("effective_year") is not None else None
+            ),
+        )
+        for item in raw_values
+        if isinstance(item, dict)
+    )
+
+
+def _parsed_tax_value_json(value: ParsedTaxValue) -> dict[str, Any]:
+    return {
+        "concept": value.concept,
+        "description": value.description,
+        "reported_amount": _optional_money(value.reported_amount),
+        "determined_amount": _optional_money(value.determined_amount),
+        "line_code": value.line_code,
+        "effective_year": value.effective_year,
+    }
+
+
+def _parsed_concept_amount(values: tuple[ParsedTaxValue, ...], concept: str) -> str:
+    amount = next(
+        (value.reported_amount for value in values if value.concept == concept),
+        Decimal("0"),
+    )
+    return _money(amount or Decimal("0"))
+
+
+def _tax_value_json(value: Any) -> dict[str, Any]:
+    return {
+        "id": value.id,
+        "tax_year": value.tax_year,
+        "effective_year": value.effective_year,
+        "document_kind": value.document_kind,
+        "jurisdiction": value.jurisdiction,
+        "concept": value.concept,
+        "description": value.description,
+        "reported_amount": _optional_money(value.reported_amount),
+        "determined_amount": _optional_money(value.determined_amount),
+        "line_code": value.line_code,
+        "source": value.source,
+        "source_version": value.source_version,
     }
 
 

@@ -7,7 +7,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 function installDom() {
   const fields = [
-    'employment_income', 'bonus', 'other_income', 'cpp_qpp', 'ei', 'qpip',
+    'employment_income', 'bonus', 'other_income', 'interest_income', 'cpp_qpp', 'ei', 'qpip',
     'rrsp_contribution', 'rrsp_deduction', 'federal_tax', 'provincial_tax',
   ].map((name) => `<input name="${name}" value="0">`).join('');
   const dom = new JSDOM(`<!doctype html><body>
@@ -32,6 +32,7 @@ function annualRecord(overrides = {}) {
     id: 4, person_id: 1, year: 2025, employment_income: '100000.00',
     province_of_residence: 'ON', payroll_plan: 'CPP',
     bonus: '5000.00', salary_rate: '95000.00', other_income: '1000.00',
+    interest_income: '250.00', tax_values: [],
     gross_income: '101000.00', cpp_qpp: '4000.00', ei: '900.00', qpip: '400.00',
     rrsp_contribution: '10000.00', rrsp_deduction: '10000.00',
     federal_tax: '12000.00', provincial_tax: '13000.00',
@@ -49,10 +50,10 @@ test('income screen previews a UFile return and saves only after review', async 
       return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}, {id: 2, name: '<b>Jordan</b>'}]})};
     }
     if (String(url).startsWith('/api/income?')) {
-      return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})]})};
+      return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})], tax_values: []})};
     }
     if (url === '/api/income/import/preview') {
-      return {ok: true, json: async () => annualRecord({kind: 'tax_return', year: 2024, province_of_residence: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '2026.09.29'})};
+      return {ok: true, json: async () => annualRecord({kind: 'tax_return', year: 2024, province_of_residence: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '2026.09.29.1', document_hash: 'abc', tax_values: [{concept: 'interest_investment_income', description: 'Interest and other investment income', reported_amount: '250.00', determined_amount: null, line_code: '12100', effective_year: 2024}]})};
     }
     if (String(url).startsWith('/api/income/people/')) {
       saved = true;
@@ -102,6 +103,7 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, false);
   assert.equal(document.querySelector('[name="employment_income"]').value, '100000.00');
   assert.equal(document.querySelector('[name="province_of_residence"]').value, 'QC');
+  assert.equal(document.querySelector('[name="interest_income"]').value, '250.00');
   assert.equal(document.querySelector('#income-editor-person').textContent, 'Person: Alex');
   assert.match(document.querySelector('#income-message').textContent, /loaded for review/);
   assert.match(document.querySelector('#income-message').textContent, /PDF taxpayer: Alex/);
@@ -115,6 +117,8 @@ test('income screen previews a UFile return and saves only after review', async 
   document.querySelector('#income-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
   assert.equal(calls.some(({url, options}) => url === '/api/income/people/1/years/2024' && options.method === 'PUT'), true);
+  const savedCall = calls.find(({url}) => url === '/api/income/people/1/years/2024');
+  assert.equal(JSON.parse(savedCall.options.body).tax_values[0].concept, 'interest_investment_income');
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, true);
 
   document.querySelector('[data-person-id="2"]').click();
@@ -184,7 +188,7 @@ test('income screen reviews and saves an assessment with registered room', async
     calls.push({url: String(url), options});
     if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
     if (String(url).startsWith('/api/income?')) return {ok: true, json: async () => ({
-      records: [annualRecord()], assessments: [assessment],
+      records: [annualRecord()], assessments: [assessment], tax_values: [{tax_year: 2025, document_kind: 'assessment', jurisdiction: 'CA', effective_year: 2026, line_code: null, description: 'Canada training credit limit', reported_amount: null, determined_amount: '250.00', source: 'CRA NOA'}],
       registered_rooms: [{plan_type: 'RRSP', effective_year: 2026, available_room: '58810.00', deduction_limit: '58810.00', unused_contributions: '0.00', as_of_date: '2026-05-11', source: 'CRA NOA'}],
       public_pension: {provider: 'QPP', issued_on: '2026-06-15', excludes_second_enhancement: true, estimates: [{contribution_assumption: 'stop', activation_age: 65, monthly_amount: '1012.00'}], earnings: [{year: 2025, qpp_earnings: '0.00', cpp_earnings: '81200.00', status: 'A'}]},
     })};

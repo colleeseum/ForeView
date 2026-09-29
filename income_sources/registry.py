@@ -50,7 +50,7 @@ income_source_registry = IncomeSourceRegistry(
             source_label="UFile T1",
             help_text=_UFIlE_HELP,
             detects=UFileTaxReturnParser.detects,
-            version="2026.09.29",
+            version="2026.09.29.1",
         ),
     )
 )

@@ -38,6 +38,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (8, "annual_employment_province_backfill"),
                     (9, "household_expenses"),
                     (10, "tax_and_public_pension_records"),
+                    (11, "annual_tax_values"),
                 ],
             )
 
@@ -72,6 +73,13 @@ class DatabaseMigrationTests(unittest.TestCase):
             self.assertIn("province_of_employment", columns)
             self.assertIn("province_of_residence", columns)
             self.assertIn("payroll_plan", columns)
+            with runtime.connect() as connection:
+                tax_value_columns = {
+                    str(row[1])
+                    for row in connection.execute("PRAGMA table_info(annual_tax_values)")
+                }
+            self.assertIn("concept", tax_value_columns)
+            self.assertIn("determined_amount_cents", tax_value_columns)
 
     def test_legacy_income_province_uses_nearest_known_employment_setup(self):
         with tempfile.TemporaryDirectory() as directory:

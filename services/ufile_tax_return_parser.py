@@ -7,6 +7,7 @@ from typing import Any
 
 import pdfplumber
 
+from domain.parsed_tax_value import ParsedTaxValue
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 
 
@@ -15,6 +16,69 @@ class UFileTaxReturnParser:
 
     _SUMMARY = re.compile(r"Tax return Summary\s+for (\d{4}) taxation year", re.I)
     _NUMBER = re.compile(r"^\(?[\d,]+(?:\.\d{2})?\)?$")
+    _USEFUL_T1_LINES = (
+        ("10100", "employment_income", "Employment income"),
+        ("10400", "other_employment_income", "Other employment income"),
+        ("11300", "oas_income", "Old Age Security pension"),
+        ("11400", "cpp_qpp_benefits", "CPP or QPP benefits"),
+        ("11500", "other_pension_income", "Other pensions and superannuation"),
+        ("11600", "elected_split_pension", "Elected split-pension amount"),
+        ("11900", "employment_insurance_benefits", "Employment Insurance benefits"),
+        ("12000", "taxable_canadian_dividends", "Taxable Canadian dividends"),
+        ("12100", "interest_investment_income", "Interest and other investment income"),
+        ("12200", "limited_partnership_income", "Limited partnership income"),
+        ("12500", "rdsp_income", "Registered disability savings plan income"),
+        ("12600", "net_rental_income", "Net rental income"),
+        ("12700", "taxable_capital_gains", "Taxable capital gains"),
+        ("12800", "support_payments_received", "Taxable support payments received"),
+        ("12900", "rrsp_income", "RRSP income"),
+        ("12905", "fhsa_income", "Taxable FHSA income"),
+        ("13000", "other_taxable_income", "Other taxable income"),
+        ("13010", "scholarship_income", "Taxable scholarship income"),
+        ("13500", "business_income", "Net business income"),
+        ("13700", "professional_income", "Net professional income"),
+        ("13900", "commission_income", "Net commission income"),
+        ("14100", "farming_income", "Net farming income"),
+        ("14300", "fishing_income", "Net fishing income"),
+        ("14400", "workers_compensation", "Workers' compensation benefits"),
+        ("14500", "social_assistance", "Social assistance payments"),
+        ("14600", "federal_supplements", "Net federal supplements"),
+        ("14700", "other_benefits_total", "Other benefits total"),
+        ("15000", "total_income", "Total income"),
+        ("20700", "registered_pension_plan_deduction", "Registered pension plan deduction"),
+        ("20800", "rrsp_deduction", "RRSP deduction"),
+        ("20805", "fhsa_deduction", "FHSA deduction"),
+        ("21000", "pension_split_deduction", "Pension split deduction"),
+        ("21200", "union_professional_dues", "Union and professional dues"),
+        ("21400", "child_care_expenses", "Child care expenses"),
+        ("21900", "moving_expenses", "Moving expenses"),
+        ("22000", "support_payments_made", "Support payments made"),
+        ("22100", "carrying_charges_interest", "Carrying charges and interest expenses"),
+        ("22200", "self_employed_cpp_qpp_deduction", "Self-employed CPP or QPP deduction"),
+        ("22215", "enhanced_cpp_qpp_deduction", "Enhanced CPP or QPP deduction"),
+        ("22900", "other_employment_expenses", "Other employment expenses"),
+        ("23200", "other_deductions", "Other deductions"),
+        ("23300", "total_income_deductions", "Total deductions from income"),
+        ("23400", "net_income_before_adjustments", "Net income before adjustments"),
+        ("23500", "social_benefits_repayment", "Social benefits repayment"),
+        ("23600", "net_income", "Net income"),
+        ("25700", "total_taxable_income_deductions", "Total deductions from taxable income"),
+        ("26000", "taxable_income", "Taxable income"),
+        ("30000", "basic_personal_amount", "Basic personal amount"),
+        ("30800", "base_cpp_qpp_contributions", "Base CPP or QPP contributions"),
+        ("31200", "employment_insurance_premiums", "Employment Insurance premiums"),
+        ("31210", "qpip_premiums", "QPIP premiums"),
+        ("35000", "non_refundable_tax_credits", "Non-refundable tax credits"),
+        ("42000", "net_federal_tax", "Net federal tax"),
+        ("43500", "total_payable", "Total payable"),
+        ("43700", "income_tax_deducted", "Income tax deducted"),
+        ("43800", "tax_transferred_to_quebec", "Income tax transferred to Quebec"),
+        ("44000", "refundable_quebec_abatement", "Refundable Quebec abatement"),
+        ("45000", "employment_insurance_overpayment", "Employment Insurance overpayment"),
+        ("48200", "total_credits", "Total credits"),
+        ("48400", "refund", "Refund"),
+        ("48500", "balance_owing", "Balance owing"),
+    )
 
     @staticmethod
     def detects(content: bytes) -> bool:
@@ -40,6 +104,17 @@ class UFileTaxReturnParser:
             base_cpp_qpp = self._required_line(federal_page, "30800")
             enhanced_cpp_qpp = self._optional_line(federal_page, "22215")
             rrsp_contribution = self._find_rrsp_contribution(pages)
+            tax_values = tuple(
+                ParsedTaxValue(
+                    concept=concept,
+                    description=description,
+                    reported_amount=amount,
+                    line_code=line_number,
+                    effective_year=tax_year,
+                )
+                for line_number, concept, description in self._USEFUL_T1_LINES
+                if (amount := self._line_amount(federal_page, line_number)) is not None
+            )
 
             return ParsedUFileTaxReturn(
                 tax_year=tax_year,
@@ -55,6 +130,7 @@ class UFileTaxReturnParser:
                 province_of_residence="QC",
                 payroll_plan=self._payroll_plan(quebec_page.extract_text() or ""),
                 taxpayer_name=taxpayer_name,
+                tax_values=tax_values,
             )
 
     @staticmethod

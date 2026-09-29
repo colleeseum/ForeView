@@ -144,7 +144,7 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-import-progress[hidden] { display: none; }
 .income-import-progress progress { width: 100%; accent-color: var(--accent); }
 .income-source-help-links { display: flex; flex-wrap: wrap; gap: 8px; }
-.income-editor-dialog { width: min(1100px, 96vw); }
+.dialog.income-editor-dialog { width: min(1500px, calc(100vw - 40px)); }
 .income-history-table { min-width: 1750px; }
 .income-history-table th, .income-history-table td { white-space: nowrap; }
 .income-record-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }

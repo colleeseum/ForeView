@@ -23,6 +23,7 @@ function model() {
       id: 2, name: 'Alex', birth_date: '1980-04-15', error: null,
       baseline: {annual_salary: '100000.00', effective_date: '2026-01-01', province_of_employment: 'ON', payroll_plan: 'CPP'},
       settings: {default_raise: '0.04', retirement_date: null, recurring_rrsp_contribution: '10000.00', recurring_rrsp_deduction: '10000.00', recurring_other_income: '0.00'},
+      salary_anchor: {year: 2025, annual_salary_rate: '95000.00'},
       overrides: [], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
     }],
     household: [{...projection(2026)}, {...projection(2027, '104000.00')}],
@@ -32,7 +33,7 @@ function model() {
 test('salary projection loads, edits assumptions and annual overrides, and shows household', async () => {
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
-    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden></section>
+    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden><p id="salary-source-note"></p></section>
     <form id="salary-settings-form">
       <input name="annual_salary"><input name="effective_date"><select name="province_of_employment"><option>ON</option><option>QC</option></select>
       <select name="payroll_plan"><option>CPP</option><option>QPP</option></select><input name="default_raise"><input name="retirement_date">
@@ -52,6 +53,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   await tick();
   assert.match(document.querySelector('#salary-table').innerHTML, /100,000/);
   assert.equal(document.querySelector('[name="default_raise"]').value, '4');
+  assert.match(document.querySelector('#salary-source-note').textContent, /2025/);
   assert.equal(module.money('12.50'), '$13');
   assert.match(module.projectionTable([]), /No projection/);
 

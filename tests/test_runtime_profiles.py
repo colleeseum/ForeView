@@ -227,10 +227,21 @@ class RuntimeProfileTests(unittest.TestCase):
                 {person["name"] for person in salary_projection["people"]},
                 {"Alex Example", "Jordan Example"},
             )
+            people_by_name = {
+                person["name"]: person for person in salary_projection["people"]
+            }
+            self.assertEqual(
+                people_by_name["Alex Example"]["salary_anchor"]["annual_salary_rate"],
+                "101500.00",
+            )
+            self.assertEqual(
+                people_by_name["Jordan Example"]["salary_anchor"]["annual_salary_rate"],
+                "80000.00",
+            )
             household_2026 = next(
                 year for year in salary_projection["household"] if year["year"] == 2026
             )
-            self.assertEqual(household_2026["salary_income"], "187000.00")
+            self.assertEqual(household_2026["salary_income"], "186545.00")
             self.assertGreater(float(household_2026["disposable_income"]), 0)
 
             with closing(sqlite3.connect(database)) as connection:

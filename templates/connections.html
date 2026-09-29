@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Connections</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
 <body><main>
   <header><p class="eyebrow">Retirement model</p><h1>Connections</h1><p class="lede">Link financial institutions and synchronize their data into the local model.</p></header>
-  <div class="page-shell"><aside class="side-menu"><div class="side-menu-brand">Retirement model</div><a href="{{ url_for('accounts_page') }}">Assets</a><a href="{{ url_for('transactions_page') }}">Transactions</a><a href="{{ url_for('salary_projection.salary_projection_page') }}">Salary projection</a><a class="active" href="{{ url_for('connections_page') }}">Connections</a><a href="{{ url_for('index') }}">Summary</a><a href="{{ url_for('public_rules.settings') }}">Settings</a></aside><div class="page-content">
+  <div class="page-shell">{% set active_page = 'connections' %}{% include '_side_menu.html' %}<div class="page-content">
     <section class="connection-toolbar"><div><h2>Linked institutions</h2><p>Synchronize balances, positions, and recent executions from connected institutions.</p></div><button id="sync-all" class="view-action" type="button">Sync all</button></section>
     <section id="connection-list" class="connection-list"><p class="empty-panel">Loading connections...</p></section>
   </div></div>

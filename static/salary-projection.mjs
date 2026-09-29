@@ -8,6 +8,7 @@ const elements = {
   message: document.querySelector('#salary-message'),
   tabs: document.querySelector('#salary-tabs'),
   setup: document.querySelector('#salary-setup'),
+  sourceNote: document.querySelector('#salary-source-note'),
   form: document.querySelector('#salary-settings-form'),
   table: document.querySelector('#salary-table'),
 };
@@ -34,20 +35,21 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
   const body = rows.map((row) => `<tr class="${row.actual ? 'historical-row' : ''}">
     <th>${escapeHtml(String(row.year))}${row.actual ? ' Actual' : ''}</th>
     <td>${row.age ?? '—'}</td>
-    <td>${row.actual ? '—' : input(row, 'salary', row.annual_salary_rate)}</td>
     <td>${row.actual ? '—' : input(row, 'raise_rate', row.raise_rate, '%')}</td>
+    <td>${row.actual ? money(row.annual_salary_rate) : input(row, 'salary', row.annual_salary_rate)}</td>
+    <td>${row.actual ? money(row.other_income) : input(row, 'other_income', row.other_income)}</td>
     <td>${money(row.gross_income)}</td>
     <td>${row.actual ? money(row.rrsp_contribution) : input(row, 'rrsp_contribution', row.rrsp_contribution)}</td>
     <td>${row.actual ? money(row.rrsp_deduction) : input(row, 'rrsp_deduction', row.rrsp_deduction)}</td>
-    <td>${row.actual ? money(row.other_income) : input(row, 'other_income', row.other_income)}</td>
     <td>${money(row.cpp_qpp)}</td><td>${money(row.ei)}</td><td>${money(row.qpip)}</td>
     <td>${money(row.federal_tax)}</td><td>${money(row.quebec_tax)}</td>
     <td>${money(row.net_income_after_tax)}</td><td><strong>${money(row.disposable_income)}</strong></td>
     <td>${row.actual ? escapeHtml(row.source || 'Recorded') : `${row.rule_year}${row.rules_held_constant ? ' held' : ''}`}</td>
   </tr>`).join('');
   return `<div class="table-wrap"><table class="salary-projection-table"><thead><tr>
-    <th>Year</th><th>Age</th><th>Salary rate</th><th>Raise</th><th>Gross</th>
-    <th>RRSP cash</th><th>RRSP deduction</th><th>Other income</th><th>CPP/QPP</th>
+    <th>Year</th><th>Age</th><th>Raise</th><th>Annual salary</th>
+    <th>Other income</th><th>Gross</th>
+    <th>RRSP cash</th><th>RRSP deduction</th><th>CPP/QPP</th>
     <th>EI</th><th>QPIP</th><th>Federal tax</th><th>Quebec tax</th><th>Net after tax</th>
     <th>Disposable</th><th>Rule/source</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
@@ -86,6 +88,11 @@ function fillForm(person) {
     recurring_rrsp_deduction: settings.recurring_rrsp_deduction || '0', recurring_other_income: settings.recurring_other_income || '0',
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
+  if (elements.sourceNote) {
+    elements.sourceNote.innerHTML = person.salary_anchor
+      ? `Salary starts from the latest factual Income record: <strong>${escapeHtml(String(person.salary_anchor.year))}</strong>, ${money(person.salary_anchor.annual_salary_rate)} after subtracting the recorded bonus. <a href="/income">View income history</a>.`
+      : 'No factual Income record exists. The fallback annual salary below starts the projection.';
+  }
 }
 
 function render() {
@@ -150,7 +157,7 @@ elements.form?.addEventListener('submit', async (event) => {
       recurring_rrsp_contribution: values.recurring_rrsp_contribution,
       recurring_rrsp_deduction: values.recurring_rrsp_deduction, recurring_other_income: values.recurring_other_income,
     })});
-    showMessage('Employment assumptions saved.');
+    showMessage('Projection settings saved.');
     await loadProjection();
   } catch (error) { showMessage(error.message, true); }
 });

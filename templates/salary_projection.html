@@ -14,15 +14,7 @@
     <p class="lede">Project salary, payroll contributions, income tax, RRSP contributions and disposable employment income.</p>
   </header>
   <div class="page-shell">
-    <aside class="side-menu">
-      <div class="side-menu-brand">Retirement model</div>
-      <a href="{{ url_for('index') }}">Summary</a>
-      <a href="{{ url_for('accounts_page') }}">Assets</a>
-      <a href="{{ url_for('transactions_page') }}">Transactions</a>
-      <a class="active" href="{{ url_for('salary_projection.salary_projection_page') }}">Salary projection</a>
-      <a href="{{ url_for('connections_page') }}">Connections</a>
-      <a href="{{ url_for('public_rules.settings') }}">Settings</a>
-    </aside>
+    {% set active_page = 'employment_projection' %}{% include '_side_menu.html' %}
     <div class="page-content salary-projection-page">
       <section class="connection-toolbar salary-toolbar">
         <label>Scenario <select id="salary-scenario"></select></label>
@@ -33,10 +25,11 @@
       <p id="salary-message" class="connection-status" role="status"></p>
       <nav id="salary-tabs" class="view-tabs" aria-label="Projection person" role="tablist"></nav>
       <section id="salary-setup" class="public-rule-card" hidden>
-        <h2>Employment assumptions</h2>
+        <h2>Employment inputs</h2>
+        <p id="salary-source-note" class="dashboard-note"></p>
         <form id="salary-settings-form" class="salary-settings-grid">
-          <label>Annual salary rate <input name="annual_salary" type="number" min="0" step="0.01" required></label>
-          <label>Effective date <input name="effective_date" type="date" required></label>
+          <label>Fallback annual salary <small>Used only when Income has no factual record</small><input name="annual_salary" type="number" min="0" step="0.01" required></label>
+          <label>Employment setup date <input name="effective_date" type="date" required></label>
           <label>Province of employment
             <select name="province_of_employment"><option value="ON">Ontario</option><option value="QC">Quebec</option></select>
           </label>
@@ -46,10 +39,10 @@
           <label>Annual RRSP cash contribution <input name="recurring_rrsp_contribution" type="number" min="0" step="0.01"></label>
           <label>Annual RRSP tax deduction <input name="recurring_rrsp_deduction" type="number" min="0" step="0.01"></label>
           <label>Annual other employment income <input name="recurring_other_income" type="number" min="0" step="0.01"></label>
-          <button class="view-action" type="submit">Save assumptions</button>
+          <button class="view-action" type="submit">Save projection settings</button>
         </form>
       </section>
-      <p class="dashboard-note">Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values.</p>
+      <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values.</p>
       <section class="dashboard-panel salary-table-panel">
         <div id="salary-table"><p class="empty-panel">Loading salary projection...</p></div>
       </section>
@@ -57,5 +50,5 @@
   </div>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-1') }}"></script>
 </body></html>

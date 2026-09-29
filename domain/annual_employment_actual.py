@@ -12,6 +12,7 @@ class AnnualEmploymentActual:
     person_id: int
     tax_year: int
     salary_income: Decimal
+    bonus: Decimal
     other_income: Decimal
     rrsp_contribution: Decimal
     rrsp_deduction: Decimal
@@ -25,6 +26,10 @@ class AnnualEmploymentActual:
     @property
     def gross_income(self) -> Decimal:
         return self.salary_income + self.other_income
+
+    @property
+    def salary_rate(self) -> Decimal:
+        return self.salary_income - self.bonus
 
     @property
     def disposable_income(self) -> Decimal:

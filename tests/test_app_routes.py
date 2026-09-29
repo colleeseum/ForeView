@@ -6,10 +6,12 @@ import unittest
 import urllib.error
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
 import app as application
+from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 from infrastructure.runtime_config import RuntimeConfig
 from institutions.questrade.client import QuestradeClient
 from institutions.questrade.connection import QuestradeConnectionProvider
@@ -171,8 +173,8 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.get_json()
         person = next(item for item in payload["people"] if item["id"] == person_id)
-        self.assertEqual(person["projection"][0]["annual_salary_rate"], "100000.00")
-        self.assertEqual(person["projection"][1]["annual_salary_rate"], "104000.00")
+        self.assertEqual(person["projection"][0]["annual_salary_rate"], "105560.00")
+        self.assertEqual(person["projection"][1]["annual_salary_rate"], "109782.40")
         self.assertTrue(person["projection"][1]["rules_held_constant"])
         self.assertEqual(len(payload["household"]), 2)
 
@@ -199,9 +201,53 @@ class AppRouteTests(unittest.TestCase):
             f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
         ).get_json()
         person = next(item for item in updated["people"] if item["id"] == person_id)
+        self.assertEqual(person["projection"][0]["annual_salary_rate"], "98800.00")
         self.assertEqual(person["projection"][1]["annual_salary_rate"], "120000.00")
         self.assertEqual(person["projection"][1]["rrsp_contribution"], "0.00")
         self.assertEqual(person["actuals"][0]["year"], 2025)
+        self.assertEqual(person["salary_anchor"]["annual_salary_rate"], "95000.00")
+
+    def test_ufile_preview_does_not_save_until_user_confirms(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedUFileTaxReturn(
+            tax_year=2024,
+            employment_income=Decimal("100000.00"),
+            other_employment_income=Decimal("500.00"),
+            cpp_qpp=Decimal("4000.00"),
+            ei=Decimal("900.00"),
+            qpip=Decimal("400.00"),
+            rrsp_contribution=Decimal("15000.00"),
+            rrsp_deduction=Decimal("14000.00"),
+            federal_tax=Decimal("12000.00"),
+            provincial_tax=Decimal("13000.00"),
+        )
+        with patch("web.income_routes.UFileTaxReturnParser.parse", return_value=parsed):
+            response = self.client.post(
+                "/api/income/import/ufile/preview",
+                data={"file": (io.BytesIO(b"synthetic"), "return.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["employment_income"], "100000.00")
+        record = self.client.get(f"/api/income?person_id={person_id}&year=2024").get_json()
+        self.assertIsNone(record["record"])
+
+    def test_income_history_keeps_all_years_newest_first(self):
+        person_id = self._people()[0]["id"]
+        response = self.client.put(
+            f"/api/income/people/{person_id}/years/2024",
+            json={"employment_income": "90000", "bonus": "5000", "source": "T1"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        history = self.client.get(f"/api/income?person_id={person_id}")
+
+        self.assertEqual(history.status_code, 200)
+        records = history.get_json()["records"]
+        self.assertGreaterEqual(len(records), 2)
+        self.assertEqual([record["year"] for record in records[:2]], [2025, 2024])
+        self.assertEqual(records[1]["salary_rate"], "85000.00")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()

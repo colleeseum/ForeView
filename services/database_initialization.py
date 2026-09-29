@@ -4,6 +4,7 @@ from collections.abc import Callable
 from sqlite3 import Connection
 
 from infrastructure.migrations.baseline_domain_schema import BaselineDomainSchemaMigration
+from infrastructure.migrations.employment_income_records import EmploymentIncomeRecordsMigration
 from infrastructure.migrations.employment_projection import EmploymentProjectionMigration
 from infrastructure.migrations.migration_runner import MigrationRunner
 from infrastructure.migrations.monetary_cents import MonetaryCentsMigration
@@ -28,6 +29,7 @@ def ensure_domain_schema(connection: Connection) -> None:
             MonetaryCentsMigration(),
             QuestradeActivityIdentityMigration(),
             EmploymentProjectionMigration(),
+            EmploymentIncomeRecordsMigration(),
         ),
     ).apply()
 

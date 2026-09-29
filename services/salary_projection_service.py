@@ -6,6 +6,7 @@ from pathlib import Path
 from domain.projected_employment_year import ProjectedEmploymentYear
 from projection.public_rules import PublicRuleSet
 from projection.salary import EmploymentIncomeProjector, QuebecEmploymentTaxCalculator
+from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.employment_baseline_repository import EmploymentBaselineRepository
 from repositories.employment_projection_override_repository import (
     EmploymentProjectionOverrideRepository,
@@ -53,13 +54,22 @@ class SalaryProjectionService:
                 scenario_id, person_id
             )
         )
+        actuals = AnnualEmploymentActualRepository(self._connection).list_for_person(person_id)
+        latest_actual = max(actuals, key=lambda item: item.tax_year) if actuals else None
+        projection_start = (
+            max(start_year, latest_actual.tax_year + 1) if latest_actual is not None else start_year
+        )
+        if projection_start > end_year:
+            return ()
         plans = EmploymentIncomeProjector().project(
             baseline,
             settings,
             overrides,
-            start_year=start_year,
+            start_year=projection_start,
             end_year=end_year,
             birth_date=person.birth_date,
+            salary_anchor=latest_actual.salary_rate if latest_actual is not None else None,
+            salary_anchor_year=latest_actual.tax_year if latest_actual is not None else None,
         )
         calculator = QuebecEmploymentTaxCalculator()
         rows = []

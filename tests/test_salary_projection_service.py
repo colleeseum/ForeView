@@ -5,6 +5,7 @@ import unittest
 from decimal import Decimal
 from pathlib import Path
 
+from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.employment_baseline_repository import EmploymentBaselineRepository
 from repositories.employment_projection_settings_repository import (
     EmploymentProjectionSettingsRepository,
@@ -70,6 +71,22 @@ class SalaryProjectionServiceTests(unittest.TestCase):
         self.assertEqual(rows[1].rule_year, 2026)
         self.assertTrue(rows[1].rules_held_constant)
         self.assertGreater(rows[1].disposable_income, Decimal("0"))
+
+    def test_latest_factual_income_salary_rate_replaces_baseline_salary(self) -> None:
+        self._approve_2026()
+        AnnualEmploymentActualRepository(self.connection).upsert(
+            self.person_id,
+            2025,
+            "105000",
+            bonus="5000",
+        )
+
+        rows = SalaryProjectionService(self.connection, Path("public_rules")).project_person(
+            self.scenario_id, self.person_id, 2026, 2026
+        )
+
+        self.assertEqual(rows[0].annual_salary_rate, Decimal("104000.00"))
+        self.assertEqual(rows[0].raise_rate, Decimal("0.04"))
 
 
 if __name__ == "__main__":

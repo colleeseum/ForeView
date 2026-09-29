@@ -24,29 +24,34 @@ class EmploymentIncomeProjector:
         start_year: int,
         end_year: int,
         birth_date: str | None,
+        salary_anchor: Decimal | None = None,
+        salary_anchor_year: int | None = None,
     ) -> tuple[EmploymentYearPlan, ...]:
         if end_year < start_year:
             raise ValueError("Projection end year cannot precede start year")
         by_year = {item.projection_year: item for item in overrides}
-        salary_rate = baseline.annual_salary
+        salary_rate = salary_anchor if salary_anchor is not None else baseline.annual_salary
+        anchor_year = salary_anchor_year if salary_anchor_year is not None else start_year
         rows = []
-        for year in range(start_year, end_year + 1):
+        for year in range(min(start_year, anchor_year + 1), end_year + 1):
             override = by_year.get(year)
             raise_rate = (
                 None
-                if year == start_year
+                if year == start_year and salary_anchor is None
                 else (
                     override.raise_rate
                     if override and override.raise_rate is not None
                     else settings.default_raise
                 )
             )
-            if year > start_year:
+            if year > anchor_year:
                 if raise_rate is None:  # pragma: no cover - guarded by year branch
                     raise RuntimeError("Projected year is missing a raise rate")
                 salary_rate = self._money(salary_rate * (Decimal("1") + raise_rate))
             if override and override.salary is not None:
                 salary_rate = override.salary
+            if year < start_year:
+                continue
             fraction = self._employment_fraction(year, settings.retirement_date)
             other_income = (
                 override.other_income

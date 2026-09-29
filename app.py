@@ -15,6 +15,7 @@ from institution_support.registry import institution_registry
 from services.database_initialization import ensure_domain_schema as ensure_domain_schema
 from services.database_initialization import initialize_database
 from web.dashboard_routes import blueprint as dashboard_blueprint
+from web.income_routes import blueprint as income_blueprint
 from web.institution_routes import blueprint as institution_blueprint
 from web.model_routes import blueprint as model_blueprint
 from web.page_routes import blueprint as page_blueprint
@@ -102,6 +103,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         page_blueprint,
         dashboard_blueprint,
         institution_blueprint,
+        income_blueprint,
         model_blueprint,
         public_rule_blueprint,
         salary_projection_blueprint,
@@ -114,6 +116,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         ("/", "index"),
         ("/setup", "setup"),
         ("/accounts", "accounts_page"),
+        ("/income", "income_page"),
         ("/connections", "connections_page"),
         ("/transactions", "transactions_page"),
         ("/settings", "settings_page"),

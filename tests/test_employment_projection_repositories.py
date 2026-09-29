@@ -47,6 +47,7 @@ class EmploymentProjectionRepositoryTests(unittest.TestCase):
             self.person_id,
             2025,
             "214000.00",
+            bonus="14000.00",
             other_income="1600.00",
             rrsp_contribution="31560.00",
             rrsp_deduction="31560.00",
@@ -59,6 +60,7 @@ class EmploymentProjectionRepositoryTests(unittest.TestCase):
         )
 
         self.assertEqual(actual.gross_income, Decimal("215600.00"))
+        self.assertEqual(actual.salary_rate, Decimal("200000.00"))
         self.assertEqual(actual.disposable_income, Decimal("120407.16"))
 
     def test_settings_preserve_fractional_raise_and_distinct_rrsp_values(self) -> None:

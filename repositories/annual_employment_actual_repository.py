@@ -30,6 +30,7 @@ class AnnualEmploymentActualRepository:
         tax_year: int,
         salary_income: MoneyInput,
         *,
+        bonus: MoneyInput = 0,
         other_income: MoneyInput = 0,
         rrsp_contribution: MoneyInput = 0,
         rrsp_deduction: MoneyInput = 0,
@@ -46,6 +47,7 @@ class AnnualEmploymentActualRepository:
             to_cents(value)
             for value in (
                 salary_income,
+                bonus,
                 other_income,
                 rrsp_contribution,
                 rrsp_deduction,
@@ -58,14 +60,17 @@ class AnnualEmploymentActualRepository:
         )
         if any(value < 0 for value in values):
             raise ValueError("Annual employment facts cannot be negative")
+        if values[1] > values[0]:
+            raise ValueError("Bonus cannot exceed employment income")
         self._connection.execute(
             """INSERT INTO annual_employment_actuals(
-                   person_id, tax_year, salary_income_cents, other_income_cents,
+                   person_id, tax_year, salary_income_cents, bonus_cents, other_income_cents,
                    rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                    ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(person_id, tax_year) DO UPDATE SET
                    salary_income_cents = excluded.salary_income_cents,
+                   bonus_cents = excluded.bonus_cents,
                    other_income_cents = excluded.other_income_cents,
                    rrsp_contribution_cents = excluded.rrsp_contribution_cents,
                    rrsp_deduction_cents = excluded.rrsp_deduction_cents,
@@ -86,7 +91,8 @@ class AnnualEmploymentActualRepository:
         row = self._connection.execute(
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
-                      ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source
+                      ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
+                      bonus_cents
                  FROM annual_employment_actuals
                 WHERE person_id = ? AND tax_year = ?""",
             (person_id, tax_year),
@@ -97,7 +103,8 @@ class AnnualEmploymentActualRepository:
         rows = self._connection.execute(
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
-                      ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source
+                      ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
+                      bonus_cents
                  FROM annual_employment_actuals WHERE person_id = ? ORDER BY tax_year""",
             (person_id,),
         ).fetchall()
@@ -111,6 +118,7 @@ class AnnualEmploymentActualRepository:
             person_id=AnnualEmploymentActualRepository._required_int(row[1]),
             tax_year=AnnualEmploymentActualRepository._required_int(row[2]),
             salary_income=amounts[0],
+            bonus=from_cents(row[13]),
             other_income=amounts[1],
             rrsp_contribution=amounts[2],
             rrsp_deduction=amounts[3],

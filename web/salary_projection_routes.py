@@ -56,6 +56,7 @@ def salary_projection_data():
                 else None
             )
             actuals = AnnualEmploymentActualRepository(connection).list_for_person(person.id)
+            latest_actual = max(actuals, key=lambda item: item.tax_year) if actuals else None
             overrides = (
                 EmploymentProjectionOverrideRepository(connection).list_for_person(
                     scenario_id, person.id
@@ -80,7 +81,8 @@ def salary_projection_data():
                     "birth_date": person.birth_date,
                     "baseline": _baseline_json(baseline),
                     "settings": _settings_json(settings),
-                    "actuals": [_actual_json(item) for item in actuals],
+                    "salary_anchor": _actual_json(latest_actual) if latest_actual else None,
+                    "actuals": [_actual_json(latest_actual)] if latest_actual else [],
                     "overrides": [_override_json(item) for item in overrides],
                     "projection": [_projection_json(item) for item in rows],
                     "error": error,
@@ -191,6 +193,7 @@ def save_employment_actual(person_id: int, tax_year: int):
                 person_id,
                 tax_year,
                 as_decimal(payload["salary_income"]),
+                bonus=as_decimal(payload.get("bonus", 0)),
                 other_income=as_decimal(payload.get("other_income", 0)),
                 rrsp_contribution=as_decimal(payload.get("rrsp_contribution", 0)),
                 rrsp_deduction=as_decimal(payload.get("rrsp_deduction", 0)),
@@ -243,6 +246,8 @@ def _actual_json(item: AnnualEmploymentActual) -> dict[str, object]:
     return {
         "year": item.tax_year,
         "salary_income": _money(item.salary_income),
+        "bonus": _money(item.bonus),
+        "annual_salary_rate": _money(item.salary_rate),
         "other_income": _money(item.other_income),
         "gross_income": _money(item.gross_income),
         "rrsp_contribution": _money(item.rrsp_contribution),

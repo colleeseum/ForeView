@@ -106,6 +106,24 @@ class EmploymentIncomeProjectorTests(unittest.TestCase):
         self.assertEqual(row.rrsp_deduction, Decimal("0.00"))
         self.assertEqual(row.other_income, Decimal("0.00"))
 
+    def test_factual_salary_anchor_compounds_through_hidden_years(self) -> None:
+        rows = EmploymentIncomeProjector().project(
+            self.baseline,
+            self.settings,
+            (),
+            start_year=2026,
+            end_year=2027,
+            birth_date=None,
+            salary_anchor=Decimal("100000"),
+            salary_anchor_year=2024,
+        )
+
+        self.assertEqual(
+            [row.annual_salary_rate for row in rows],
+            [Decimal("108160.00"), Decimal("112486.40")],
+        )
+        self.assertEqual(rows[0].raise_rate, Decimal("0.04"))
+
 
 if __name__ == "__main__":
     unittest.main()

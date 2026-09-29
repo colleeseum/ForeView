@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Income</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">Financial records</p>
+    <h1>Employment income</h1>
+    <p class="lede">Factual annual totals retained by person and tax year.</p>
+  </header>
+  <div class="page-shell">
+    {% set active_page = 'income' %}{% include '_side_menu.html' %}
+    <div class="page-content">
+      <section class="dashboard-panel income-records-panel">
+        <div class="income-toolbar">
+          <div id="income-tabs" class="view-tabs" role="tablist"></div>
+          <button id="income-add" class="view-action" type="button">+ Add annual record</button>
+          <button id="income-import" class="view-action" type="button">Load UFile PDF</button>
+        </div>
+        <p id="income-message" class="field-note" aria-live="polite"></p>
+        <div id="income-history"></div>
+      </section>
+      <section class="dashboard-panel income-future-panel">
+        <p class="eyebrow">Future record types</p>
+        <h2>Other income</h2>
+        <p>Rental, pension, business, dividend, interest, and other factual income can be added independently when needed.</p>
+      </section>
+    </div>
+  </div>
+</main>
+<div id="income-dialog-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog income-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="income-dialog-title">
+    <button id="income-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Financial record</p>
+    <h2 id="income-dialog-title">Annual employment income</h2>
+    <form id="income-form" class="income-actual-form">
+      <label>Tax year
+        <span class="field-note">Calendar year</span>
+        <input name="tax_year" type="number" min="1900" value="{{ latest_tax_year }}" required>
+      </label>
+      <label>Employment income
+        <span class="field-note">T1 line 10100</span>
+        <input name="employment_income" type="number" min="0" step="0.01" required>
+      </label>
+      <label>Bonus included above
+        <span class="field-note">Entered manually</span>
+        <input name="bonus" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>Salary rate
+        <span class="field-note">Employment income minus bonus</span>
+        <output id="income-salary-rate">$0.00</output>
+      </label>
+      <label>Other income
+        <span class="field-note">Other annual employment income</span>
+        <input name="other_income" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>CPP or QPP
+        <span class="field-note">Employee contributions</span>
+        <input name="cpp_qpp" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>EI
+        <span class="field-note">Employment Insurance premiums</span>
+        <input name="ei" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>QPIP
+        <span class="field-note">Quebec parental insurance premiums</span>
+        <input name="qpip" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>RRSP contribution
+        <span class="field-note">Cash contributed during the year</span>
+        <input name="rrsp_contribution" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>RRSP deduction
+        <span class="field-note">T1 line 20800</span>
+        <input name="rrsp_deduction" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>Net federal tax
+        <span class="field-note">T1 line 42000</span>
+        <input name="federal_tax" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>Net provincial tax
+        <span class="field-note">Quebec line 432 when applicable</span>
+        <input name="provincial_tax" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>Source
+        <span class="field-note">Where these values came from</span>
+        <select name="source"><option value="T1">T1 filed return</option><option value="UFile T1">UFile T1 PDF</option><option value="Manual">Manual entry</option></select>
+      </label>
+      <button class="primary-action income-save" type="submit">Save annual record</button>
+    </form>
+  </section>
+</div>
+<div id="ufile-dialog-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="ufile-dialog-title">
+    <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Employment income</p>
+    <h2 id="ufile-dialog-title">Load UFile tax return</h2>
+    <form id="ufile-form" class="income-import-form">
+      <label>UFile PDF <input name="file" type="file" accept="application/pdf" required></label>
+      <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored.</p>
+      <button class="primary-action" type="submit">Preview annual values</button>
+    </form>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-3') }}"></script>
+</body>
+</html>

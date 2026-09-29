@@ -30,6 +30,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (3, "monetary_cents"),
                     (4, "questrade_activity_identity"),
                     (5, "employment_projection"),
+                    (6, "employment_income_records"),
                 ],
             )
 
@@ -54,6 +55,12 @@ class DatabaseMigrationTests(unittest.TestCase):
                     "employment_projection_overrides",
                 }.issubset(tables)
             )
+            with runtime.connect() as connection:
+                columns = {
+                    str(row[1])
+                    for row in connection.execute("PRAGMA table_info(annual_employment_actuals)")
+                }
+            self.assertIn("bonus_cents", columns)
 
     def test_monetary_migration_backfills_and_tracks_legacy_writes(self):
         with tempfile.TemporaryDirectory() as directory:

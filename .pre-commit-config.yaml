@@ -16,3 +16,8 @@ repos:
         entry: .venv/bin/python -m mypy
         language: system
         pass_filenames: false
+      - id: coverage-gate
+        name: Coverage gate
+        entry: make coverage-gate
+        language: system
+        pass_filenames: false

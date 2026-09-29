@@ -219,6 +219,18 @@ class AppRouteTests(unittest.TestCase):
             },
         )
         self.assertEqual(actual.status_code, 200)
+        earlier_actual = self.client.put(
+            f"/api/salary-projection/people/{person_id}/actuals/2024",
+            json={
+                "salary_income": "90000",
+                "province_of_employment": "ON",
+                "cpp_qpp": "3800",
+                "ei": "900",
+                "federal_tax": "11000",
+                "quebec_tax": "13000",
+            },
+        )
+        self.assertEqual(earlier_actual.status_code, 200)
 
         updated = self.client.get(
             f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
@@ -227,7 +239,9 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(person["projection"][0]["annual_salary_rate"], "98800.00")
         self.assertEqual(person["projection"][1]["annual_salary_rate"], "120000.00")
         self.assertEqual(person["projection"][1]["rrsp_contribution"], "0.00")
-        self.assertEqual(person["actuals"][0]["year"], 2025)
+        self.assertEqual([item["year"] for item in person["actuals"]], [2024, 2025])
+        self.assertEqual(person["actuals"][0]["age"], 49)
+        self.assertEqual(person["actuals"][0]["net_income_after_tax"], "61300.00")
         self.assertEqual(person["salary_anchor"]["annual_salary_rate"], "95000.00")
 
         reset = self.client.put(

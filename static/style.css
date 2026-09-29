@@ -210,6 +210,8 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .salary-projection-table input.manual-override { border-color: #778aa0; background: #edf2f7; }
 .salary-projection-table input.pending-change { border-color: #b87900; background: #fff3d6; }
 .salary-projection-table input.pending-reset { border-style: dashed; border-color: #778aa0; background: #f4f6f8; }
+.salary-section-row th { padding: 8px 10px; color: var(--muted); background: #f7f8f4; text-align: left; font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; text-transform: uppercase; }
+.salary-projection-body .salary-section-row th { border-top: 3px solid var(--line); }
 .salary-use-default { width: 18px; height: 18px; border: 1px solid #778aa0; border-radius: 50%; padding: 0; color: #52667c; background: #f4f6f8; font: .85rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
 .salary-use-default:hover, .salary-use-default:focus-visible { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .historical-row td, .historical-row th { background: #eef3e9; font-weight: 700; }

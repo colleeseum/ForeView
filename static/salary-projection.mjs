@@ -55,7 +55,7 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
       : '';
     return `<span class="salary-input-cell"><input class="salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
   };
-  const body = rows.map((row) => `<tr class="${row.actual ? 'historical-row' : ''}">
+  const rowMarkup = (row) => `<tr class="${row.actual ? 'historical-row' : ''}">
     <th>${escapeHtml(String(row.year))}${row.actual ? ' Actual' : ''}</th>
     <td>${row.age ?? '—'}</td>
     <td>${row.actual ? '—' : input(row, 'raise_rate', row.raise_rate, '%')}</td>
@@ -68,13 +68,21 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
     <td>${money(row.federal_tax)}</td><td>${money(row.quebec_tax)}</td>
     <td>${money(row.net_income_after_tax)}</td><td><strong>${money(row.disposable_income)}</strong></td>
     <td>${row.actual ? escapeHtml(row.source || 'Recorded') : `${row.rule_year}${row.rules_held_constant ? ' held' : ''}`}</td>
-  </tr>`).join('');
+  </tr>`;
+  const actualRows = rows.filter((row) => row.actual);
+  const projectedRows = rows.filter((row) => !row.actual);
+  const section = (label, sectionRows, className) => sectionRows.length
+    ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="16">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
+    : '';
   return `<div class="table-wrap"><table class="salary-projection-table"><thead><tr>
     <th>Year</th><th>Age</th><th>Raise</th><th>Annual salary</th>
     <th>Other income</th><th>Gross</th>
     <th>RRSP cash</th><th>RRSP deduction</th><th>CPP/QPP</th>
     <th>EI</th><th>QPIP</th><th>Federal tax</th><th>Quebec tax</th><th>Net after tax</th>
-    <th>Disposable</th><th>Rule/source</th></tr></thead><tbody>${body}</tbody></table></div>`;
+    <th>Disposable</th><th>Rule/source</th></tr></thead>
+    ${section('Historical actuals', actualRows, 'salary-history-body')}
+    ${section('Projected values', projectedRows, 'salary-projection-body')}
+  </table></div>`;
 }
 
 export function householdRows(rows) {

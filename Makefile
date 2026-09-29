@@ -1,4 +1,4 @@
-.PHONY: install-dev format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target security audit qa load-questrade-dev update-public-rules
+.PHONY: install-dev format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target coverage-gate security audit qa load-questrade-dev update-public-rules
 
 PYTHON := .venv/bin/python
 
@@ -43,6 +43,10 @@ integration-coverage:
 
 coverage-target:
 	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-fail-under=80
+
+coverage-gate:
+	npm run coverage
+	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-report=xml --cov-fail-under=80
 
 security:
 	$(PYTHON) -m bandit -c pyproject.toml -r app.py runtime_backup.py synthetic_documents.py synthetic_questrade.py synthetic_runtime.py domain infrastructure ingestion institution_support institutions projection repositories services web

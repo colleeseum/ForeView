@@ -83,7 +83,7 @@ def salary_projection_data():
                     "baseline": _baseline_json(baseline),
                     "settings": _settings_json(settings),
                     "salary_anchor": _actual_json(latest_actual) if latest_actual else None,
-                    "actuals": [_actual_json(latest_actual)] if latest_actual else [],
+                    "actuals": [_actual_json(item, person.birth_date) for item in actuals],
                     "overrides": [_override_json(item) for item in overrides],
                     "projection": [_projection_json(item) for item in rows],
                     "error": error,
@@ -370,9 +370,18 @@ def _settings_json(item: EmploymentProjectionSettings | None) -> dict[str, objec
     }
 
 
-def _actual_json(item: AnnualEmploymentActual) -> dict[str, object]:
+def _actual_json(item: AnnualEmploymentActual, birth_date: str | None = None) -> dict[str, object]:
+    net_income_after_tax = (
+        item.gross_income
+        - item.cpp_qpp
+        - item.ei
+        - item.qpip
+        - item.federal_tax
+        - item.provincial_tax
+    )
     return {
         "year": item.tax_year,
+        "age": _age_at_year_end(birth_date, item.tax_year),
         "province_of_employment": item.province_of_employment,
         "payroll_plan": item.payroll_plan,
         "salary_income": _money(item.salary_income),
@@ -387,10 +396,17 @@ def _actual_json(item: AnnualEmploymentActual) -> dict[str, object]:
         "qpip": _money(item.qpip),
         "federal_tax": _money(item.federal_tax),
         "quebec_tax": _money(item.provincial_tax),
+        "net_income_after_tax": _money(net_income_after_tax),
         "disposable_income": _money(item.disposable_income),
         "source": item.source,
         "actual": True,
     }
+
+
+def _age_at_year_end(birth_date: str | None, year: int) -> int | None:
+    if birth_date is None:
+        return None
+    return year - date.fromisoformat(birth_date).year
 
 
 def _projection_json(item: ProjectedEmploymentYear) -> dict[str, object]:

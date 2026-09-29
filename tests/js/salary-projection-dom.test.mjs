@@ -146,6 +146,10 @@ test('salary projection helpers render actual and manual override states', async
     overrides: [{year: 2026, salary: '100000.00'}],
   });
   assert.match(html, /2025 Actual/);
+  assert.match(html, /Historical actuals/);
+  assert.match(html, /Projected values/);
+  assert.match(html, /salary-history-body/);
+  assert.match(html, /salary-projection-body/);
   assert.match(html, /Assessment/);
   assert.match(html, /manual-override/);
   assert.match(html, /salary-use-default/);

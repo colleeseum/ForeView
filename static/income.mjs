@@ -49,6 +49,15 @@ function updateImportAction() {
   }
 }
 
+function resetImportReview() {
+  pendingImport = null;
+  elements.importReview.hidden = true;
+  elements.importReview.innerHTML = '';
+  elements.importConfirm.hidden = true;
+  elements.importPreview.hidden = false;
+  updateImportAction();
+}
+
 function setImportBusy(busy) {
   if (elements.importProgress) elements.importProgress.hidden = !busy;
   if (elements.importFile) elements.importFile.disabled = busy;
@@ -202,15 +211,11 @@ elements.add.addEventListener('click', () => openEditor());
 elements.editorClose.addEventListener('click', () => { elements.editor.hidden = true; });
 elements.form.addEventListener('input', updateSalaryRate);
 elements.importButton.addEventListener('click', () => {
-  pendingImport = null;
-  elements.importReview.hidden = true;
-  elements.importReview.innerHTML = '';
-  elements.importConfirm.hidden = true;
-  updateImportAction();
+  resetImportReview();
   elements.importDialog.hidden = false;
 });
 elements.importClose.addEventListener('click', () => { elements.importDialog.hidden = true; });
-elements.importFile?.addEventListener('change', updateImportAction);
+elements.importFile?.addEventListener('change', resetImportReview);
 elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(elements.importForm);
@@ -238,6 +243,7 @@ elements.importForm.addEventListener('submit', async (event) => {
       pendingImport = preview;
       elements.importReview.hidden = false;
       elements.importConfirm.hidden = false;
+      elements.importPreview.hidden = true;
       if (preview.kind === 'tax_assessment') {
         elements.importReview.innerHTML = `<h3>${escapeHtml(preview.source_name)}</h3>
           <p>${preview.tax_year}, issued ${escapeHtml(preview.issued_on)}. Net tax ${money(preview.net_tax)}; balance ${money(preview.balance)}.</p>

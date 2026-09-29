@@ -201,6 +201,7 @@ test('income screen reviews and saves an assessment with registered room', async
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
   assert.match(document.querySelector('#income-import-review').textContent, /RRSP room/);
+  assert.equal(document.querySelector('#income-import-preview').hidden, true);
   document.querySelector('#income-import-confirm').click();
   await tick(); await tick();
   assert.ok(calls.some(({url, options}) => url === '/api/income/people/1/assessments' && options.method === 'POST'));

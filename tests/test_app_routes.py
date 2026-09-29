@@ -52,6 +52,14 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         return response.get_json()["people"]
 
+    def test_account_api_exposes_registered_account_type_contract(self):
+        response = self.client.get("/api/model/accounts")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item["key"] for item in response.get_json()["account_types"]],
+            ["non_registered", "resp", "rrsp", "tfsa"],
+        )
+
     def _questrade(self):
         return application.connection_providers(self.runtime_config)["questrade"]
 

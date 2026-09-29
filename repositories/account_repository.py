@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
+from account_types import account_type_registry
 from domain.account import Account
 from domain.gic_terms import GicTerms
 from domain.money import (
@@ -415,11 +416,8 @@ class AccountRepository:
 
     @staticmethod
     def _tax_treatment(account_type: str) -> str:
-        return {
-            "non_registered": "taxable_growth",
-            "tfsa": "tax_free",
-            "rrsp": "tax_deferred_withdrawal",
-        }.get(account_type, "unspecified")
+        provider = account_type_registry().find(account_type)
+        return provider.tax_treatment if provider else "unspecified"
 
     @staticmethod
     def _from_row(row: sqlite3.Row | tuple[object, ...]) -> Account:

@@ -148,6 +148,13 @@ with:
 .venv/bin/python app.py --profile prod
 ```
 
+During local development against the private runtime, enable source reload without exposing the
+interactive debugger:
+
+```sh
+.venv/bin/python app.py --profile prod --reload
+```
+
 Use `--data-dir /absolute/path/to/runtime` for another location. WSGI and other tooling may set
 `FINANCE_DATA_DIR`; otherwise `FINANCE_PROFILE` accepts `dev` or `prod`. Use `--port` to override
 the profile default. Every profile binds to `127.0.0.1` by default. To make a server reachable on

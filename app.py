@@ -140,6 +140,11 @@ if __name__ == "__main__":
         "--debug", action="store_true", help="Enable Flask debug mode and automatic reload"
     )
     parser.add_argument(
+        "--reload",
+        action="store_true",
+        help="Restart when source files change without enabling the interactive debugger",
+    )
+    parser.add_argument(
         "--port", type=int, help="Listening port; defaults to 5124 for dev and 5123 otherwise"
     )
     parser.add_argument(
@@ -163,5 +168,9 @@ if __name__ == "__main__":
         5124 if selected_profile == "dev" and arguments.data_dir is None else 5123
     )
     create_app(runtime).run(
-        host=arguments.host, port=port, debug=debug_mode, ssl_context=runtime.ssl_context()
+        host=arguments.host,
+        port=port,
+        debug=debug_mode,
+        use_reloader=debug_mode or arguments.reload,
+        ssl_context=runtime.ssl_context(),
     )

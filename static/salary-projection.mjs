@@ -33,6 +33,7 @@ let model = null;
 let selectedKey = null;
 let savedFormSignature = '';
 const pendingAnnualChanges = new Map();
+const pendingAnnualResets = new Set();
 
 export function money(value) {
   const amount = Number(value || 0);
@@ -45,10 +46,14 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
   const input = (row, field, value, suffix = '') => {
     if (!editable) return escapeHtml(value == null ? '—' : suffix ? `${value}${suffix}` : money(value));
     const override = overrideByYear.get(row.year)?.[field];
+    const hasOverride = override != null;
     const shown = field === 'raise_rate'
       ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
       : Number(value || 0).toFixed(2);
-    return `<input class="salary-year-input${override != null ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" type="number" step="0.01" value="${escapeHtml(shown)}">${suffix}`;
+    const reset = hasOverride
+      ? `<button class="salary-use-default" data-year="${row.year}" data-field="${field}" type="button" title="Reset to the calculated default" aria-label="Reset to the calculated default">×</button>`
+      : '';
+    return `<span class="salary-input-cell"><input class="salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
   };
   const body = rows.map((row) => `<tr class="${row.actual ? 'historical-row' : ''}">
     <th>${escapeHtml(String(row.year))}${row.actual ? ' Actual' : ''}</th>
@@ -148,6 +153,7 @@ function fillForm(person) {
 
 function render() {
   pendingAnnualChanges.clear();
+  pendingAnnualResets.clear();
   if (!model.scenarios.length) {
     elements.tabs.innerHTML = '';
     elements.setup.hidden = true;
@@ -207,7 +213,9 @@ function annualOverridePayload(person) {
       rrsp_contribution: existing.rrsp_contribution, rrsp_deduction: existing.rrsp_deduction,
       other_income: existing.other_income,
     };
-    payload[change.field] = change.field === 'raise_rate' ? Number(change.value) / 100 : change.value;
+    payload[change.field] = pendingAnnualResets.has(`${change.year}:${change.field}`)
+      ? null
+      : change.field === 'raise_rate' ? Number(change.value) / 100 : change.value;
     byYear.set(change.year, payload);
   }
   return [...byYear.values()];
@@ -248,16 +256,40 @@ elements.table?.addEventListener('input', (event) => {
   const person = selectedPerson();
   if (!input || !person) return;
   const key = `${input.dataset.year}:${input.dataset.field}`;
-  const unchanged = input.value !== '' && Number(input.value) === Number(input.dataset.original);
+  const hasOverride = input.dataset.hasOverride === 'true';
+  const unchanged = (!hasOverride && input.value === '')
+    || (input.value !== '' && Number(input.value) === Number(input.dataset.original));
   if (unchanged) {
     pendingAnnualChanges.delete(key);
+    pendingAnnualResets.delete(key);
     input.classList.remove('pending-change');
+    input.classList.remove('pending-reset');
   } else {
     pendingAnnualChanges.set(key, {
       year: Number(input.dataset.year), field: input.dataset.field, value: input.value,
     });
+    pendingAnnualResets.delete(key);
+    input.classList.remove('pending-reset');
     input.classList.add('pending-change');
   }
+  updateSaveState();
+});
+
+elements.table?.addEventListener('click', (event) => {
+  const reset = event.target.closest('.salary-use-default');
+  if (!reset) return;
+  const input = elements.table.querySelector(
+    `.salary-year-input[data-year="${reset.dataset.year}"][data-field="${reset.dataset.field}"]`,
+  );
+  if (!input) return;
+  const key = `${reset.dataset.year}:${reset.dataset.field}`;
+  pendingAnnualResets.add(key);
+  pendingAnnualChanges.set(key, {
+    year: Number(reset.dataset.year), field: reset.dataset.field, value: input.value,
+  });
+  input.classList.remove('manual-override');
+  input.classList.remove('pending-change');
+  input.classList.add('pending-reset');
   updateSaveState();
 });
 

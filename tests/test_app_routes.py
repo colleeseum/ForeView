@@ -230,6 +230,30 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(person["actuals"][0]["year"], 2025)
         self.assertEqual(person["salary_anchor"]["annual_salary_rate"], "95000.00")
 
+        reset = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/draft",
+            json={
+                "settings": {"default_raise": "0.04", "retirement_date": None},
+                "overrides": [
+                    {
+                        "year": 2027,
+                        "salary": None,
+                        "raise_rate": None,
+                        "rrsp_contribution": None,
+                        "rrsp_deduction": None,
+                        "other_income": None,
+                    }
+                ],
+            },
+        )
+        self.assertEqual(reset.status_code, 200)
+        reset_projection = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        reset_person = next(item for item in reset_projection["people"] if item["id"] == person_id)
+        self.assertEqual(reset_person["overrides"], [])
+        self.assertEqual(reset_person["projection"][1]["annual_salary_rate"], "102752.00")
+
     def test_salary_projection_save_as_clones_every_person_and_applies_visible_draft(self):
         people = self._people()
         source = self.client.post(

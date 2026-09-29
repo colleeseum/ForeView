@@ -27,7 +27,7 @@ function model() {
         year: 2025, annual_salary_rate: '95000.00', province_of_employment: 'ON', payroll_plan: 'CPP',
         rrsp_contribution: '10000.00', rrsp_deduction: '9000.00', other_income: '1500.00',
       },
-      overrides: [], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
+      overrides: [{year: 2027, salary: '104000.00'}], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
     }],
     household: [{...projection(2026)}, {...projection(2027, '104000.00')}],
   };
@@ -98,6 +98,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(document.querySelector('#salary-save').disabled, false);
   assert.equal(document.querySelector('#salary-discard').disabled, false);
   assert.match(document.querySelector('#salary-change-status').textContent, /1 annual change/);
+  assert.equal(calls.some((item) => item.url.endsWith('/draft')), false);
   document.querySelector('#salary-save').click();
   await tick(); await tick();
   const draft = calls.find((item) => item.url.endsWith('/draft'));
@@ -122,6 +123,16 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(document.querySelector('#salary-scenario').value, '4');
   assert.equal(document.querySelector('#salary-save-as-backdrop').hidden, true);
 
+  const draftsBeforeReset = calls.filter((item) => item.url.endsWith('/draft')).length;
+  document.querySelector('.salary-use-default[data-year="2027"][data-field="salary"]').click();
+  assert.equal(document.querySelector('#salary-save').disabled, false);
+  assert.equal(document.querySelector('.salary-year-input[data-field="salary"][data-year="2027"]').value, '104000.00');
+  assert.equal(calls.filter((item) => item.url.endsWith('/draft')).length, draftsBeforeReset);
+  document.querySelector('#salary-save').click();
+  await tick(); await tick();
+  const resetDraft = calls.filter((item) => item.url.endsWith('/draft')).at(-1);
+  assert.equal(JSON.parse(resetDraft.options.body).overrides[0].salary, null);
+
   document.querySelector('#salary-view').click();
   await tick();
   assert.ok(calls.filter((item) => item.url.startsWith('/api/salary-projection?')).length >= 4);
@@ -137,6 +148,7 @@ test('salary projection helpers render actual and manual override states', async
   assert.match(html, /2025 Actual/);
   assert.match(html, /Assessment/);
   assert.match(html, /manual-override/);
+  assert.match(html, /salary-use-default/);
   assert.match(module.projectionTable([{...actual, source: null}]), /Recorded/);
   assert.match(module.projectionTable([{...projection(2026), annual_salary_rate: 0, raise_rate: 0}], {editable: true}), /value="0.00"/);
   assert.equal(module.householdRows([{year: 2026}])[0].age, null);

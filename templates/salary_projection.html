@@ -44,7 +44,7 @@
           <label>First non-working day <input name="retirement_date" type="date"></label>
         </form>
       </section>
-      <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values.</p>
+      <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values. Use × beside a saved override to reset that cell to its calculated value, then click Save.</p>
       <div class="salary-annual-actions">
         <span id="salary-change-status" class="field-note">Changes are saved to the selected scenario. Use Save As to compare alternatives.</span>
       </div>
@@ -68,5 +68,5 @@
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-6') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-7') }}"></script>
 </body></html>

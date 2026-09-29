@@ -196,15 +196,12 @@ def save_employment_override(scenario_id: int, person_id: int, year: int):
     payload = request.get_json(silent=True) or {}
     try:
         with dependency("connect")() as connection:
-            override = EmploymentProjectionOverrideRepository(connection).upsert(
+            override = _replace_override(
+                EmploymentProjectionOverrideRepository(connection),
                 scenario_id,
                 person_id,
                 year,
-                salary=_optional_decimal(payload, "salary"),
-                raise_rate=_optional_decimal(payload, "raise_rate"),
-                rrsp_contribution=_optional_decimal(payload, "rrsp_contribution"),
-                rrsp_deduction=_optional_decimal(payload, "rrsp_deduction"),
-                other_income=_optional_decimal(payload, "other_income"),
+                payload,
             )
         return jsonify(
             {
@@ -232,16 +229,7 @@ def save_employment_overrides(scenario_id: int, person_id: int):
                 if not isinstance(item, dict):
                     raise ValueError("Each override must be an object")
                 year = int(item["year"])
-                repository.upsert(
-                    scenario_id,
-                    person_id,
-                    year,
-                    salary=_optional_decimal(item, "salary"),
-                    raise_rate=_optional_decimal(item, "raise_rate"),
-                    rrsp_contribution=_optional_decimal(item, "rrsp_contribution"),
-                    rrsp_deduction=_optional_decimal(item, "rrsp_deduction"),
-                    other_income=_optional_decimal(item, "other_income"),
-                )
+                _replace_override(repository, scenario_id, person_id, year, item)
                 saved_years.append(year)
         return jsonify({"saved_years": saved_years})
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
@@ -288,6 +276,37 @@ def _optional_decimal(payload: dict[str, object], key: str) -> Decimal | None:
     return None if value in (None, "") else as_decimal(str(value))
 
 
+def _replace_override(
+    repository: EmploymentProjectionOverrideRepository,
+    scenario_id: int,
+    person_id: int,
+    year: int,
+    payload: dict[str, object],
+) -> EmploymentProjectionOverride:
+    override = repository.upsert(
+        scenario_id,
+        person_id,
+        year,
+        salary=_optional_decimal(payload, "salary"),
+        raise_rate=_optional_decimal(payload, "raise_rate"),
+        rrsp_contribution=_optional_decimal(payload, "rrsp_contribution"),
+        rrsp_deduction=_optional_decimal(payload, "rrsp_deduction"),
+        other_income=_optional_decimal(payload, "other_income"),
+    )
+    if all(
+        value is None
+        for value in (
+            override.salary,
+            override.raise_rate,
+            override.rrsp_contribution,
+            override.rrsp_deduction,
+            override.other_income,
+        )
+    ):
+        repository.delete(scenario_id, person_id, year)
+    return override
+
+
 def _save_draft(
     connection: sqlite3.Connection,
     scenario_id: int,
@@ -318,16 +337,7 @@ def _save_draft(
         if not isinstance(item, dict):
             raise ValueError("Each override must be an object")
         year = int(item["year"])
-        override_repository.upsert(
-            scenario_id,
-            person_id,
-            year,
-            salary=_optional_decimal(item, "salary"),
-            raise_rate=_optional_decimal(item, "raise_rate"),
-            rrsp_contribution=_optional_decimal(item, "rrsp_contribution"),
-            rrsp_deduction=_optional_decimal(item, "rrsp_deduction"),
-            other_income=_optional_decimal(item, "other_income"),
-        )
+        _replace_override(override_repository, scenario_id, person_id, year, item)
         saved_years.append(year)
     return saved_years
 

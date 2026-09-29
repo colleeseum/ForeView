@@ -205,9 +205,13 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .salary-projection-table { min-width: 1800px; }
 .salary-projection-table th { position: static; text-align: left; }
 .salary-projection-table td { text-align: right; }
+.salary-input-cell { display: inline-flex; align-items: center; gap: 4px; }
 .salary-projection-table input { width: 112px; border: 1px solid #aac8d9; padding: 7px; background: #eef7fc; text-align: right; font: inherit; }
-.salary-projection-table input.manual-override { border-color: var(--accent); background: #f8e5df; }
+.salary-projection-table input.manual-override { border-color: #778aa0; background: #edf2f7; }
 .salary-projection-table input.pending-change { border-color: #b87900; background: #fff3d6; }
+.salary-projection-table input.pending-reset { border-style: dashed; border-color: #778aa0; background: #f4f6f8; }
+.salary-use-default { width: 18px; height: 18px; border: 1px solid #778aa0; border-radius: 50%; padding: 0; color: #52667c; background: #f4f6f8; font: .85rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
+.salary-use-default:hover, .salary-use-default:focus-visible { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .historical-row td, .historical-row th { background: #eef3e9; font-weight: 700; }
 .connection-status.error { color: #9f2e22; }
 nav { border-top: 1px solid var(--line); padding-top: 14px; }

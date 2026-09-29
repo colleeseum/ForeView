@@ -19,6 +19,9 @@ from institutions.questrade.settings import AUTHORIZE_URL, TOKEN_URL, QuestradeS
 from institutions.questrade.unauthorized import QuestradeUnauthorized
 from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
+from repositories.real_estate_asset_repository import RealEstateAssetRepository
+from repositories.real_estate_projection_repository import RealEstateProjectionRepository
+from repositories.scenario_assumption_repository import ScenarioAssumptionRepository
 from services.public_rule_catalog import PublicRuleCatalog
 from synthetic_questrade import SyntheticQuestradeAPI
 from synthetic_runtime import create_synthetic_runtime
@@ -226,6 +229,91 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(person["projection"][1]["rrsp_contribution"], "0.00")
         self.assertEqual(person["actuals"][0]["year"], 2025)
         self.assertEqual(person["salary_anchor"]["annual_salary_rate"], "95000.00")
+
+    def test_salary_projection_save_as_clones_every_person_and_applies_visible_draft(self):
+        people = self._people()
+        source = self.client.post(
+            "/api/model/scenarios",
+            json={
+                "name": "Source projection",
+                "baseline_date": "2026-01-01",
+                "growth_rate": "0.025",
+            },
+        )
+        self.assertEqual(source.status_code, 201)
+        source_id = source.get_json()["id"]
+        with self.runtime_config.connect() as connection:
+            asset_id = RealEstateAssetRepository(connection).list_all()[0].id
+            RealEstateProjectionRepository(connection).create(
+                asset_id,
+                "2035-01-01",
+                "250000",
+                scenario_id=source_id,
+                projected_acb="125000",
+                note="Scenario-specific land value",
+            )
+        for index, person in enumerate(people[:2]):
+            person_id = person["id"]
+            settings = self.client.put(
+                f"/api/salary-projection/scenarios/{source_id}/people/{person_id}/settings",
+                json={"default_raise": str(Decimal("0.03") + Decimal(index) / 100)},
+            )
+            self.assertEqual(settings.status_code, 200)
+            override = self.client.put(
+                f"/api/salary-projection/scenarios/{source_id}/people/{person_id}/overrides",
+                json={"overrides": [{"year": 2027, "salary": str(100000 + index * 10000)}]},
+            )
+            self.assertEqual(override.status_code, 200)
+
+        selected_person_id = people[0]["id"]
+        clone = self.client.post(
+            f"/api/salary-projection/scenarios/{source_id}/clone",
+            json={
+                "name": "Alternative projection",
+                "person_id": selected_person_id,
+                "settings": {"default_raise": "0.05", "retirement_date": "2035-07-01"},
+                "overrides": [{"year": 2027, "salary": "125000"}],
+            },
+        )
+        self.assertEqual(clone.status_code, 201)
+        clone_id = clone.get_json()["id"]
+
+        cloned = self.client.get(
+            f"/api/salary-projection?scenario_id={clone_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        cloned_people = {item["id"]: item for item in cloned["people"]}
+        self.assertEqual(cloned_people[selected_person_id]["settings"]["default_raise"], "0.05")
+        self.assertEqual(
+            cloned_people[selected_person_id]["settings"]["retirement_date"], "2035-07-01"
+        )
+        self.assertEqual(cloned_people[selected_person_id]["overrides"][0]["salary"], "125000.00")
+        second_person_id = people[1]["id"]
+        self.assertEqual(cloned_people[second_person_id]["settings"]["default_raise"], "0.04")
+        self.assertEqual(cloned_people[second_person_id]["overrides"][0]["salary"], "110000.00")
+
+        original = self.client.get(
+            f"/api/salary-projection?scenario_id={source_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        original_people = {item["id"]: item for item in original["people"]}
+        self.assertEqual(original_people[selected_person_id]["settings"]["default_raise"], "0.03")
+        self.assertEqual(original_people[selected_person_id]["overrides"][0]["salary"], "100000.00")
+        with self.runtime_config.connect() as connection:
+            assumption = ScenarioAssumptionRepository(connection).get(
+                clone_id, "general_growth_rate"
+            )
+            real_estate = RealEstateProjectionRepository(connection).list_for_scenario(clone_id)
+        self.assertIsNotNone(assumption)
+        self.assertEqual(assumption.value, "0.025")
+        self.assertEqual(len(real_estate), 1)
+        self.assertEqual(real_estate[0].projected_value, 250000.0)
+
+        rejected = self.client.post(
+            f"/api/salary-projection/scenarios/{source_id}/clone",
+            json={"name": "Incomplete projection", "person_id": selected_person_id},
+        )
+        self.assertEqual(rejected.status_code, 400)
+        scenarios = self.client.get("/api/salary-projection").get_json()["scenarios"]
+        self.assertNotIn("Incomplete projection", [item["name"] for item in scenarios])
 
     def test_ufile_preview_does_not_save_until_user_confirms(self):
         person_id = self._people()[0]["id"]

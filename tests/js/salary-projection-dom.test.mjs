@@ -36,18 +36,19 @@ function model() {
 test('salary projection loads, edits assumptions and annual overrides, and shows household', async () => {
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
+    <button id="salary-discard" disabled></button><button id="salary-save" disabled></button><button id="salary-save-as"></button>
     <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup" hidden><p id="salary-source-note"></p>
       <output id="salary-current-rate"></output><output id="salary-current-year"></output>
       <output id="salary-current-province"></output><output id="salary-current-payroll"></output>
       <output id="salary-current-rrsp-contribution"></output><output id="salary-current-rrsp-deduction"></output>
       <output id="salary-current-other-income"></output>
     </section>
-    <form id="salary-settings-form">
-      <input name="default_raise"><input name="retirement_date">
-      <button id="salary-save" type="submit" disabled></button>
-    </form><span id="salary-annual-status"></span>
-    <button id="salary-annual-discard" disabled></button><button id="salary-annual-save" disabled></button>
-    <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
+    <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"></form>
+    <span id="salary-change-status"></span><div id="salary-table"></div>
+    <div id="salary-save-as-backdrop" hidden><button id="salary-save-as-close"></button>
+      <form id="salary-save-as-form"><input name="name"><button type="submit"></button></form>
+      <p id="salary-save-as-message"></p>
+    </div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
   globalThis.FormData = dom.window.FormData;
@@ -55,7 +56,18 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({url: String(url), options});
-    return {ok: true, json: async () => String(url).startsWith('/api/salary-projection?') ? model() : {saved: true}};
+    if (String(url).endsWith('/clone')) {
+      return {ok: true, json: async () => ({id: 4, name: 'Higher raise'})};
+    }
+    if (String(url).startsWith('/api/salary-projection?')) {
+      const result = model();
+      if (String(url).includes('scenario_id=4')) {
+        result.scenarios.push({id: 4, name: 'Higher raise'});
+        result.selected_scenario_id = 4;
+      }
+      return {ok: true, json: async () => result};
+    }
+    return {ok: true, json: async () => ({saved: true})};
   };
 
   const module = await import(`../../static/salary-projection.mjs?test=${Date.now()}`);
@@ -80,27 +92,35 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
 
   document.querySelector('[name="default_raise"]').value = '4.5';
   document.querySelector('[name="default_raise"]').dispatchEvent(new dom.window.Event('input', {bubbles: true}));
-  assert.equal(document.querySelector('#salary-save').disabled, false);
-  document.querySelector('#salary-settings-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
-  await tick(); await tick();
-  assert.equal(document.querySelector('#salary-save').disabled, true);
-  assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
-  assert.ok(calls.some((item) => item.url.endsWith('/settings') && item.options.method === 'PUT'));
-  const settingsCall = calls.find((item) => item.url.endsWith('/settings') && item.options.method === 'PUT');
-  assert.deepEqual(Object.keys(JSON.parse(settingsCall.options.body)).sort(), ['default_raise', 'retirement_date']);
-
   const salaryInput = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
   salaryInput.value = '120000';
   salaryInput.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
-  assert.equal(document.querySelector('#salary-annual-save').disabled, false);
-  assert.match(document.querySelector('#salary-annual-status').textContent, /1 unsaved/);
-  assert.equal(calls.some((item) => item.url.endsWith('/overrides')), false);
-  document.querySelector('#salary-annual-save').click();
+  assert.equal(document.querySelector('#salary-save').disabled, false);
+  assert.equal(document.querySelector('#salary-discard').disabled, false);
+  assert.match(document.querySelector('#salary-change-status').textContent, /1 annual change/);
+  document.querySelector('#salary-save').click();
   await tick(); await tick();
-  const override = calls.find((item) => item.url.endsWith('/overrides'));
-  assert.equal(override.options.method, 'PUT');
-  assert.equal(JSON.parse(override.options.body).overrides[0].salary, '120000');
-  assert.equal(document.querySelector('#salary-annual-save').disabled, true);
+  const draft = calls.find((item) => item.url.endsWith('/draft'));
+  assert.equal(draft.options.method, 'PUT');
+  assert.equal(JSON.parse(draft.options.body).settings.default_raise, 0.045);
+  assert.equal(JSON.parse(draft.options.body).overrides[0].salary, '120000');
+  assert.equal(document.querySelector('#salary-save').disabled, true);
+  assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
+
+  const copiedSalary = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
+  copiedSalary.value = '125000';
+  copiedSalary.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#salary-save-as').click();
+  assert.equal(document.querySelector('#salary-save-as-backdrop').hidden, false);
+  document.querySelector('#salary-save-as-form [name="name"]').value = 'Higher raise';
+  document.querySelector('#salary-save-as-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  await tick(); await tick();
+  const clone = calls.find((item) => item.url.endsWith('/clone'));
+  assert.equal(clone.options.method, 'POST');
+  assert.equal(JSON.parse(clone.options.body).name, 'Higher raise');
+  assert.equal(JSON.parse(clone.options.body).overrides[0].salary, '125000');
+  assert.equal(document.querySelector('#salary-scenario').value, '4');
+  assert.equal(document.querySelector('#salary-save-as-backdrop').hidden, true);
 
   document.querySelector('#salary-view').click();
   await tick();

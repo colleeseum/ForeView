@@ -19,9 +19,13 @@ const elements = {
   currentOtherIncome: document.querySelector('#salary-current-other-income'),
   form: document.querySelector('#salary-settings-form'),
   save: document.querySelector('#salary-save'),
-  annualStatus: document.querySelector('#salary-annual-status'),
-  annualDiscard: document.querySelector('#salary-annual-discard'),
-  annualSave: document.querySelector('#salary-annual-save'),
+  saveAs: document.querySelector('#salary-save-as'),
+  discard: document.querySelector('#salary-discard'),
+  changeStatus: document.querySelector('#salary-change-status'),
+  saveAsBackdrop: document.querySelector('#salary-save-as-backdrop'),
+  saveAsClose: document.querySelector('#salary-save-as-close'),
+  saveAsForm: document.querySelector('#salary-save-as-form'),
+  saveAsMessage: document.querySelector('#salary-save-as-message'),
   table: document.querySelector('#salary-table'),
 };
 
@@ -81,17 +85,28 @@ function selectedPerson() {
   return model?.people.find((person) => String(person.id) === selectedKey) || null;
 }
 
-function updateSaveState() {
-  if (elements.save) elements.save.disabled = formSignature(elements.form) === savedFormSignature;
+function isDirty() {
+  return Boolean(selectedPerson()) && (
+    formSignature(elements.form) !== savedFormSignature || pendingAnnualChanges.size > 0
+  );
 }
 
-function updateAnnualSaveState() {
-  const dirty = pendingAnnualChanges.size > 0;
-  if (elements.annualSave) elements.annualSave.disabled = !dirty;
-  if (elements.annualDiscard) elements.annualDiscard.disabled = !dirty;
-  if (elements.annualStatus) elements.annualStatus.textContent = dirty
-    ? `${pendingAnnualChanges.size} unsaved annual change${pendingAnnualChanges.size === 1 ? '' : 's'}. Save to recalculate this scenario.`
-    : 'Annual overrides are saved per scenario. Use separate scenarios to compare alternatives.';
+function updateSaveState() {
+  const assumptionsDirty = Boolean(selectedPerson()) && formSignature(elements.form) !== savedFormSignature;
+  const dirty = isDirty();
+  if (elements.save) elements.save.disabled = !dirty;
+  if (elements.discard) elements.discard.disabled = !dirty;
+  if (elements.saveAs) elements.saveAs.disabled = !model?.selected_scenario_id;
+  if (elements.changeStatus) {
+    const changes = [];
+    if (assumptionsDirty) changes.push('projection assumptions');
+    if (pendingAnnualChanges.size) {
+      changes.push(`${pendingAnnualChanges.size} annual change${pendingAnnualChanges.size === 1 ? '' : 's'}`);
+    }
+    elements.changeStatus.textContent = dirty
+      ? `${changes.join(' and ')} not saved.`
+      : 'Changes are saved to the selected scenario. Use Save As to compare alternatives.';
+  }
   for (const control of [elements.scenario, elements.startYear, elements.endYear, elements.view]) {
     if (control) control.disabled = dirty;
   }
@@ -116,7 +131,6 @@ function fillForm(person) {
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
   savedFormSignature = formSignature(elements.form);
-  updateSaveState();
   const anchor = person.salary_anchor;
   if (elements.currentRate) elements.currentRate.textContent = anchor ? money(anchor.annual_salary_rate) : '—';
   if (elements.currentYear) elements.currentYear.textContent = anchor ? String(anchor.year) : '—';
@@ -138,6 +152,7 @@ function render() {
     elements.tabs.innerHTML = '';
     elements.setup.hidden = true;
     elements.table.innerHTML = '<p class="empty-panel">Create a scenario in <a href="/setup">Setup</a> before projecting salary.</p>';
+    updateSaveState();
     return;
   }
   if (!selectedKey) selectedKey = model.people[0] ? String(model.people[0].id) : 'household';
@@ -151,7 +166,7 @@ function render() {
     showMessage('Household values are the sum of individual projections. Tax remains calculated per person.');
     elements.table.innerHTML = projectionTable(householdRows(model.household));
   }
-  updateAnnualSaveState();
+  updateSaveState();
 }
 
 async function api(url, options) {
@@ -161,9 +176,9 @@ async function api(url, options) {
   return result;
 }
 
-export async function loadProjection() {
+export async function loadProjection(scenarioId = elements.scenario.value) {
   const query = new URLSearchParams();
-  if (elements.scenario.value) query.set('scenario_id', elements.scenario.value);
+  if (scenarioId) query.set('scenario_id', scenarioId);
   if (elements.startYear.value) query.set('start_year', elements.startYear.value);
   if (elements.endYear.value) query.set('end_year', elements.endYear.value);
   model = await api(`/api/salary-projection?${query}`);
@@ -183,19 +198,50 @@ elements.scenario?.addEventListener('change', () => loadProjection().catch((erro
 elements.form?.addEventListener('input', updateSaveState);
 elements.form?.addEventListener('change', updateSaveState);
 
-elements.form?.addEventListener('submit', async (event) => {
-  event.preventDefault();
+function annualOverridePayload(person) {
+  const byYear = new Map();
+  for (const change of pendingAnnualChanges.values()) {
+    const existing = person.overrides.find((item) => item.year === change.year) || {year: change.year};
+    const payload = byYear.get(change.year) || {
+      year: change.year, salary: existing.salary, raise_rate: existing.raise_rate,
+      rrsp_contribution: existing.rrsp_contribution, rrsp_deduction: existing.rrsp_deduction,
+      other_income: existing.other_income,
+    };
+    payload[change.field] = change.field === 'raise_rate' ? Number(change.value) / 100 : change.value;
+    byYear.set(change.year, payload);
+  }
+  return [...byYear.values()];
+}
+
+function draftPayload(person) {
+  const values = Object.fromEntries(new FormData(elements.form));
+  return {
+    person_id: person.id,
+    settings: {
+      default_raise: Number(values.default_raise || 0) / 100,
+      retirement_date: values.retirement_date,
+    },
+    overrides: annualOverridePayload(person),
+  };
+}
+
+async function saveCurrentScenario() {
   const person = selectedPerson();
   if (!person) return;
-  const values = Object.fromEntries(new FormData(elements.form));
   try {
-    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/settings`, {method: 'PUT', body: JSON.stringify({
-      default_raise: Number(values.default_raise || 0) / 100, retirement_date: values.retirement_date,
-    })});
-    showMessage('Projection settings saved.');
+    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/draft`, {
+      method: 'PUT', body: JSON.stringify(draftPayload(person)),
+    });
     await loadProjection();
+    showMessage('Scenario saved.');
   } catch (error) { showMessage(error.message, true); }
+}
+
+elements.form?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (isDirty()) saveCurrentScenario();
 });
+elements.save?.addEventListener('click', saveCurrentScenario);
 
 elements.table?.addEventListener('input', (event) => {
   const input = event.target.closest('.salary-year-input');
@@ -212,32 +258,38 @@ elements.table?.addEventListener('input', (event) => {
     });
     input.classList.add('pending-change');
   }
-  updateAnnualSaveState();
+  updateSaveState();
 });
 
-elements.annualDiscard?.addEventListener('click', () => render());
+elements.discard?.addEventListener('click', () => render());
 
-elements.annualSave?.addEventListener('click', async () => {
+function openSaveAs() {
+  if (!elements.saveAsBackdrop || !elements.saveAsForm || !model?.selected_scenario_id) return;
+  const current = model.scenarios.find((item) => item.id === model.selected_scenario_id);
+  elements.saveAsForm.elements.name.value = `${current?.name || 'Scenario'} copy`;
+  if (elements.saveAsMessage) elements.saveAsMessage.textContent = '';
+  elements.saveAsBackdrop.hidden = false;
+  elements.saveAsForm.elements.name.focus();
+  elements.saveAsForm.elements.name.select();
+}
+
+elements.saveAs?.addEventListener('click', openSaveAs);
+elements.saveAsClose?.addEventListener('click', () => { elements.saveAsBackdrop.hidden = true; });
+elements.saveAsForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
   const person = selectedPerson();
-  if (!person || !pendingAnnualChanges.size) return;
-  const byYear = new Map();
-  for (const change of pendingAnnualChanges.values()) {
-    const existing = person.overrides.find((item) => item.year === change.year) || {year: change.year};
-    const payload = byYear.get(change.year) || {
-      year: change.year, salary: existing.salary, raise_rate: existing.raise_rate,
-      rrsp_contribution: existing.rrsp_contribution, rrsp_deduction: existing.rrsp_deduction,
-      other_income: existing.other_income,
-    };
-    payload[change.field] = change.field === 'raise_rate' ? Number(change.value) / 100 : change.value;
-    byYear.set(change.year, payload);
-  }
+  const payload = person ? draftPayload(person) : {overrides: []};
+  payload.name = elements.saveAsForm.elements.name.value;
   try {
-    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/overrides`, {
-      method: 'PUT', body: JSON.stringify({overrides: [...byYear.values()]}),
+    const result = await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/clone`, {
+      method: 'POST', body: JSON.stringify(payload),
     });
-    showMessage('Annual changes saved.');
-    await loadProjection();
-  } catch (error) { showMessage(error.message, true); }
+    elements.saveAsBackdrop.hidden = true;
+    await loadProjection(result.id);
+    showMessage(`Scenario "${result.name}" created.`);
+  } catch (error) {
+    if (elements.saveAsMessage) elements.saveAsMessage.textContent = error.message;
+  }
 });
 
 if (elements.table) loadProjection().catch((error) => showMessage(error.message, true));

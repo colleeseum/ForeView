@@ -24,6 +24,7 @@ from repositories.employment_projection_settings_repository import (
 from repositories.person_repository import PersonRepository
 from repositories.scenario_repository import ScenarioRepository
 from services.salary_projection_service import SalaryProjectionService
+from services.scenario_clone_service import ScenarioCloneService
 from web.dependencies import dependency
 
 blueprint = Blueprint("salary_projection", __name__)
@@ -163,6 +164,31 @@ def save_employment_settings(scenario_id: int, person_id: int):
         return jsonify({"error": str(error)}), 400
 
 
+@blueprint.put("/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/draft")
+def save_employment_draft(scenario_id: int, person_id: int):
+    payload = request.get_json(silent=True) or {}
+    try:
+        with dependency("connect")() as connection:
+            saved_years = _save_draft(connection, scenario_id, person_id, payload)
+        return jsonify({"scenario_id": scenario_id, "saved_years": saved_years})
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
+@blueprint.post("/api/salary-projection/scenarios/<int:scenario_id>/clone")
+def clone_employment_scenario(scenario_id: int):
+    payload = request.get_json(silent=True) or {}
+    try:
+        with dependency("connect")() as connection:
+            scenario = ScenarioCloneService(connection).clone(scenario_id, str(payload["name"]))
+            person_id = payload.get("person_id")
+            if person_id is not None:
+                _save_draft(connection, scenario.id, int(person_id), payload)
+        return jsonify({"id": scenario.id, "name": scenario.name}), 201
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
 @blueprint.put(
     "/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/years/<int:year>"
 )
@@ -260,6 +286,50 @@ def save_employment_actual(person_id: int, tax_year: int):
 def _optional_decimal(payload: dict[str, object], key: str) -> Decimal | None:
     value = payload.get(key)
     return None if value in (None, "") else as_decimal(str(value))
+
+
+def _save_draft(
+    connection: sqlite3.Connection,
+    scenario_id: int,
+    person_id: int,
+    payload: dict[str, object],
+) -> list[int]:
+    settings_payload = payload.get("settings")
+    if not isinstance(settings_payload, dict):
+        raise ValueError("Settings must be an object")
+    settings_repository = EmploymentProjectionSettingsRepository(connection)
+    current = settings_repository.get(scenario_id, person_id)
+    settings_repository.upsert(
+        scenario_id,
+        person_id,
+        default_raise=as_decimal(settings_payload.get("default_raise", 0)),
+        retirement_date=settings_payload.get("retirement_date") or None,
+        recurring_rrsp_contribution=current.recurring_rrsp_contribution if current else 0,
+        recurring_rrsp_deduction=current.recurring_rrsp_deduction if current else 0,
+        recurring_other_income=current.recurring_other_income if current else 0,
+    )
+
+    items = payload.get("overrides", [])
+    if not isinstance(items, list):
+        raise ValueError("Overrides must be a list")
+    override_repository = EmploymentProjectionOverrideRepository(connection)
+    saved_years: list[int] = []
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError("Each override must be an object")
+        year = int(item["year"])
+        override_repository.upsert(
+            scenario_id,
+            person_id,
+            year,
+            salary=_optional_decimal(item, "salary"),
+            raise_rate=_optional_decimal(item, "raise_rate"),
+            rrsp_contribution=_optional_decimal(item, "rrsp_contribution"),
+            rrsp_deduction=_optional_decimal(item, "rrsp_deduction"),
+            other_income=_optional_decimal(item, "other_income"),
+        )
+        saved_years.append(year)
+    return saved_years
 
 
 def _money(value: Decimal) -> str:

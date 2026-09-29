@@ -397,7 +397,11 @@ class AppRouteTests(unittest.TestCase):
             federal_tax=Decimal("12000.00"),
             provincial_tax=Decimal("13000.00"),
         )
-        with patch("web.income_routes.UFileTaxReturnParser.parse", return_value=parsed):
+        with patch(
+            "web.income_routes.income_source_registry.get"
+        ) as get_source:
+            get_source.return_value.parser.return_value = parsed
+            get_source.return_value.source_label = "UFile T1"
             response = self.client.post(
                 "/api/income/import/ufile/preview",
                 data={"file": (io.BytesIO(b"synthetic"), "return.pdf")},

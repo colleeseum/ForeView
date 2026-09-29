@@ -42,6 +42,7 @@ class UFileTaxReturnParser:
                 rrsp_deduction=self._optional_line(federal_page, "20800"),
                 federal_tax=self._required_line(federal_page, "42000"),
                 provincial_tax=self._required_line(quebec_page, "432"),
+                province_of_employment="QC",
             )
 
     def _find_individual_summary(self, pages: list[Any]) -> tuple[int, int]:

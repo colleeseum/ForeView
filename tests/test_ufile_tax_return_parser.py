@@ -72,6 +72,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         self.assertEqual(parsed.rrsp_deduction, Decimal("20000.00"))
         self.assertEqual(parsed.federal_tax, Decimal("18000.00"))
         self.assertEqual(parsed.provincial_tax, Decimal("15000.00"))
+        self.assertEqual(parsed.province_of_employment, "QC")
 
     def test_rejects_a_package_without_an_individual_summary(self) -> None:
         pages = [FakePage("Tax return Summary - Combined\nfor 2024 taxation year")]

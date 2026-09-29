@@ -8,9 +8,9 @@ from flask import Blueprint, jsonify, request
 
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.money import as_decimal
+from income_sources import income_source_registry
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.person_repository import PersonRepository
-from services.ufile_tax_return_parser import UFileTaxReturnParser
 from web.dependencies import dependency
 
 blueprint = Blueprint("income", __name__)
@@ -68,13 +68,14 @@ def save_income_record(person_id: int, year: int):
         return jsonify({"error": str(error)}), 400
 
 
-@blueprint.post("/api/income/import/ufile/preview")
-def preview_ufile_tax_return():
+@blueprint.post("/api/income/import/preview")
+def preview_income_source():
     uploaded = request.files.get("file")
     if uploaded is None:
-        return jsonify({"error": "UFile tax return PDF is required"}), 400
+        return jsonify({"error": "An income source PDF is required"}), 400
     try:
-        parsed = UFileTaxReturnParser().parse(uploaded.read())
+        source = income_source_registry.get(request.form.get("source", "ufile"))
+        parsed = source.parser(uploaded.read())
         return jsonify(
             {
                 "year": parsed.tax_year,
@@ -89,12 +90,18 @@ def preview_ufile_tax_return():
                 "rrsp_deduction": _money(parsed.rrsp_deduction),
                 "federal_tax": _money(parsed.federal_tax),
                 "provincial_tax": _money(parsed.provincial_tax),
-                "source": "UFile T1",
-                "province_of_employment": "",
+                "source": source.source_label,
+                "province_of_employment": parsed.province_of_employment or "",
             }
         )
     except (TypeError, ValueError) as error:
         return jsonify({"error": str(error)}), 400
+
+
+@blueprint.post("/api/income/import/ufile/preview")
+def preview_ufile_tax_return():
+    """Compatibility endpoint for existing clients."""
+    return preview_income_source()
 
 
 def _amount(payload: dict[str, Any], name: str) -> Decimal:

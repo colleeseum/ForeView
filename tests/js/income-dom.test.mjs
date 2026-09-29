@@ -52,7 +52,7 @@ test('income screen previews a UFile return and saves only after review', async 
       return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})]})};
     }
     if (url === '/api/income/import/ufile/preview') {
-      return {ok: true, json: async () => annualRecord({year: 2024})};
+      return {ok: true, json: async () => annualRecord({year: 2024, province_of_employment: 'QC'})};
     }
     if (String(url).startsWith('/api/income/people/')) {
       saved = true;
@@ -90,6 +90,7 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.equal(document.querySelector('[name="tax_year"]').value, '2024');
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, false);
   assert.equal(document.querySelector('[name="employment_income"]').value, '100000.00');
+  assert.equal(document.querySelector('[name="province_of_employment"]').value, 'QC');
   assert.match(document.querySelector('#income-message').textContent, /loaded for review/);
   assert.equal(calls.some(({url}) => url.startsWith('/api/income/people/')), false);
 

@@ -955,13 +955,14 @@ class AppRouteTests(unittest.TestCase):
             self.assertEqual(response.status_code, 201)
             return response.get_json()["id"]
 
-        def upload(account_id, filename):
+        def upload(account_id, filename, **fields):
             path = fixtures / filename
             return self.client.post(
                 "/api/model/transactions/import",
                 data={
                     "account_id": str(account_id),
                     "files": (io.BytesIO(path.read_bytes()), path.name),
+                    **fields,
                 },
                 content_type="multipart/form-data",
             )
@@ -978,7 +979,12 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(achieva.status_code, 201)
         self.assertEqual(achieva.get_json()["imported"], 2)
 
-        manulife = upload("auto", "manulife-rrsp-statement.pdf")
+        pending_manulife = upload("auto", "manulife-rrsp-statement.pdf")
+        self.assertEqual(pending_manulife.status_code, 409)
+        self.assertTrue(pending_manulife.get_json()["confirm_account_creation"])
+        manulife = upload(
+            "auto", "manulife-rrsp-statement.pdf", confirm_account_creation="1"
+        )
         self.assertEqual(manulife.status_code, 201)
         self.assertEqual(manulife.get_json()["imported"], 4)
 

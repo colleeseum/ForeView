@@ -107,6 +107,9 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
 
   content.querySelector('[data-add-account-type="non_registered"]').click();
   assert.equal(document.querySelector('#account-dialog-title').textContent, 'Add account');
+  document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
+  assert.equal(document.querySelector('#account-dialog').hidden, true);
+  content.querySelector('[data-add-account-type="non_registered"]').click();
   accountForm.elements.institution.value = 'New bank';
   accountForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));

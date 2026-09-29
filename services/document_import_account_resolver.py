@@ -3,9 +3,26 @@
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass
 
 from institution_support.registry import InstitutionRegistry
 from repositories.account_repository import AccountRepository
+
+
+@dataclass(frozen=True)
+class AccountCreationRequired(ValueError):
+    """Raised when an import identifies a new account that needs confirmation."""
+
+    institution: str
+    account_number: str
+    account_type: str
+    importer_name: str
+
+    def __str__(self) -> str:
+        return (
+            f"The document identifies a new {self.account_type} account at "
+            f"{self.institution} ({self.account_number})."
+        )
 
 
 class DocumentImportAccountResolver:
@@ -15,7 +32,14 @@ class DocumentImportAccountResolver:
         self._registry = registry
         self._accounts = AccountRepository(connection)
 
-    def resolve(self, importer_name: str, content: bytes, filename: str) -> int:
+    def resolve(
+        self,
+        importer_name: str,
+        content: bytes,
+        filename: str,
+        *,
+        allow_create: bool = True,
+    ) -> int:
         match = next(
             (
                 (provider, importer)
@@ -35,6 +59,10 @@ class DocumentImportAccountResolver:
         existing = self._accounts.find_by_institution_number(institution, account_number)
         if existing:
             return existing.id
+        if not allow_create:
+            raise AccountCreationRequired(
+                institution, account_number, account_type, importer.importer_name
+            )
         return self._accounts.create(
             f"{institution} {account_number}",
             account_type,

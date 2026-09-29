@@ -16,8 +16,6 @@ const elements = {
   importFile: document.querySelector('#income-import-file'),
   importPreview: document.querySelector('#income-import-preview'),
   importProgress: document.querySelector('#income-import-progress'),
-  importHelpText: document.querySelector('#income-import-help-text'),
-  importModuleMeta: document.querySelector('#income-import-module-meta'),
   salaryRate: document.querySelector('#income-salary-rate'),
 };
 
@@ -190,12 +188,6 @@ elements.importForm.addEventListener('submit', async (event) => {
     elements.importDialog.hidden = true;
     elements.importForm.reset();
     updateImportAction();
-    if (elements.importHelpText && preview.source_help) {
-      elements.importHelpText.textContent = preview.source_help;
-    }
-    if (elements.importModuleMeta && preview.source_name) {
-      elements.importModuleMeta.textContent = `Detected module: ${preview.source_name} ${preview.source_version} · last changed ${preview.source_last_changed}`;
-    }
     openEditor(preview);
     const identity = preview.taxpayer_name
       ? `PDF taxpayer: ${preview.taxpayer_name}. `

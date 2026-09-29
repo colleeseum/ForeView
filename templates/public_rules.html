@@ -67,7 +67,7 @@
             {% if row.approval %}
             <div class="public-rule-approval-actions">
               <span class="approval-badge approved">Approved {{ row.approval.approved_at }}</span>
-              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
             </div>
             {% else %}
             <div class="public-rule-approval-actions">
@@ -76,7 +76,7 @@
                 <input type="hidden" name="content_hash" value="{{ package.content_hash }}">
                 <button class="view-action" type="submit">Approve exact hash</button>
               </form>
-              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
             </div>
             {% endif %}
           </div>
@@ -104,4 +104,4 @@
       </div>
     </div>
   </div>
-</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script><script src="{{ url_for('static', filename='help.js', v='20260928-1') }}"></script></body></html>
+</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script></body></html>

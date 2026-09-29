@@ -10,7 +10,7 @@
 <body><main>
   <header>
     <p class="eyebrow">Financial records</p>
-    <h1>Employment income <button class="help-button" type="button" data-help-key="income" aria-label="Employment income help">?</button></h1>
+    <h1>Employment income</h1>
     <p class="lede">Factual annual totals retained by person and tax year.</p>
   </header>
   <div class="page-shell">
@@ -57,7 +57,7 @@
           <option value="YT">Yukon</option>
         </select>
       </label>
-      <label>Employment income
+      <label><span>Employment income <button class="tooltip-help-button" type="button" data-help-tooltip="employment-income" aria-label="Employment income quick help">?</button></span>
         <span class="field-note">T1 line 10100</span>
         <input name="employment_income" type="number" min="0" step="0.01" required>
       </label>
@@ -65,7 +65,7 @@
         <span class="field-note">Entered manually</span>
         <input name="bonus" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>Salary rate
+      <label><span>Salary rate <button class="tooltip-help-button" type="button" data-help-tooltip="salary-rate" aria-label="Salary rate quick help">?</button></span>
         <span class="field-note">Employment income minus bonus</span>
         <output id="income-salary-rate">$0.00</output>
       </label>
@@ -85,7 +85,7 @@
         <span class="field-note">Quebec parental insurance premiums</span>
         <input name="qpip" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>RRSP contribution
+      <label><span>RRSP contribution <button class="tooltip-help-button" type="button" data-help-tooltip="rrsp-contribution" aria-label="RRSP contribution quick help">?</button></span>
         <span class="field-note">Cash deposited during the year, not contribution room</span>
         <input name="rrsp_contribution" type="number" min="0" step="0.01" value="0">
       </label>
@@ -117,18 +117,9 @@
     <form id="ufile-form" class="income-import-form">
       <label>T1 PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
-      <details class="income-import-help">
-        <summary>Source help</summary>
-        <p id="income-import-help-text">The PDF source is detected automatically.</p>
-        {% for source in income_sources %}
-        <article class="income-source-help">
-          <strong>{{ source.display_name }} {{ source.version }}</strong>
-          <p>{{ source.help_text }}</p>
-          <small>Importer last changed: {{ source.last_changed }}</small>
-        </article>
-        {% endfor %}
-        <small id="income-import-module-meta"></small>
-      </details>
+      <div class="income-source-help-links">
+        {% for source in income_sources %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> How to get {{ source.display_name }}</button>{% endfor %}
+      </div>
       <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
         <progress aria-label="Analysing PDF"></progress>
         <span>Analysing PDF…</span>

@@ -500,12 +500,17 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b'<option value="2025">2025</option>', default_page.data)
         self.assertIn(b"ca-2026-official", default_page.data)
         self.assertNotIn(b"ca-qc-2026-official", default_page.data)
-        self.assertIn(b'data-help-key="public-rule-approval"', default_page.data)
-        self.assertIn(b'aria-label="Public-rule approval help"', default_page.data)
+        self.assertIn(b'data-help-article="public-rule-approval"', default_page.data)
 
-        help_script = (application.ROOT / "static" / "help.js").read_text()
-        self.assertIn("added, removed, or changed any tax concept", help_script)
-        self.assertIn("importer may require a code change", help_script)
+        help_response = self.client.get("/api/help")
+        self.assertEqual(help_response.status_code, 200)
+        approval_help = next(
+            article
+            for article in help_response.get_json()["articles"]
+            if article["key"] == "public-rule-approval"
+        )
+        self.assertIn("added, removed, or changed tax concepts", approval_help["body"])
+        self.assertIn("importer code change", approval_help["body"])
 
         quebec_2025 = self.client.get("/settings?jurisdiction=CA-QC&year=2025")
         self.assertIn(b"ca-qc-2025-official", quebec_2025.data)
@@ -543,14 +548,23 @@ class AppRouteTests(unittest.TestCase):
     def test_income_source_contract_exposes_retrieval_help_and_change_date(self):
         page = self.client.get("/income")
         self.assertEqual(page.status_code, 200)
-        self.assertIn(b"Tax Return - view or download", page.data)
-        self.assertIn(b"Importer last changed: 2026-09-29", page.data)
+        self.assertIn(b'data-help-article="income-source-ufile"', page.data)
 
         sources = self.client.get("/api/income/sources")
         self.assertEqual(sources.status_code, 200)
         source = sources.get_json()["sources"][0]
         self.assertEqual(source["key"], "ufile")
         self.assertRegex(source["version"], r"^\d+\.\d+\.\d+$")
+        self.assertEqual(source["last_changed"], "2026-09-29")
+        self.assertIn("Tax Return - view or download", source["help_text"])
+
+        help_catalog = self.client.get("/api/help").get_json()
+        ufile_help = next(
+            article
+            for article in help_catalog["articles"]
+            if article["key"] == "income-source-ufile"
+        )
+        self.assertIn("Tax Return - view or download", ufile_help["body"])
 
         about = self.client.get("/about")
         self.assertIn(b"Income source modules", about.data)

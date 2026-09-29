@@ -11,7 +11,8 @@ class AnnualEmploymentActual:
     id: int
     person_id: int
     tax_year: int
-    province_of_employment: str | None
+    province_of_residence: str | None
+    payroll_plan: str | None
     salary_income: Decimal
     bonus: Decimal
     other_income: Decimal
@@ -33,10 +34,9 @@ class AnnualEmploymentActual:
         return self.salary_income - self.bonus
 
     @property
-    def payroll_plan(self) -> str | None:
-        if self.province_of_employment is None:
-            return None
-        return "QPP" if self.province_of_employment == "QC" else "CPP"
+    def province_of_employment(self) -> str | None:
+        """Compatibility alias while projection inputs migrate to residence timelines."""
+        return self.province_of_residence
 
     @property
     def disposable_income(self) -> Decimal:

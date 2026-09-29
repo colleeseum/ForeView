@@ -52,9 +52,18 @@ class UFileTaxReturnParser:
                 rrsp_deduction=self._optional_line(federal_page, "20800"),
                 federal_tax=self._required_line(federal_page, "42000"),
                 provincial_tax=self._required_line(quebec_page, "432"),
-                province_of_employment="QC",
+                province_of_residence="QC",
+                payroll_plan=self._payroll_plan(quebec_page.extract_text() or ""),
                 taxpayer_name=taxpayer_name,
             )
+
+    @staticmethod
+    def _payroll_plan(quebec_text: str) -> str | None:
+        if re.search(r"\bCPP contribution\b", quebec_text, re.IGNORECASE):
+            return "CPP"
+        if re.search(r"\bQPP contribution\b", quebec_text, re.IGNORECASE):
+            return "QPP"
+        return None
 
     def _find_individual_summary(self, pages: list[Any]) -> tuple[int, int]:
         for index, page in enumerate(pages):

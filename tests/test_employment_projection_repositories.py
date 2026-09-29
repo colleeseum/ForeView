@@ -48,7 +48,8 @@ class EmploymentProjectionRepositoryTests(unittest.TestCase):
             self.person_id,
             2025,
             "214000.00",
-            province_of_employment="ON",
+            province_of_residence="ON",
+            payroll_plan="CPP",
             bonus="14000.00",
             other_income="1600.00",
             rrsp_contribution="31560.00",
@@ -120,7 +121,7 @@ class EmploymentProjectionRepositoryTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(ValueError, "cannot be negative"):
             AnnualEmploymentActualRepository(self.connection).upsert(
-                self.person_id, 2026, -1, province_of_employment="ON"
+                self.person_id, 2026, -1, province_of_residence="ON"
             )
         with self.assertRaisesRegex(ValueError, "cannot reduce salary"):
             EmploymentProjectionSettingsRepository(self.connection).upsert(

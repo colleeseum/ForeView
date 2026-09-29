@@ -37,6 +37,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (7, "annual_employment_province"),
                     (8, "annual_employment_province_backfill"),
                     (9, "household_expenses"),
+                    (10, "tax_and_public_pension_records"),
                 ],
             )
 
@@ -69,6 +70,8 @@ class DatabaseMigrationTests(unittest.TestCase):
                 }
             self.assertIn("bonus_cents", columns)
             self.assertIn("province_of_employment", columns)
+            self.assertIn("province_of_residence", columns)
+            self.assertIn("payroll_plan", columns)
 
     def test_legacy_income_province_uses_nearest_known_employment_setup(self):
         with tempfile.TemporaryDirectory() as directory:

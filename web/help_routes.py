@@ -6,6 +6,8 @@ from flask import Blueprint, jsonify
 
 from income_sources import income_source_registry
 from institution_support import institution_registry
+from public_pension_sources import public_pension_source_registry
+from tax_notices import tax_notice_registry
 
 blueprint = Blueprint("help", __name__)
 
@@ -111,6 +113,26 @@ def help_catalog():
             "keywords": ("T1", "PDF", "tax return", source.key, source.display_name),
         }
         for source in income_source_registry.providers
+    )
+    articles.extend(
+        {
+            "key": f"tax-notice-{source.key}",
+            "title": f"Loading {source.display_name}",
+            "summary": "Import authoritative assessed tax values.",
+            "body": source.help_text,
+            "keywords": ("notice", "assessment", "tax", source.key, source.display_name),
+        }
+        for source in tax_notice_registry.providers
+    )
+    articles.extend(
+        {
+            "key": f"public-pension-{source.key}",
+            "title": f"Loading {source.display_name}",
+            "summary": "Import public-pension earnings and official estimates.",
+            "body": source.help_text,
+            "keywords": ("CPP", "QPP", "pension", "statement", source.key),
+        }
+        for source in public_pension_source_registry.providers
     )
     articles.extend(
         {

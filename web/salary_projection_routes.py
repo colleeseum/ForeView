@@ -280,7 +280,12 @@ def save_employment_actual(person_id: int, tax_year: int):
                 person_id,
                 tax_year,
                 as_decimal(payload["salary_income"]),
-                province_of_employment=str(payload.get("province_of_employment") or ""),
+                province_of_residence=str(
+                    payload.get("province_of_residence")
+                    or payload.get("province_of_employment")
+                    or ""
+                ),
+                payroll_plan=str(payload.get("payroll_plan") or "") or None,
                 bonus=as_decimal(payload.get("bonus", 0)),
                 other_income=as_decimal(payload.get("other_income", 0)),
                 rrsp_contribution=as_decimal(payload.get("rrsp_contribution", 0)),
@@ -420,7 +425,8 @@ def _actual_json(item: AnnualEmploymentActual, birth_date: str | None = None) ->
     return {
         "year": item.tax_year,
         "age": _age_at_year_end(birth_date, item.tax_year),
-        "province_of_employment": item.province_of_employment,
+        "province_of_residence": item.province_of_residence,
+        "province_of_employment": item.province_of_residence,
         "payroll_plan": item.payroll_plan,
         "salary_income": _money(item.salary_income),
         "bonus": _money(item.bonus),

@@ -1,0 +1,1 @@
+Download the individual notice of assessment from Revenu Québec My Account. The importer reads the assessed Québec totals and keeps additional QPIP contributions separate from income tax. It does not store the PDF, address, identification number, or notice number.

@@ -70,7 +70,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
                     "42000": "18,00000",
                 },
             ),
-            FakePage("Quebec return", {"432": "15,00000"}),
+            FakePage("Quebec return\nCPP contribution", {"432": "15,00000"}),
             FakePage("T1-KFS", {"24500": "22,000.00"}),
         ]
         with patch(
@@ -87,7 +87,8 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         self.assertEqual(parsed.rrsp_deduction, Decimal("20000.00"))
         self.assertEqual(parsed.federal_tax, Decimal("18000.00"))
         self.assertEqual(parsed.provincial_tax, Decimal("15000.00"))
-        self.assertEqual(parsed.province_of_employment, "QC")
+        self.assertEqual(parsed.province_of_residence, "QC")
+        self.assertEqual(parsed.payroll_plan, "CPP")
         self.assertEqual(parsed.taxpayer_name, "Alex Example")
 
     def test_rejects_a_package_without_an_individual_summary(self) -> None:
@@ -103,9 +104,12 @@ class UFileTaxReturnParserTests(unittest.TestCase):
 
     def test_finds_name_from_return_body_when_summary_has_no_name_label(self) -> None:
         pages = [
-            FakePage("Tax return Summary\nfor 2024 taxation year", {"10100": "10000000", "30800": "300000", "42000": "100000"}),
+            FakePage(
+                "Tax return Summary\nfor 2024 taxation year",
+                {"10100": "10000000", "30800": "300000", "42000": "100000"},
+            ),
             FakePage("Quebec return", {"432": "100000"}),
-            FakePage("2024 Tax return for 2024 prepared for Serge Colle by UFile.ca"),
+            FakePage("2024 Tax return for 2024 prepared for Alex Example by UFile.ca"),
         ]
         with patch(
             "services.ufile_tax_return_parser.pdfplumber.open",
@@ -113,13 +117,16 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         ):
             parsed = UFileTaxReturnParser().parse(b"synthetic pdf")
 
-        self.assertEqual(parsed.taxpayer_name, "Serge Colle")
+        self.assertEqual(parsed.taxpayer_name, "Alex Example")
 
     def test_finds_name_from_ufile_name_and_birth_date_layout(self) -> None:
         pages = [
-            FakePage("Tax return Summary\nfor 2024 taxation year", {"10100": "10000000", "30800": "300000", "42000": "100000"}),
+            FakePage(
+                "Tax return Summary\nfor 2024 taxation year",
+                {"10100": "10000000", "30800": "300000", "42000": "100000"},
+            ),
             FakePage("Quebec return", {"432": "100000"}),
-            FakePage("Name: Serge Colle Date of birth: 29-03-1970"),
+            FakePage("Name: Alex Example Date of birth: 29-03-1970"),
         ]
         with patch(
             "services.ufile_tax_return_parser.pdfplumber.open",
@@ -127,7 +134,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         ):
             parsed = UFileTaxReturnParser().parse(b"synthetic pdf")
 
-        self.assertEqual(parsed.taxpayer_name, "Serge Colle")
+        self.assertEqual(parsed.taxpayer_name, "Alex Example")
 
 
 if __name__ == "__main__":

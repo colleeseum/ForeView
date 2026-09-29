@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from decimal import Decimal
+from hashlib import sha256
 from typing import Any
 
 from flask import Blueprint, jsonify, request
@@ -9,8 +10,13 @@ from flask import Blueprint, jsonify, request
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.money import as_decimal
 from income_sources import income_source_registry
+from public_pension_sources import public_pension_source_registry
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
+from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
 from repositories.person_repository import PersonRepository
+from repositories.public_pension_statement_repository import PublicPensionStatementRepository
+from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
+from tax_notices import tax_notice_registry
 from web.dependencies import dependency
 
 blueprint = Blueprint("income", __name__)
@@ -25,12 +31,17 @@ def income_record():
     with dependency("connect")() as connection:
         people = PersonRepository(connection).list_all()
         repository = AnnualEmploymentActualRepository(connection)
+        assessments = AnnualTaxAssessmentRepository(connection).list_for_person(person_id)
+        rooms = RegisteredPlanRoomRepository(connection).list_for_person(person_id)
+        pension_repository = PublicPensionStatementRepository(connection)
+        pension = pension_repository.latest_for_person(person_id)
         if year is None:
             records = list(reversed(repository.list_for_person(person_id)))
             record = None
         else:
             records = []
             record = repository.get(person_id, year)
+        public_pension = _pension_json(pension_repository, pension) if pension else None
     return jsonify(
         {
             "people": [{"id": person.id, "name": person.name} for person in people],
@@ -38,6 +49,9 @@ def income_record():
             "year": year,
             "record": _record_json(record) if record else None,
             "records": [_record_json(item) for item in records],
+            "assessments": [_assessment_json(item) for item in assessments],
+            "registered_rooms": [_room_json(item) for item in rooms],
+            "public_pension": public_pension,
         }
     )
 
@@ -51,7 +65,8 @@ def save_income_record(person_id: int, year: int):
                 person_id,
                 year,
                 _amount(payload, "employment_income"),
-                province_of_employment=str(payload.get("province_of_employment") or ""),
+                province_of_residence=str(payload.get("province_of_residence") or ""),
+                payroll_plan=str(payload.get("payroll_plan") or "") or None,
                 bonus=_amount(payload, "bonus"),
                 other_income=_amount(payload, "other_income"),
                 rrsp_contribution=_amount(payload, "rrsp_contribution"),
@@ -75,6 +90,73 @@ def preview_income_source():
         return jsonify({"error": "An income source PDF is required"}), 400
     try:
         content = uploaded.read()
+        content_hash = sha256(content).hexdigest()
+        notice_source = tax_notice_registry.detect(content)
+        if notice_source:
+            parsed_notice = notice_source.parser(content)
+            return jsonify(
+                {
+                    "kind": "tax_assessment",
+                    "tax_year": parsed_notice.tax_year,
+                    "jurisdiction": parsed_notice.jurisdiction,
+                    "issued_on": parsed_notice.issued_on,
+                    "taxpayer_name": parsed_notice.taxpayer_name or "",
+                    "total_income": _money(parsed_notice.total_income),
+                    "net_income": _money(parsed_notice.net_income),
+                    "taxable_income": _money(parsed_notice.taxable_income),
+                    "net_tax": _money(parsed_notice.net_tax),
+                    "additional_contributions": _money(parsed_notice.additional_contributions),
+                    "tax_withheld": _money(parsed_notice.tax_withheld),
+                    "balance": _money(parsed_notice.balance),
+                    "rrsp_effective_year": parsed_notice.rrsp_effective_year,
+                    "rrsp_deduction_limit": _optional_money(parsed_notice.rrsp_deduction_limit),
+                    "rrsp_unused_deduction_room": _optional_money(
+                        parsed_notice.rrsp_unused_deduction_room
+                    ),
+                    "rrsp_new_room": _optional_money(parsed_notice.rrsp_new_room),
+                    "rrsp_unused_contributions": _optional_money(
+                        parsed_notice.rrsp_unused_contributions
+                    ),
+                    "rrsp_available_room": _optional_money(parsed_notice.rrsp_available_room),
+                    "source": notice_source.source_label,
+                    "source_name": notice_source.display_name,
+                    "source_version": notice_source.version,
+                    "document_hash": content_hash,
+                }
+            )
+        pension_source = public_pension_source_registry.detect(content)
+        if pension_source:
+            parsed_pension = pension_source.parser(content)
+            return jsonify(
+                {
+                    "kind": "public_pension_statement",
+                    "issued_on": parsed_pension.issued_on,
+                    "taxpayer_name": parsed_pension.taxpayer_name or "",
+                    "birth_date": parsed_pension.birth_date,
+                    "provider": parsed_pension.provider,
+                    "excludes_second_enhancement": parsed_pension.excludes_second_enhancement,
+                    "earnings": [
+                        {
+                            "year": year,
+                            "qpp_earnings": _money(qpp),
+                            "cpp_earnings": _money(cpp),
+                            "status": status,
+                        }
+                        for year, qpp, cpp, status in parsed_pension.earnings
+                    ],
+                    "estimates": [
+                        {
+                            "contribution_assumption": assumption,
+                            "activation_age": age,
+                            "monthly_amount": _money(amount),
+                        }
+                        for assumption, age, amount in parsed_pension.estimates
+                    ],
+                    "source_name": pension_source.display_name,
+                    "source_version": pension_source.version,
+                    "document_hash": content_hash,
+                }
+            )
         requested_source = request.form.get("source", "auto")
         source = (
             income_source_registry.detect(content)
@@ -84,6 +166,7 @@ def preview_income_source():
         parsed = source.parser(content)
         return jsonify(
             {
+                "kind": "tax_return",
                 "year": parsed.tax_year,
                 "employment_income": _money(parsed.employment_income),
                 "bonus": "0.00",
@@ -101,11 +184,90 @@ def preview_income_source():
                 "source_name": source.display_name,
                 "source_version": source.version,
                 "source_help": source.help_text,
-                "province_of_employment": parsed.province_of_employment or "",
+                "province_of_residence": parsed.province_of_residence or "",
+                "payroll_plan": parsed.payroll_plan or "",
                 "taxpayer_name": parsed.taxpayer_name or "",
             }
         )
     except (TypeError, ValueError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
+@blueprint.post("/api/income/people/<int:person_id>/assessments")
+def save_tax_assessment(person_id: int):
+    payload = request.get_json(silent=True) or {}
+    try:
+        with dependency("connect")() as connection:
+            assessment = AnnualTaxAssessmentRepository(connection).upsert(
+                person_id,
+                int(payload["tax_year"]),
+                str(payload["jurisdiction"]),
+                str(payload["issued_on"]),
+                total_income=_amount(payload, "total_income"),
+                net_income=_amount(payload, "net_income"),
+                taxable_income=_amount(payload, "taxable_income"),
+                net_tax=_amount(payload, "net_tax"),
+                additional_contributions=_amount(payload, "additional_contributions"),
+                tax_withheld=_amount(payload, "tax_withheld"),
+                balance=_amount(payload, "balance"),
+                source=str(payload["source"]),
+                source_version=str(payload["source_version"]),
+                document_hash=str(payload["document_hash"]),
+            )
+            if payload.get("rrsp_effective_year") is not None:
+                RegisteredPlanRoomRepository(connection).upsert(
+                    person_id,
+                    "RRSP",
+                    int(payload["rrsp_effective_year"]),
+                    str(payload["issued_on"]),
+                    deduction_limit=_amount(payload, "rrsp_deduction_limit"),
+                    unused_deduction_room=_amount(payload, "rrsp_unused_deduction_room"),
+                    new_room=_amount(payload, "rrsp_new_room"),
+                    unused_contributions=_amount(payload, "rrsp_unused_contributions"),
+                    available_room=_amount(payload, "rrsp_available_room"),
+                    source=str(payload["source"]),
+                    source_version=str(payload["source_version"]),
+                )
+        return jsonify(_assessment_json(assessment)), 201
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
+@blueprint.post("/api/income/people/<int:person_id>/public-pension-statements")
+def save_public_pension_statement(person_id: int):
+    payload = request.get_json(silent=True) or {}
+    try:
+        earnings = tuple(
+            (
+                int(item["year"]),
+                as_decimal(item["qpp_earnings"]),
+                as_decimal(item["cpp_earnings"]),
+                str(item["status"]) if item.get("status") else None,
+            )
+            for item in payload["earnings"]
+        )
+        estimates = tuple(
+            (
+                str(item["contribution_assumption"]),
+                int(item["activation_age"]),
+                as_decimal(item["monthly_amount"]),
+            )
+            for item in payload["estimates"]
+        )
+        with dependency("connect")() as connection:
+            repository = PublicPensionStatementRepository(connection)
+            statement = repository.upsert(
+                person_id,
+                str(payload["issued_on"]),
+                str(payload["provider"]),
+                bool(payload.get("excludes_second_enhancement")),
+                str(payload["source_version"]),
+                str(payload["document_hash"]),
+                earnings,
+                estimates,
+            )
+        return jsonify({"id": statement.id, "issued_on": statement.issued_on}), 201
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
 
@@ -140,12 +302,16 @@ def _money(value: Decimal) -> str:
     return format(value, ".2f")
 
 
+def _optional_money(value: Decimal | None) -> str | None:
+    return _money(value) if value is not None else None
+
+
 def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
     return {
         "id": record.id,
         "person_id": record.person_id,
         "year": record.tax_year,
-        "province_of_employment": record.province_of_employment,
+        "province_of_residence": record.province_of_residence,
         "payroll_plan": record.payroll_plan,
         "employment_income": _money(record.salary_income),
         "bonus": _money(record.bonus),
@@ -161,4 +327,65 @@ def _record_json(record: AnnualEmploymentActual) -> dict[str, Any]:
         "provincial_tax": _money(record.provincial_tax),
         "disposable_income": _money(record.disposable_income),
         "source": record.source or "T1 / manual",
+    }
+
+
+def _assessment_json(record: Any) -> dict[str, Any]:
+    return {
+        "id": record.id,
+        "year": record.tax_year,
+        "jurisdiction": record.jurisdiction,
+        "issued_on": record.issued_on,
+        "total_income": _money(record.total_income),
+        "net_income": _money(record.net_income),
+        "taxable_income": _money(record.taxable_income),
+        "net_tax": _money(record.net_tax),
+        "additional_contributions": _money(record.additional_contributions),
+        "tax_withheld": _money(record.tax_withheld),
+        "balance": _money(record.balance),
+        "source": record.source,
+        "source_version": record.source_version,
+    }
+
+
+def _room_json(record: Any) -> dict[str, Any]:
+    return {
+        "id": record.id,
+        "plan_type": record.plan_type,
+        "effective_year": record.effective_year,
+        "as_of_date": record.as_of_date,
+        "deduction_limit": _money(record.deduction_limit),
+        "unused_deduction_room": _money(record.unused_deduction_room),
+        "new_room": _money(record.new_room),
+        "unused_contributions": _money(record.unused_contributions),
+        "available_room": _money(record.available_room),
+        "source": record.source,
+        "source_version": record.source_version,
+    }
+
+
+def _pension_json(repository: Any, statement: Any) -> dict[str, Any]:
+    return {
+        "id": statement.id,
+        "issued_on": statement.issued_on,
+        "provider": statement.provider,
+        "excludes_second_enhancement": statement.excludes_second_enhancement,
+        "source_version": statement.source_version,
+        "earnings": [
+            {
+                "year": item.year,
+                "qpp_earnings": _money(item.qpp_earnings),
+                "cpp_earnings": _money(item.cpp_earnings),
+                "status": item.status,
+            }
+            for item in repository.earnings(statement.id)
+        ],
+        "estimates": [
+            {
+                "contribution_assumption": item.contribution_assumption,
+                "activation_age": item.activation_age,
+                "monthly_amount": _money(item.monthly_amount),
+            }
+            for item in repository.estimates(statement.id)
+        ],
     }

@@ -19,6 +19,9 @@ from infrastructure.migrations.questrade_activity_identity import (
     QuestradeActivityIdentityMigration,
 )
 from infrastructure.migrations.questrade_sync_status import QuestradeSyncStatusMigration
+from infrastructure.migrations.tax_and_public_pension_records import (
+    TaxAndPublicPensionRecordsMigration,
+)
 from repositories.account_repository import AccountRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from services.csv_import_service import CsvImportService
@@ -40,6 +43,7 @@ def ensure_domain_schema(connection: Connection) -> None:
             AnnualEmploymentProvinceMigration(),
             AnnualEmploymentProvinceBackfillMigration(),
             HouseholdExpensesMigration(),
+            TaxAndPublicPensionRecordsMigration(),
         ),
     ).apply()
 

@@ -11,6 +11,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import app as application
+from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
+from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 from infrastructure.runtime_config import RuntimeConfig
 from institutions.questrade.client import QuestradeClient
@@ -240,7 +242,8 @@ class AppRouteTests(unittest.TestCase):
             f"/api/salary-projection/people/{person_id}/actuals/2025",
             json={
                 "salary_income": "95000",
-                "province_of_employment": "ON",
+                "province_of_residence": "ON",
+                "payroll_plan": "CPP",
                 "rrsp_contribution": "9000",
                 "rrsp_deduction": "9000",
                 "cpp_qpp": "4000",
@@ -254,7 +257,7 @@ class AppRouteTests(unittest.TestCase):
             f"/api/salary-projection/people/{person_id}/actuals/2024",
             json={
                 "salary_income": "90000",
-                "province_of_employment": "ON",
+                "province_of_residence": "ON",
                 "cpp_qpp": "3800",
                 "ei": "900",
                 "federal_tax": "11000",
@@ -399,9 +402,7 @@ class AppRouteTests(unittest.TestCase):
             provincial_tax=Decimal("13000.00"),
             taxpayer_name="Alex Example",
         )
-        with patch(
-            "web.income_routes.income_source_registry.detect"
-        ) as detect_source:
+        with patch("web.income_routes.income_source_registry.detect") as detect_source:
             detect_source.return_value.parser.return_value = parsed
             detect_source.return_value.source_label = "UFile T1"
             detect_source.return_value.key = "ufile"
@@ -420,6 +421,101 @@ class AppRouteTests(unittest.TestCase):
         record = self.client.get(f"/api/income?person_id={person_id}&year=2024").get_json()
         self.assertIsNone(record["record"])
 
+    def test_notice_preview_and_confirmation_save_assessment_and_rrsp_room(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedTaxAssessment(
+            tax_year=2025,
+            jurisdiction="CA",
+            issued_on="2026-05-11",
+            taxpayer_name="Alex Example",
+            total_income=Decimal("105000.00"),
+            net_income=Decimal("90000.00"),
+            taxable_income=Decimal("89500.00"),
+            net_tax=Decimal("17500.00"),
+            additional_contributions=Decimal("0.00"),
+            tax_withheld=Decimal("18000.00"),
+            balance=Decimal("-500.00"),
+            rrsp_effective_year=2026,
+            rrsp_deduction_limit=Decimal("22000.00"),
+            rrsp_unused_deduction_room=Decimal("3000.00"),
+            rrsp_new_room=Decimal("19000.00"),
+            rrsp_unused_contributions=Decimal("1200.00"),
+            rrsp_available_room=Decimal("20800.00"),
+        )
+        with patch("web.income_routes.tax_notice_registry.detect") as detect_notice:
+            detect_notice.return_value.parser.return_value = parsed
+            detect_notice.return_value.source_label = "CRA notice of assessment"
+            detect_notice.return_value.display_name = "CRA notice of assessment PDF"
+            detect_notice.return_value.version = "2026.09.29"
+            preview = self.client.post(
+                "/api/income/import/preview",
+                data={"file": (io.BytesIO(b"notice"), "notice.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(preview.status_code, 200)
+        payload = preview.get_json()
+        self.assertEqual(payload["kind"], "tax_assessment")
+        self.assertEqual(payload["rrsp_available_room"], "20800.00")
+        self.assertEqual(len(payload["document_hash"]), 64)
+        saved = self.client.post(
+            f"/api/income/people/{person_id}/assessments",
+            json=payload,
+        )
+        self.assertEqual(saved.status_code, 201)
+
+        income = self.client.get(f"/api/income?person_id={person_id}").get_json()
+        self.assertEqual(income["assessments"][0]["net_tax"], "17500.00")
+        self.assertEqual(income["registered_rooms"][0]["effective_year"], 2026)
+        self.assertEqual(income["registered_rooms"][0]["available_room"], "20800.00")
+
+    def test_pension_preview_and_confirmation_save_earnings_and_estimates(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedPublicPensionStatement(
+            issued_on="2026-06-15",
+            taxpayer_name="Alex Example",
+            birth_date="1975-01-02",
+            provider="QPP",
+            excludes_second_enhancement=True,
+            earnings=((2024, Decimal("0"), Decimal("68500"), "C"),),
+            estimates=(
+                ("continue", 60, Decimal("900")),
+                ("continue", 65, Decimal("1400")),
+                ("stop", 60, Decimal("700")),
+                ("stop", 65, Decimal("1100")),
+            ),
+        )
+        with (
+            patch("web.income_routes.tax_notice_registry.detect", return_value=None),
+            patch("web.income_routes.public_pension_source_registry.detect") as detect_pension,
+        ):
+            detect_pension.return_value.parser.return_value = parsed
+            detect_pension.return_value.display_name = "Retraite Québec statement"
+            detect_pension.return_value.version = "2026.09.29"
+            preview = self.client.post(
+                "/api/income/import/preview",
+                data={"file": (io.BytesIO(b"statement"), "statement.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(preview.status_code, 200)
+        payload = preview.get_json()
+        self.assertEqual(payload["kind"], "public_pension_statement")
+        self.assertEqual(payload["earnings"][0]["cpp_earnings"], "68500.00")
+        saved = self.client.post(
+            f"/api/income/people/{person_id}/public-pension-statements",
+            json=payload,
+        )
+        self.assertEqual(saved.status_code, 201)
+
+        pension = self.client.get(f"/api/income?person_id={person_id}").get_json()[
+            "public_pension"
+        ]
+        self.assertEqual(pension["provider"], "QPP")
+        self.assertTrue(pension["excludes_second_enhancement"])
+        self.assertEqual(pension["earnings"][0]["cpp_earnings"], "68500.00")
+        self.assertEqual(len(pension["estimates"]), 4)
+
     def test_income_history_keeps_all_years_newest_first(self):
         person_id = self._people()[0]["id"]
         response = self.client.put(
@@ -427,7 +523,7 @@ class AppRouteTests(unittest.TestCase):
             json={
                 "employment_income": "90000",
                 "bonus": "5000",
-                "province_of_employment": "ON",
+                "province_of_residence": "ON",
                 "source": "T1",
             },
         )
@@ -440,7 +536,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertGreaterEqual(len(records), 2)
         self.assertEqual([record["year"] for record in records[:2]], [2025, 2024])
         self.assertEqual(records[1]["salary_rate"], "85000.00")
-        self.assertEqual(records[1]["province_of_employment"], "ON")
+        self.assertEqual(records[1]["province_of_residence"], "ON")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()
@@ -1026,9 +1122,7 @@ class AppRouteTests(unittest.TestCase):
         pending_manulife = upload("auto", "manulife-rrsp-statement.pdf")
         self.assertEqual(pending_manulife.status_code, 409)
         self.assertTrue(pending_manulife.get_json()["confirm_account_creation"])
-        manulife = upload(
-            "auto", "manulife-rrsp-statement.pdf", confirm_account_creation="1"
-        )
+        manulife = upload("auto", "manulife-rrsp-statement.pdf", confirm_account_creation="1")
         self.assertEqual(manulife.status_code, 201)
         self.assertEqual(manulife.get_json()["imported"], 4)
 

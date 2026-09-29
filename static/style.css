@@ -147,6 +147,13 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-editor-dialog { width: min(1100px, 96vw); }
 .income-history-table { min-width: 1750px; }
 .income-history-table th, .income-history-table td { white-space: nowrap; }
+.income-record-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.income-record-section h2 { margin: 0 0 10px; font-size: 1.35rem; }
+.income-record-section details { margin-top: 12px; }
+.income-record-section summary { color: var(--accent); cursor: pointer; font-weight: 700; }
+#income-import-review { padding: 12px; border: 1px solid var(--line); background: #eef3e9; }
+#income-import-review h3 { margin: 0 0 6px; }
+#income-import-review p { margin: 4px 0; }
 .latest-record { margin-left: 5px; color: var(--accent); font: 700 .65rem ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
 @media (max-width: 1050px) { .income-actual-form, .income-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .dashboard-panel { margin-bottom: 18px; padding: 18px; border: 1px solid var(--line); background: rgba(255,255,255,.78); }

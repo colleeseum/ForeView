@@ -32,7 +32,8 @@ class AnnualEmploymentActualRepository:
         tax_year: int,
         salary_income: MoneyInput,
         *,
-        province_of_employment: str,
+        province_of_residence: str,
+        payroll_plan: str | None = None,
         bonus: MoneyInput = 0,
         other_income: MoneyInput = 0,
         rrsp_contribution: MoneyInput = 0,
@@ -46,9 +47,12 @@ class AnnualEmploymentActualRepository:
     ) -> AnnualEmploymentActual:
         if tax_year < 1900:
             raise ValueError("Tax year must be 1900 or later")
-        province = province_of_employment.strip().upper()
+        province = province_of_residence.strip().upper()
         if province not in self._PROVINCES:
-            raise ValueError("Province of employment is required")
+            raise ValueError("Province of residence is required")
+        plan = payroll_plan.strip().upper() if payroll_plan else None
+        if plan not in {None, "CPP", "QPP"}:
+            raise ValueError("Payroll plan must be CPP or QPP")
         values = tuple(
             to_cents(value)
             for value in (
@@ -73,8 +77,8 @@ class AnnualEmploymentActualRepository:
                    person_id, tax_year, salary_income_cents, bonus_cents, other_income_cents,
                    rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                    ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
-                   province_of_employment
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   province_of_employment, province_of_residence, payroll_plan
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(person_id, tax_year) DO UPDATE SET
                    salary_income_cents = excluded.salary_income_cents,
                    bonus_cents = excluded.bonus_cents,
@@ -87,8 +91,10 @@ class AnnualEmploymentActualRepository:
                    federal_tax_cents = excluded.federal_tax_cents,
                    provincial_tax_cents = excluded.provincial_tax_cents,
                    source = excluded.source,
-                   province_of_employment = excluded.province_of_employment""",
-            (person_id, tax_year, *values, source or None, province),
+                   province_of_employment = excluded.province_of_employment,
+                   province_of_residence = excluded.province_of_residence,
+                   payroll_plan = excluded.payroll_plan""",
+            (person_id, tax_year, *values, source or None, province, province, plan),
         )
         result = self.get(person_id, tax_year)
         if result is None:  # pragma: no cover
@@ -100,7 +106,7 @@ class AnnualEmploymentActualRepository:
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                       ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
-                      bonus_cents, province_of_employment
+                      bonus_cents, province_of_residence, payroll_plan
                  FROM annual_employment_actuals
                 WHERE person_id = ? AND tax_year = ?""",
             (person_id, tax_year),
@@ -112,7 +118,7 @@ class AnnualEmploymentActualRepository:
             """SELECT id, person_id, tax_year, salary_income_cents, other_income_cents,
                       rrsp_contribution_cents, rrsp_deduction_cents, cpp_qpp_cents,
                       ei_cents, qpip_cents, federal_tax_cents, provincial_tax_cents, source,
-                      bonus_cents, province_of_employment
+                      bonus_cents, province_of_residence, payroll_plan
                  FROM annual_employment_actuals WHERE person_id = ? ORDER BY tax_year""",
             (person_id,),
         ).fetchall()
@@ -125,7 +131,8 @@ class AnnualEmploymentActualRepository:
             id=AnnualEmploymentActualRepository._required_int(row[0]),
             person_id=AnnualEmploymentActualRepository._required_int(row[1]),
             tax_year=AnnualEmploymentActualRepository._required_int(row[2]),
-            province_of_employment=str(row[14]) if row[14] is not None else None,
+            province_of_residence=str(row[14]) if row[14] is not None else None,
+            payroll_plan=str(row[15]) if row[15] is not None else None,
             salary_income=amounts[0],
             bonus=from_cents(row[13]),
             other_income=amounts[1],

@@ -60,7 +60,7 @@ class SalaryProjectionService:
         if latest_actual is not None:
             starting_salary = latest_actual.salary_rate
             starting_year = latest_actual.tax_year
-            province = latest_actual.province_of_employment
+            province = latest_actual.province_of_residence
             if province is None:
                 if baseline is None:
                     raise ValueError("Add a province of employment to the latest Income record")
@@ -78,7 +78,11 @@ class SalaryProjectionService:
                 recurring_rrsp_deduction=latest_actual.rrsp_deduction,
                 recurring_other_income=latest_actual.other_income,
             )
-        payroll_plan = "QPP" if province == "QC" else "CPP"
+        payroll_plan = (
+            latest_actual.payroll_plan
+            if latest_actual is not None and latest_actual.payroll_plan
+            else ("QPP" if province == "QC" else "CPP")
+        )
         projection_start = (
             max(start_year, latest_actual.tax_year + 1) if latest_actual is not None else start_year
         )

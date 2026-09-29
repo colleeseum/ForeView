@@ -18,5 +18,6 @@ class ParsedAnnualEmploymentActual:
     rrsp_deduction: Decimal
     federal_tax: Decimal
     provincial_tax: Decimal
-    province_of_employment: str | None = None
+    province_of_residence: str | None = None
+    payroll_plan: str | None = None
     taxpayer_name: str | None = None

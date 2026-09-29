@@ -4,6 +4,8 @@ from flask import Blueprint, render_template
 
 from income_sources import income_source_registry
 from institution_support import institution_registry
+from public_pension_sources import public_pension_source_registry
+from tax_notices import tax_notice_registry
 
 blueprint = Blueprint("pages", __name__)
 
@@ -34,6 +36,8 @@ def income_page():
         "income.html",
         latest_tax_year=date.today().year - 1,
         income_sources=income_source_registry.providers,
+        tax_notice_sources=tax_notice_registry.providers,
+        public_pension_sources=public_pension_source_registry.providers,
     )
 
 
@@ -42,6 +46,8 @@ def about_page():
     return render_template(
         "about.html",
         income_sources=income_source_registry.providers,
+        tax_notice_sources=tax_notice_registry.providers,
+        public_pension_sources=public_pension_source_registry.providers,
         institutions=institution_registry().providers,
     )
 

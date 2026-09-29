@@ -20,10 +20,11 @@
         <div class="income-toolbar">
           <div id="income-tabs" class="view-tabs" role="tablist"></div>
           <button id="income-add" class="view-action" type="button">+ Add annual record</button>
-          <button id="income-import" class="view-action" type="button">Load T1</button>
+          <button id="income-import" class="view-action" type="button">Load tax or pension PDF</button>
         </div>
         <p id="income-message" class="field-note" aria-live="polite"></p>
         <div id="income-history"></div>
+        <div id="income-supplementary"></div>
       </section>
       <section class="dashboard-panel income-future-panel">
         <p class="eyebrow">Future record types</p>
@@ -44,9 +45,9 @@
         <span class="field-note">Calendar year</span>
         <input name="tax_year" type="number" min="1900" value="{{ latest_tax_year }}" required>
       </label>
-      <label>Province of employment
-        <span class="field-note">Determines CPP or QPP payroll contributions</span>
-        <select name="province_of_employment" required>
+      <label>Province of residence
+        <span class="field-note">Tax jurisdiction for the year</span>
+        <select name="province_of_residence" required>
           <option value="">Select province or territory</option>
           <option value="AB">Alberta</option><option value="BC">British Columbia</option>
           <option value="MB">Manitoba</option><option value="NB">New Brunswick</option>
@@ -57,6 +58,7 @@
           <option value="YT">Yukon</option>
         </select>
       </label>
+      <input name="payroll_plan" type="hidden">
       <label><span>Employment income <button class="tooltip-help-button" type="button" data-help-tooltip="employment-income" aria-label="Employment income quick help">?</button></span>
         <span class="field-note">T1 line 10100</span>
         <input name="employment_income" type="number" min="0" step="0.01" required>
@@ -112,23 +114,27 @@
 <div id="ufile-dialog-backdrop" class="dialog-backdrop" hidden>
   <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="ufile-dialog-title">
     <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
-    <p class="eyebrow">Employment income</p>
-    <h2 id="ufile-dialog-title">Load T1</h2>
+    <p class="eyebrow">Financial records</p>
+    <h2 id="ufile-dialog-title">Load tax or public-pension document</h2>
     <form id="ufile-form" class="income-import-form">
-      <label>T1 PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
-      <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
+      <label>PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
+      <p class="field-note">The document type is detected automatically. The PDF is analysed for preview and is not stored. Verify the taxpayer before saving.</p>
       <div class="income-source-help-links">
         {% for source in income_sources %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> How to get {{ source.display_name }}</button>{% endfor %}
+        {% for source in tax_notice_sources %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
+        {% for source in public_pension_sources %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
       </div>
       <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
         <progress aria-label="Analysing PDF"></progress>
         <span>Analysing PDF…</span>
       </div>
-      <button id="income-import-preview" class="primary-action" type="submit" disabled>Preview annual values</button>
+      <div id="income-import-review" hidden></div>
+      <button id="income-import-preview" class="primary-action" type="submit" disabled>Analyse document</button>
+      <button id="income-import-confirm" class="primary-action" type="button" hidden>Save imported record</button>
     </form>
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-8') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-9') }}"></script>
 </body>
 </html>

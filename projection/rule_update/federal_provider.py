@@ -15,7 +15,12 @@ from projection.public_rules import (
     TaxBracketSchedule,
 )
 
-from .cra_payroll_tables import federal_basic_personal_amounts, ontario_payroll_table_url
+from .cra_payroll_tables import (
+    canada_employment_amount,
+    cpp_component_rates,
+    federal_basic_personal_amounts,
+    ontario_payroll_table_url,
+)
 from .errors import RuleSourceFormatError
 from .html_document import OfficialHtmlDocument
 from .parsing import parse_bracket_section, percentage_values, require_year_row
@@ -99,6 +104,10 @@ class FederalRuleProvider:
         if Decimal("0.18") not in formula_rates:
             raise RuleSourceFormatError("Could not verify the RRSP earned-income rate")
         bpa_max, bpa_min = federal_basic_personal_amounts(payroll.content, payroll.source_id)
+        employment_amount = canada_employment_amount(payroll.content, payroll.source_id)
+        cpp_base_rate, cpp_first_additional_rate = cpp_component_rates(
+            payroll.content, payroll.source_id
+        )
         sources = (
             rule_source(tax),
             rule_source(limits),
@@ -142,6 +151,13 @@ class FederalRuleProvider:
                         source_ids=(payroll.source_id,),
                         indexing=IndexingMetadata(mechanism=IndexingMechanism.CPI),
                     ),
+                    RuleParameter(
+                        code="canada_employment_amount",
+                        value=employment_amount,
+                        unit=RuleUnit.CAD,
+                        source_ids=(payroll.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.CPI),
+                    ),
                 ),
                 contribution_limits=(
                     RuleParameter(
@@ -157,6 +173,22 @@ class FederalRuleProvider:
                         unit=RuleUnit.RATE,
                         source_ids=(formula.source_id,),
                         indexing=IndexingMetadata(mechanism=IndexingMechanism.NONE),
+                    ),
+                ),
+                payroll_parameters=(
+                    RuleParameter(
+                        code="cpp_employee_rate_base",
+                        value=cpp_base_rate,
+                        unit=RuleUnit.RATE,
+                        source_ids=(payroll.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
+                    ),
+                    RuleParameter(
+                        code="cpp_employee_rate_first_additional",
+                        value=cpp_first_additional_rate,
+                        unit=RuleUnit.RATE,
+                        source_ids=(payroll.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
                     ),
                 ),
             ),

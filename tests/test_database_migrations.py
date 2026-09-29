@@ -29,7 +29,30 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (2, "questrade_sync_status"),
                     (3, "monetary_cents"),
                     (4, "questrade_activity_identity"),
+                    (5, "employment_projection"),
                 ],
+            )
+
+    def test_employment_projection_migration_creates_typed_tables(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = RuntimeConfig(Path(directory))
+            application.initialize(runtime)
+
+            with runtime.connect() as connection:
+                tables = {
+                    str(row[0])
+                    for row in connection.execute(
+                        "SELECT name FROM sqlite_master WHERE type = 'table'"
+                    )
+                }
+
+            self.assertTrue(
+                {
+                    "employment_baselines",
+                    "annual_employment_actuals",
+                    "employment_projection_settings",
+                    "employment_projection_overrides",
+                }.issubset(tables)
             )
 
     def test_monetary_migration_backfills_and_tracks_legacy_writes(self):

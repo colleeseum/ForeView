@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import unittest
@@ -8,6 +9,8 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
+
+from reportlab.pdfgen import canvas
 
 from projection.rule_update import (
     FederalRuleProvider,
@@ -45,6 +48,10 @@ RRSP_LIMIT_HTML = b"""
 """
 RRSP_FORMULA_HTML = b"<p>The lesser of 18% of previous-year earned income and the annual limit.</p>"
 PAYROLL_TABLE_HTML = b"""
+<h3>Canada Employment Amount</h3>
+<p>The federal CEA is the lesser of: $1,501 and the individual's employment income.</p>
+<p>CPP base contribution 74,600.00 3,500.00 71,100.00 0.0495 3,519.45</p>
+<p>First additional CPP contribution 74,600.00 3,500.00 71,100.00 0.0100 711.00</p>
 <h3>Basic personal amounts</h3><table>
 <tr><td>Maximum basic personal amount ($)</td><td>Minimum basic personal amount ($)</td></tr>
 <tr><td>16,452</td><td>14,829</td></tr></table>
@@ -102,6 +109,20 @@ QC,"103,000.00",0.0043,0.00602,442.90,620.06\n
 QPIP_CSV_WITH_SELF_EMPLOYED = b"""QPIP,Maximum Annual Insurable Earnings,Employee Contribution Rate,Employer Contribution Rate,Self-employed Contribution Rate,Maximum Annual Employee Premium,Maximum Annual Employer Premium,Maximum Annual Self-employed Premium\r
 QC,"98,000.00",0.00494,0.00692,0.00878,484.12,678.16,860.44\r
 """
+
+
+def quebec_tax_guide_pdf() -> bytes:
+    output = io.BytesIO()
+    document = canvas.Canvas(output)
+    document.drawString(72, 740, "Personal tax credit amounts 2026")
+    document.drawString(72, 720, "Basic personal amount $18,952")
+    document.drawString(72, 700, "The maximum deduction for workers is $1,450 for 2026.")
+    document.drawString(72, 680, "Deduction for workers = (0.06 x salary), up to the maximum.")
+    document.drawString(
+        72, 660, "Contribution rate (base contribution rate of 5.30% and additional)"
+    )
+    document.save()
+    return output.getvalue()
 
 
 class FakeRetriever:
@@ -167,6 +188,10 @@ class PublicRuleProviderTests(unittest.TestCase):
         credits = {item.code: item.value for item in rules.credits}
         self.assertEqual(credits["federal_basic_personal_amount_max"], Decimal("16452"))
         self.assertEqual(credits["federal_basic_personal_amount_min"], Decimal("14829"))
+        self.assertEqual(credits["canada_employment_amount"], Decimal("1501"))
+        payroll = {item.code: item.value for item in rules.payroll_parameters}
+        self.assertEqual(payroll["cpp_employee_rate_base"], Decimal("0.0495"))
+        self.assertEqual(payroll["cpp_employee_rate_first_additional"], Decimal("0.0100"))
 
     def test_federal_provider_ignores_explanatory_rates_after_bracket_table(self):
         retriever = federal_retriever()
@@ -189,6 +214,7 @@ class PublicRuleProviderTests(unittest.TestCase):
                 "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
                 "cra-ei-rates-2026": EI_CSV,
                 "cra-qpip-rates-2026": QPIP_CSV,
+                "rq-tax-formulas-2026": quebec_tax_guide_pdf(),
             }
         )
         rules = QuebecRuleProvider().fetch(2026, retriever)[0]
@@ -198,6 +224,7 @@ class PublicRuleProviderTests(unittest.TestCase):
         self.assertEqual(parameters["qpp_ympe"], 74600)
         self.assertEqual(parameters["qpp_yampe"], 85000)
         self.assertEqual(parameters["qpp_employee_rate_first"], Decimal("0.063"))
+        self.assertEqual(parameters["qpp_employee_rate_base"], Decimal("0.053"))
         self.assertEqual(parameters["qpp_employee_rate_second"], Decimal("0.04"))
         self.assertEqual(parameters["ei_employee_rate"], Decimal("0.013"))
         self.assertEqual(parameters["ei_employee_max_premium"], Decimal("895.7"))
@@ -205,6 +232,10 @@ class PublicRuleProviderTests(unittest.TestCase):
         self.assertEqual(parameters["qpip_employee_rate"], Decimal("0.0043"))
         other = {item.code: item.value for item in rules.other_parameters}
         self.assertEqual(other["quebec_federal_tax_abatement_rate"], Decimal("0.165"))
+        self.assertEqual(other["quebec_worker_deduction_max"], Decimal("1450"))
+        self.assertEqual(other["quebec_worker_deduction_rate"], Decimal("0.06"))
+        credits = {item.code: item.value for item in rules.credits}
+        self.assertEqual(credits["quebec_basic_personal_amount"], Decimal("18952"))
 
     def test_payroll_csv_sources_accept_carriage_return_line_endings(self):
         retriever = FakeRetriever(
@@ -214,6 +245,7 @@ class PublicRuleProviderTests(unittest.TestCase):
                 "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
                 "cra-ei-rates-2026": EI_CSV.replace(b"\n", b"\r"),
                 "cra-qpip-rates-2026": QPIP_CSV.replace(b"\n", b"\r"),
+                "rq-tax-formulas-2026": quebec_tax_guide_pdf(),
             }
         )
 
@@ -231,6 +263,7 @@ class PublicRuleProviderTests(unittest.TestCase):
                 "finance-canada-quebec-abatement": QUEBEC_ABATEMENT_HTML,
                 "cra-ei-rates-2026": EI_CSV,
                 "cra-qpip-rates-2026": QPIP_CSV_WITH_SELF_EMPLOYED,
+                "rq-tax-formulas-2026": quebec_tax_guide_pdf(),
             }
         )
 

@@ -25,6 +25,7 @@ from .parsing import (
     rate_value,
     year_rows,
 )
+from .quebec_tax_guide import quebec_tax_inputs_from_pdf
 from .source_metadata import rule_source
 from .source_retriever import SourceRetriever
 
@@ -53,6 +54,13 @@ class QuebecRuleProvider:
         "t4127-jan/qpip-01-{year_short}e.csv"
     )
     USER_AGENT = "RetirementFinanceRuleUpdater/1.0 (+private-use)"
+
+    @staticmethod
+    def tax_guide_url(tax_year: int) -> str:
+        return (
+            "https://www.revenuquebec.ca/documents/en/formulaires/tp/"
+            f"TP-1015.F-V%28{tax_year}-01%29.pdf"
+        )
 
     def fetch(self, tax_year: int, retriever: SourceRetriever) -> tuple[PublicRuleSet, ...]:
         tax = retriever.retrieve(
@@ -87,6 +95,13 @@ class QuebecRuleProvider:
             publisher="Canada Revenue Agency",
             url=self.QPIP_URL_TEMPLATE.format(year_short=str(tax_year)[-2:]),
         )
+        tax_guide = retriever.retrieve(
+            source_id=f"rq-tax-formulas-{tax_year}",
+            title=f"Quebec source deductions and contributions formulas for {tax_year}",
+            publisher="Revenu Québec",
+            url=self.tax_guide_url(tax_year),
+            user_agent=self.USER_AGENT,
+        )
         tax_document = OfficialHtmlDocument(tax.content)
         section = tax_document.section(
             f"Income tax rates for {tax_year}", f"Income tax rates for {tax_year - 1}"
@@ -98,11 +113,15 @@ class QuebecRuleProvider:
         first, second = rows[0], rows[1]
         ei_values = payroll_record(ei.content, "EI", "QC", ei.source_id)
         qpip_values = payroll_record(qpip.content, "QPIP", "QC", qpip.source_id)
+        basic_personal_amount, worker_deduction, worker_rate, qpp_base_rate = (
+            quebec_tax_inputs_from_pdf(tax_guide.content, tax_guide.source_id)
+        )
         payroll = (
             self._money("qpp_basic_exemption", first[1], qpp.source_id),
             self._money("qpp_ympe", first[2], qpp.source_id),
             self._money("qpp_yampe", second[2], qpp.source_id),
             self._rate("qpp_employee_rate_first", first[3], qpp.source_id),
+            self._rate_decimal("qpp_employee_rate_base", qpp_base_rate, tax_guide.source_id),
             self._rate("qpp_employee_rate_second", second[3], qpp.source_id),
             self._money("qpp_employee_max_first", first[5], qpp.source_id),
             self._money("qpp_employee_max_second", second[5], qpp.source_id),
@@ -157,6 +176,7 @@ class QuebecRuleProvider:
                     rule_source(abatement),
                     rule_source(ei),
                     rule_source(qpip),
+                    rule_source(tax_guide),
                 ),
                 tax_brackets=(
                     TaxBracketSchedule(
@@ -172,12 +192,35 @@ class QuebecRuleProvider:
                     ),
                 ),
                 payroll_parameters=payroll,
+                credits=(
+                    RuleParameter(
+                        code="quebec_basic_personal_amount",
+                        value=basic_personal_amount,
+                        unit=RuleUnit.CAD,
+                        source_ids=(tax_guide.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.QUEBEC_INDEXATION),
+                    ),
+                ),
                 other_parameters=(
                     RuleParameter(
                         code="quebec_federal_tax_abatement_rate",
                         value=abatement_rate,
                         unit=RuleUnit.RATE,
                         source_ids=(abatement.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.NONE),
+                    ),
+                    RuleParameter(
+                        code="quebec_worker_deduction_max",
+                        value=worker_deduction,
+                        unit=RuleUnit.CAD,
+                        source_ids=(tax_guide.source_id,),
+                        indexing=IndexingMetadata(mechanism=IndexingMechanism.QUEBEC_INDEXATION),
+                    ),
+                    RuleParameter(
+                        code="quebec_worker_deduction_rate",
+                        value=worker_rate,
+                        unit=RuleUnit.RATE,
+                        source_ids=(tax_guide.source_id,),
                         indexing=IndexingMetadata(mechanism=IndexingMechanism.NONE),
                     ),
                 ),

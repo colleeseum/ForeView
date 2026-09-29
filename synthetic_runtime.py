@@ -15,14 +15,22 @@ from institution_support.registry import institution_registry
 from institutions.eq.document_importers import import_eq_statement_pdf
 from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
+from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
+from repositories.employment_baseline_repository import EmploymentBaselineRepository
+from repositories.employment_projection_settings_repository import (
+    EmploymentProjectionSettingsRepository,
+)
 from repositories.investment_holding_repository import InvestmentHoldingRepository
 from repositories.person_repository import PersonRepository
+from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from repositories.real_estate_ownership_repository import RealEstateOwnershipRepository
+from repositories.scenario_repository import ScenarioRepository
 from services.csv_import_service import CsvImportService
 from services.database_initialization import ensure_domain_schema
 from services.document_import_account_resolver import DocumentImportAccountResolver
+from services.public_rule_catalog import PublicRuleCatalog
 from services.transaction_service import TransactionService
 from synthetic_documents import create_synthetic_fixture_set
 
@@ -69,6 +77,69 @@ def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
 
         alex = people.create("Alex Example", "1975-04-12").id
         jordan = people.create("Jordan Example", "1977-09-03").id
+
+        salary_scenario = (
+            ScenarioRepository(connection).create("Synthetic salary baseline", "2026-01-01").id
+        )
+        baselines = EmploymentBaselineRepository(connection)
+        salary_settings = EmploymentProjectionSettingsRepository(connection)
+        annual_actuals = AnnualEmploymentActualRepository(connection)
+        baselines.upsert(alex, "2026-01-01", 105000, "ON", "CPP", "synthetic")
+        baselines.upsert(jordan, "2026-01-01", 82000, "QC", "QPP", "synthetic")
+        salary_settings.upsert(
+            salary_scenario,
+            alex,
+            default_raise="0.03",
+            retirement_date="2031-07-01",
+            recurring_rrsp_contribution=12000,
+            recurring_rrsp_deduction=12000,
+            recurring_other_income=1500,
+        )
+        salary_settings.upsert(
+            salary_scenario,
+            jordan,
+            default_raise="0.025",
+            retirement_date="2033-01-01",
+            recurring_rrsp_contribution=9000,
+            recurring_rrsp_deduction=9000,
+        )
+        annual_actuals.upsert(
+            alex,
+            2025,
+            101500,
+            other_income=1500,
+            rrsp_contribution=11500,
+            rrsp_deduction=11500,
+            cpp_qpp=4430.1,
+            ei=1077.48,
+            federal_tax=14500,
+            provincial_tax=16800,
+            source="synthetic assessment",
+        )
+        annual_actuals.upsert(
+            jordan,
+            2025,
+            80000,
+            rrsp_contribution=8500,
+            rrsp_deduction=8500,
+            cpp_qpp=4735.2,
+            ei=860.67,
+            qpip=484.12,
+            federal_tax=9100,
+            provincial_tax=11200,
+            source="synthetic assessment",
+        )
+        approvals = PublicRuleApprovalRepository(connection)
+        catalog = PublicRuleCatalog(Path(__file__).parent / "public_rules")
+        for rule_set_id in (
+            "ca-2026-official",
+            "ca-qc-2026-official",
+            "ca-on-2026-official",
+        ):
+            package = catalog.get(rule_set_id)
+            if package is None:  # pragma: no cover - repository package invariant
+                raise RuntimeError(f"Missing synthetic public-rule package: {rule_set_id}")
+            approvals.approve(rule_set_id, package.content_hash)
 
         savings = accounts.create(
             "Generic CSV · supplied balances",

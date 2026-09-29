@@ -15,6 +15,7 @@ from institutions.questrade.client import QuestradeClient
 from institutions.questrade.connection import QuestradeConnectionProvider
 from institutions.questrade.settings import AUTHORIZE_URL, TOKEN_URL, QuestradeSettings
 from institutions.questrade.unauthorized import QuestradeUnauthorized
+from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from services.public_rule_catalog import PublicRuleCatalog
 from synthetic_questrade import SyntheticQuestradeAPI
@@ -64,7 +65,15 @@ class AppRouteTests(unittest.TestCase):
         return QuestradeAuthorizationRepository(connection).get_by_name(name)
 
     def test_html_pages_and_legacy_workbook_endpoints_are_absent(self):
-        for path in ("/", "/setup", "/accounts", "/connections", "/transactions", "/settings"):
+        for path in (
+            "/",
+            "/setup",
+            "/accounts",
+            "/connections",
+            "/transactions",
+            "/settings",
+            "/salary-projection",
+        ):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 200)
         self.assertEqual(self.client.get("/api/sheets/Missing").status_code, 404)
@@ -78,6 +87,7 @@ class AppRouteTests(unittest.TestCase):
             "/accounts": "accounts.mjs",
             "/connections": "connections.mjs",
             "/transactions": "transactions.mjs",
+            "/salary-projection": "salary-projection.mjs",
         }
         for path, filename in expected_entries.items():
             with self.subTest(path=path):
@@ -105,6 +115,7 @@ class AppRouteTests(unittest.TestCase):
             "form-state.mjs",
             "gic-dialog.mjs",
             "ownership-fields.mjs",
+            "salary-projection.mjs",
         ):
             with self.subTest(filename=filename):
                 response = self.client.get(f"/static/{filename}")
@@ -113,6 +124,84 @@ class AppRouteTests(unittest.TestCase):
                     self.assertIn("javascript", response.content_type)
                 finally:
                     response.close()
+
+    def test_salary_projection_api_persists_inputs_and_calculates_household(self):
+        person_id = self._people()[0]["id"]
+        scenario = self.client.post(
+            "/api/model/scenarios",
+            json={"name": "Salary baseline", "baseline_date": "2026-01-01"},
+        )
+        self.assertEqual(scenario.status_code, 201)
+        scenario_id = scenario.get_json()["id"]
+        baseline = self.client.put(
+            f"/api/salary-projection/people/{person_id}/baseline",
+            json={
+                "effective_date": "2026-01-01",
+                "annual_salary": "100000",
+                "province_of_employment": "ON",
+                "payroll_plan": "CPP",
+            },
+        )
+        self.assertEqual(baseline.status_code, 200)
+        settings = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/settings",
+            json={
+                "default_raise": "0.04",
+                "recurring_rrsp_contribution": "10000",
+                "recurring_rrsp_deduction": "10000",
+                "recurring_other_income": "1000",
+            },
+        )
+        self.assertEqual(settings.status_code, 200)
+        with self.runtime_config.connect() as connection:
+            approvals = PublicRuleApprovalRepository(connection)
+            catalog = PublicRuleCatalog(application.ROOT / "public_rules")
+            for rule_set_id in (
+                "ca-2026-official",
+                "ca-qc-2026-official",
+                "ca-on-2026-official",
+            ):
+                package = catalog.get(rule_set_id)
+                self.assertIsNotNone(package)
+                approvals.approve(rule_set_id, package.content_hash)
+
+        response = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        person = next(item for item in payload["people"] if item["id"] == person_id)
+        self.assertEqual(person["projection"][0]["annual_salary_rate"], "100000.00")
+        self.assertEqual(person["projection"][1]["annual_salary_rate"], "104000.00")
+        self.assertTrue(person["projection"][1]["rules_held_constant"])
+        self.assertEqual(len(payload["household"]), 2)
+
+        override = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/years/2027",
+            json={"salary": "120000", "rrsp_contribution": "0"},
+        )
+        self.assertEqual(override.status_code, 200)
+        actual = self.client.put(
+            f"/api/salary-projection/people/{person_id}/actuals/2025",
+            json={
+                "salary_income": "95000",
+                "rrsp_contribution": "9000",
+                "rrsp_deduction": "9000",
+                "cpp_qpp": "4000",
+                "ei": "1000",
+                "federal_tax": "12000",
+                "quebec_tax": "14000",
+            },
+        )
+        self.assertEqual(actual.status_code, 200)
+
+        updated = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        person = next(item for item in updated["people"] if item["id"] == person_id)
+        self.assertEqual(person["projection"][1]["annual_salary_rate"], "120000.00")
+        self.assertEqual(person["projection"][1]["rrsp_contribution"], "0.00")
+        self.assertEqual(person["actuals"][0]["year"], 2025)
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()

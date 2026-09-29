@@ -121,6 +121,7 @@ class PublicRuleUpdateService:
             "application/json": ".json",
             "text/csv": ".csv",
             "text/plain": ".txt",
+            "application/pdf": ".pdf",
         }.get(content_type, ".bin")
 
     @staticmethod

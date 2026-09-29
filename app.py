@@ -19,6 +19,7 @@ from web.institution_routes import blueprint as institution_blueprint
 from web.model_routes import blueprint as model_blueprint
 from web.page_routes import blueprint as page_blueprint
 from web.public_rule_routes import blueprint as public_rule_blueprint
+from web.salary_projection_routes import blueprint as salary_projection_blueprint
 
 ROOT = Path(__file__).parent
 PROFILE_DATA_DIRS = {
@@ -103,6 +104,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         institution_blueprint,
         model_blueprint,
         public_rule_blueprint,
+        salary_projection_blueprint,
     ):
         app.register_blueprint(blueprint)
     for institution in institution_registry().providers:

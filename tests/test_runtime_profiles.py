@@ -158,10 +158,12 @@ class RuntimeProfileTests(unittest.TestCase):
                 transactions_response = client.get(
                     "/api/model/transactions?account_type=non_registered"
                 )
+                salary_response = client.get("/api/salary-projection?start_year=2026&end_year=2027")
             self.assertEqual(accounts_response.status_code, 200)
             self.assertEqual(dashboard_response.status_code, 200)
             self.assertEqual(real_estate_response.status_code, 200)
             self.assertEqual(transactions_response.status_code, 200)
+            self.assertEqual(salary_response.status_code, 200)
             accounts = accounts_response.get_json()["accounts"]
             account_totals = {
                 item["type"]: item for item in accounts_response.get_json()["category_totals"]
@@ -213,6 +215,23 @@ class RuntimeProfileTests(unittest.TestCase):
             self.assertEqual(land["owners"][0]["name"], "Alex Example")
             transactions = transactions_response.get_json()["transactions"]
             self.assertEqual(transactions[0]["combined_balance_after"], 31652.5)
+            salary_projection = salary_response.get_json()
+            selected_scenario = next(
+                scenario
+                for scenario in salary_projection["scenarios"]
+                if scenario["id"] == salary_projection["selected_scenario_id"]
+            )
+            self.assertEqual(selected_scenario["name"], "Synthetic salary baseline")
+            self.assertEqual(len(salary_projection["people"]), 2)
+            self.assertEqual(
+                {person["name"] for person in salary_projection["people"]},
+                {"Alex Example", "Jordan Example"},
+            )
+            household_2026 = next(
+                year for year in salary_projection["household"] if year["year"] == 2026
+            )
+            self.assertEqual(household_2026["salary_income"], "187000.00")
+            self.assertGreater(float(household_2026["disposable_income"]), 0)
 
             with closing(sqlite3.connect(database)) as connection:
                 self.assertEqual(connection.execute("SELECT COUNT(*) FROM people").fetchone()[0], 2)

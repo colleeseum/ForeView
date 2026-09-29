@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Salary projection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">Projection</p>
+    <h1>Employment and disposable income</h1>
+    <p class="lede">Project salary, payroll contributions, income tax, RRSP contributions and disposable employment income.</p>
+  </header>
+  <div class="page-shell">
+    <aside class="side-menu">
+      <div class="side-menu-brand">Retirement model</div>
+      <a href="{{ url_for('index') }}">Summary</a>
+      <a href="{{ url_for('accounts_page') }}">Assets</a>
+      <a href="{{ url_for('transactions_page') }}">Transactions</a>
+      <a class="active" href="{{ url_for('salary_projection.salary_projection_page') }}">Salary projection</a>
+      <a href="{{ url_for('connections_page') }}">Connections</a>
+      <a href="{{ url_for('public_rules.settings') }}">Settings</a>
+    </aside>
+    <div class="page-content salary-projection-page">
+      <section class="connection-toolbar salary-toolbar">
+        <label>Scenario <select id="salary-scenario"></select></label>
+        <label>From <input id="salary-start-year" type="number" min="2000" max="9999"></label>
+        <label>To <input id="salary-end-year" type="number" min="2000" max="9999"></label>
+        <button id="salary-view" class="view-action" type="button">View</button>
+      </section>
+      <p id="salary-message" class="connection-status" role="status"></p>
+      <nav id="salary-tabs" class="view-tabs" aria-label="Projection person" role="tablist"></nav>
+      <section id="salary-setup" class="public-rule-card" hidden>
+        <h2>Employment assumptions</h2>
+        <form id="salary-settings-form" class="salary-settings-grid">
+          <label>Annual salary rate <input name="annual_salary" type="number" min="0" step="0.01" required></label>
+          <label>Effective date <input name="effective_date" type="date" required></label>
+          <label>Province of employment
+            <select name="province_of_employment"><option value="ON">Ontario</option><option value="QC">Quebec</option></select>
+          </label>
+          <label>Payroll plan <select name="payroll_plan"><option>CPP</option><option>QPP</option></select></label>
+          <label>Default annual raise % <input name="default_raise" type="number" step="0.001"></label>
+          <label>First non-working day <input name="retirement_date" type="date"></label>
+          <label>Annual RRSP cash contribution <input name="recurring_rrsp_contribution" type="number" min="0" step="0.01"></label>
+          <label>Annual RRSP tax deduction <input name="recurring_rrsp_deduction" type="number" min="0" step="0.01"></label>
+          <label>Annual other employment income <input name="recurring_other_income" type="number" min="0" step="0.01"></label>
+          <button class="view-action" type="submit">Save assumptions</button>
+        </form>
+      </section>
+      <p class="dashboard-note">Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values.</p>
+      <section class="dashboard-panel salary-table-panel">
+        <div id="salary-table"><p class="empty-panel">Loading salary projection...</p></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260928-1') }}"></script>
+</body></html>

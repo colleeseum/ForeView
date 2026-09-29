@@ -40,8 +40,8 @@ async function loadConnections() {
       : 'Not connected';
     const action = authorization
       ? `<div class="connection-actions"><button class="view-action sync-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">Sync ${escapeHtml(institution.display_name)} ${escapeHtml(name)}</button>`
-        + `<label class="refetch-field" title="Fetch this login's activity again from a date, for example when a reconciled balance no longer matches. Already-imported activity is skipped.">Re-fetch from <input class="refetch-date" type="date" data-connection="${escapeHtml(name)}"></label>`
-        + `<button class="view-action refetch-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">Re-fetch</button></div>`
+        + `<details class="connection-advanced"><summary>Advanced</summary><div class="refetch-controls"><label class="refetch-field" title="Fetch this login's activity again from a date, for example when a reconciled balance no longer matches. Already-imported activity is skipped.">Re-fetch from <input class="refetch-date" type="date" data-connection="${escapeHtml(name)}"></label>`
+        + `<button class="view-action refetch-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">Re-fetch</button></div></details></div>`
       : `<a class="view-action" href="${escapeHtml(institution.connection.connect_path)}?connection=${encodeURIComponent(name)}">Connect ${escapeHtml(institution.display_name)} ${escapeHtml(name)}</a>`;
     return `<article class="connection-card"><div><p class="eyebrow">${escapeHtml(institution.display_name)}</p><h2>${escapeHtml(name)}</h2><p class="connection-status">${detail}</p></div>${action}</article>`;
   }).join('');

@@ -95,6 +95,9 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .connection-card .eyebrow { margin: 0; }
 .connection-card .view-action { margin-left: 0; white-space: nowrap; }
 .connection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.connection-advanced { flex-basis: 100%; color: var(--muted); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.connection-advanced summary { cursor: pointer; }
+.refetch-controls { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .refetch-field { display: flex; align-items: center; gap: 6px; color: var(--muted); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; }
 .refetch-field input { min-height: 32px; border: 1px solid var(--line); padding: 4px 6px; font: inherit; }
 .view-filter select { min-height: 32px; border: 1px solid var(--line); padding: 5px 8px; background: white; font: inherit; }

@@ -85,6 +85,7 @@ class AppRouteTests(unittest.TestCase):
             "/connections",
             "/transactions",
             "/settings",
+            "/application-settings",
             "/salary-projection",
         ):
             with self.subTest(path=path):

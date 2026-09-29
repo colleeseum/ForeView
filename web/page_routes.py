@@ -17,6 +17,11 @@ def setup():
     return render_template("setup.html")
 
 
+@blueprint.get("/application-settings")
+def application_settings():
+    return render_template("application_settings.html")
+
+
 @blueprint.get("/accounts")
 def accounts_page():
     return render_template("accounts.html")

@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Settings</title>
+  <title>Tax rules</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
   <header>
-    <p class="eyebrow">Application</p>
-    <h1>Settings</h1>
-    <p class="lede">Application-wide configuration and trusted public data.</p>
+    <p class="eyebrow">Administration</p>
+    <h1>Tax rules</h1>
+    <p class="lede">Review and approve the public tax and payroll rules used by projections.</p>
   </header>
   <div class="page-shell">
-    {% set active_page = 'settings' %}{% include '_side_menu.html' %}
+    {% set active_page = 'tax_rules' %}{% include '_side_menu.html' %}
     <div class="page-content">
       <section class="connection-toolbar">
         <div>

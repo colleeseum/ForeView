@@ -190,6 +190,38 @@ def save_employment_override(scenario_id: int, person_id: int, year: int):
         return jsonify({"error": str(error)}), 400
 
 
+@blueprint.put(
+    "/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/overrides"
+)
+def save_employment_overrides(scenario_id: int, person_id: int):
+    payload = request.get_json(silent=True) or {}
+    overrides = payload.get("overrides")
+    if not isinstance(overrides, list):
+        return jsonify({"error": "Overrides must be a list"}), 400
+    try:
+        saved_years = []
+        with dependency("connect")() as connection:
+            repository = EmploymentProjectionOverrideRepository(connection)
+            for item in overrides:
+                if not isinstance(item, dict):
+                    raise ValueError("Each override must be an object")
+                year = int(item["year"])
+                repository.upsert(
+                    scenario_id,
+                    person_id,
+                    year,
+                    salary=_optional_decimal(item, "salary"),
+                    raise_rate=_optional_decimal(item, "raise_rate"),
+                    rrsp_contribution=_optional_decimal(item, "rrsp_contribution"),
+                    rrsp_deduction=_optional_decimal(item, "rrsp_deduction"),
+                    other_income=_optional_decimal(item, "other_income"),
+                )
+                saved_years.append(year)
+        return jsonify({"saved_years": saved_years})
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
 @blueprint.delete(
     "/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/years/<int:year>"
 )

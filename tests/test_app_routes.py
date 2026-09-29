@@ -185,11 +185,23 @@ class AppRouteTests(unittest.TestCase):
         self.assertTrue(person["projection"][1]["rules_held_constant"])
         self.assertEqual(len(payload["household"]), 2)
 
+        rejected = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/overrides",
+            json={"overrides": [{"year": 2026, "salary": "130000"}, {"salary": "1"}]},
+        )
+        self.assertEqual(rejected.status_code, 400)
+        unchanged = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2026"
+        ).get_json()
+        unchanged_person = next(item for item in unchanged["people"] if item["id"] == person_id)
+        self.assertEqual(unchanged_person["projection"][0]["annual_salary_rate"], "105560.00")
+
         override = self.client.put(
-            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/years/2027",
-            json={"salary": "120000", "rrsp_contribution": "0"},
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/overrides",
+            json={"overrides": [{"year": 2027, "salary": "120000", "rrsp_contribution": "0"}]},
         )
         self.assertEqual(override.status_code, 200)
+        self.assertEqual(override.get_json()["saved_years"], [2027])
         actual = self.client.put(
             f"/api/salary-projection/people/{person_id}/actuals/2025",
             json={

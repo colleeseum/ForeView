@@ -19,12 +19,16 @@ const elements = {
   currentOtherIncome: document.querySelector('#salary-current-other-income'),
   form: document.querySelector('#salary-settings-form'),
   save: document.querySelector('#salary-save'),
+  annualStatus: document.querySelector('#salary-annual-status'),
+  annualDiscard: document.querySelector('#salary-annual-discard'),
+  annualSave: document.querySelector('#salary-annual-save'),
   table: document.querySelector('#salary-table'),
 };
 
 let model = null;
 let selectedKey = null;
 let savedFormSignature = '';
+const pendingAnnualChanges = new Map();
 
 export function money(value) {
   const amount = Number(value || 0);
@@ -40,7 +44,7 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
     const shown = field === 'raise_rate'
       ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
       : Number(value || 0).toFixed(2);
-    return `<input class="salary-year-input${override != null ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" type="number" step="0.01" value="${escapeHtml(shown)}">${suffix}`;
+    return `<input class="salary-year-input${override != null ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" type="number" step="0.01" value="${escapeHtml(shown)}">${suffix}`;
   };
   const body = rows.map((row) => `<tr class="${row.actual ? 'historical-row' : ''}">
     <th>${escapeHtml(String(row.year))}${row.actual ? ' Actual' : ''}</th>
@@ -81,6 +85,19 @@ function updateSaveState() {
   if (elements.save) elements.save.disabled = formSignature(elements.form) === savedFormSignature;
 }
 
+function updateAnnualSaveState() {
+  const dirty = pendingAnnualChanges.size > 0;
+  if (elements.annualSave) elements.annualSave.disabled = !dirty;
+  if (elements.annualDiscard) elements.annualDiscard.disabled = !dirty;
+  if (elements.annualStatus) elements.annualStatus.textContent = dirty
+    ? `${pendingAnnualChanges.size} unsaved annual change${pendingAnnualChanges.size === 1 ? '' : 's'}. Save to recalculate this scenario.`
+    : 'Annual overrides are saved per scenario. Use separate scenarios to compare alternatives.';
+  for (const control of [elements.scenario, elements.startYear, elements.endYear, elements.view]) {
+    if (control) control.disabled = dirty;
+  }
+  elements.tabs?.querySelectorAll('button').forEach((button) => { button.disabled = dirty; });
+}
+
 function renderControls() {
   elements.scenario.innerHTML = model.scenarios.map((item) => `<option value="${item.id}"${item.id === model.selected_scenario_id ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('');
   elements.startYear.value = model.start_year;
@@ -116,6 +133,7 @@ function fillForm(person) {
 }
 
 function render() {
+  pendingAnnualChanges.clear();
   if (!model.scenarios.length) {
     elements.tabs.innerHTML = '';
     elements.setup.hidden = true;
@@ -133,6 +151,7 @@ function render() {
     showMessage('Household values are the sum of individual projections. Tax remains calculated per person.');
     elements.table.innerHTML = projectionTable(householdRows(model.household));
   }
+  updateAnnualSaveState();
 }
 
 async function api(url, options) {
@@ -178,17 +197,45 @@ elements.form?.addEventListener('submit', async (event) => {
   } catch (error) { showMessage(error.message, true); }
 });
 
-elements.table?.addEventListener('change', async (event) => {
+elements.table?.addEventListener('input', (event) => {
   const input = event.target.closest('.salary-year-input');
   const person = selectedPerson();
   if (!input || !person) return;
-  const year = Number(input.dataset.year);
-  const existing = person.overrides.find((item) => item.year === year) || {year};
-  const payload = {salary: existing.salary, raise_rate: existing.raise_rate, rrsp_contribution: existing.rrsp_contribution, rrsp_deduction: existing.rrsp_deduction, other_income: existing.other_income};
-  payload[input.dataset.field] = input.dataset.field === 'raise_rate' ? Number(input.value) / 100 : input.value;
+  const key = `${input.dataset.year}:${input.dataset.field}`;
+  const unchanged = input.value !== '' && Number(input.value) === Number(input.dataset.original);
+  if (unchanged) {
+    pendingAnnualChanges.delete(key);
+    input.classList.remove('pending-change');
+  } else {
+    pendingAnnualChanges.set(key, {
+      year: Number(input.dataset.year), field: input.dataset.field, value: input.value,
+    });
+    input.classList.add('pending-change');
+  }
+  updateAnnualSaveState();
+});
+
+elements.annualDiscard?.addEventListener('click', () => render());
+
+elements.annualSave?.addEventListener('click', async () => {
+  const person = selectedPerson();
+  if (!person || !pendingAnnualChanges.size) return;
+  const byYear = new Map();
+  for (const change of pendingAnnualChanges.values()) {
+    const existing = person.overrides.find((item) => item.year === change.year) || {year: change.year};
+    const payload = byYear.get(change.year) || {
+      year: change.year, salary: existing.salary, raise_rate: existing.raise_rate,
+      rrsp_contribution: existing.rrsp_contribution, rrsp_deduction: existing.rrsp_deduction,
+      other_income: existing.other_income,
+    };
+    payload[change.field] = change.field === 'raise_rate' ? Number(change.value) / 100 : change.value;
+    byYear.set(change.year, payload);
+  }
   try {
-    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/years/${year}`, {method: 'PUT', body: JSON.stringify(payload)});
-    showMessage(`${year} override saved.`);
+    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/overrides`, {
+      method: 'PUT', body: JSON.stringify({overrides: [...byYear.values()]}),
+    });
+    showMessage('Annual changes saved.');
     await loadProjection();
   } catch (error) { showMessage(error.message, true); }
 });

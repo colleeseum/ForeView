@@ -45,7 +45,9 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
     <form id="salary-settings-form">
       <input name="default_raise"><input name="retirement_date">
       <button id="salary-save" type="submit" disabled></button>
-    </form><div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
+    </form><span id="salary-annual-status"></span>
+    <button id="salary-annual-discard" disabled></button><button id="salary-annual-save" disabled></button>
+    <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
   globalThis.FormData = dom.window.FormData;
@@ -89,11 +91,16 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
 
   const salaryInput = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
   salaryInput.value = '120000';
-  salaryInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  salaryInput.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  assert.equal(document.querySelector('#salary-annual-save').disabled, false);
+  assert.match(document.querySelector('#salary-annual-status').textContent, /1 unsaved/);
+  assert.equal(calls.some((item) => item.url.endsWith('/overrides')), false);
+  document.querySelector('#salary-annual-save').click();
   await tick(); await tick();
-  const override = calls.find((item) => item.url.endsWith('/years/2027'));
+  const override = calls.find((item) => item.url.endsWith('/overrides'));
   assert.equal(override.options.method, 'PUT');
-  assert.equal(JSON.parse(override.options.body).salary, '120000');
+  assert.equal(JSON.parse(override.options.body).overrides[0].salary, '120000');
+  assert.equal(document.querySelector('#salary-annual-save').disabled, true);
 
   document.querySelector('#salary-view').click();
   await tick();

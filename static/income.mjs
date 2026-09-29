@@ -12,6 +12,8 @@ const elements = {
   importDialog: document.querySelector('#ufile-dialog-backdrop'),
   importClose: document.querySelector('#ufile-dialog-close'),
   importForm: document.querySelector('#ufile-form'),
+  importFile: document.querySelector('#income-import-file'),
+  importPreview: document.querySelector('#income-import-preview'),
   importPerson: document.querySelector('#ufile-person'),
   importHelpText: document.querySelector('#income-import-help-text'),
   importModuleMeta: document.querySelector('#income-import-module-meta'),
@@ -36,6 +38,12 @@ function showMessage(message, error = false) {
 
 function selectedPerson() {
   return people.find((person) => person.id === selectedPersonId) || null;
+}
+
+function updateImportAction() {
+  if (elements.importPreview && elements.importFile) {
+    elements.importPreview.disabled = elements.importFile.files.length === 0;
+  }
 }
 
 function normalizedName(value) {
@@ -149,9 +157,11 @@ elements.importButton.addEventListener('click', () => {
       ? `Loading for: ${person.name}`
       : 'Select a person before loading a document.';
   }
+  updateImportAction();
   elements.importDialog.hidden = false;
 });
 elements.importClose.addEventListener('click', () => { elements.importDialog.hidden = true; });
+elements.importFile?.addEventListener('change', updateImportAction);
 elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(elements.importForm);
@@ -165,6 +175,7 @@ elements.importForm.addEventListener('submit', async (event) => {
     }
     elements.importDialog.hidden = true;
     elements.importForm.reset();
+    updateImportAction();
     if (elements.importHelpText && preview.source_help) {
       elements.importHelpText.textContent = preview.source_help;
     }

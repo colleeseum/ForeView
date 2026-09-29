@@ -18,7 +18,7 @@ function installDom() {
     <output id="income-salary-rate"></output>
     <div id="ufile-dialog-backdrop" hidden></div><button id="ufile-dialog-close"></button>
     <p id="ufile-person"></p>
-    <form id="ufile-form"><input name="file" type="file"><button type="submit"></button></form>
+    <form id="ufile-form"><input id="income-import-file" name="file" type="file"><button id="income-import-preview" type="submit" disabled></button></form>
   </body>`, {url: 'http://localhost/income'});
   Object.assign(globalThis, {
     window: dom.window,
@@ -84,6 +84,15 @@ test('income screen previews a UFile return and saves only after review', async 
   document.querySelector('#income-import').click();
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, false);
   assert.match(document.querySelector('#ufile-person').textContent, /Alex/);
+  const importFile = document.querySelector('#income-import-file');
+  const importPreview = document.querySelector('#income-import-preview');
+  assert.equal(importPreview.disabled, true);
+  Object.defineProperty(importFile, 'files', {
+    configurable: true,
+    value: [new dom.window.File(['pdf'], 'return.pdf', {type: 'application/pdf'})],
+  });
+  importFile.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  assert.equal(importPreview.disabled, false);
   document.querySelector('#ufile-dialog-close').click();
   assert.equal(document.querySelector('#ufile-dialog-backdrop').hidden, true);
   document.querySelector('#income-import').click();

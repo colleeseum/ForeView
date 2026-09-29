@@ -115,7 +115,7 @@
     <h2 id="ufile-dialog-title">Load T1</h2>
     <p id="ufile-person" class="field-note"></p>
     <form id="ufile-form" class="income-import-form">
-      <label>T1 PDF <input name="file" type="file" accept="application/pdf" required></label>
+      <label>T1 PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">Only the primary taxpayer's individual T1 and TP1 summary values are read. The PDF is not stored. The taxpayer name, when present, is checked against the selected person before anything is loaded.</p>
       <details class="income-import-help">
         <summary>Source help</summary>
@@ -129,11 +129,11 @@
         {% endfor %}
         <small id="income-import-module-meta"></small>
       </details>
-      <button class="primary-action" type="submit">Preview annual values</button>
+      <button id="income-import-preview" class="primary-action" type="submit" disabled>Preview annual values</button>
     </form>
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-6') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-7') }}"></script>
 </body>
 </html>

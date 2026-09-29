@@ -9,6 +9,7 @@ const elements = {
   message: document.querySelector('#salary-message'),
   tabs: document.querySelector('#salary-tabs'),
   setup: document.querySelector('#salary-setup'),
+  expenseSetup: document.querySelector('#salary-expense-setup'),
   sourceNote: document.querySelector('#salary-source-note'),
   currentRate: document.querySelector('#salary-current-rate'),
   currentYear: document.querySelector('#salary-current-year'),
@@ -18,6 +19,9 @@ const elements = {
   currentRrspDeduction: document.querySelector('#salary-current-rrsp-deduction'),
   currentOtherIncome: document.querySelector('#salary-current-other-income'),
   form: document.querySelector('#salary-settings-form'),
+  expenseForm: document.querySelector('#salary-expense-form'),
+  expenseSave: document.querySelector('#salary-expense-save'),
+  expenseStatus: document.querySelector('#salary-expense-status'),
   save: document.querySelector('#salary-save'),
   saveAs: document.querySelector('#salary-save-as'),
   discard: document.querySelector('#salary-discard'),
@@ -32,6 +36,7 @@ const elements = {
 let model = null;
 let selectedKey = null;
 let savedFormSignature = '';
+let savedExpenseSignature = '';
 const pendingAnnualChanges = new Map();
 const pendingAnnualResets = new Set();
 
@@ -40,7 +45,7 @@ export function money(value) {
   return amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD', maximumFractionDigits: 0});
 }
 
-export function projectionTable(rows, {editable = false, overrides = []} = {}) {
+export function projectionTable(rows, {editable = false, overrides = [], household = false} = {}) {
   if (!rows.length) return '<p class="empty-panel">No projection is available.</p>';
   const overrideByYear = new Map(overrides.map((item) => [item.year, item]));
   const input = (row, field, value, suffix = '') => {
@@ -67,19 +72,20 @@ export function projectionTable(rows, {editable = false, overrides = []} = {}) {
     <td>${money(row.cpp_qpp)}</td><td>${money(row.ei)}</td><td>${money(row.qpip)}</td>
     <td>${money(row.federal_tax)}</td><td>${money(row.quebec_tax)}</td>
     <td>${money(row.net_income_after_tax)}</td><td><strong>${money(row.disposable_income)}</strong></td>
+    ${household ? `<td>${row.planned_expenses == null ? '—' : money(row.planned_expenses)}</td><td><strong>${row.surplus_deficit == null ? '—' : money(row.surplus_deficit)}</strong></td>` : ''}
     <td>${row.actual ? escapeHtml(row.source || 'Recorded') : `${row.rule_year}${row.rules_held_constant ? ' held' : ''}`}</td>
   </tr>`;
   const actualRows = rows.filter((row) => row.actual);
   const projectedRows = rows.filter((row) => !row.actual);
   const section = (label, sectionRows, className) => sectionRows.length
-    ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="16">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
+    ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="${household ? 18 : 16}">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
     : '';
   return `<div class="table-wrap"><table class="salary-projection-table"><thead><tr>
     <th>Year</th><th>Age</th><th>Raise</th><th>Annual salary</th>
     <th>Other income</th><th>Gross</th>
     <th>RRSP cash</th><th>RRSP deduction</th><th>CPP/QPP</th>
     <th>EI</th><th>QPIP</th><th>Federal tax</th><th>Quebec tax</th><th>Net after tax</th>
-    <th>Disposable</th><th>Rule/source</th></tr></thead>
+    <th>Disposable</th>${household ? '<th>Expenses</th><th>Surplus / deficit</th>' : ''}<th>Rule/source</th></tr></thead>
     ${section('Historical actuals', actualRows, 'salary-history-body')}
     ${section('Projected values', projectedRows, 'salary-projection-body')}
   </table></div>`;
@@ -104,18 +110,25 @@ function isDirty() {
   );
 }
 
+function expenseDirty() {
+  return Boolean(model?.selected_scenario_id && elements.expenseForm)
+    && formSignature(elements.expenseForm) !== savedExpenseSignature;
+}
+
 function updateSaveState() {
   const assumptionsDirty = Boolean(selectedPerson()) && formSignature(elements.form) !== savedFormSignature;
-  const dirty = isDirty();
+  const dirty = isDirty() || expenseDirty();
   if (elements.save) elements.save.disabled = !dirty;
   if (elements.discard) elements.discard.disabled = !dirty;
   if (elements.saveAs) elements.saveAs.disabled = !model?.selected_scenario_id;
+  if (elements.expenseSave) elements.expenseSave.disabled = !expenseDirty();
   if (elements.changeStatus) {
     const changes = [];
     if (assumptionsDirty) changes.push('projection assumptions');
     if (pendingAnnualChanges.size) {
       changes.push(`${pendingAnnualChanges.size} annual change${pendingAnnualChanges.size === 1 ? '' : 's'}`);
     }
+    if (expenseDirty()) changes.push('household spending');
     elements.changeStatus.textContent = dirty
       ? `${changes.join(' and ')} not saved.`
       : 'Changes are saved to the selected scenario. Use Save As to compare alternatives.';
@@ -159,6 +172,23 @@ function fillForm(person) {
   }
 }
 
+function fillExpenseForm() {
+  if (!elements.expenseSetup || !elements.expenseForm) return;
+  const plan = model?.expense_plan;
+  elements.expenseSetup.hidden = !model?.selected_scenario_id;
+  if (!model?.selected_scenario_id) return;
+  const values = {
+    start_year: plan?.start_year ?? model.start_year,
+    required_annual_amount: plan?.required_annual_amount ?? '0.00',
+    required_annual_growth: plan?.required_annual_growth == null ? '0' : Number(plan.required_annual_growth) * 100,
+    discretionary_annual_amount: plan?.discretionary_annual_amount ?? '0.00',
+    discretionary_annual_growth: plan?.discretionary_annual_growth == null ? '0' : Number(plan.discretionary_annual_growth) * 100,
+  };
+  Object.entries(values).forEach(([name, value]) => { elements.expenseForm.elements[name].value = value; });
+  savedExpenseSignature = formSignature(elements.expenseForm);
+  if (elements.expenseStatus) elements.expenseStatus.textContent = plan ? 'Changes are saved to the selected scenario.' : 'No spending assumptions saved.';
+}
+
 function render() {
   pendingAnnualChanges.clear();
   pendingAnnualResets.clear();
@@ -173,12 +203,13 @@ function render() {
   renderControls();
   const person = selectedPerson();
   fillForm(person);
+  fillExpenseForm();
   if (person) {
     if (person.error) showMessage(person.error, true); else showMessage('');
     elements.table.innerHTML = projectionTable([...person.actuals, ...person.projection], {editable: true, overrides: person.overrides});
   } else {
     showMessage('Household values are the sum of individual projections. Tax remains calculated per person.');
-    elements.table.innerHTML = projectionTable(householdRows(model.household));
+    elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true});
   }
   updateSaveState();
 }
@@ -211,6 +242,8 @@ elements.view?.addEventListener('click', () => loadProjection().catch((error) =>
 elements.scenario?.addEventListener('change', () => loadProjection().catch((error) => showMessage(error.message, true)));
 elements.form?.addEventListener('input', updateSaveState);
 elements.form?.addEventListener('change', updateSaveState);
+elements.expenseForm?.addEventListener('input', updateSaveState);
+elements.expenseForm?.addEventListener('change', updateSaveState);
 
 function annualOverridePayload(person) {
   const byYear = new Map();
@@ -258,6 +291,26 @@ elements.form?.addEventListener('submit', (event) => {
   if (isDirty()) saveCurrentScenario();
 });
 elements.save?.addEventListener('click', saveCurrentScenario);
+
+async function saveExpenses(event) {
+  event?.preventDefault();
+  try {
+    const values = Object.fromEntries(new FormData(elements.expenseForm));
+    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/expenses`, {
+      method: 'PUT', body: JSON.stringify({
+        start_year: Number(values.start_year),
+        required_annual_amount: values.required_annual_amount,
+        required_annual_growth: Number(values.required_annual_growth || 0) / 100,
+        discretionary_annual_amount: values.discretionary_annual_amount,
+        discretionary_annual_growth: Number(values.discretionary_annual_growth || 0) / 100,
+      }),
+    });
+    await loadProjection();
+    showMessage('Household spending assumptions saved.');
+  } catch (error) { showMessage(error.message, true); }
+}
+
+elements.expenseForm?.addEventListener('submit', saveExpenses);
 
 elements.table?.addEventListener('input', (event) => {
   const input = event.target.closest('.salary-year-input');

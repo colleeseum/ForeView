@@ -36,6 +36,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (6, "employment_income_records"),
                     (7, "annual_employment_province"),
                     (8, "annual_employment_province_backfill"),
+                    (9, "household_expenses"),
                 ],
             )
 
@@ -58,6 +59,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                     "annual_employment_actuals",
                     "employment_projection_settings",
                     "employment_projection_overrides",
+                    "household_expense_plans",
                 }.issubset(tables)
             )
             with runtime.connect() as connection:

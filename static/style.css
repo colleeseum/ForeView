@@ -201,6 +201,8 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .salary-readonly-field output { min-height: 32px; padding: 7px; border: 1px solid var(--line); background: #eef1ec; color: var(--ink); font-weight: 700; }
 .salary-annual-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 8px 0; }
 .salary-annual-actions .field-note { margin-right: auto; }
+.salary-expense-actions { display: flex; align-items: end; gap: 8px; grid-column: 1 / -1; }
+.salary-expense-actions .field-note { align-self: center; }
 .salary-table-panel { overflow: hidden; padding: 0; }
 .salary-projection-table { min-width: 1800px; }
 .salary-projection-table th { position: static; text-align: left; }

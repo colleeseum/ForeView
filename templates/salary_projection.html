@@ -44,6 +44,18 @@
           <label>First non-working day <input name="retirement_date" type="date"></label>
         </form>
       </section>
+      <section id="salary-expense-setup" class="public-rule-card" hidden>
+        <h2>Household spending</h2>
+        <p class="dashboard-note">Enter annual after-tax spending. Required spending covers costs such as utilities, taxes and tuition. Discretionary spending is a flexible fund for items such as hobbies, tools and travel. Planned one-time events and contingency reserves will be added separately.</p>
+        <form id="salary-expense-form" class="salary-settings-grid">
+          <label>Spending starts in <input name="start_year" type="number" min="1900" max="9999" required></label>
+          <label>Required annual spending <input name="required_annual_amount" type="number" min="0" step="0.01" required></label>
+          <label>Required annual growth % <input name="required_annual_growth" type="number" step="0.001" required></label>
+          <label>Discretionary annual fund <input name="discretionary_annual_amount" type="number" min="0" step="0.01" required></label>
+          <label>Discretionary annual growth % <input name="discretionary_annual_growth" type="number" step="0.001" required></label>
+          <div class="salary-expense-actions"><button id="salary-expense-save" class="view-action" type="submit" disabled>Save spending assumptions</button><span id="salary-expense-status" class="field-note">No spending assumptions saved.</span></div>
+        </form>
+      </section>
       <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values. Use × beside a saved override to reset that cell to its calculated value, then click Save.</p>
       <div class="salary-annual-actions">
         <span id="salary-change-status" class="field-note">Changes are saved to the selected scenario. Use Save As to compare alternatives.</span>
@@ -68,5 +80,5 @@
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-7') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-8') }}"></script>
 </body></html>

@@ -11,6 +11,7 @@ from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.employment_baseline import EmploymentBaseline
 from domain.employment_projection_override import EmploymentProjectionOverride
 from domain.employment_projection_settings import EmploymentProjectionSettings
+from domain.household_expense_plan import HouseholdExpensePlan
 from domain.money import as_decimal
 from domain.projected_employment_year import ProjectedEmploymentYear
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
@@ -21,6 +22,7 @@ from repositories.employment_projection_override_repository import (
 from repositories.employment_projection_settings_repository import (
     EmploymentProjectionSettingsRepository,
 )
+from repositories.household_expense_plan_repository import HouseholdExpensePlanRepository
 from repositories.person_repository import PersonRepository
 from repositories.scenario_repository import ScenarioRepository
 from services.salary_projection_service import SalaryProjectionService
@@ -46,6 +48,7 @@ def salary_projection_data():
         scenarios = ScenarioRepository(connection).list_all()
         requested_scenario = request.args.get("scenario_id", type=int)
         scenario_id = requested_scenario or (scenarios[0].id if scenarios else None)
+        expense_plan = HouseholdExpensePlanRepository(connection).get(scenario_id)
         result_people: list[dict[str, Any]] = []
         for person in people:
             baseline = EmploymentBaselineRepository(connection).get_effective(
@@ -89,7 +92,7 @@ def salary_projection_data():
                     "error": error,
                 }
             )
-        household = _household_projection(result_people)
+        household = _household_projection(result_people, expense_plan)
         return jsonify(
             {
                 "scenarios": [
@@ -102,12 +105,35 @@ def salary_projection_data():
                     for item in scenarios
                 ],
                 "selected_scenario_id": scenario_id,
+                "expense_plan": _expense_plan_json(expense_plan),
                 "start_year": start_year,
                 "end_year": end_year,
                 "people": result_people,
                 "household": household,
             }
         )
+
+
+@blueprint.put("/api/salary-projection/scenarios/<int:scenario_id>/expenses")
+def save_household_expenses(scenario_id: int):
+    payload = request.get_json(silent=True) or {}
+    try:
+        with dependency("connect")() as connection:
+            plan = HouseholdExpensePlanRepository(connection).upsert(
+                scenario_id,
+                start_year=int(payload["start_year"]),
+                required_annual_amount=as_decimal(payload["required_annual_amount"]),
+                required_annual_growth=as_decimal(payload.get("required_annual_growth", 0)),
+                discretionary_annual_amount=as_decimal(
+                    payload.get("discretionary_annual_amount", 0)
+                ),
+                discretionary_annual_growth=as_decimal(
+                    payload.get("discretionary_annual_growth", 0)
+                ),
+            )
+        return jsonify(_expense_plan_json(plan))
+    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400
 
 
 @blueprint.put("/api/salary-projection/people/<int:person_id>/baseline")
@@ -370,6 +396,18 @@ def _settings_json(item: EmploymentProjectionSettings | None) -> dict[str, objec
     }
 
 
+def _expense_plan_json(item: HouseholdExpensePlan | None) -> dict[str, object] | None:
+    if item is None:
+        return None
+    return {
+        "start_year": item.start_year,
+        "required_annual_amount": _money(item.required_annual_amount),
+        "required_annual_growth": str(item.required_annual_growth),
+        "discretionary_annual_amount": _money(item.discretionary_annual_amount),
+        "discretionary_annual_growth": str(item.discretionary_annual_growth),
+    }
+
+
 def _actual_json(item: AnnualEmploymentActual, birth_date: str | None = None) -> dict[str, object]:
     net_income_after_tax = (
         item.gross_income
@@ -447,7 +485,9 @@ def _override_json(item: EmploymentProjectionOverride) -> dict[str, object]:
     }
 
 
-def _household_projection(people: list[dict[str, Any]]) -> list[dict[str, object]]:
+def _household_projection(
+    people: list[dict[str, Any]], expense_plan: HouseholdExpensePlan | None
+) -> list[dict[str, object]]:
     totals: dict[int, dict[str, Decimal]] = {}
     fields = (
         "salary_income",
@@ -474,7 +514,19 @@ def _household_projection(people: list[dict[str, Any]]) -> list[dict[str, object
             year_totals = totals.setdefault(year, {field: Decimal("0") for field in fields})
             for field in fields:
                 year_totals[field] += Decimal(str(row[field]))
-    return [
-        {"year": year, **{field: _money(value) for field, value in values.items()}}
-        for year, values in sorted(totals.items())
-    ]
+    result = []
+    for year, values in sorted(totals.items()):
+        result_row: dict[str, object] = {
+            "year": year,
+            **{field: _money(value) for field, value in values.items()},
+        }
+        if expense_plan is not None:
+            required = expense_plan.required_for_year(year)
+            discretionary = expense_plan.discretionary_for_year(year)
+            expenses = required + discretionary
+            result_row["required_expenses"] = _money(required)
+            result_row["discretionary_expenses"] = _money(discretionary)
+            result_row["planned_expenses"] = _money(expenses)
+            result_row["surplus_deficit"] = _money(values["disposable_income"] - expenses)
+        result.append(result_row)
+    return result

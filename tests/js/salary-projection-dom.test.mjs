@@ -30,6 +30,10 @@ function model() {
       overrides: [{year: 2027, salary: '104000.00'}], actuals: [], projection: [projection(2026), projection(2027, '104000.00')],
     }],
     household: [{...projection(2026)}, {...projection(2027, '104000.00')}],
+    expense_plan: {
+      start_year: 2026, required_annual_amount: '60000.00', required_annual_growth: '0.02',
+      discretionary_annual_amount: '10000.00', discretionary_annual_growth: '0.03',
+    },
   };
 }
 
@@ -44,6 +48,11 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
       <output id="salary-current-other-income"></output>
     </section>
     <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"></form>
+    <section id="salary-expense-setup" hidden><form id="salary-expense-form">
+      <input name="start_year"><input name="required_annual_amount"><input name="required_annual_growth">
+      <input name="discretionary_annual_amount"><input name="discretionary_annual_growth">
+      <button id="salary-expense-save" type="submit"></button><span id="salary-expense-status"></span>
+    </form></section>
     <span id="salary-change-status"></span><div id="salary-table"></div>
     <div id="salary-save-as-backdrop" hidden><button id="salary-save-as-close"></button>
       <form id="salary-save-as-form"><input name="name"><button type="submit"></button></form>
@@ -81,6 +90,8 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.match(document.querySelector('#salary-current-rrsp-contribution').textContent, /10,000/);
   assert.match(document.querySelector('#salary-current-rrsp-deduction').textContent, /9,000/);
   assert.match(document.querySelector('#salary-current-other-income').textContent, /1,500/);
+  assert.equal(document.querySelector('[name="required_annual_amount"]').value, '60000.00');
+  assert.equal(document.querySelector('#salary-expense-save').disabled, true);
   assert.equal(document.querySelector('#salary-save').disabled, true);
   assert.equal(module.money('12.50'), '$13');
   assert.match(module.projectionTable([]), /No projection/);
@@ -122,6 +133,15 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(JSON.parse(clone.options.body).overrides[0].salary, '125000');
   assert.equal(document.querySelector('#salary-scenario').value, '4');
   assert.equal(document.querySelector('#salary-save-as-backdrop').hidden, true);
+
+  document.querySelector('[name="required_annual_amount"]').value = '61000';
+  document.querySelector('[name="required_annual_amount"]').dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  assert.equal(document.querySelector('#salary-expense-save').disabled, false);
+  document.querySelector('#salary-expense-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  await tick(); await tick();
+  const expenseSave = calls.find((item) => item.url.endsWith('/expenses'));
+  assert.equal(expenseSave.options.method, 'PUT');
+  assert.equal(JSON.parse(expenseSave.options.body).required_annual_amount, '61000');
 
   const draftsBeforeReset = calls.filter((item) => item.url.endsWith('/draft')).length;
   document.querySelector('.salary-use-default[data-year="2027"][data-field="salary"]').click();

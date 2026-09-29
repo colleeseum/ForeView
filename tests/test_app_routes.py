@@ -177,6 +177,19 @@ class AppRouteTests(unittest.TestCase):
                 self.assertIsNotNone(package)
                 approvals.approve(rule_set_id, package.content_hash)
 
+        expenses = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/expenses",
+            json={
+                "start_year": 2026,
+                "required_annual_amount": "60000",
+                "required_annual_growth": "0.02",
+                "discretionary_annual_amount": "10000",
+                "discretionary_annual_growth": "0.03",
+            },
+        )
+        self.assertEqual(expenses.status_code, 200)
+        self.assertEqual(expenses.get_json()["required_annual_amount"], "60000.00")
+
         response = self.client.get(
             f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
         )
@@ -187,6 +200,14 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(person["projection"][1]["annual_salary_rate"], "109782.40")
         self.assertTrue(person["projection"][1]["rules_held_constant"])
         self.assertEqual(len(payload["household"]), 2)
+        household = payload["household"][0]
+        self.assertEqual(household["required_expenses"], "60000.00")
+        self.assertEqual(household["discretionary_expenses"], "10000.00")
+        self.assertEqual(household["planned_expenses"], "70000.00")
+        self.assertEqual(
+            Decimal(household["surplus_deficit"]),
+            Decimal(household["disposable_income"]) - Decimal("70000.00"),
+        )
 
         rejected = self.client.put(
             f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/overrides",

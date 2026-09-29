@@ -12,6 +12,7 @@ from repositories.employment_projection_override_repository import (
 from repositories.employment_projection_settings_repository import (
     EmploymentProjectionSettingsRepository,
 )
+from repositories.household_expense_plan_repository import HouseholdExpensePlanRepository
 from repositories.person_repository import PersonRepository
 from repositories.scenario_repository import ScenarioRepository
 from services.database_initialization import ensure_domain_schema
@@ -97,6 +98,20 @@ class EmploymentProjectionRepositoryTests(unittest.TestCase):
 
         repository.delete(self.scenario_id, self.person_id, 2030)
         self.assertIsNone(repository.get(self.scenario_id, self.person_id, 2030))
+
+    def test_household_expense_plan_separates_required_and_discretionary_growth(self) -> None:
+        plan = HouseholdExpensePlanRepository(self.connection).upsert(
+            self.scenario_id,
+            start_year=2026,
+            required_annual_amount="60000",
+            required_annual_growth="0.02",
+            discretionary_annual_amount="10000",
+            discretionary_annual_growth="0.03",
+        )
+
+        self.assertEqual(plan.required_for_year(2027), Decimal("61200.00"))
+        self.assertEqual(plan.discretionary_for_year(2027), Decimal("10300.00"))
+        self.assertEqual(plan.total_for_year(2027), Decimal("71500.00"))
 
     def test_invalid_values_are_rejected_before_sql(self) -> None:
         with self.assertRaisesRegex(ValueError, "Payroll plan"):

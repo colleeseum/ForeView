@@ -9,6 +9,7 @@ from repositories.employment_projection_override_repository import (
 from repositories.employment_projection_settings_repository import (
     EmploymentProjectionSettingsRepository,
 )
+from repositories.household_expense_plan_repository import HouseholdExpensePlanRepository
 from repositories.person_repository import PersonRepository
 from repositories.real_estate_projection_repository import RealEstateProjectionRepository
 from repositories.scenario_assumption_repository import ScenarioAssumptionRepository
@@ -72,5 +73,15 @@ class ScenarioCloneService:
                 projected_acb=projection.projected_acb,
                 effective_tax_rate=projection.effective_tax_rate,
                 note=projection.note,
+            )
+        expenses = HouseholdExpensePlanRepository(self._connection).get(source.id)
+        if expenses is not None:
+            HouseholdExpensePlanRepository(self._connection).upsert(
+                clone.id,
+                start_year=expenses.start_year,
+                required_annual_amount=expenses.required_annual_amount,
+                required_annual_growth=expenses.required_annual_growth,
+                discretionary_annual_amount=expenses.discretionary_annual_amount,
+                discretionary_annual_growth=expenses.discretionary_annual_growth,
             )
         return clone

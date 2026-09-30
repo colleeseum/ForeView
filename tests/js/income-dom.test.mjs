@@ -11,7 +11,9 @@ function installDom() {
     'rrsp_contribution', 'rrsp_deduction', 'federal_tax', 'provincial_tax',
   ].map((name) => `<input name="${name}" value="0">`).join('');
   const dom = new JSDOM(`<!doctype html><body>
-    <div id="income-tabs"></div><p id="income-message"></p><div id="income-history"></div><div id="income-supplementary"></div>
+    <div id="income-tabs"></div><div id="income-summary"></div><p id="income-message"></p>
+    <div id="income-history"></div><div id="income-tax-returns"></div><div id="income-assessments"></div>
+    <div id="income-rooms"></div><div id="income-pension"></div><div id="income-normalized"></div>
     <button id="income-add"></button><button id="income-import"></button>
     <div id="income-dialog-backdrop" hidden></div><button id="income-dialog-close"></button><p id="income-editor-person"></p>
     <form id="income-form"><input name="tax_year" value="2025"><select name="province_of_residence"><option value=""></option><option value="ON">ON</option><option value="QC">QC</option></select><input name="payroll_plan">${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
@@ -40,6 +42,16 @@ function annualRecord(overrides = {}) {
   };
 }
 
+function latestSnapshot() {
+  return {
+    tax_year: 2025, available_years: [2025, 2024], values: [
+      {concept: 'employment_income', label: 'Employment income', amount: '101500.00', source: 'Revenu Québec notice', document_kind: 'assessment', jurisdiction: 'CA-QC', line_code: '101'},
+      {concept: 'interest_investment_income', label: 'Interest and investment income', amount: '250.00', source: 'UFile T1', document_kind: 'return', jurisdiction: 'CA', line_code: '12100'},
+      {concept: 'oas_income', label: 'OAS income', amount: '0.00', source: 'UFile T1', document_kind: 'return', jurisdiction: 'CA', line_code: '11300'},
+    ],
+  };
+}
+
 test('income screen previews a UFile return and saves only after review', async () => {
   const dom = installDom();
   const calls = [];
@@ -50,7 +62,15 @@ test('income screen previews a UFile return and saves only after review', async 
       return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}, {id: 2, name: '<b>Jordan</b>'}]})};
     }
     if (String(url).startsWith('/api/income?')) {
-      return {ok: true, json: async () => ({records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})], tax_values: []})};
+      return {ok: true, json: async () => ({
+        records: saved ? [annualRecord()] : [annualRecord(), annualRecord({id: 3, year: 2024, employment_income: '90000.00'})],
+        tax_values: [{
+          tax_year: 2025, document_kind: 'return', jurisdiction: 'CA', effective_year: 2025,
+          line_code: '12100', description: 'Interest and investment income',
+          reported_amount: '250.00', determined_amount: null, source: 'Another Tax App',
+        }],
+        snapshot: latestSnapshot(),
+      })};
     }
     if (url === '/api/income/import/preview') {
       return {ok: true, json: async () => annualRecord({kind: 'tax_return', year: 2024, province_of_residence: 'QC', taxpayer_name: 'Alex', source_name: 'UFile T1 PDF', source_version: '2026.09.29.1', document_hash: 'abc', tax_values: [{concept: 'interest_investment_income', description: 'Interest and other investment income', reported_amount: '250.00', determined_amount: null, line_code: '12100', effective_year: 2024}]})};
@@ -67,6 +87,11 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.match(document.querySelector('#income-message').textContent, /2 annual records/);
   assert.match(document.querySelector('#income-history').textContent, /2025 Latest/);
   assert.match(document.querySelector('#income-history').textContent, /2024/);
+  assert.match(document.querySelector('#income-history').textContent, /Edit/);
+  assert.match(document.querySelector('#income-tax-returns').textContent, /Another Tax App/);
+  assert.match(document.querySelector('#income-summary').textContent, /Tax year 2025/);
+  assert.match(document.querySelector('#income-summary').textContent, /Revenu Québec notice · assessed · CA-QC · line 101/);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /OAS income/);
   assert.equal(document.querySelector('#income-dialog-backdrop').hidden, true);
   assert.equal(document.body.innerHTML.includes('<b>Jordan</b>'), false);
 
@@ -189,8 +214,12 @@ test('income screen reviews and saves an assessment with registered room', async
     if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
     if (String(url).startsWith('/api/income?')) return {ok: true, json: async () => ({
       records: [annualRecord()], assessments: [assessment], tax_values: [{tax_year: 2025, document_kind: 'assessment', jurisdiction: 'CA', effective_year: 2026, line_code: null, description: 'Canada training credit limit', reported_amount: null, determined_amount: '250.00', source: 'CRA NOA'}],
-      registered_rooms: [{plan_type: 'RRSP', effective_year: 2026, available_room: '58810.00', deduction_limit: '58810.00', unused_contributions: '0.00', as_of_date: '2026-05-11', source: 'CRA NOA'}],
+      registered_rooms: [
+        {plan_type: 'RRSP', effective_year: 2026, available_room: '58810.00', deduction_limit: '58810.00', unused_contributions: '0.00', as_of_date: '2026-05-11', source: 'CRA NOA'},
+        {plan_type: 'RRSP', effective_year: 2025, available_room: '50000.00', deduction_limit: '50000.00', unused_contributions: '0.00', as_of_date: '2025-05-11', source: 'CRA NOA'},
+      ],
       public_pension: {provider: 'QPP', issued_on: '2026-06-15', excludes_second_enhancement: true, estimates: [{contribution_assumption: 'stop', activation_age: 65, monthly_amount: '1012.00'}], earnings: [{year: 2025, qpp_earnings: '0.00', cpp_earnings: '81200.00', status: 'A'}]},
+      snapshot: latestSnapshot(),
     })};
     if (url === '/api/income/import/preview') return {ok: true, json: async () => assessment};
     if (url === '/api/income/people/1/assessments') return {ok: true, json: async () => assessment};
@@ -199,8 +228,11 @@ test('income screen reviews and saves an assessment with registered room', async
 
   await import(`../../static/income.mjs?assessment=${Date.now()}`);
   await tick(); await tick();
-  assert.match(document.querySelector('#income-supplementary').textContent, /58,810/);
-  assert.match(document.querySelector('#income-supplementary').textContent, /second enhancement/);
+  assert.match(document.querySelector('#income-rooms').textContent, /58,810/);
+  assert.match(document.querySelector('#income-pension').textContent, /1,012/);
+  assert.match(document.querySelector('#income-summary').textContent, /RRSP available room/);
+  assert.match(document.querySelector('#income-summary').textContent, /58,810/);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /50,000/);
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
@@ -254,7 +286,7 @@ test('income screen handles missing people and request errors', async () => {
   await tick(); await tick();
   assert.match(document.querySelector('#income-message').textContent, /Add a person/);
   assert.equal(document.querySelector('#income-add').disabled, true);
-  assert.match(document.querySelector('#income-history').textContent, /No annual employment/);
+  assert.match(document.querySelector('#income-history').textContent, /No filed return or manual annual record/);
 
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick();

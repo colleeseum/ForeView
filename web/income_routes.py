@@ -18,6 +18,7 @@ from repositories.annual_tax_value_repository import AnnualTaxValueRepository
 from repositories.person_repository import PersonRepository
 from repositories.public_pension_statement_repository import PublicPensionStatementRepository
 from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
+from services.income_tax_snapshot_service import IncomeTaxSnapshotService
 from tax_notices import tax_notice_registry
 from web.dependencies import dependency
 
@@ -39,8 +40,10 @@ def income_record():
         tax_value_repository = AnnualTaxValueRepository(connection)
         tax_values = tax_value_repository.list_for_person(person_id)
         pension = pension_repository.latest_for_person(person_id)
+        all_records = list(reversed(repository.list_for_person(person_id)))
+        snapshot = IncomeTaxSnapshotService().build(all_records, assessments, tax_values, year=year)
         if year is None:
-            records = list(reversed(repository.list_for_person(person_id)))
+            records = all_records
             record = None
         else:
             records = []
@@ -57,6 +60,7 @@ def income_record():
             "registered_rooms": [_room_json(item) for item in rooms],
             "public_pension": public_pension,
             "tax_values": [_tax_value_json(item) for item in tax_values],
+            "snapshot": _snapshot_json(snapshot) if snapshot else None,
         }
     )
 
@@ -467,6 +471,25 @@ def _tax_value_json(value: Any) -> dict[str, Any]:
         "line_code": value.line_code,
         "source": value.source,
         "source_version": value.source_version,
+    }
+
+
+def _snapshot_json(snapshot: Any) -> dict[str, Any]:
+    return {
+        "tax_year": snapshot.tax_year,
+        "available_years": list(snapshot.available_years),
+        "values": [
+            {
+                "concept": value.concept,
+                "label": value.label,
+                "amount": _money(value.amount),
+                "source": value.source,
+                "document_kind": value.document_kind,
+                "jurisdiction": value.jurisdiction,
+                "line_code": value.line_code,
+            }
+            for value in snapshot.values
+        ],
     }
 
 

@@ -2,9 +2,14 @@ import {escapeHtml} from './html.mjs';
 
 const elements = {
   tabs: document.querySelector('#income-tabs'),
+  summary: document.querySelector('#income-summary'),
   message: document.querySelector('#income-message'),
   history: document.querySelector('#income-history'),
-  supplementary: document.querySelector('#income-supplementary'),
+  taxReturns: document.querySelector('#income-tax-returns'),
+  assessments: document.querySelector('#income-assessments'),
+  rooms: document.querySelector('#income-rooms'),
+  pension: document.querySelector('#income-pension'),
+  normalized: document.querySelector('#income-normalized'),
   add: document.querySelector('#income-add'),
   form: document.querySelector('#income-form'),
   editor: document.querySelector('#income-dialog-backdrop'),
@@ -85,7 +90,7 @@ function renderTabs() {
 
 function renderHistory() {
   if (!records.length) {
-    elements.history.innerHTML = '<p class="empty-panel">No annual employment records yet.</p>';
+    elements.history.innerHTML = '<p class="empty-panel">No filed return or manual annual record has been saved.</p>';
     return;
   }
   const body = records.map((record, index) => `<tr>
@@ -110,49 +115,136 @@ function renderHistory() {
     <tbody>${body}</tbody></table></div>`;
 }
 
+function sourceNote(value) {
+  const details = [
+    value.source,
+    value.document_kind === 'assessment' ? 'assessed' : value.document_kind === 'return' ? 'filed return' : 'annual record',
+    value.jurisdiction,
+    value.line_code ? `line ${value.line_code}` : null,
+  ].filter(Boolean);
+  return details.map(escapeHtml).join(' · ');
+}
+
+function renderSummary(snapshot, rooms) {
+  if (!snapshot) {
+    elements.summary.innerHTML = '<section class="income-summary-panel"><h2 class="income-summary-heading">Latest consolidated snapshot</h2><p class="empty-panel">No annual tax or income facts are available.</p></section>';
+    return;
+  }
+  const optionalIncome = new Set([
+    'oas_income', 'cpp_qpp_benefits', 'other_pension_income', 'interest_investment_income',
+  ]);
+  const cards = snapshot.values
+    .filter((value) => !optionalIncome.has(value.concept) || Number(value.amount) !== 0)
+    .map((value) => `<div class="income-summary-value">
+      <span class="income-summary-label">${escapeHtml(value.label)}</span>
+      <strong class="income-summary-amount">${money(value.amount)}</strong>
+      <small class="income-summary-note">${sourceNote(value)}</small>
+    </div>`);
+  const latestRooms = new Map();
+  for (const room of rooms || []) {
+    if (!latestRooms.has(room.plan_type)) latestRooms.set(room.plan_type, room);
+  }
+  for (const room of latestRooms.values()) {
+    cards.push(`<div class="income-summary-value income-summary-room">
+      <span class="income-summary-label">${escapeHtml(room.plan_type)} available room</span>
+      <strong class="income-summary-amount">${money(room.available_room)}</strong>
+      <small class="income-summary-note">${room.effective_year} · ${escapeHtml(room.source)}</small>
+    </div>`);
+  }
+  elements.summary.innerHTML = `<section class="income-summary-panel">
+    <div class="income-summary-heading">
+      <div>
+        <p class="eyebrow">Latest consolidated snapshot</p>
+        <h2 class="income-summary-title">Tax year ${snapshot.tax_year}</h2>
+      </div>
+      <p class="income-summary-note">Assessed values take precedence over the filed return for the same year. Each value retains its source.</p>
+    </div>
+    <div class="income-summary-grid">${cards.join('')}</div>
+  </section>`;
+}
+
 function renderSupplementary(assessments, rooms, pension, taxValues) {
-  const assessmentRows = assessments.map((item) => `<tr>
-    <td>${item.year}</td><td>${escapeHtml(item.jurisdiction)}</td><td>${escapeHtml(item.issued_on)}</td>
-    <td>${money(item.total_income)}</td><td>${money(item.net_income)}</td><td>${money(item.taxable_income)}</td>
-    <td>${money(item.net_tax)}</td><td>${money(item.additional_contributions)}</td>
-    <td>${money(item.tax_withheld)}</td><td>${money(item.balance)}</td><td>${escapeHtml(item.source)}</td>
-  </tr>`).join('');
   const roomRows = rooms.map((item) => `<tr>
     <td>${escapeHtml(item.plan_type)}</td><td>${item.effective_year}</td><td>${money(item.available_room)}</td>
     <td>${money(item.deduction_limit)}</td><td>${money(item.unused_contributions)}</td>
     <td>${escapeHtml(item.as_of_date)}</td><td>${escapeHtml(item.source)}</td>
   </tr>`).join('');
+
   const pensionEstimates = pension?.estimates?.map((item) => `<tr>
     <td>${escapeHtml(item.contribution_assumption)}</td><td>${item.activation_age}</td>
     <td>${money(item.monthly_amount)}</td>
   </tr>`).join('') || '';
+
   const pensionEarnings = pension?.earnings?.map((item) => `<tr>
     <td>${item.year}</td><td>${money(item.qpp_earnings)}</td><td>${money(item.cpp_earnings)}</td>
     <td>${escapeHtml(item.status || '')}</td>
   </tr>`).join('') || '';
-  const taxValueRows = taxValues.map((item) => `<tr>
-    <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
-    <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
-    <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
-    <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
-    <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
-    <td>${escapeHtml(item.source)}</td>
+
+  const taxHistoryRows = taxValues
+    .filter((value) => value.document_kind === 'return')
+    .map((item) => `<tr class="tax-history-row">
+      <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
+      <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
+      <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
+      <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
+      <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
+      <td>${escapeHtml(item.source)}</td>
+    </tr>`).join('');
+
+  const assessmentRowsFull = assessments.map((item) => `<tr>
+    <td>${item.year}</td><td>${escapeHtml(item.jurisdiction)}</td><td>${escapeHtml(item.issued_on)}</td>
+    <td>${money(item.total_income)}</td><td>${money(item.net_income)}</td><td>${money(item.taxable_income)}</td>
+    <td>${money(item.net_tax)}</td><td>${money(item.additional_contributions)}</td>
+    <td>${money(item.tax_withheld)}</td><td>${money(item.balance)}</td><td>${escapeHtml(item.source)}</td>
   </tr>`).join('');
-  elements.supplementary.innerHTML = `
-    <section class="income-record-section"><h2>Tax document details</h2>${taxValueRows
-      ? `<details><summary>${taxValues.length} retained tax concepts</summary><div class="table-wrap"><table><thead><tr><th>Tax year</th><th>Document</th><th>Jurisdiction</th><th>Effective year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead><tbody>${taxValueRows}</tbody></table></div></details>`
-      : '<p class="empty-panel">No detailed tax-document values loaded.</p>'}</section>
-    <section class="income-record-section"><h2>Tax assessments</h2>${assessmentRows
-      ? `<div class="table-wrap"><table><thead><tr><th>Year</th><th>Jurisdiction</th><th>Issued</th><th>Total income</th><th>Net income</th><th>Taxable income</th><th>Net tax</th><th>Other contributions</th><th>Tax withheld</th><th>Balance</th><th>Source</th></tr></thead><tbody>${assessmentRows}</tbody></table></div>`
-      : '<p class="empty-panel">No assessment notices loaded.</p>'}</section>
-    <section class="income-record-section"><h2>Registered-plan room</h2>${roomRows
-      ? `<div class="table-wrap"><table><thead><tr><th>Plan</th><th>Effective year</th><th>Available room</th><th>Deduction limit</th><th>Unused contributions</th><th>As of</th><th>Source</th></tr></thead><tbody>${roomRows}</tbody></table></div>`
-      : '<p class="empty-panel">No contribution-room snapshots loaded.</p>'}</section>
-    <section class="income-record-section"><h2>Public pension</h2>${pension
-      ? `<p>${escapeHtml(pension.provider)} statement issued ${escapeHtml(pension.issued_on)}.${pension.excludes_second_enhancement ? ' <strong>Estimate excludes the second enhancement component.</strong>' : ''}</p>
-         <div class="table-wrap"><table><thead><tr><th>Contribution assumption</th><th>Start age</th><th>Monthly estimate</th></tr></thead><tbody>${pensionEstimates}</tbody></table></div>
-         <details><summary>Pensionable earnings history</summary><div class="table-wrap"><table><thead><tr><th>Year</th><th>QPP</th><th>CPP</th><th>Status</th></tr></thead><tbody>${pensionEarnings}</tbody></table></div></details>`
-      : '<p class="empty-panel">No CPP/QPP participation statement loaded.</p>'}</section>`;
+
+  const normalizedRows = taxValues
+    .filter((value) => value.document_kind !== 'return')
+    .map((item) => `<tr class="normalized-row">
+      <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
+      <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
+      <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
+      <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
+      <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
+      <td>${escapeHtml(item.source)}</td>
+    </tr>`).join('');
+
+  elements.taxReturns.innerHTML = taxHistoryRows
+    ? `<div class="table-wrap"><table class="income-history-table">
+      <thead><tr><th>Year</th><th>Doc</th><th>Jurisdiction</th><th>Eff. Year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead>
+      <tbody>${taxHistoryRows}</tbody></table></div>`
+    : '<p class="empty-panel">No tax returns or manual records available.</p>';
+
+  elements.assessments.innerHTML = assessmentRowsFull
+    ? `<div class="table-wrap"><table class="income-assessments-table">
+      <thead><tr><th>Year</th><th>Jurisdiction</th><th>Issued</th><th>Total</th><th>Net</th><th>Taxable</th><th>Net Tax</th><th>Other</th><th>Withheld</th><th>Balance</th><th>Source</th></tr></thead>
+      <tbody>${assessmentRowsFull}</tbody></table></div>`
+    : '<p class="empty-panel">No assessment records loaded.</p>';
+
+  elements.rooms.innerHTML = roomRows
+    ? `<div class="table-wrap"><table class="income-rooms-table">
+      <thead><tr><th>Plan</th><th>Eff. Year</th><th>Available</th><th>Limit</th><th>Unused</th><th>As of</th><th>Source</th></tr></thead>
+      <tbody>${roomRows}</tbody></table></div>`
+    : '<p class="empty-panel">No room records loaded.</p>';
+
+  elements.pension.innerHTML = pension
+    ? `<div class="pension-details">
+         <div class="table-wrap"><table class="income-pension-table">
+           <thead><tr><th>Assumption</th><th>Age</th><th>Monthly</th></tr></thead>
+           <tbody>${pensionEstimates}</tbody>
+         </table></div>
+         <div class="table-wrap"><table class="income-pension-earnings-table">
+           <thead><tr><th>Year</th><th>QPP</th><th>CPP</th><th>Status</th></tr></thead>
+           <tbody>${pensionEarnings}</tbody>
+         </table></div>
+       </div>`
+    : '<p class="empty-panel">No pension data loaded.</p>';
+
+  elements.normalized.innerHTML = normalizedRows
+    ? `<div class="table-wrap"><table class="income-normalized-table">
+      <thead><tr><th>Year</th><th>Doc</th><th>Jurisdiction</th><th>Eff. Year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead>
+      <tbody>${normalizedRows}</tbody></table></div>`
+    : '<p class="empty-panel">No normalized concept values loaded.</p>';
 }
 
 function updateSalaryRate() {
@@ -201,7 +293,9 @@ async function load() {
   }
   const result = await fetch(`/api/income?person_id=${selectedPersonId}`).then(json);
   records = result.records;
+  renderSummary(result.snapshot, result.registered_rooms || []);
   renderHistory();
+  // renderSupplementary() handles all other sections including assessments, rooms, pension, normalized
   renderSupplementary(
     result.assessments || [], result.registered_rooms || [], result.public_pension,
     result.tax_values || [],

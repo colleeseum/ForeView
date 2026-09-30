@@ -489,6 +489,10 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(income["registered_rooms"][0]["effective_year"], 2026)
         self.assertEqual(income["registered_rooms"][0]["available_room"], "20800.00")
         self.assertEqual(income["tax_values"][0]["concept"], "canada_training_credit_limit")
+        self.assertEqual(income["snapshot"]["tax_year"], 2025)
+        snapshot_values = {value["concept"]: value for value in income["snapshot"]["values"]}
+        self.assertEqual(snapshot_values["total_income"]["amount"], "105000.00")
+        self.assertEqual(snapshot_values["total_income"]["source"], "CRA notice of assessment")
 
     def test_pension_preview_and_confirmation_save_earnings_and_estimates(self):
         person_id = self._people()[0]["id"]
@@ -529,9 +533,7 @@ class AppRouteTests(unittest.TestCase):
         )
         self.assertEqual(saved.status_code, 201)
 
-        pension = self.client.get(f"/api/income?person_id={person_id}").get_json()[
-            "public_pension"
-        ]
+        pension = self.client.get(f"/api/income?person_id={person_id}").get_json()["public_pension"]
         self.assertEqual(pension["provider"], "QPP")
         self.assertTrue(pension["excludes_second_enhancement"])
         self.assertEqual(pension["earnings"][0]["cpp_earnings"], "68500.00")
@@ -560,6 +562,89 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(records[1]["salary_rate"], "85000.00")
         self.assertEqual(records[1]["province_of_residence"], "ON")
         self.assertEqual(records[1]["interest_income"], "425.75")
+
+    def test_income_snapshot_api_returns_correctly_structured_data(self):
+        person_id = self._people()[0]["id"]
+        # Setup: 1 annual record, 1 assessment
+        self.client.put(
+            f"/api/income/people/{person_id}/years/2025",
+            json={
+                "employment_income": "100000",
+                "bonus": "5000",
+                "province_of_residence": "ON",
+                "source": "T1",
+            },
+        )
+
+        assessment_payload = {
+            "tax_year": 2025,
+            "jurisdiction": "CA",
+            "issued_on": "2026-05-11",
+            "taxpayer_name": "Alex Example",
+            "total_income": "120000.00",
+            "net_income": "100000.00",
+            "taxable_income": "95000.00",
+            "net_tax": "20000.00",
+            "additional_contributions": "0.00",
+            "tax_withheld": "22000.00",
+            "balance": "-2000.00",
+            "rrsp_effective_year": 2026,
+            "rrsp_deduction_limit": "25000.00",
+            "rrsp_unused_deduction_room": "5000.00",
+            "rrsp_new_room": "20000.00",
+            "rrsp_unused_contributions": "0.00",
+            "rrsp_available_room": "25000.00",
+            "source": "CRA Assessment",
+            "source_version": "1.0",
+            "document_hash": "a" * 64,
+        }
+        self.client.post(
+            f"/api/income/people/{person_id}/assessments",
+            json=assessment_payload,
+        )
+
+        response = self.client.get(f"/api/income?person_id={person_id}")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+
+        self.assertIn("snapshot", data)
+        self.assertIn("records", data)
+        self.assertIn("assessments", data)
+        self.assertIn("registered_rooms", data)
+        self.assertIn("public_pension", data)
+        self.assertIn("tax_values", data)
+
+        snapshot = data["snapshot"]
+        self.assertEqual(snapshot["tax_year"], 2025)
+        self.assertIsInstance(snapshot["values"], list)
+
+        # Verify snapshot values include required concepts
+        concepts = {v["concept"] for v in snapshot["values"]}
+        self.assertIn("employment_income", concepts)
+        self.assertIn("total_income", concepts)
+        self.assertIn("taxable_income", concepts)
+
+    def test_income_snapshot_precedence_via_api(self):
+        person_id = self._people()[0]["id"]
+        # 1. Manual Record (lowest precedence)
+        self.client.put(
+            f"/api/income/people/{person_id}/years/2025",
+            json={
+                "employment_income": "100000",
+                "bonus": "0",
+                "province_of_residence": "ON",
+                "source": "Manual",
+            },
+        )
+
+        response = self.client.get(f"/api/income?person_id={person_id}")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+
+        # Check that the snapshot reflects the manual record for now
+        snapshot_values = {v["concept"]: v for v in data["snapshot"]["values"]}
+        self.assertEqual(snapshot_values["employment_income"]["amount"], "100000.00")
+        self.assertEqual(snapshot_values["employment_income"]["source"], "Manual")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()

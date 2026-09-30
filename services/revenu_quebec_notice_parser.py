@@ -170,8 +170,7 @@ class RevenuQuebecNoticeParser:
                 break
             selected += " " + following
         return tuple(
-            self._amount(raw)
-            for raw in re.findall(r"(?<!\d)([\d,]+\.\d{2})(?!\d)", selected)
+            self._amount(raw) for raw in re.findall(r"(?<!\d)([\d,]+\.\d{2})(?!\d)", selected)
         )
 
     def _optional_amount(self, text: str, pattern: str) -> Decimal | None:

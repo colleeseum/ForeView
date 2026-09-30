@@ -80,9 +80,9 @@ def load_synthetic_questrade(data_dir: Path, scenario_name: str = "initial") -> 
     with runtime.connect() as connection:
         for connection_name in scenario:
             # Placeholder tokens for the synthetic runtime; never sent to Questrade.
-            QuestradeAuthorizationRepository(connection).add_if_absent(  # nosec B106
+            QuestradeAuthorizationRepository(connection).add_if_absent(
                 connection_name,
-                access_token="synthetic",
+                access_token="synthetic",  # nosec
                 refresh_token="synthetic",
                 api_server="https://api01.iq.questrade.com/",
             )

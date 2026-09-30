@@ -101,9 +101,7 @@ class CraNoticeParser:
         ):
             amount = self._optional_line(text, line, description)
             if amount is not None:
-                values.append(
-                    ParsedTaxValue(concept, description, None, amount, line, tax_year)
-                )
+                values.append(ParsedTaxValue(concept, description, None, amount, line, tax_year))
         for concept, description, pattern, effective_year in (
             (
                 "deductions_from_total_income",

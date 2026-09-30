@@ -38,7 +38,7 @@ class MonetaryCentsMigration:
                         f"ALTER TABLE {table} ADD COLUMN {cents} INTEGER"  # noqa: S608
                     )
                 connection.execute(
-                    f"UPDATE {table} SET {cents} = {self._sql_cents(column)} "  # nosec B608
+                    f"UPDATE {table} SET {cents} = {self._sql_cents(column)} "  # nosec
                     f"WHERE {column} IS NOT NULL AND {cents} IS NULL"  # noqa: S608
                 )
                 self._create_compatibility_triggers(connection, table, column, cents)
@@ -58,7 +58,7 @@ class MonetaryCentsMigration:
                     UPDATE {table}
                     SET {cents} = {cents_expression}
                     WHERE rowid = NEW.rowid;
-                END"""  # noqa: S608  # nosec B608
+                END"""  # noqa: S608  # nosec
         )
         connection.execute(
             f"""CREATE TRIGGER IF NOT EXISTS {update_trigger}
@@ -69,7 +69,7 @@ class MonetaryCentsMigration:
                     SET {cents} = CASE WHEN NEW.{column} IS NULL THEN NULL
                                       ELSE {cents_expression} END
                     WHERE rowid = NEW.rowid;
-                END"""  # noqa: S608  # nosec B608
+                END"""  # noqa: S608  # nosec
         )
 
     @staticmethod

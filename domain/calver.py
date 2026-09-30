@@ -5,9 +5,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-_CALVER = re.compile(
-    r"(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2})(?:\.(?:0|[1-9]\d*))?"
-)
+_CALVER = re.compile(r"(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2})(?:\.(?:0|[1-9]\d*))?")
 
 
 def is_calver(value: str) -> bool:

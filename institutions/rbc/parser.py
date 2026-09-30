@@ -17,9 +17,7 @@ def parse_gic_transaction_history(
 ) -> dict[str, object]:
     """Parse RBC Online Banking transaction history for one GIC."""
     text = "\n".join(page_texts).replace("\xa0", " ")
-    account_match = re.search(
-        r"Account Transaction History.*?(TFSA|RESP)\.\.\s*(\d+)", text, re.S
-    )
+    account_match = re.search(r"Account Transaction History.*?(TFSA|RESP)\.\.\s*(\d+)", text, re.S)
     if not account_match or "RBC Savings Deposit" not in text:
         raise ValueError(f"{filename} does not look like an RBC GIC transaction history")
     gic_section = text.split("RBC Savings Deposit", 1)[0]

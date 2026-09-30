@@ -8,6 +8,18 @@ auditable salary and retirement projections without hiding assumptions in a spre
 The project is under active development. Asset tracking and institution imports are implemented;
 expense modelling and the complete retirement projection engine are not yet complete.
 
+## Shared project context
+
+The repository is the durable handoff point for human contributors and coding agents:
+
+- [Architecture](docs/architecture.md) describes the system that currently exists.
+- [Design decisions](docs/decisions.md) records durable constraints and their rationale.
+- [Current state](docs/current-state.md) identifies active work, known limitations, and next steps.
+- [Agent instructions](AGENTS.md) defines the workflow and engineering rules for coding agents.
+
+Keep these documents aligned with executable code and tests. Focused contracts and requirements
+remain beside their implementation or under `docs/` rather than being duplicated here.
+
 ## Important disclaimer
 
 This project is provided for informational and personal planning purposes only. The author is not

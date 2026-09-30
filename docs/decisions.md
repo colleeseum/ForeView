@@ -113,6 +113,20 @@ recommendation is not accepted without a defined method and assumptions.
 Reason: a financial result that cannot be traced or reproduced is not suitable for planning or
 comparison.
 
+## Income snapshots preserve source precedence and provenance
+
+For a given tax year and concept, assessment values take priority over filed-return values. When
+neither source provides a supported concept, the annual factual record may supply that value. The
+resolved value retains its source, document kind, jurisdiction, and line code when available. The
+snapshot does not borrow a value from an older year to fill a newer year.
+
+The annual factual record may itself have been entered manually or populated from a filed return;
+it is not inherently a manual correction. An explicit mechanism for correcting an imported value
+has not been decided.
+
+Reason: the consolidated view should prefer assessed facts while remaining traceable and should
+not silently present stale values as current-year facts.
+
 ## Security scope is local, not multi-tenant
 
 The current application has CSRF protection, optional TLS, encrypted Questrade tokens, localhost

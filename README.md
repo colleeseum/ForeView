@@ -15,6 +15,7 @@ The repository is the durable handoff point for human contributors and coding ag
 - [Architecture](docs/architecture.md) describes the system that currently exists.
 - [Design decisions](docs/decisions.md) records durable constraints and their rationale.
 - [Current state](docs/current-state.md) identifies active work, known limitations, and next steps.
+- [Roadmap](docs/roadmap.md) is the durable product progress checklist.
 - [Agent instructions](AGENTS.md) defines the workflow and engineering rules for coding agents.
 
 Keep these documents aligned with executable code and tests. Focused contracts and requirements
@@ -277,11 +278,13 @@ Run the complete QA suite with:
 make qa
 ```
 
-It runs Ruff formatting and lint checks, mypy, pytest with branch coverage, integration coverage,
-Bandit, and `pip-audit`. Useful focused targets include:
+It checks the Git diff for whitespace errors, then runs Ruff formatting and lint checks, JavaScript
+tests and coverage, mypy, pytest with branch coverage, integration coverage, Bandit, and dependency
+audits. Useful focused targets include:
 
 ```sh
 make test
+make diff-check
 make coverage
 make integration-coverage
 make lint

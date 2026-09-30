@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-09-29
+Updated: 2026-09-30
 
 ## Development focus
 
@@ -9,11 +9,11 @@ disposable-income projection. The application can retain multiple annual records
 individual UFile T1, CRA and Revenu Québec notices of assessment, and a Retraite Québec Statement
 of Participation. Detailed normalized tax concepts are retained for future calculations and audit.
 
-A consolidated latest-year income and tax snapshot is currently being implemented. Its intended
-resolution is to use the newest available tax year, prefer an authority's determined value over a
-filed-return value for the same concept and year, retain provenance, and avoid filling a newer year
-with older facts. This read model is not yet a settled projection input and should be completed and
-verified before other projection features depend on it.
+A consolidated latest-year income and tax snapshot is implemented as an API and UI read model. It
+uses the newest available tax year, resolves each concept from same-year sources, retains
+provenance, and does not fill a newer year with older facts. Assessment values take priority over
+filed-return values, followed by the corresponding annual factual record when available. Its role
+as a projection input remains to be decided.
 
 The implemented employment projection supports factual salary anchors, raises, a first non-working
 date with partial-year proration, recurring and annual salary/RRSP/other-employment-income
@@ -28,6 +28,8 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
   service is a concrete implementation rather than a general projection contract.
 - Salary projection still reads its factual anchor directly from annual employment records. It
   does not yet consume the consolidated T1/assessment read model.
+- The snapshot does not provide an explicit correction layer above imported assessment or return
+  values. Editing an annual factual record only supplies values that higher-priority sources lack.
 - Employment tax projection is Quebec-oriented. Province of residence is stored, and payroll can
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
@@ -47,15 +49,7 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
 
 ## Next decisions and steps
 
-1. Finish and test the consolidated income/tax snapshot, including source-detail presentation and
-   explicit rules for manual corrections.
-2. Decide which resolved factual values form the projection baseline, then connect the salary
-   projection through that contract without losing bonus and contribution semantics.
-3. Complete meaningful salary-projection validation against factual tax records and document the
-   supported provincial scope.
-4. Add side-by-side comparison for saved scenarios.
-5. Define a projection-algorithm contract and timeline composition before adding retirement,
-   benefit, and withdrawal-strategy algorithms.
-6. Expand account-type contracts only when a concrete projection or beneficiary requirement needs
-   behavior beyond current metadata.
-
+The maintained checklist is in [Product roadmap and progress checklist](roadmap.md). The immediate
+sequence is to decide factual correction behavior, define how the consolidated snapshot feeds the
+projection, validate supported tax calculations, add Ontario employment tax, and then implement
+side-by-side scenario comparison. Projection-algorithm composition follows that work.

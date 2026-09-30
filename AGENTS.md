@@ -19,6 +19,22 @@ tests as authoritative when documentation conflicts with implementation, but fla
 stale documentation. Follow established project patterns unless there is a justified reason to
 change them.
 
+## Progress reporting
+
+For substantial tasks, do not work silently for long periods.
+
+- Break large tasks into smaller, clearly defined steps before implementation.
+- Report the initial plan before beginning substantial investigation or changes.
+- Provide a brief progress update after each meaningful investigation or implementation step.
+- If analysis is taking longer than expected, report what has been learned, what is currently being
+  investigated, and what remains.
+- Do not spend more than approximately five minutes on extended analysis without providing a
+  progress update when the agent interface permits it.
+- Prefer incremental investigation and implementation over attempting to understand the entire
+  system before making progress.
+- If the requested task is too broad to execute efficiently, propose a smaller sequence of tasks
+  rather than silently performing an exhaustive analysis.
+
 ## Engineering expectations
 
 - Follow sound software-engineering practices. Prefer encapsulation, cohesive components, clear

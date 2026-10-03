@@ -15,7 +15,8 @@ The repository is the durable handoff point for human contributors and coding ag
 - [Architecture](docs/architecture.md) describes the system that currently exists.
 - [Design decisions](docs/decisions.md) records durable constraints and their rationale.
 - [Current state](docs/current-state.md) identifies active work, known limitations, and next steps.
-- [Roadmap](docs/roadmap.md) is the durable product progress checklist.
+- The [GitHub Project](https://github.com/users/colleeseum/projects/3) is the authoritative product
+  roadmap and progress tracker.
 - [Agent instructions](AGENTS.md) defines the workflow and engineering rules for coding agents.
 
 Keep these documents aligned with executable code and tests. Focused contracts and requirements

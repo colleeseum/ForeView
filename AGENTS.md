@@ -11,7 +11,8 @@ Read these tracked documents before substantial work:
 - `docs/architecture.md` for the implemented system structure and boundaries;
 - `docs/decisions.md` for durable design decisions and their rationale;
 - `docs/current-state.md` for the active development focus, known limitations, and next steps;
-- `docs/roadmap.md` for the maintained product progress checklist;
+- the [GitHub Project](https://github.com/users/colleeseum/projects/3) for roadmap priorities and
+  progress;
 - focused documents such as `institutions/README.md`, `docs/tax-document-concepts.md`, and
   `docs/retirement-projection-concepts.md` when the task touches those areas.
 

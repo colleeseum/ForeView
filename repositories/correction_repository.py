@@ -3,9 +3,9 @@ from __future__ import annotations
 import sqlite3
 from decimal import Decimal
 
-from domain.annual_tax_value import AnnualTaxValue
 from domain.factual_correction_revision import FactualCorrectionRevision
 from domain.money import from_cents, to_cents
+from domain.resolved_income_source import ResolvedIncomeSource
 
 
 class CorrectionConflictError(RuntimeError):
@@ -29,7 +29,7 @@ class CorrectionRepository:
         concept: str,
         correct_amount: Decimal,
         reason: str,
-        source_at_correction: AnnualTaxValue,
+        source_at_correction: ResolvedIncomeSource,
         fingerprint: str,
         *,
         expected_revision: int = 0,
@@ -143,13 +143,15 @@ class CorrectionRepository:
         person_id: int,
         tax_year: int,
         concept: str,
+        source_at_confirmation: ResolvedIncomeSource,
+        fingerprint: str,
         *,
         expected_revision: int,
     ) -> FactualCorrectionRevision:
         latest = self._active_with_expected_revision(
             person_id, tax_year, concept, expected_revision
         )
-        return self._append_copy(latest, "confirm")
+        return self._append_confirmation(latest, source_at_confirmation, fingerprint)
 
     def remove(
         self,
@@ -240,6 +242,68 @@ class CorrectionRepository:
             raise CorrectionConflictError("Correction revision is stale")
         return self._required_by_id(int(row[0]))
 
+    def _append_confirmation(
+        self,
+        latest: FactualCorrectionRevision,
+        source: ResolvedIncomeSource,
+        fingerprint: str,
+    ) -> FactualCorrectionRevision:
+        try:
+            row = self._connection.execute(
+                """INSERT INTO corrections(
+                       person_id, tax_year, concept, revision_number, revision_kind,
+                       correct_amount_cents, reason, source_at_correction_id,
+                       source_at_correction_document_kind,
+                       source_at_correction_jurisdiction,
+                       source_at_correction_concept,
+                       source_at_correction_description,
+                       source_at_correction_reported_amount_cents,
+                       source_at_correction_determined_amount_cents,
+                       source_at_correction_line_code, source_at_correction_source,
+                       source_at_correction_source_version,
+                       source_at_correction_document_hash, fingerprint
+                   )
+                   SELECT person_id, tax_year, concept, revision_number + 1, 'confirm',
+                          correct_amount_cents, reason, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                     FROM corrections
+                    WHERE id = ?
+                      AND revision_number = ?
+                      AND revision_number = (
+                          SELECT MAX(revision_number)
+                            FROM corrections
+                           WHERE person_id = ? AND tax_year = ? AND concept = ?
+                      )
+                   RETURNING id""",
+                (
+                    source.id,
+                    source.document_kind,
+                    source.jurisdiction,
+                    source.concept,
+                    source.description,
+                    to_cents(source.reported_amount)
+                    if source.reported_amount is not None
+                    else None,
+                    to_cents(source.determined_amount)
+                    if source.determined_amount is not None
+                    else None,
+                    source.line_code,
+                    source.source,
+                    source.source_version,
+                    source.document_hash,
+                    fingerprint,
+                    latest.id,
+                    latest.revision_number,
+                    latest.person_id,
+                    latest.tax_year,
+                    latest.concept,
+                ),
+            ).fetchone()
+        except sqlite3.IntegrityError as error:
+            raise CorrectionConflictError("Correction revision is stale") from error
+        if row is None:
+            raise CorrectionConflictError("Correction revision is stale")
+        return self._required_by_id(int(row[0]))
+
     def _insert(
         self,
         person_id: int,
@@ -249,7 +313,7 @@ class CorrectionRepository:
         revision_kind: str,
         correct_amount: Decimal,
         reason: str,
-        source: AnnualTaxValue,
+        source: ResolvedIncomeSource,
         fingerprint: str,
     ) -> int:
         cursor = self._connection.execute(

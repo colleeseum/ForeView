@@ -133,6 +133,11 @@ approved in the runtime database.
 Factual assets, transactions, balances, ownership, annual income, assessments, registered-plan
 room, and pension statements are stored independently of scenario assumptions.
 
+The consolidated income and tax read model resolves each same-year concept through assessment,
+filed-return, and supported annual-record precedence. Factual corrections are separate append-only
+revision streams above that resolver. Their stored source snapshots preserve audit history, while
+review status is derived by comparing the stored fingerprint with the currently resolved source.
+
 The implemented projection slice is employment and disposable income. `SalaryProjectionService`
 combines a factual annual employment record or baseline, scenario settings, annual overrides,
 approved public rules, salary growth, retirement-date proration, payroll contributions, and tax
@@ -161,4 +166,3 @@ Python unit and integration tests live under `tests/`. Browser behavior tests li
 documents. The project enforces branch-aware Python and JavaScript coverage floors of at least 80
 percent, plus Ruff, mypy, Bandit, dependency audits, and dedicated integration-coverage targets.
 The exact commands are maintained in `Makefile` and summarized in `README.md`.
-

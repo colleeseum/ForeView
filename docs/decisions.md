@@ -121,11 +121,13 @@ resolved value retains its source, document kind, jurisdiction, and line code wh
 snapshot does not borrow a value from an older year to fill a newer year.
 
 The annual factual record may itself have been entered manually or populated from a filed return;
-it is not inherently a manual correction. An explicit mechanism for correcting an imported value
-has not been decided.
+it is not inherently a manual correction. Explicit corrections are append-only revisions that do
+not modify underlying facts. Editing preserves the reviewed source fingerprint, confirmation
+captures the currently resolved source, and review status is derived rather than stored mutably.
 
 Reason: the consolidated view should prefer assessed facts while remaining traceable and should
-not silently present stale values as current-year facts.
+not silently present stale values as current-year facts. Derived review status prevents a reimport
+from silently validating or invalidating a user's correction.
 
 ## Security scope is local, not multi-tenant
 

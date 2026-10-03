@@ -17,7 +17,9 @@ as a projection input remains to be decided.
 
 INC-09 factual corrections are in progress. The implemented persistence and API foundation keeps
 append-only revision history, uses optimistic concurrency for mutations, records removals as
-tombstones, and applies the latest active correction to the consolidated snapshot.
+tombstones, and applies the latest active correction to the consolidated snapshot. Corrections
+retain the source that was reviewed, detect changed or missing underlying sources through a
+derived fingerprint, and support confirmation without losing prior revisions.
 
 The implemented employment projection supports factual salary anchors, raises, a first non-working
 date with partial-year proration, recurring and annual salary/RRSP/other-employment-income
@@ -32,8 +34,8 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
   service is a concrete implementation rather than a general projection contract.
 - Salary projection still reads its factual anchor directly from annual employment records. It
   does not yet consume the consolidated T1/assessment read model.
-- Factual corrections do not yet have the required UI, shared concept validation, complete
-  source-precedence resolution, or source-change fingerprint and review workflow.
+- Factual corrections do not yet have the required UI or shared concept validation across the API,
+  snapshot, and future browser presentation.
 - Employment tax projection is Quebec-oriented. Province of residence is stored, and payroll can
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.

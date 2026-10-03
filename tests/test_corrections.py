@@ -9,6 +9,8 @@ from flask import Flask
 
 from domain.annual_tax_value import AnnualTaxValue
 from domain.parsed_tax_value import ParsedTaxValue
+from domain.resolved_income_source import ResolvedIncomeSource
+from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_value_repository import AnnualTaxValueRepository
 from repositories.correction_repository import (
     CorrectionConflictError,
@@ -16,6 +18,7 @@ from repositories.correction_repository import (
 )
 from services.database_initialization import ensure_domain_schema
 from services.income_tax_snapshot_service import IncomeTaxSnapshotService
+from services.income_tax_source_resolver import source_fingerprint
 from web.correction_routes import blueprint as correction_blueprint
 
 
@@ -49,11 +52,28 @@ def source_value(amount: str = "100000") -> AnnualTaxValue:
     )
 
 
+def resolved_source(amount: str = "100000") -> ResolvedIncomeSource:
+    value = source_value(amount)
+    return ResolvedIncomeSource(
+        id=value.id,
+        concept=value.concept,
+        description=value.description,
+        document_kind=value.document_kind,
+        jurisdiction=value.jurisdiction,
+        reported_amount=value.reported_amount,
+        determined_amount=value.determined_amount,
+        line_code=value.line_code,
+        source=value.source,
+        source_version=value.source_version,
+        document_hash=value.document_hash,
+    )
+
+
 def test_correction_lifecycle_appends_immutable_revisions(
     database: sqlite3.Connection,
 ) -> None:
     repository = CorrectionRepository(database)
-    source = source_value()
+    source = resolved_source()
 
     created = repository.create(
         1,
@@ -76,6 +96,8 @@ def test_correction_lifecycle_appends_immutable_revisions(
         1,
         2025,
         "employment_income",
+        source,
+        "confirmed-fingerprint",
         expected_revision=2,
     )
     removed = repository.remove(
@@ -109,7 +131,7 @@ def test_stale_edit_is_rejected_without_appending_revision(
         "employment_income",
         Decimal("110000"),
         "Initial correction",
-        source_value(),
+        resolved_source(),
         "fingerprint",
     )
     repository.edit(
@@ -136,6 +158,52 @@ def test_stale_edit_is_rejected_without_appending_revision(
     assert history[-1].correct_amount == Decimal("115000")
 
 
+def test_edit_preserves_fingerprint_and_confirmation_refreshes_source(
+    database: sqlite3.Connection,
+) -> None:
+    repository = CorrectionRepository(database)
+    original_source = resolved_source("100000")
+    original_fingerprint = source_fingerprint(original_source)
+    repository.create(
+        1,
+        2025,
+        "employment_income",
+        Decimal("110000"),
+        "Initial correction",
+        original_source,
+        original_fingerprint,
+    )
+
+    edited = repository.edit(
+        1,
+        2025,
+        "employment_income",
+        Decimal("115000"),
+        "Amount changed without reviewing source",
+        expected_revision=1,
+    )
+
+    assert edited.fingerprint == original_fingerprint
+    assert edited.source_reported_amount == Decimal("100000")
+
+    current_source = resolved_source("102000")
+    current_fingerprint = source_fingerprint(current_source)
+    confirmed = repository.confirm(
+        1,
+        2025,
+        "employment_income",
+        current_source,
+        current_fingerprint,
+        expected_revision=2,
+    )
+
+    assert confirmed.fingerprint == current_fingerprint
+    assert confirmed.source_reported_amount == Decimal("102000")
+    assert repository.get_history(1, 2025, "employment_income")[0].fingerprint == (
+        original_fingerprint
+    )
+
+
 def test_repeated_remove_is_idempotent(database: sqlite3.Connection) -> None:
     repository = CorrectionRepository(database)
     repository.create(
@@ -144,7 +212,7 @@ def test_repeated_remove_is_idempotent(database: sqlite3.Connection) -> None:
         "employment_income",
         Decimal("110000"),
         "Initial correction",
-        source_value(),
+        resolved_source(),
         "fingerprint",
     )
     removed = repository.remove(
@@ -170,13 +238,14 @@ def test_snapshot_uses_latest_active_revision_and_ignores_tombstone(
 ) -> None:
     repository = CorrectionRepository(database)
     source = source_value()
+    correction_source = resolved_source()
     repository.create(
         1,
         2025,
         "employment_income",
         Decimal("110000"),
         "Initial correction",
-        source,
+        correction_source,
         "fingerprint",
     )
     repository.edit(
@@ -272,3 +341,136 @@ def test_correction_api_rejects_a_stale_expected_revision(
     )
     assert stale_response.status_code == 409
     assert len(CorrectionRepository(database).get_history(1, 2025, "employment_income")) == 2
+
+
+def test_correction_api_derives_review_status_and_confirmation_refreshes_source(
+    database: sqlite3.Connection,
+) -> None:
+    tax_values = AnnualTaxValueRepository(database)
+    tax_values.upsert_value(
+        1,
+        2025,
+        "return",
+        "CA",
+        "UFile T1",
+        "2026.09.29",
+        "document-hash",
+        ParsedTaxValue(
+            concept="employment_income",
+            description="Employment income",
+            reported_amount=Decimal("100000"),
+            line_code="10100",
+        ),
+    )
+    app = Flask(__name__)
+    app.register_blueprint(correction_blueprint)
+    app.extensions["finance_connect"] = lambda: database
+    client = app.test_client()
+    created_response = client.post(
+        "/api/income/corrections",
+        json={
+            "person_id": 1,
+            "tax_year": 2025,
+            "concept": "employment_income",
+            "correct_amount": "110000",
+            "reason": "Supporting records differ",
+            "expected_revision": 0,
+        },
+    )
+    created = created_response.get_json()
+    assert created_response.status_code == 201
+    assert created["review_required"] is False
+    assert created["source_at_correction"]["amount"] == "100000.00"
+
+    unchanged = client.get("/api/income/corrections/person/1/year/2025").get_json()["corrections"][
+        0
+    ]
+    assert unchanged["review_required"] is False
+
+    tax_values.upsert_value(
+        1,
+        2025,
+        "return",
+        "CA",
+        "UFile T1",
+        "2026.09.29",
+        "document-hash",
+        ParsedTaxValue(
+            concept="employment_income",
+            description="Employment income",
+            reported_amount=Decimal("102000"),
+            line_code="10100",
+        ),
+    )
+    changed = client.get("/api/income/corrections/person/1/year/2025").get_json()["corrections"][0]
+    assert changed["review_required"] is True
+    assert changed["current_underlying"]["amount"] == "102000.00"
+
+    edited_response = client.put(
+        f"/api/income/corrections/{created['id']}",
+        json={
+            "correct_amount": "111000",
+            "reason": "Correction edited without source review",
+            "expected_revision": 1,
+        },
+    )
+    edited = edited_response.get_json()
+    assert edited["review_required"] is True
+    assert edited["source_at_correction"]["amount"] == "100000.00"
+
+    confirmed_response = client.post(
+        f"/api/income/corrections/{edited['id']}/confirm",
+        json={"expected_revision": 2},
+    )
+    confirmed = confirmed_response.get_json()
+    assert confirmed_response.status_code == 200
+    assert confirmed["revision_number"] == 3
+    assert confirmed["review_required"] is False
+    assert confirmed["source_at_correction"]["amount"] == "102000.00"
+
+    tax_values.replace_document(
+        1,
+        2025,
+        "return",
+        "CA",
+        "UFile T1",
+        "2026.09.29",
+        "document-hash",
+        [],
+    )
+    disappeared = client.get("/api/income/corrections/person/1/year/2025").get_json()[
+        "corrections"
+    ][0]
+    assert disappeared["review_required"] is True
+    assert disappeared["current_underlying"]["amount"] is None
+
+
+def test_correction_api_accepts_annual_record_fallback(
+    database: sqlite3.Connection,
+) -> None:
+    AnnualEmploymentActualRepository(database).upsert(
+        1,
+        2025,
+        Decimal("90000"),
+        province_of_residence="QC",
+        source="Manual annual record",
+    )
+    app = Flask(__name__)
+    app.register_blueprint(correction_blueprint)
+    app.extensions["finance_connect"] = lambda: database
+    response = app.test_client().post(
+        "/api/income/corrections",
+        json={
+            "person_id": 1,
+            "tax_year": 2025,
+            "concept": "employment_income",
+            "correct_amount": "91000",
+            "reason": "Supporting records differ",
+            "expected_revision": 0,
+        },
+    )
+
+    assert response.status_code == 201
+    correction = response.get_json()
+    assert correction["source_at_correction"]["amount"] == "90000.00"
+    assert correction["source_at_correction"]["document_kind"] == "annual_record"

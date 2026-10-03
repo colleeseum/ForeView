@@ -8,6 +8,7 @@ from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.annual_tax_value import AnnualTaxValue
 from domain.consolidated_income_value import ConsolidatedIncomeValue
 from domain.income_tax_snapshot import IncomeTaxSnapshot
+from repositories.correction_repository import CorrectionRepository
 
 
 class IncomeTaxSnapshotService:
@@ -26,21 +27,26 @@ class IncomeTaxSnapshotService:
         ("provincial_income_tax", "Net provincial tax", "provincial_tax"),
     )
 
+    def __init__(self, correction_repository: CorrectionRepository | None = None) -> None:
+        self._correction_repository = correction_repository
+
     def build(
         self,
         records: Iterable[AnnualEmploymentActual],
         assessments: Iterable[AnnualTaxAssessment],
         tax_values: Iterable[AnnualTaxValue],
         *,
+        person_id: int | None = None,
         year: int | None = None,
     ) -> IncomeTaxSnapshot | None:
         """
         Build an IncomeTaxSnapshot for a specific year.
 
         Precedence:
-        1. AnnualTaxAssessment (Assessment)
-        2. AnnualTaxValue (T1/Filed Return)
-        3. AnnualEmploymentActual (Manual/Factual Record) - only if fallback is defined for the concept.
+        1. Correction (explicit factual correction) - takes precedence over all other sources
+        2. AnnualTaxAssessment (Assessment)
+        3. AnnualTaxValue (T1/Filed Return)
+        4. AnnualEmploymentActual (Manual/Factual Record) - only if fallback is defined for the concept.
         """
         annual_records = tuple(records)
         annual_assessments = tuple(assessments)
@@ -64,12 +70,28 @@ class IncomeTaxSnapshotService:
         record = next((item for item in annual_records if item.tax_year == selected_year), None)
         selected: list[ConsolidatedIncomeValue] = []
         for concept, label, fallback_attribute in self._CONCEPTS:
-            # 1 & 2: Try Assessment, then T1
-            resolved = self._resolve_assessment(
-                annual_assessments, selected_year, concept, label
-            ) or self._resolve_tax_value(values, selected_year, concept, label)
+            # Check for correction first (highest precedence)
+            resolved = None
+            if self._correction_repository and person_id is not None:
+                correction = self._correction_repository.get(person_id, selected_year, concept)
+                if correction is not None:
+                    if correction.correct_amount is not None:
+                        resolved = ConsolidatedIncomeValue(
+                            concept=concept,
+                            label=label,
+                            amount=correction.correct_amount,
+                            source="Corrected value",
+                            document_kind="correction",
+                            jurisdiction=correction.source_jurisdiction,
+                        )
 
-            # 3: Try Manual fallback if both Assessment and T1 failed
+            # If no correction or correction failed, resolve through normal precedence
+            if resolved is None:
+                resolved = self._resolve_assessment(
+                    annual_assessments, selected_year, concept, label
+                ) or self._resolve_tax_value(values, selected_year, concept, label)
+
+            # 4: Try Manual fallback if both Assessment and T1 failed
             if resolved is None and record is not None and fallback_attribute is not None:
                 resolved = ConsolidatedIncomeValue(
                     concept=concept,

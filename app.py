@@ -14,6 +14,7 @@ from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
 from services.database_initialization import ensure_domain_schema as ensure_domain_schema
 from services.database_initialization import initialize_database
+from web.correction_routes import blueprint as correction_blueprint
 from web.dashboard_routes import blueprint as dashboard_blueprint
 from web.help_routes import blueprint as help_blueprint
 from web.income_routes import blueprint as income_blueprint
@@ -109,6 +110,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         model_blueprint,
         public_rule_blueprint,
         salary_projection_blueprint,
+        correction_blueprint,
     ):
         app.register_blueprint(blueprint)
     for institution in institution_registry().providers:

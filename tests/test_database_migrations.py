@@ -10,6 +10,10 @@ import app as application
 from infrastructure.migrations.annual_employment_province_backfill import (
     AnnualEmploymentProvinceBackfillMigration,
 )
+from infrastructure.migrations.correction_revision_history import (
+    CorrectionRevisionHistoryMigration,
+)
+from infrastructure.migrations.corrections_table import CorrectionsTableMigration
 from infrastructure.runtime_config import RuntimeConfig
 
 
@@ -39,8 +43,92 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (9, "household_expenses"),
                     (10, "tax_and_public_pension_records"),
                     (11, "annual_tax_values"),
+                    (12, "corrections_table"),
+                    (13, "correction_revision_history"),
                 ],
             )
+
+    def test_correction_history_migration_preserves_active_and_removed_rows(self):
+        connection = sqlite3.connect(":memory:")
+        self.addCleanup(connection.close)
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("CREATE TABLE people(id INTEGER PRIMARY KEY, name TEXT NOT NULL)")
+        connection.execute("INSERT INTO people(id, name) VALUES (1, 'Example')")
+        CorrectionsTableMigration().apply(connection)
+        values = (
+            1,
+            2025,
+            "employment_income",
+            11000000,
+            "Supporting records",
+            "return",
+            "CA",
+            "employment_income",
+            "Employment income",
+            10000000,
+            "UFile T1",
+            "2026.09.29",
+            "document-hash",
+            "fingerprint",
+        )
+        connection.execute(
+            """INSERT INTO corrections(
+                   person_id, tax_year, concept, correct_amount_cents, reason,
+                   source_at_correction_document_kind,
+                   source_at_correction_jurisdiction,
+                   source_at_correction_concept,
+                   source_at_correction_description,
+                   source_at_correction_reported_amount_cents,
+                   source_at_correction_source,
+                   source_at_correction_source_version,
+                   source_at_correction_document_hash, fingerprint
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            values,
+        )
+        connection.execute(
+            """INSERT INTO corrections(
+                   person_id, tax_year, concept, correct_amount_cents, reason,
+                   source_at_correction_document_kind,
+                   source_at_correction_jurisdiction,
+                   source_at_correction_concept,
+                   source_at_correction_description,
+                   source_at_correction_reported_amount_cents,
+                   source_at_correction_source,
+                   source_at_correction_source_version,
+                   source_at_correction_document_hash, fingerprint, deleted_at
+               ) VALUES (?, ?, 'interest_investment_income', ?, ?, ?, ?,
+                         'interest_investment_income', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
+            (
+                values[0],
+                values[1],
+                300000,
+                values[4],
+                values[5],
+                values[6],
+                "Interest income",
+                250000,
+                values[10],
+                values[11],
+                values[12],
+                values[13],
+            ),
+        )
+
+        CorrectionRevisionHistoryMigration().apply(connection)
+
+        rows = connection.execute(
+            """SELECT concept, revision_number, revision_kind, correct_amount_cents
+                 FROM corrections
+                ORDER BY concept, revision_number"""
+        ).fetchall()
+        self.assertEqual(
+            rows,
+            [
+                ("employment_income", 1, "create", 11000000),
+                ("interest_investment_income", 1, "create", 300000),
+                ("interest_investment_income", 2, "remove", 300000),
+            ],
+        )
 
     def test_employment_projection_migration_creates_typed_tables(self):
         with tempfile.TemporaryDirectory() as directory:

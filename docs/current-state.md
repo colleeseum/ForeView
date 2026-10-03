@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-09-30
+Updated: 2026-10-03
 
 ## Development focus
 
@@ -15,6 +15,10 @@ provenance, and does not fill a newer year with older facts. Assessment values t
 filed-return values, followed by the corresponding annual factual record when available. Its role
 as a projection input remains to be decided.
 
+INC-09 factual corrections are in progress. The implemented persistence and API foundation keeps
+append-only revision history, uses optimistic concurrency for mutations, records removals as
+tombstones, and applies the latest active correction to the consolidated snapshot.
+
 The implemented employment projection supports factual salary anchors, raises, a first non-working
 date with partial-year proration, recurring and annual salary/RRSP/other-employment-income
 overrides, payroll contributions, federal and Quebec tax estimates, disposable income, saved
@@ -28,8 +32,8 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
   service is a concrete implementation rather than a general projection contract.
 - Salary projection still reads its factual anchor directly from annual employment records. It
   does not yet consume the consolidated T1/assessment read model.
-- The snapshot does not provide an explicit correction layer above imported assessment or return
-  values. Editing an annual factual record only supplies values that higher-priority sources lack.
+- Factual corrections do not yet have the required UI, shared concept validation, complete
+  source-precedence resolution, or source-change fingerprint and review workflow.
 - Employment tax projection is Quebec-oriented. Province of residence is stored, and payroll can
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
@@ -49,7 +53,6 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
 
 ## Next decisions and steps
 
-The maintained checklist is in [Product roadmap and progress checklist](roadmap.md). The immediate
-sequence is to decide factual correction behavior, define how the consolidated snapshot feeds the
-projection, validate supported tax calculations, add Ontario employment tax, and then implement
-side-by-side scenario comparison. Projection-algorithm composition follows that work.
+The authoritative priorities, execution order, and progress are maintained in the
+[GitHub Project](https://github.com/users/colleeseum/projects/3). This document records the current
+implementation state and intentional limitations without duplicating the changing roadmap.

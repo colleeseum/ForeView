@@ -15,6 +15,7 @@ from public_pension_sources import public_pension_source_registry
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
 from repositories.annual_tax_value_repository import AnnualTaxValueRepository
+from repositories.correction_repository import CorrectionRepository
 from repositories.person_repository import PersonRepository
 from repositories.public_pension_statement_repository import PublicPensionStatementRepository
 from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
@@ -34,14 +35,20 @@ def income_record():
     with dependency("connect")() as connection:
         people = PersonRepository(connection).list_all()
         repository = AnnualEmploymentActualRepository(connection)
+        all_records = list(reversed(repository.list_for_person(person_id)))
         assessments = AnnualTaxAssessmentRepository(connection).list_for_person(person_id)
         rooms = RegisteredPlanRoomRepository(connection).list_for_person(person_id)
         pension_repository = PublicPensionStatementRepository(connection)
         tax_value_repository = AnnualTaxValueRepository(connection)
         tax_values = tax_value_repository.list_for_person(person_id)
         pension = pension_repository.latest_for_person(person_id)
-        all_records = list(reversed(repository.list_for_person(person_id)))
-        snapshot = IncomeTaxSnapshotService().build(all_records, assessments, tax_values, year=year)
+
+        # Create service with correction repository
+        correction_repository = CorrectionRepository(connection)
+        snapshot_service = IncomeTaxSnapshotService(correction_repository=correction_repository)
+        snapshot = snapshot_service.build(
+            all_records, assessments, tax_values, person_id=person_id, year=year
+        )
         if year is None:
             records = all_records
             record = None

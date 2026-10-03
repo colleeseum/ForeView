@@ -319,6 +319,7 @@ def test_correction_api_rejects_a_stale_expected_revision(
     assert created_response.status_code == 201
     created = created_response.get_json()
     assert created["revision_number"] == 1
+    assert created["label"] == "Employment income"
 
     edited_response = client.put(
         f"/api/income/corrections/{created['id']}",
@@ -341,6 +342,88 @@ def test_correction_api_rejects_a_stale_expected_revision(
     )
     assert stale_response.status_code == 409
     assert len(CorrectionRepository(database).get_history(1, 2025, "employment_income")) == 2
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"concept": "unknown"}, "Unsupported income and tax concept"),
+        ({"correct_amount": "NaN"}, "Invalid amount"),
+        ({"correct_amount": "Infinity"}, "Invalid amount"),
+        ({"correct_amount": "-0.01"}, "cannot be negative"),
+        ({"reason": "  "}, "Correction reason is required"),
+        ({"tax_year": 1899}, "Tax year must be between"),
+    ],
+)
+def test_correction_api_rejects_invalid_input_without_writing(
+    database: sqlite3.Connection,
+    changes: dict[str, object],
+    message: str,
+) -> None:
+    AnnualTaxValueRepository(database).upsert_value(
+        1,
+        2025,
+        "return",
+        "CA",
+        "UFile T1",
+        "2026.09.29",
+        "document-hash",
+        ParsedTaxValue(
+            concept="employment_income",
+            description="Employment income",
+            reported_amount=Decimal("100000"),
+            line_code="10100",
+        ),
+    )
+    app = Flask(__name__)
+    app.register_blueprint(correction_blueprint)
+    app.extensions["finance_connect"] = lambda: database
+    payload: dict[str, object] = {
+        "person_id": 1,
+        "tax_year": 2025,
+        "concept": "employment_income",
+        "correct_amount": "110000",
+        "reason": "Supporting records differ",
+        "expected_revision": 0,
+    }
+    payload.update(changes)
+
+    response = app.test_client().post("/api/income/corrections", json=payload)
+
+    assert response.status_code == 400
+    assert message in response.get_json()["error"]
+    assert CorrectionRepository(database).get_history(1, 2025, "employment_income") == []
+
+
+def test_correction_api_rejects_invalid_edit_without_appending_revision(
+    database: sqlite3.Connection,
+) -> None:
+    repository = CorrectionRepository(database)
+    created = repository.create(
+        1,
+        2025,
+        "employment_income",
+        Decimal("110000"),
+        "Initial correction",
+        resolved_source(),
+        "fingerprint",
+    )
+    database.commit()
+    app = Flask(__name__)
+    app.register_blueprint(correction_blueprint)
+    app.extensions["finance_connect"] = lambda: database
+
+    response = app.test_client().put(
+        f"/api/income/corrections/{created.id}",
+        json={
+            "correct_amount": "-1",
+            "reason": "Invalid negative correction",
+            "expected_revision": 1,
+        },
+    )
+
+    assert response.status_code == 400
+    assert len(repository.get_history(1, 2025, "employment_income")) == 1
 
 
 def test_correction_api_derives_review_status_and_confirmation_refreshes_source(

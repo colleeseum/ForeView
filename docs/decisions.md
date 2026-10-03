@@ -124,6 +124,9 @@ The annual factual record may itself have been entered manually or populated fro
 it is not inherently a manual correction. Explicit corrections are append-only revisions that do
 not modify underlying facts. Editing preserves the reviewed source fingerprint, confirmation
 captures the currently resolved source, and review status is derived rather than stored mutably.
+Supported correction concepts have one domain-level catalog used by resolution and validation.
+Initial correction values are non-negative money amounts, including zero, and must include a
+non-empty reason.
 
 Reason: the consolidated view should prefer assessed facts while remaining traceable and should
 not silently present stale values as current-year facts. Derived review status prevents a reimport

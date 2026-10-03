@@ -137,6 +137,8 @@ The consolidated income and tax read model resolves each same-year concept throu
 filed-return, and supported annual-record precedence. Factual corrections are separate append-only
 revision streams above that resolver. Their stored source snapshots preserve audit history, while
 review status is derived by comparing the stored fingerprint with the currently resolved source.
+A domain-level concept catalog supplies the supported keys, labels, and annual-record mappings to
+source resolution, correction validation, API output, and the snapshot presented by the browser.
 
 The implemented projection slice is employment and disposable income. `SalaryProjectionService`
 combines a factual annual employment record or baseline, scenario settings, annual overrides,

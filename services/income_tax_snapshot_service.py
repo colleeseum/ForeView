@@ -6,9 +6,10 @@ from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.annual_tax_value import AnnualTaxValue
 from domain.consolidated_income_value import ConsolidatedIncomeValue
+from domain.income_tax_concept import INCOME_TAX_CONCEPTS
 from domain.income_tax_snapshot import IncomeTaxSnapshot
 from repositories.correction_repository import CorrectionRepository
-from services.income_tax_source_resolver import CONCEPTS, IncomeTaxSourceResolver
+from services.income_tax_source_resolver import IncomeTaxSourceResolver
 
 
 class IncomeTaxSnapshotService:
@@ -44,14 +45,15 @@ class IncomeTaxSnapshotService:
             return None
 
         selected: list[ConsolidatedIncomeValue] = []
-        for concept, label, _fallback_attribute in CONCEPTS:
+        for definition in INCOME_TAX_CONCEPTS:
+            concept = definition.key
             resolved = None
             if self._correction_repository and person_id is not None:
                 correction = self._correction_repository.get(person_id, selected_year, concept)
                 if correction is not None and correction.correct_amount is not None:
                     resolved = ConsolidatedIncomeValue(
                         concept=concept,
-                        label=label,
+                        label=definition.label,
                         amount=correction.correct_amount,
                         source="Corrected value",
                         document_kind="correction",
@@ -62,7 +64,7 @@ class IncomeTaxSnapshotService:
                 if source.amount is not None and source.document_kind is not None:
                     resolved = ConsolidatedIncomeValue(
                         concept=concept,
-                        label=label,
+                        label=definition.label,
                         amount=source.amount,
                         source=source.source,
                         document_kind=source.document_kind,

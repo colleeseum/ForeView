@@ -8,21 +8,9 @@ from decimal import Decimal
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.annual_tax_value import AnnualTaxValue
+from domain.income_tax_concept import income_tax_concept
 from domain.money import to_cents
 from domain.resolved_income_source import ResolvedIncomeSource
-
-CONCEPTS = (
-    ("employment_income", "Employment income", "salary_income"),
-    ("oas_income", "OAS income", None),
-    ("cpp_qpp_benefits", "CPP/QPP benefits", None),
-    ("other_pension_income", "Other pension income", None),
-    ("interest_investment_income", "Interest and investment income", None),
-    ("total_income", "Total income", None),
-    ("taxable_income", "Taxable income", None),
-    ("rrsp_deduction", "RRSP deduction", "rrsp_deduction"),
-    ("net_federal_tax", "Net federal tax", "federal_tax"),
-    ("provincial_income_tax", "Net provincial tax", "provincial_tax"),
-)
 
 _ASSESSMENT_FIELDS = {
     "total_income": ("total_income", "CA"),
@@ -59,20 +47,18 @@ class IncomeTaxSourceResolver:
         )
 
     def resolve(self, tax_year: int, concept: str) -> ResolvedIncomeSource:
-        label, fallback_attribute = self._definition(concept)
+        definition = income_tax_concept(concept)
         return (
-            self._assessment(tax_year, concept, label)
-            or self._tax_value(tax_year, concept, label)
-            or self._annual_record(tax_year, concept, label, fallback_attribute)
-            or ResolvedIncomeSource.absent(concept, label)
+            self._assessment(tax_year, concept, definition.label)
+            or self._tax_value(tax_year, concept, definition.label)
+            or self._annual_record(
+                tax_year,
+                concept,
+                definition.label,
+                definition.annual_record_attribute,
+            )
+            or ResolvedIncomeSource.absent(concept, definition.label)
         )
-
-    @staticmethod
-    def _definition(concept: str) -> tuple[str, str | None]:
-        definition = next((item for item in CONCEPTS if item[0] == concept), None)
-        if definition is None:
-            raise ValueError(f"Unsupported income and tax concept: {concept}")
-        return definition[1], definition[2]
 
     def _assessment(self, tax_year: int, concept: str, label: str) -> ResolvedIncomeSource | None:
         mapping = _ASSESSMENT_FIELDS.get(concept)

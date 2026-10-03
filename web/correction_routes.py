@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import sqlite3
-from decimal import Decimal
 from typing import Any
 
 from flask import Blueprint, jsonify, request
 
 from domain.factual_correction_revision import FactualCorrectionRevision
+from domain.income_tax_concept import income_tax_concept
 from domain.resolved_income_source import ResolvedIncomeSource
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
@@ -16,6 +16,7 @@ from repositories.correction_repository import (
     CorrectionNotFoundError,
     CorrectionRepository,
 )
+from services.factual_correction_validator import FactualCorrectionValidator
 from services.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
 from web.dependencies import dependency
 
@@ -26,22 +27,28 @@ blueprint = Blueprint("corrections", __name__)
 def create_correction():
     payload = request.get_json(silent=True) or {}
     try:
-        person_id = int(payload["person_id"])
-        tax_year = int(payload["tax_year"])
-        concept = str(payload["concept"])
-        amount = Decimal(str(payload["correct_amount"]))
-        reason = str(payload["reason"])
-        expected_revision = int(payload.get("expected_revision", 0))
+        values = FactualCorrectionValidator.validate(
+            payload["person_id"],
+            payload["tax_year"],
+            payload["concept"],
+            payload["correct_amount"],
+            payload["reason"],
+        )
+        expected_revision = FactualCorrectionValidator.expected_revision(
+            payload.get("expected_revision", 0), allow_zero=True
+        )
         with dependency("connect")() as connection:
-            source = _resolver(connection, person_id).resolve(tax_year, concept)
+            source = _resolver(connection, values.person_id).resolve(
+                values.tax_year, values.concept.key
+            )
             if not source.has_value:
                 return jsonify({"error": "No source value exists for this correction"}), 400
             revision = CorrectionRepository(connection).create(
-                person_id,
-                tax_year,
-                concept,
-                amount,
-                reason,
+                values.person_id,
+                values.tax_year,
+                values.concept.key,
+                values.amount,
+                values.reason,
                 source,
                 source_fingerprint(source),
                 expected_revision=expected_revision,
@@ -57,18 +64,25 @@ def create_correction():
 def edit_correction(revision_id: int):
     payload = request.get_json(silent=True) or {}
     try:
-        amount = Decimal(str(payload["correct_amount"]))
-        reason = str(payload["reason"])
-        expected_revision = int(payload["expected_revision"])
+        expected_revision = FactualCorrectionValidator.expected_revision(
+            payload["expected_revision"], allow_zero=False
+        )
         with dependency("connect")() as connection:
             repository = CorrectionRepository(connection)
             target = _target(repository, revision_id)
+            values = FactualCorrectionValidator.validate(
+                target.person_id,
+                target.tax_year,
+                target.concept,
+                payload["correct_amount"],
+                payload["reason"],
+            )
             revision = repository.edit(
                 target.person_id,
                 target.tax_year,
                 target.concept,
-                amount,
-                reason,
+                values.amount,
+                values.reason,
                 expected_revision=expected_revision,
             )
             source = _resolver(connection, target.person_id).resolve(
@@ -87,7 +101,9 @@ def edit_correction(revision_id: int):
 def confirm_correction(revision_id: int):
     payload = request.get_json(silent=True) or {}
     try:
-        expected_revision = int(payload["expected_revision"])
+        expected_revision = FactualCorrectionValidator.expected_revision(
+            payload["expected_revision"], allow_zero=False
+        )
         with dependency("connect")() as connection:
             repository = CorrectionRepository(connection)
             target = _target(repository, revision_id)
@@ -115,7 +131,9 @@ def confirm_correction(revision_id: int):
 def remove_correction(revision_id: int):
     payload = request.get_json(silent=True) or {}
     try:
-        expected_revision = int(payload["expected_revision"])
+        expected_revision = FactualCorrectionValidator.expected_revision(
+            payload["expected_revision"], allow_zero=False
+        )
         with dependency("connect")() as connection:
             repository = CorrectionRepository(connection)
             target = _target(repository, revision_id)
@@ -163,10 +181,18 @@ def list_corrections_for_year(person_id: int, tax_year: int):
 
 @blueprint.get("/api/income/corrections/person/<int:person_id>/year/<int:tax_year>/<concept>")
 def correction_history(person_id: int, tax_year: int, concept: str):
-    with dependency("connect")() as connection:
-        revisions = CorrectionRepository(connection).get_history(person_id, tax_year, concept)
-        source = _resolver(connection, person_id).resolve(tax_year, concept)
-    return jsonify({"corrections": [_revision_json(revision, source) for revision in revisions]})
+    try:
+        definition = income_tax_concept(concept)
+        with dependency("connect")() as connection:
+            revisions = CorrectionRepository(connection).get_history(
+                person_id, tax_year, definition.key
+            )
+            source = _resolver(connection, person_id).resolve(tax_year, definition.key)
+        return jsonify(
+            {"corrections": [_revision_json(revision, source) for revision in revisions]}
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
 
 def _target(repository: CorrectionRepository, revision_id: int) -> FactualCorrectionRevision:
@@ -197,6 +223,7 @@ def _revision_json(
         "person_id": revision.person_id,
         "tax_year": revision.tax_year,
         "concept": revision.concept,
+        "label": income_tax_concept(revision.concept).label,
         "revision_number": revision.revision_number,
         "revision_kind": revision.revision_kind,
         "correct_amount": str(revision.correct_amount)

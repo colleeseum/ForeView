@@ -103,8 +103,18 @@ class DatabaseMigrationTests(unittest.TestCase):
                ) VALUES (?, ?, 'interest_investment_income', ?, ?, ?, ?,
                          'interest_investment_income', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
             (
-                values[0], values[1], 300000, values[4], values[5], values[6],
-                "Interest income", 250000, values[10], values[11], values[12], values[13],
+                values[0],
+                values[1],
+                300000,
+                values[4],
+                values[5],
+                values[6],
+                "Interest income",
+                250000,
+                values[10],
+                values[11],
+                values[12],
+                values[13],
             ),
         )
 
@@ -112,7 +122,8 @@ class DatabaseMigrationTests(unittest.TestCase):
 
         rows = connection.execute(
             """SELECT concept, revision_number, revision_kind, correct_amount_cents
-                 FROM corrections ORDER BY concept, revision_number"""
+                 FROM corrections
+                ORDER BY concept, revision_number"""
         ).fetchall()
         self.assertEqual(
             rows,
@@ -138,9 +149,13 @@ class DatabaseMigrationTests(unittest.TestCase):
 
             self.assertTrue(
                 {
-                    "employment_baselines", "annual_employment_actuals",
-                    "employment_projection_settings", "employment_projection_overrides",
-                    "household_expense_plans", "expense_categories", "expense_records",
+                    "employment_baselines",
+                    "annual_employment_actuals",
+                    "employment_projection_settings",
+                    "employment_projection_overrides",
+                    "household_expense_plans",
+                    "expense_categories",
+                    "expense_records",
                 }.issubset(tables)
             )
             with runtime.connect() as connection:
@@ -205,4 +220,43 @@ class DatabaseMigrationTests(unittest.TestCase):
                 cents = connection.execute(
                     "SELECT amount_cents FROM transactions WHERE id = ?", (transaction_id,)
                 ).fetchone()[0]
-                self.assertEqual(cents, 1235)
+                connection.execute(
+                    "UPDATE transactions SET amount = -1.005 WHERE id = ?", (transaction_id,)
+                )
+                updated_cents = connection.execute(
+                    "SELECT amount_cents FROM transactions WHERE id = ?", (transaction_id,)
+                ).fetchone()[0]
+
+            self.assertEqual(cents, 1235)
+            self.assertEqual(updated_cents, -101)
+
+    def test_legacy_questrade_table_is_upgraded_by_versioned_migration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = RuntimeConfig(Path(directory))
+            runtime.data_dir.mkdir(exist_ok=True)
+            with closing(sqlite3.connect(runtime.database_path)) as connection:
+                connection.execute(
+                    """CREATE TABLE questrade_authorizations (
+                           id INTEGER PRIMARY KEY,
+                           name TEXT NOT NULL UNIQUE,
+                           access_token TEXT NOT NULL,
+                           refresh_token TEXT NOT NULL,
+                           api_server TEXT NOT NULL
+                    )"""
+                )
+                connection.commit()
+
+            application.initialize(runtime)
+
+            with runtime.connect() as connection:
+                columns = {
+                    str(row[1])
+                    for row in connection.execute("PRAGMA table_info(questrade_authorizations)")
+                }
+            self.assertTrue(
+                {"last_sync_at", "last_sync_attempt_at", "last_sync_error"}.issubset(columns)
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

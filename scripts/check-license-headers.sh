@@ -13,7 +13,7 @@ trap 'rm -f "$license_missing_file"' EXIT HUP INT TERM
 git ls-files | while IFS= read -r file; do
     case "$file" in
         infrastructure/migrations/*|public_rules/*) continue ;;
-        *.py|*.mjs|*.js|*.css|*.html|*.sh|Makefile|pyproject.toml|.pre-commit-config.yaml) : ;;
+        *.py|*.mjs|*.js|*.css|*.html|*.sh|*.yaml|*.yml|Makefile|pyproject.toml) : ;;
         *) continue ;;
     esac
 

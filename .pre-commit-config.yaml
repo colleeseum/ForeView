@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Mindstep Corporation
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+default_stages: [pre-commit]
+
 repos:
   - repo: local
     hooks:
@@ -14,6 +16,12 @@ repos:
         entry: make license-check
         language: system
         pass_filenames: false
+      - id: identity-check
+        name: Approved Git identity check
+        entry: make identity-check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
       - id: ruff-check
         name: Ruff lint
         entry: .venv/bin/python -m ruff check --fix

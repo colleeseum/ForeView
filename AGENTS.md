@@ -99,6 +99,20 @@ For substantial tasks, do not work silently for long periods.
 - Keep the issue and Project status aligned with the implementation. Do not rewrite established
   history solely to retrofit this convention to older branches or commits.
 
+## Git identity
+
+- Commits attributed to Serge Colle must use `serge.colle@mindstep.ca` for both author and
+  committer identity. Do not use another address.
+- Run `./scripts/configure-git-identity.sh` after cloning or recreating the repository metadata.
+  It pins the identity in the repository-local Git configuration and enables `user.useConfigOnly`.
+- Install both local gates with
+  `.venv/bin/pre-commit install --hook-type pre-commit --hook-type pre-push` after installing the
+  development dependencies.
+- Run `make identity-check` before committing. Do not bypass the identity check or its CI result.
+- Do not use GitHub's merge, squash, or rebase buttons. After review and successful checks, land
+  the accepted commit from a correctly configured local checkout and push it to `main`. GitHub can
+  otherwise source committer identity from account profile metadata instead of local Git config.
+
 ## Maintaining shared project context
 
 Keep the shared project documentation current as work proceeds. When a change alters architecture,

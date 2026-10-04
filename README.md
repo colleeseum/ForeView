@@ -24,16 +24,14 @@ remain beside their implementation or under `docs/` rather than being duplicated
 
 ## Important disclaimer
 
-This project is provided for informational and personal planning purposes only. The author is not
-a financial planner, accountant, tax professional, or lawyer. Nothing produced by this software
-is financial, investment, tax, accounting, or legal advice.
+This software is for informational, planning, and modelling purposes only. Its calculations and
+projections may be incomplete, inaccurate, outdated, or inappropriate for a particular situation.
+Nothing it produces is financial, investment, tax, accounting, or legal advice. Independently
+verify important results and consult an appropriately qualified professional before making
+significant decisions.
 
-The software is provided as-is, without any warranty. Its application logic, calculations,
-parsers, projections, assumptions, and bundled or downloaded public-rule data may be incomplete,
-outdated, or wrong. Source websites may also change without being detected correctly. You are
-responsible for verifying all inputs and results against current official sources and, where
-appropriate, with a qualified professional. Do not make financial decisions based solely on this
-application.
+Read the full [financial-planning disclaimer](DISCLAIMER.md), including its warranty and liability
+limitations.
 
 ## Current capabilities
 

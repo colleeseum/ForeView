@@ -52,3 +52,9 @@ These examples are explanatory only. The PolyForm Noncommercial License 1.0.0 co
 of the public license.
 
 For commercial licensing inquiries, contact [info@mindstep.ca](mailto:info@mindstep.ca).
+
+## Disclaimer
+
+The license grant does not represent a warranty that calculations or projections are accurate or
+suitable for a particular purpose. See the full [financial-planning disclaimer](DISCLAIMER.md)
+before using or relying on the software or its results.

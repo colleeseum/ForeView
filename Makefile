@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Mindstep Corporation
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-.PHONY: install-dev diff-check license-check format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target coverage-gate security audit qa load-questrade-dev update-public-rules
+.PHONY: install-dev diff-check identity-check license-check format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target coverage-gate security audit qa load-questrade-dev update-public-rules
 
 PYTHON := .venv/bin/python
 
@@ -11,6 +11,9 @@ install-dev:
 
 diff-check:
 	git --no-pager diff --check HEAD
+
+identity-check:
+	./scripts/check-git-identity.sh
 
 license-check:
 	./scripts/check-license-headers.sh
@@ -69,4 +72,4 @@ load-questrade-dev:
 update-public-rules:
 	$(PYTHON) update_public_rules.py
 
-qa: diff-check license-check format-check lint javascript javascript-coverage javascript-audit typecheck coverage integration-coverage security audit
+qa: diff-check identity-check license-check format-check lint javascript javascript-coverage javascript-audit typecheck coverage integration-coverage security audit

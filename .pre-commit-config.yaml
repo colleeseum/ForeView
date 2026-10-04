@@ -14,6 +14,11 @@ repos:
         entry: make license-check
         language: system
         pass_filenames: false
+      - id: identity-check
+        name: Approved Git identity check
+        entry: make identity-check
+        language: system
+        pass_filenames: false
       - id: ruff-check
         name: Ruff lint
         entry: .venv/bin/python -m ruff check --fix

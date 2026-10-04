@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """One official source document fetched for a public-rule update."""
 
 from __future__ import annotations

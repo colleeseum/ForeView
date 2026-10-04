@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Exact payroll parameters from CRA's machine-readable T4127 tables."""
 
 from __future__ import annotations

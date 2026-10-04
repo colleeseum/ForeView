@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """An official publication cited by a rule set."""
 
 from __future__ import annotations

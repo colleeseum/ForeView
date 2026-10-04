@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 import {initializeAccountDialog, openAccountDialog} from './account-dialog.mjs';
 import {loadAssetData, loadPeople} from './accounts-api.mjs';
 import {initializeRealEstate} from './accounts-real-estate.mjs';

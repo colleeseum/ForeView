@@ -1,9 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 repos:
   - repo: local
     hooks:
       - id: diff-check
         name: Git whitespace check
         entry: git diff --cached --check
+        language: system
+        pass_filenames: false
+      - id: license-check
+        name: License header check
+        entry: make license-check
         language: system
         pass_filenames: false
       - id: ruff-check

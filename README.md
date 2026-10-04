@@ -330,6 +330,11 @@ including private financial documents or credentials.
 
 ## License
 
-No open-source license has been selected yet. Publishing or sharing the repository does not by
-itself grant permission to use, modify, or redistribute the code. Add an explicit `LICENSE` file
-before presenting the project as open source or accepting external contributions.
+This project is source-available for noncommercial use under the
+[PolyForm Noncommercial License 1.0.0](LICENSE). Individuals may use, modify, fork, and redistribute
+the project for noncommercial purposes subject to the license terms. The license also permits the
+qualifying noncommercial organizational uses that it identifies.
+
+Commercial use requires a separate written license from Mindstep Corporation. For commercial
+licensing inquiries, contact [info@mindstep.ca](mailto:info@mindstep.ca). See
+[LICENSING.md](LICENSING.md) for details.

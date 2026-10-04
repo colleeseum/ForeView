@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Test setup adapters retained while repository parity coverage is simplified."""
 
 from __future__ import annotations

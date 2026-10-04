@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """EQ Bank document importers wired to their parsers and the PDF reader."""
 
 from __future__ import annotations

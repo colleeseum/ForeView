@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """A complete, versioned set of public rules for one jurisdiction and year."""
 
 from __future__ import annotations

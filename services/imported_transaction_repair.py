@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Run institution-owned repairs for rows produced by superseded parsers."""
 
 from __future__ import annotations

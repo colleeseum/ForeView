@@ -63,6 +63,10 @@ For substantial tasks, do not work silently for long periods.
 - Preserve private-data boundaries. Never commit runtime databases, imported personal documents,
   credentials, tokens, certificates, generated private backups, or extracted personal data. Use
   synthetic fixtures for tests and examples.
+- Preserve the source-available licensing boundary. New first-party source files must carry the
+  applicable Mindstep Corporation SPDX notices. Do not apply those notices to third-party,
+  downloaded government, generated, binary, or otherwise externally owned material. Existing
+  applied migrations remain immutable; new migrations should include the notices.
 
 ## Test integrity and completion
 

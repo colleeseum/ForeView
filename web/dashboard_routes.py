@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from flask import Blueprint, jsonify
 
 from services.dashboard_query import DashboardQuery

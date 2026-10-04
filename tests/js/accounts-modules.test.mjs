@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {escapeHtml} from '../../static/html.mjs';

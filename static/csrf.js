@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 (() => {
   const token = document.querySelector('meta[name="csrf-token"]')?.content;
   const originalFetch = window.fetch.bind(window);

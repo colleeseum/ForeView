@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Questrade institution module."""
 
 from institution_support.connection_capability import ConnectionCapability, ConnectionOperation

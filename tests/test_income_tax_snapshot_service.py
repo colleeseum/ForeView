@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from decimal import Decimal
 
 from domain.annual_employment_actual import AnnualEmploymentActual

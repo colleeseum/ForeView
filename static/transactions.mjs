@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 import {createLatestRequestGate} from './latest-request.mjs';
 import {importMessage} from './transaction-import-message.mjs';
 import {importHistoryHtml, transactionsTableHtml} from './transactions-render.mjs';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 import {isSecurityAccount, money} from './accounts-format.mjs';
 import {renderRealEstate} from './accounts-real-estate.mjs';
 import {assetGroups, assetState} from './accounts-state.mjs';

@@ -1,6 +1,7 @@
 {
   "name": "retirement-model-browser",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "test": "node --test tests/js/*.test.mjs",
     "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=96 --branches=80 --functions=93 --lines=96 npm test",

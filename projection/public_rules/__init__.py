@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Validated, versioned public financial-rule data contracts.
 
 This module intentionally contains no tax formulas, persistence, HTTP, or UI

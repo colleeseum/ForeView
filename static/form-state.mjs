@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 export function formSignature(form, additionalParts = []) {
   const fields = [...form.elements]
     .filter((field) => field.name)

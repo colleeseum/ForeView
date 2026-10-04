@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-03
+Updated: 2026-10-04
 
 ## Development focus
 
@@ -53,7 +53,8 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
   removed, or structurally changed government concepts.
 - The application has no authentication or tenant isolation and is suitable only for a trusted
   local environment.
-- No project license has been selected.
+- The project is source-available under PolyForm Noncommercial 1.0.0. Commercial use requires a
+  separate written license from Mindstep Corporation.
 
 ## Next decisions and steps
 

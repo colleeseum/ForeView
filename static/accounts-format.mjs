@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 const securityInstitutions = new Set(['questrade', 'sunlife', 'sun life', 'manulife']);
 
 export function money(value, blankForNull = false) {

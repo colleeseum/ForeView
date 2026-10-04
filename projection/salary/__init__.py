@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mindstep Corporation
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 """Deterministic employment-income projection and tax calculations."""
 
 from .employment_income_projector import EmploymentIncomeProjector

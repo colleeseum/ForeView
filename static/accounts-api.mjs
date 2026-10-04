@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 async function jsonResponse(response) {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);

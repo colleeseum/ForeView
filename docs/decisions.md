@@ -151,3 +151,19 @@ responses. Real financial documents and extracted personal details are not test 
 not committed.
 
 Reason: parser and integration behavior must be reproducible without leaking private information.
+
+## Public use is noncommercial and commercial licensing is separate
+
+First-party software is source-available under the unmodified PolyForm Noncommercial License
+1.0.0, with Mindstep Corporation as copyright holder. Commercial use requires a separate written
+license. The public license also permits the noncommercial organizational uses it explicitly
+identifies.
+
+Concise SPDX notices identify first-party source files where their formats safely support comments.
+Downloaded government sources, third-party material, generated files, binaries, lockfiles, and
+other unsuitable formats are not relabeled. Existing applied migrations are not changed solely to
+add notices because migrations are append-only.
+
+Reason: individuals and qualifying noncommercial organizations may inspect, use, modify, and fork
+the application without granting commercial exploitation rights. Standardized PolyForm terms are
+used unchanged so the project does not create a custom software license.

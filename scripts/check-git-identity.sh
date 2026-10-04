@@ -33,9 +33,7 @@ invalid_commits=$(mktemp)
 trap 'rm -f "$invalid_commits"' EXIT HUP INT TERM
 tab=$(printf '\t')
 
-# Remote-tracking refs are intentionally excluded. A stale origin/* ref may point
-# to the invalid history this check is being used to replace safely.
-git log HEAD --branches --tags --format='%H%x09%an%x09%ae%x09%cn%x09%ce' |
+git log --all --format='%H%x09%an%x09%ae%x09%cn%x09%ce' |
     while IFS="$tab" read -r commit author_name author_email committer_name committer_email; do
         if [ "$author_name" = "$approved_name" ] && [ "$author_email" != "$approved_email" ]; then
             printf '%s author <%s>\n' "$commit" "$author_email" >>"$invalid_commits"

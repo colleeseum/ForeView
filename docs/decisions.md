@@ -162,7 +162,8 @@ identifies.
 Concise SPDX notices identify first-party source files where their formats safely support comments.
 Downloaded government sources, third-party material, generated files, binaries, lockfiles, and
 other unsuitable formats are not relabeled. Existing applied migrations are not changed solely to
-add notices because migrations are append-only.
+add notices because migrations are append-only. Inclusion in the repository does not transfer
+ownership of external material to Mindstep Corporation or replace its applicable terms.
 
 Reason: individuals and qualifying noncommercial organizations may inspect, use, modify, and fork
 the application without granting commercial exploitation rights. Standardized PolyForm terms are

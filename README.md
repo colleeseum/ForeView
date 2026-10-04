@@ -332,8 +332,14 @@ including private financial documents or credentials.
 
 This project is source-available for noncommercial use under the
 [PolyForm Noncommercial License 1.0.0](LICENSE). Individuals may use, modify, fork, and redistribute
-the project for noncommercial purposes subject to the license terms. The license also permits the
-qualifying noncommercial organizational uses that it identifies.
+the original Mindstep software and documentation for noncommercial purposes subject to the
+license terms. The license also permits the qualifying noncommercial organizational uses that it
+identifies.
+
+The PolyForm license does not replace the ownership or terms of government source documents,
+third-party material, imported data, or artifacts that incorporate externally owned material.
+Their applicable ownership, notices, and license terms remain in effect merely because they are
+present in or used by this repository.
 
 Commercial use requires a separate written license from Mindstep Corporation. For commercial
 licensing inquiries, contact [info@mindstep.ca](mailto:info@mindstep.ca). See

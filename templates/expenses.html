@@ -1,47 +1,137 @@
-{% extends "base.html" %}
-{% block title %}Expenses{% endblock %}
-{% block content %}
-<section class="page-header">
-  <div><p class="eyebrow">Financial record</p><h1>Expenses</h1>
-    <p>High-level factual household spending. Missing evidence is kept distinct from an explicit zero.</p></div>
-</section>
-<section class="card">
-  <h2>{{ year }} factual spending</h2>
-  {% if summary.status == 'missing' %}
-    <p>No factual expense information has been recorded for {{ year }}. Spending is unknown, not $0.</p>
-  {% else %}
-    {% if summary.status == 'needs_resolution' %}
-      <p><strong>Review required:</strong> overlapping evidence is present. Resolve it before using this year as a projection baseline.</p>
-    {% endif %}
-    <dl>
-      <dt>Required</dt><dd>${{ '%.2f'|format(summary.required) }}</dd>
-      <dt>Discretionary</dt><dd>${{ '%.2f'|format(summary.discretionary) }}</dd>
-      <dt>Total</dt><dd>${{ '%.2f'|format(summary.total) }}</dd>
-    </dl>
-  {% endif %}
-</section>
-<section class="card">
-  <h2>Supporting records</h2>
-  {% if expenses %}
-  <table><thead><tr><th>Name</th><th>Category</th><th>Classification</th><th>Period</th><th>Amount</th><th>Source</th><th>Status</th></tr></thead>
-  <tbody>{% for expense in expenses %}<tr>
-    <td>{{ expense.name }}</td><td>{{ expense.category_name }}</td><td>{{ expense.classification }}</td>
-    <td>{{ expense.period_start }} – {{ expense.period_end }}</td><td>${{ '%.2f'|format(expense.amount) }}</td>
-    <td>{{ expense.source_kind }}{% if expense.source_name %}: {{ expense.source_name }}{% endif %}</td>
-    <td>{{ expense.overlap_status }}</td>
-  </tr>{% endfor %}</tbody></table>
-  {% else %}<p>No expense records for this year.</p>{% endif %}
-</section>
-<section class="card">
-  <h2>Add manual expense</h2>
-  <form method="post" action="/api/expenses/manual">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Name <input name="name" required></label>
-    <label>Category <select name="category_id" required>{% for category in categories if category.is_active %}<option value="{{ category.id }}">{{ category.name }} ({{ category.classification }})</option>{% endfor %}</select></label>
-    <label>Amount <input name="amount" inputmode="decimal" required></label>
-    <label>Period start <input type="date" name="period_start" required></label>
-    <label>Period end <input type="date" name="period_end" required></label>
-    <button type="submit">Save factual expense</button>
-  </form>
-</section>
-{% endblock %}
+{#
+SPDX-FileCopyrightText: 2026 Mindstep Corporation
+SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+#}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Expenses</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header><p class="eyebrow">Financial records</p><h1>Expenses</h1>
+    <p class="lede">High-level factual household spending retained separately from projection assumptions.</p>
+  </header>
+  <div class="page-shell">
+    {% set active_page = 'expenses' %}{% include '_side_menu.html' %}
+    <div class="page-content">
+      {% if error and open_dialog != 'categories' %}<p class="connection-notice error" role="alert">{{ error }}</p>{% endif %}
+      {% if message and open_dialog != 'categories' %}<p class="connection-notice" role="status">{{ message }}</p>{% endif %}
+      <section class="dashboard-panel">
+        <div class="expense-heading">
+          <div><p class="eyebrow">Annual factual snapshot</p><h2>{{ year }} spending</h2></div>
+          <div class="expense-toolbar">
+            <form method="get" action="{{ url_for('expenses.expenses_page') }}" class="expense-year-form">
+              <label>Year <input name="year" type="number" min="1900" max="9999" value="{{ year }}" required></label>
+              <button class="view-action" type="submit">View</button>
+            </form>
+            <button id="expense-add" class="view-action" type="button">+ Add expense</button>
+            <button id="expense-categories" class="view-action" type="button">Manage categories</button>
+          </div>
+        </div>
+        {% if summary.status == 'missing' %}
+          <p>No factual expense information has been recorded for {{ year }}. Spending is unknown, not $0.</p>
+        {% elif summary.status == 'needs_resolution' %}
+          <p class="connection-notice error"><strong>Review required:</strong> resolve all potential overlaps before this year has a factual total.</p>
+        {% else %}
+          <div class="summary-pill-grid expense-summary-grid">
+            <article class="summary-pill"><p>Required</p><strong>${{ '%.2f'|format(summary.required) }}</strong></article>
+            <article class="summary-pill"><p>Discretionary</p><strong>${{ '%.2f'|format(summary.discretionary) }}</strong></article>
+            <article class="summary-pill summary-pill-total"><p>Recorded total</p><strong>${{ '%.2f'|format(summary.total) }}</strong></article>
+            {% if summary.has_partial_coverage %}<article class="summary-pill"><p>Annualized estimate</p><strong>${{ '%.2f'|format(summary.estimated_total) }}</strong></article>{% endif %}
+          </div>
+          <h3>Category totals</h3>
+          <div class="table-card"><table><thead><tr><th>Category</th><th>Classification</th><th>Recorded</th>{% if summary.has_partial_coverage %}<th>Annualized estimate</th>{% endif %}</tr></thead>
+            <tbody>{% for category in summary.categories %}<tr>
+              <td>{{ category.name }}</td><td>{{ category.classification }}</td><td>${{ '%.2f'|format(category.amount) }}</td>{% if summary.has_partial_coverage %}<td>${{ '%.2f'|format(category.annualized_estimate) }}</td>{% endif %}
+            </tr>{% endfor %}</tbody>
+          </table></div>
+          <p class="dashboard-note">Recorded totals include only evidence for periods that overlap {{ year }}. {% if summary.has_partial_coverage %}The annualized estimate scales recurring statement amounts by covered days. It assumes those periods are representative and may not reflect seasonal utility costs.{% else %}They do not imply that every expense has been recorded.{% endif %}</p>
+        {% endif %}
+      </section>
+
+      <details class="dashboard-panel expense-record-details"{% if summary.status == 'needs_resolution' %} open{% endif %}>
+        <summary><span class="details-closed-label">Show supporting records</span><span class="details-open-label">Hide supporting records</span></summary>
+        {% if expenses %}
+        <div class="table-card"><table><thead><tr><th>Name</th><th>Category</th><th>Period</th><th>Amount</th><th>Amount basis</th><th>Association</th><th>Source</th><th>Status</th></tr></thead>
+          <tbody>{% for expense in expenses %}<tr>
+            <td>{{ expense.name }}</td><td>{{ expense.category_name }} · {{ expense.classification }}</td>
+            <td>{{ expense.period_start }} to {{ expense.period_end }}</td><td>${{ '%.2f'|format(expense.amount) }}</td>
+            <td>{% if expense.period_kind == 'recurring_statement' %}Recurring statement{% else %}Annual or one-time{% endif %}</td>
+            <td>{{ expense.association_kind }}{% if expense.association_id %} #{{ expense.association_id }}{% endif %}</td>
+            <td>{{ expense.source_kind }}{% if expense.source_name %}: {{ expense.source_name }}{% endif %}</td>
+            <td>{% if expense.overlap_status == 'potential' %}
+              <form method="post" action="{{ url_for('expenses.resolve_overlap_form', expense_id=expense.id) }}" class="overlap-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="year" value="{{ year }}">
+                <input name="note" aria-label="Resolution note for {{ expense.name }}" placeholder="Reason" required>
+                <button name="include" value="true" type="submit">Include</button><button name="include" value="false" type="submit">Exclude</button>
+              </form>
+            {% else %}{{ expense.overlap_status }}{% if expense.overlap_resolution_note %}: {{ expense.overlap_resolution_note }}{% endif %}{% endif %}</td>
+          </tr>{% endfor %}</tbody></table></div>
+        {% else %}<p>No expense records for this year.</p>{% endif %}
+      </details>
+      <p class="dashboard-note">Imported expense statements will appear here when a supported source module supplies parsed evidence for confirmation.</p>
+    </div>
+  </div>
+</main>
+
+<div id="expense-dialog-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="expense-dialog-title">
+    <button id="expense-dialog-close" class="dialog-close" type="button" aria-label="Close expense dialog">×</button>
+    <p class="eyebrow">Financial record</p><h2 id="expense-dialog-title">Add factual expense</h2>
+    {% if categories|selectattr('is_active')|list %}
+    <form method="post" action="{{ url_for('expenses.create_manual_expense_form') }}" class="setup-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="year" value="{{ year }}">
+      <label>Name <input name="name" required></label>
+      <label>Category <select name="category_id" required>{% for category in categories if category.is_active %}<option value="{{ category.id }}">{{ category.name }} ({{ category.classification }})</option>{% endfor %}</select></label>
+      <label>Amount <input name="amount" type="number" min="0" step="0.01" required></label>
+      <label>Period start <input type="date" name="period_start" required></label>
+      <label>Period end <input type="date" name="period_end" required></label>
+      <label>Amount represents <select name="period_kind"><option value="annual_or_one_time">Complete annual or one-time expense</option><option value="recurring_statement">Recurring statement period</option></select></label>
+      <label>Association <select name="association"><option value="household">Household</option>{% for person in people %}<option value="person:{{ person.id }}">Person: {{ person.name }}</option>{% endfor %}{% for account in accounts %}<option value="account:{{ account.id }}">Account: {{ account.name or account.account_number }}</option>{% endfor %}{% for asset in real_estate %}<option value="real_estate:{{ asset.id }}">Property: {{ asset.name }}</option>{% endfor %}</select></label>
+      <button type="submit">Save factual expense</button>
+    </form>
+    {% else %}<p>Create an active category before adding an expense.</p>{% endif %}
+    <div class="dialog-actions"><button id="expense-dialog-cancel" class="secondary-button" type="button">Cancel</button><button id="expense-open-categories" class="secondary-button" type="button">Manage categories</button></div>
+  </section>
+</div>
+
+<div id="category-dialog-backdrop" class="dialog-backdrop"{% if open_dialog != 'categories' %} hidden{% endif %}>
+  <section class="dialog expense-category-dialog" role="dialog" aria-modal="true" aria-labelledby="category-dialog-title">
+    <button id="category-dialog-close" class="dialog-close" type="button" aria-label="Close category dialog">×</button>
+    <div class="expense-category-heading">
+      <div><p class="eyebrow">Expense setup</p><h2 id="category-dialog-title">Manage categories</h2></div>
+      <button id="category-add" class="view-action" type="button">+ Add category</button>
+    </div>
+    {% if error and open_dialog == 'categories' %}<p class="connection-notice error" role="alert">{{ error }}</p>{% endif %}
+    {% if message and open_dialog == 'categories' %}<p class="connection-notice" role="status">{{ message }}</p>{% endif %}
+    {% if categories %}<div class="table-card"><table><thead><tr><th>Name</th><th>Classification</th><th>Status</th><th></th></tr></thead>
+      <tbody>{% for category in categories %}<tr>
+        <td>{{ category.name }}</td><td>{{ category.classification|capitalize }}</td><td>{% if category.is_active %}Active{% else %}Archived{% endif %}</td>
+        <td><button class="table-action" type="button" data-category-edit data-action="{{ url_for('expenses.update_category_form', category_id=category.id) }}" data-name="{{ category.name }}" data-classification="{{ category.classification }}" data-active="{{ 'true' if category.is_active else 'false' }}">Edit</button></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>{% else %}<p>No expense categories have been created.</p>{% endif %}
+  </section>
+</div>
+
+<div id="category-editor-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="category-editor-title">
+    <button id="category-editor-close" class="dialog-close" type="button" aria-label="Close category editor">×</button>
+    <p class="eyebrow">Expense category</p><h2 id="category-editor-title">Add category</h2>
+    <form id="category-editor-form" method="post" action="{{ url_for('expenses.create_category_form') }}" data-create-action="{{ url_for('expenses.create_category_form') }}" class="setup-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="year" value="{{ year }}">
+      <label>Name <input name="name" required></label>
+      <label>Classification <select name="classification"><option value="required">Required</option><option value="discretionary">Discretionary</option></select></label>
+      <label id="category-status-field" hidden>Status <select name="active"><option value="true">Active</option><option value="false">Archived</option></select></label>
+      <div class="dialog-actions"><button id="category-editor-cancel" class="secondary-button" type="button">Cancel</button><button id="category-editor-save" type="submit">Create category</button></div>
+    </form>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='expenses.mjs', v='20261004-1') }}"></script>
+</body>
+</html>

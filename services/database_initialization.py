@@ -20,6 +20,11 @@ from infrastructure.migrations.correction_revision_history import (
 from infrastructure.migrations.corrections_table import CorrectionsTableMigration
 from infrastructure.migrations.employment_income_records import EmploymentIncomeRecordsMigration
 from infrastructure.migrations.employment_projection import EmploymentProjectionMigration
+from infrastructure.migrations.expense_identities import ExpenseIdentitiesMigration
+from infrastructure.migrations.expense_period_kind import ExpensePeriodKindMigration
+from infrastructure.migrations.factual_expense_schema_upgrade import (
+    FactualExpenseSchemaUpgradeMigration,
+)
 from infrastructure.migrations.factual_expenses import FactualExpensesMigration
 from infrastructure.migrations.household_expenses import HouseholdExpensesMigration
 from infrastructure.migrations.migration_runner import MigrationRunner
@@ -57,6 +62,9 @@ def ensure_domain_schema(connection: Connection) -> None:
             CorrectionsTableMigration(),
             CorrectionRevisionHistoryMigration(),
             FactualExpensesMigration(),
+            FactualExpenseSchemaUpgradeMigration(),
+            ExpenseIdentitiesMigration(),
+            ExpensePeriodKindMigration(),
         ),
     ).apply()
 

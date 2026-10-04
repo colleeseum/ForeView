@@ -126,7 +126,6 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         ("/setup", "setup"),
         ("/accounts", "accounts_page"),
         ("/income", "income_page"),
-        ("/expenses", "expenses.expenses_page"),
         ("/connections", "connections_page"),
         ("/transactions", "transactions_page"),
         ("/settings", "settings_page"),

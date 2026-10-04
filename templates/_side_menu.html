@@ -11,6 +11,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     <a{% if active_page == 'assets' %} class="active"{% elif active_page == 'transactions' %} class="section-active"{% endif %} href="{{ url_for('accounts_page') }}">Assets</a>
     <a class="side-menu-sub{% if active_page == 'transactions' %} active{% endif %}" href="{{ url_for('transactions_page') }}">Transactions</a>
     <a{% if active_page == 'income' %} class="active"{% endif %} href="{{ url_for('income_page') }}">Income</a>
+    <a{% if active_page == 'expenses' %} class="active"{% endif %} href="{{ url_for('expenses.expenses_page') }}">Expenses</a>
   </section>
   <section class="side-menu-group" aria-label="Projection">
     <p class="side-menu-heading">Projection</p>

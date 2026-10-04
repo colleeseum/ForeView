@@ -83,6 +83,18 @@ For substantial tasks, do not work silently for long periods.
 - Commits should be coherent and reasonably atomic. Do not include unrelated user changes or
   untracked working material.
 
+## GitHub work tracking
+
+- Start substantial feature and defect work from an issue in the authoritative GitHub Project.
+- Include the roadmap identifier in the branch name, for example
+  `feature/inc-10-projection-input`.
+- Include both the roadmap identifier and GitHub issue number in commit subjects, for example
+  `INC-10 (#10): Use consolidated snapshot as projection input`.
+- Reference the issue from the pull request. Use `Closes #10` only when the pull request completes
+  the entire issue; use `Refs #10` for partial work.
+- Keep the issue and Project status aligned with the implementation. Do not rewrite established
+  history solely to retrofit this convention to older branches or commits.
+
 ## Maintaining shared project context
 
 Keep the shared project documentation current as work proceeds. When a change alters architecture,

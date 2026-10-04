@@ -342,5 +342,4 @@ $1,000 value becomes active again based on normal precedence.
 
 ## 13. Open Questions
 
-No open product questions remain in this draft. Human approval is still required before
-implementation.
+No open product questions remain. The approved requirement has been implemented.

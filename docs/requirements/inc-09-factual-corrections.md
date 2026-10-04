@@ -4,7 +4,7 @@
 
 **Title:** Factual Income and Tax Value Corrections
 
-**Status:** Approved, implementation in progress
+**Status:** Implemented
 
 ## 2. Description
 

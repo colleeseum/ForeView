@@ -20,7 +20,9 @@ from repositories.person_repository import PersonRepository
 from repositories.public_pension_statement_repository import PublicPensionStatementRepository
 from repositories.registered_plan_room_repository import RegisteredPlanRoomRepository
 from services.income_tax_snapshot_service import IncomeTaxSnapshotService
+from services.income_tax_source_resolver import IncomeTaxSourceResolver
 from tax_notices import tax_notice_registry
+from web.correction_serialization import correction_revision_json
 from web.dependencies import dependency
 
 blueprint = Blueprint("income", __name__)
@@ -49,6 +51,16 @@ def income_record():
         snapshot = snapshot_service.build(
             all_records, assessments, tax_values, person_id=person_id, year=year
         )
+        corrections: list[dict[str, Any]] = []
+        if snapshot is not None:
+            source_resolver = IncomeTaxSourceResolver(all_records, assessments, tax_values)
+            corrections = [
+                correction_revision_json(
+                    revision,
+                    source_resolver.resolve(snapshot.tax_year, revision.concept),
+                )
+                for revision in correction_repository.list_for_year(person_id, snapshot.tax_year)
+            ]
         if year is None:
             records = all_records
             record = None
@@ -68,6 +80,7 @@ def income_record():
             "public_pension": public_pension,
             "tax_values": [_tax_value_json(item) for item in tax_values],
             "snapshot": _snapshot_json(snapshot) if snapshot else None,
+            "corrections": corrections,
         }
     )
 

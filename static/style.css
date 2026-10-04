@@ -141,6 +141,14 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-summary-grid strong { font-size: 1.25rem; }
 .income-summary-grid small { color: var(--muted); font: .68rem/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .income-summary-grid .income-summary-room { border-left-color: #547762; }
+.income-summary-grid .income-summary-value.corrected { border-left-color: #52667c; background: #f3f6f8; }
+.income-summary-grid .income-summary-value.review-required { border-left-color: #b87900; background: #fff8e7; }
+.income-correction-badge { width: fit-content; padding: 3px 6px; color: #40556a !important; background: #e2e9ef; font: 700 .62rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; text-transform: uppercase; }
+.review-required .income-correction-badge { color: #7b5200 !important; background: #f5dfaa; }
+.income-correction-action { justify-self: start; border: 0; border-bottom: 1px solid currentColor; padding: 2px 0; color: #52667c; background: transparent; font: 700 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
+.review-required .income-correction-action { color: #7b5200; }
+.income-year-filter { display: grid; gap: 3px; margin-left: auto; color: var(--muted); font: 700 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.income-year-filter select { min-height: 32px; border: 1px solid var(--line); padding: 5px 28px 5px 8px; background: white; font: inherit; }
 .income-source-details { margin-top: 12px; }
 .income-source-details > summary { width: fit-content; color: var(--accent); cursor: pointer; font-weight: 700; }
 .income-source-details .details-open-label { display: none; }
@@ -155,6 +163,25 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .income-import-progress progress { width: 100%; accent-color: var(--accent); }
 .income-source-help-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .dialog.income-editor-dialog { width: min(1500px, calc(100vw - 40px)); }
+.dialog.income-correction-dialog { width: min(860px, calc(100vw - 40px)); }
+.income-correction-dialog .context-help-button { margin-bottom: 14px; }
+.income-correction-status { margin-bottom: 12px; padding: 10px 12px; border-left: 4px solid #b87900; color: #684700; background: #fff3d6; font: 700 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.income-correction-status[hidden] { display: none; }
+.income-correction-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.income-correction-comparison section { display: grid; gap: 5px; min-width: 0; padding: 12px; border: 1px solid var(--line); background: #eef1ec; }
+.income-correction-comparison span, .income-correction-comparison small { color: var(--muted); font: .72rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+.income-correction-comparison strong { font-size: 1.25rem; }
+.income-correction-dialog textarea { width: 100%; resize: vertical; border: 1px solid var(--line); padding: 8px; background: white; font: inherit; }
+.income-correction-actions { flex-wrap: wrap; }
+.income-correction-actions #income-correction-remove { margin-right: auto; }
+.income-correction-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.income-correction-history { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.income-correction-history > summary { color: var(--accent); cursor: pointer; font-weight: 700; }
+.income-correction-revision { margin-top: 9px; padding: 10px 12px; border-left: 3px solid #778aa0; background: #f1f4f6; }
+.income-correction-revision div { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.income-correction-revision div span, .income-correction-revision time, .income-correction-revision small { color: var(--muted); font: .7rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.income-correction-revision p { margin: 7px 0 3px; }
+.income-correction-revision small { display: block; overflow-wrap: anywhere; }
 .income-history-table { min-width: 1750px; }
 .income-history-table th, .income-history-table td { white-space: nowrap; }
 .income-record-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
@@ -165,7 +192,8 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 #income-import-review h3 { margin: 0 0 6px; }
 #income-import-review p { margin: 4px 0; }
 .latest-record { margin-left: 5px; color: var(--accent); font: 700 .65rem ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
-@media (max-width: 1050px) { .income-actual-form, .income-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .income-summary-heading { align-items: start; flex-direction: column; } }
+@media (max-width: 1050px) { .income-actual-form, .income-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .income-summary-heading { align-items: start; flex-direction: column; } .income-year-filter { margin-left: 0; } }
+@media (max-width: 640px) { .income-correction-comparison { grid-template-columns: 1fr; } }
 .dashboard-panel { margin-bottom: 18px; padding: 18px; border: 1px solid var(--line); background: rgba(255,255,255,.78); }
 .dashboard-panel h2 { margin: 0 0 14px; font-size: 1.35rem; font-weight: 500; }
 .dashboard-line { display: flex; justify-content: space-between; gap: 18px; padding: 10px 0; border-bottom: 1px solid var(--line); font: .8rem ui-monospace, SFMono-Regular, Menlo, monospace; }

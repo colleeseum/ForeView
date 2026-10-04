@@ -20,6 +20,7 @@ from services.database_initialization import ensure_domain_schema
 from services.income_tax_snapshot_service import IncomeTaxSnapshotService
 from services.income_tax_source_resolver import source_fingerprint
 from web.correction_routes import blueprint as correction_blueprint
+from web.income_routes import blueprint as income_blueprint
 
 
 @pytest.fixture
@@ -231,6 +232,38 @@ def test_repeated_remove_is_idempotent(database: sqlite3.Connection) -> None:
 
     assert repeated.id == removed.id
     assert len(repository.get_history(1, 2025, "employment_income")) == 2
+
+
+def test_removed_correction_can_be_reactivated_as_a_new_revision(
+    database: sqlite3.Connection,
+) -> None:
+    repository = CorrectionRepository(database)
+    repository.create(
+        1,
+        2025,
+        "employment_income",
+        Decimal("110000"),
+        "Initial correction",
+        resolved_source(),
+        "initial-fingerprint",
+    )
+    repository.remove(1, 2025, "employment_income", expected_revision=1)
+
+    reactivated = repository.create(
+        1,
+        2025,
+        "employment_income",
+        Decimal("112000"),
+        "New evidence supports another correction",
+        resolved_source("101000"),
+        "new-fingerprint",
+        expected_revision=2,
+    )
+
+    assert reactivated.revision_number == 3
+    assert reactivated.revision_kind == "create"
+    assert reactivated.correct_amount == Decimal("112000")
+    assert repository.get(1, 2025, "employment_income") == reactivated
 
 
 def test_snapshot_uses_latest_active_revision_and_ignores_tombstone(
@@ -540,6 +573,7 @@ def test_correction_api_accepts_annual_record_fallback(
     )
     app = Flask(__name__)
     app.register_blueprint(correction_blueprint)
+    app.register_blueprint(income_blueprint)
     app.extensions["finance_connect"] = lambda: database
     response = app.test_client().post(
         "/api/income/corrections",
@@ -557,3 +591,7 @@ def test_correction_api_accepts_annual_record_fallback(
     correction = response.get_json()
     assert correction["source_at_correction"]["amount"] == "90000.00"
     assert correction["source_at_correction"]["document_kind"] == "annual_record"
+
+    income = app.test_client().get("/api/income?person_id=1").get_json()
+    assert income["snapshot"]["values"][0]["amount"] == "91000.00"
+    assert income["corrections"] == [correction]

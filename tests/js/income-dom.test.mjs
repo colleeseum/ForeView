@@ -18,6 +18,18 @@ function installDom() {
     <div id="income-dialog-backdrop" hidden></div><button id="income-dialog-close"></button><p id="income-editor-person"></p>
     <form id="income-form"><input name="tax_year" value="2025"><select name="province_of_residence"><option value=""></option><option value="ON">ON</option><option value="QC">QC</option></select><input name="payroll_plan">${fields}<select name="source"><option>T1</option><option>UFile T1</option><option>Manual</option></select><button type="submit"></button></form>
     <output id="income-salary-rate"></output>
+    <div id="income-correction-backdrop" hidden><button id="income-correction-close"></button>
+      <h2 id="income-correction-title"></h2><p id="income-correction-context"></p>
+      <div id="income-correction-status" hidden></div>
+      <strong id="income-correction-source-amount"></strong><small id="income-correction-source-note"></small>
+      <strong id="income-correction-current-amount"></strong><small id="income-correction-current-note"></small>
+      <form id="income-correction-form"><input name="correct_amount"><textarea name="reason"></textarea>
+        <button id="income-correction-remove" type="button" hidden></button>
+        <button id="income-correction-confirm" type="button" hidden></button>
+        <button id="income-correction-save" type="submit" disabled></button>
+      </form>
+      <p id="income-correction-message"></p><details id="income-correction-history-panel"><div id="income-correction-history"></div></details>
+    </div>
     <div id="ufile-dialog-backdrop" hidden></div><button id="ufile-dialog-close"></button>
     <form id="ufile-form"><input id="income-import-file" name="file" type="file"><div id="income-import-progress" hidden></div><div id="income-import-review" hidden></div><button id="income-import-preview" type="submit" disabled></button><button id="income-import-confirm" type="button" hidden></button></form>
   </body>`, {url: 'http://localhost/income'});
@@ -49,6 +61,26 @@ function latestSnapshot() {
       {concept: 'interest_investment_income', label: 'Interest and investment income', amount: '250.00', source: 'UFile T1', document_kind: 'return', jurisdiction: 'CA', line_code: '12100'},
       {concept: 'oas_income', label: 'OAS income', amount: '0.00', source: 'UFile T1', document_kind: 'return', jurisdiction: 'CA', line_code: '11300'},
     ],
+  };
+}
+
+function factualCorrection(overrides = {}) {
+  return {
+    id: 21, person_id: 1, tax_year: 2025, concept: 'employment_income',
+    label: 'Employment income', revision_number: 2, revision_kind: 'edit',
+    correct_amount: '103000.00', reason: 'Supporting payroll records differ.',
+    created_at: '2026-10-03 12:00:00', review_required: false,
+    source_at_correction: {
+      amount: '101500.00', document_kind: 'return', jurisdiction: 'CA',
+      line_code: '10100', source: 'UFile T1', source_version: '2026.09.29',
+      document_hash: 'original-hash',
+    },
+    current_underlying: {
+      amount: '101500.00', document_kind: 'return', jurisdiction: 'CA',
+      line_code: '10100', source: 'UFile T1', source_version: '2026.09.29',
+      document_hash: 'original-hash',
+    },
+    ...overrides,
   };
 }
 
@@ -149,6 +181,202 @@ test('income screen previews a UFile return and saves only after review', async 
   document.querySelector('[data-person-id="2"]').click();
   await tick();
   assert.ok(calls.some(({url}) => url === '/api/income?person_id=2'));
+  dom.window.close();
+});
+
+test('income screen creates a correction and can select a historical snapshot', async () => {
+  const dom = installDom();
+  const calls = [];
+  let created = false;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    calls.push({url: address, options});
+    if (address === '/api/model/people') {
+      return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
+    }
+    if (address.includes('/api/income/corrections/person/1/year/')) {
+      return {ok: true, json: async () => ({corrections: []})};
+    }
+    if (address === '/api/income/corrections' && options.method === 'POST') {
+      created = true;
+      return {ok: true, json: async () => factualCorrection({revision_number: 1, revision_kind: 'create', correct_amount: '102000.00'})};
+    }
+    if (address === '/api/income?person_id=1&year=2024') {
+      return {ok: true, json: async () => ({
+        records: [], assessments: [], registered_rooms: [], tax_values: [], corrections: [],
+        snapshot: {
+          tax_year: 2024, available_years: [2025, 2024], values: [
+            {concept: 'employment_income', label: 'Employment income', amount: '90000.00', source: 'UFile T1', document_kind: 'return', jurisdiction: 'CA', line_code: '10100'},
+          ],
+        },
+      })};
+    }
+    if (address === '/api/income?person_id=1') {
+      const snapshot = latestSnapshot();
+      if (created) {
+        snapshot.values[0] = {...snapshot.values[0], amount: '102000.00', source: 'Corrected value', document_kind: 'correction'};
+      }
+      return {ok: true, json: async () => ({
+        records: [annualRecord()], assessments: [], registered_rooms: [], tax_values: [],
+        snapshot, corrections: created ? [factualCorrection({revision_number: 1, revision_kind: 'create', correct_amount: '102000.00'})] : [],
+      })};
+    }
+    throw new Error(`Unexpected URL ${address}`);
+  };
+
+  await import(`../../static/income.mjs?correction-create=${Date.now()}`);
+  await tick(); await tick();
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+  assert.equal(document.querySelector('#income-correction-backdrop').hidden, false);
+  assert.equal(document.querySelector('#income-correction-source-amount').textContent, '$101,500.00');
+  assert.equal(document.querySelector('#income-correction-save').disabled, true);
+
+  const amount = document.querySelector('#income-correction-form [name="correct_amount"]');
+  const reason = document.querySelector('#income-correction-form [name="reason"]');
+  amount.value = '102000';
+  reason.value = 'Payroll records include the corrected amount.';
+  reason.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  assert.equal(document.querySelector('#income-correction-save').disabled, false);
+  document.querySelector('#income-correction-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await tick(); await tick();
+  const createCall = calls.find(({url, options}) => url === '/api/income/corrections' && options.method === 'POST');
+  assert.deepEqual(JSON.parse(createCall.options.body), {
+    person_id: 1, tax_year: 2025, concept: 'employment_income',
+    correct_amount: '102000', reason: 'Payroll records include the corrected amount.',
+    expected_revision: 0,
+  });
+  assert.match(document.querySelector('#income-summary').textContent, /Corrected/);
+  assert.match(document.querySelector('#income-message').textContent, /correction saved/);
+
+  const yearFilter = document.querySelector('[data-income-snapshot-year]');
+  yearFilter.value = '2024';
+  yearFilter.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  await tick(); await tick();
+  assert.ok(calls.some(({url}) => url === '/api/income?person_id=1&year=2024'));
+  assert.match(document.querySelector('#income-summary').textContent, /Historical consolidated snapshot/);
+  assert.match(document.querySelector('#income-summary').textContent, /90,000/);
+  dom.window.close();
+});
+
+test('income screen reviews, edits, confirms, and removes a correction', async () => {
+  const dom = installDom();
+  const calls = [];
+  let mode = 'review';
+  let revision = 2;
+  function activeCorrection() {
+    if (mode === 'removed') return [];
+    return [factualCorrection({
+      revision_number: revision,
+      review_required: mode === 'review',
+      current_underlying: {
+        amount: '102000.00', document_kind: 'return', jurisdiction: 'CA',
+        line_code: '10100', source: 'UFile T1 updated', source_version: '2026.10.03',
+        document_hash: 'updated-hash',
+      },
+    })];
+  }
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    calls.push({url: address, options});
+    if (address === '/api/model/people') {
+      return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
+    }
+    if (address === '/api/income?person_id=1') {
+      const snapshot = latestSnapshot();
+      snapshot.values[0] = mode === 'removed'
+        ? {...snapshot.values[0], amount: '102000.00', source: 'UFile T1 updated', document_kind: 'return'}
+        : {...snapshot.values[0], amount: '103000.00', source: 'Corrected value', document_kind: 'correction'};
+      return {ok: true, json: async () => ({
+        records: [annualRecord()], assessments: [], registered_rooms: [], tax_values: [],
+        snapshot, corrections: activeCorrection(),
+      })};
+    }
+    if (address.includes('/api/income/corrections/person/1/year/2025/')) {
+      const current = factualCorrection({
+        revision_number: revision,
+        revision_kind: mode === 'removed' ? 'remove' : 'edit',
+        review_required: mode === 'review',
+      });
+      return {ok: true, json: async () => ({
+        corrections: [factualCorrection({id: 20, revision_number: 1, revision_kind: 'create'}), current],
+      })};
+    }
+    if (address.endsWith('/confirm') && options.method === 'POST') {
+      mode = 'confirmed'; revision = 3;
+      return {ok: true, json: async () => factualCorrection({revision_number: revision, revision_kind: 'confirm'})};
+    }
+    if (address === '/api/income/corrections/21' && options.method === 'PUT') {
+      mode = 'edited'; revision = 4;
+      return {ok: true, json: async () => factualCorrection({revision_number: revision, revision_kind: 'edit'})};
+    }
+    if (address === '/api/income/corrections/21' && options.method === 'DELETE') {
+      mode = 'removed'; revision = 5;
+      return {ok: true, json: async () => factualCorrection({revision_number: revision, revision_kind: 'remove'})};
+    }
+    if (address === '/api/income/corrections' && options.method === 'POST') {
+      mode = 'reactivated'; revision = 6;
+      return {ok: true, json: async () => factualCorrection({revision_number: revision, revision_kind: 'create'})};
+    }
+    throw new Error(`Unexpected URL ${address}`);
+  };
+
+  await import(`../../static/income.mjs?correction-lifecycle=${Date.now()}`);
+  await tick(); await tick();
+  assert.match(document.querySelector('#income-summary').textContent, /Review required/);
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick(); await tick();
+  assert.match(document.querySelector('#income-correction-status').textContent, /underlying value or provenance has changed/);
+  assert.equal(document.querySelector('#income-correction-source-amount').textContent, '$101,500.00');
+  assert.equal(document.querySelector('#income-correction-current-amount').textContent, '$102,000.00');
+  assert.match(document.querySelector('#income-correction-history').textContent, /Revision 2/);
+  assert.equal(document.querySelector('#income-correction-confirm').hidden, false);
+
+  document.querySelector('#income-correction-confirm').click();
+  await tick(); await tick();
+  const confirmCall = calls.find(({url}) => url.endsWith('/confirm'));
+  assert.equal(JSON.parse(confirmCall.options.body).expected_revision, 2);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /Review required/);
+
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+  const reason = document.querySelector('#income-correction-form [name="reason"]');
+  reason.value = 'Updated supporting records.';
+  reason.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#income-correction-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await tick(); await tick();
+  const editCall = calls.find(({url, options}) => url === '/api/income/corrections/21' && options.method === 'PUT');
+  assert.equal(JSON.parse(editCall.options.body).expected_revision, 3);
+
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+  document.querySelector('#income-correction-remove').click();
+  await tick(); await tick();
+  const removeCall = calls.find(({url, options}) => url === '/api/income/corrections/21' && options.method === 'DELETE');
+  assert.equal(JSON.parse(removeCall.options.body).expected_revision, 4);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /Corrected/);
+  assert.match(document.querySelector('#income-message').textContent, /Source precedence restored/);
+
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+  const reactivatedAmount = document.querySelector('#income-correction-form [name="correct_amount"]');
+  const reactivatedReason = document.querySelector('#income-correction-form [name="reason"]');
+  reactivatedAmount.value = '104000';
+  reactivatedReason.value = 'New supporting evidence.';
+  reactivatedReason.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#income-correction-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await tick(); await tick();
+  const reactivateCall = calls.filter(
+    ({url, options}) => url === '/api/income/corrections' && options.method === 'POST',
+  ).at(-1);
+  assert.equal(JSON.parse(reactivateCall.options.body).expected_revision, 5);
+  assert.match(document.querySelector('#income-summary').textContent, /Corrected/);
   dom.window.close();
 });
 

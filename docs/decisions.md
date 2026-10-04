@@ -126,7 +126,9 @@ not modify underlying facts. Editing preserves the reviewed source fingerprint, 
 captures the currently resolved source, and review status is derived rather than stored mutably.
 Supported correction concepts have one domain-level catalog used by resolution and validation.
 Initial correction values are non-negative money amounts, including zero, and must include a
-non-empty reason.
+non-empty reason. Removing a correction restores normal source precedence without closing its
+revision stream; a later correction appends a new create revision guarded by the tombstone's
+revision number.
 
 Reason: the consolidated view should prefer assessed facts while remaining traceable and should
 not silently present stale values as current-year facts. Derived review status prevents a reimport

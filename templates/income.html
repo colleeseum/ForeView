@@ -141,6 +141,48 @@
     </form>
   </section>
 </div>
+<div id="income-correction-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog income-correction-dialog" role="dialog" aria-modal="true" aria-labelledby="income-correction-title">
+    <button id="income-correction-close" class="dialog-close" type="button" aria-label="Close factual correction">×</button>
+    <p class="eyebrow">Factual correction</p>
+    <h2 id="income-correction-title">Correct factual value</h2>
+    <p id="income-correction-context" class="field-note"></p>
+    <button class="context-help-button" type="button" data-help-article="factual-corrections"><span>?</span> When to correct a factual value</button>
+    <div id="income-correction-status" class="income-correction-status" hidden></div>
+    <div class="income-correction-comparison">
+      <section>
+        <span>Source when reviewed</span>
+        <strong id="income-correction-source-amount">—</strong>
+        <small id="income-correction-source-note">—</small>
+      </section>
+      <section>
+        <span>Current underlying value</span>
+        <strong id="income-correction-current-amount">—</strong>
+        <small id="income-correction-current-note">—</small>
+      </section>
+    </div>
+    <form id="income-correction-form" class="setup-form">
+      <label>Corrected value
+        <span class="field-note">This overrides the application value. It does not change the official document.</span>
+        <input name="correct_amount" type="number" min="0" step="0.01" required>
+      </label>
+      <label>Reason
+        <span class="field-note">Explain why the application should use a different factual value.</span>
+        <textarea name="reason" rows="3" required></textarea>
+      </label>
+      <div class="dialog-actions income-correction-actions">
+        <button id="income-correction-remove" class="secondary-button" type="button" hidden>Remove correction</button>
+        <button id="income-correction-confirm" class="secondary-button" type="button" hidden>Confirm against current source</button>
+        <button id="income-correction-save" type="submit" disabled>Save correction</button>
+      </div>
+    </form>
+    <p id="income-correction-message" class="form-message" aria-live="polite"></p>
+    <details id="income-correction-history-panel" class="income-correction-history">
+      <summary>Revision history</summary>
+      <div id="income-correction-history"></div>
+    </details>
+  </section>
+</div>
 <div id="ufile-dialog-backdrop" class="dialog-backdrop" hidden>
   <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="ufile-dialog-title">
     <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
@@ -165,6 +207,6 @@
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='income.mjs', v='20260929-10') }}"></script>
+<script type="module" src="{{ url_for('static', filename='income.mjs', v='20261003-1') }}"></script>
 </body>
 </html>

@@ -42,6 +42,30 @@ _ARTICLES = (
         "keywords": ("income", "employment", "T1", "tax", "salary", "actual"),
     },
     {
+        "key": "factual-corrections",
+        "title": "Correcting a factual income or tax value",
+        "summary": "Override an inaccurate retained fact without changing its source document.",
+        "body": (
+            "Use a factual correction when the application should use a different value from "
+            "the assessment, filed return, or annual record it retained. Enter the corrected "
+            "amount and explain why it differs. The original value and provenance remain "
+            "available for audit, and the correction is clearly identified as a user override. "
+            "If a new import changes the underlying value or source, the correction remains "
+            "active but requires review. Confirm it only after comparing the current source. "
+            "Remove the correction when ordinary source precedence should apply again. Reimport "
+            "the document instead when the retained source itself is incomplete or outdated."
+        ),
+        "keywords": (
+            "income",
+            "tax",
+            "correction",
+            "override",
+            "source",
+            "review",
+            "provenance",
+        ),
+    },
+    {
         "key": "assets",
         "title": "Assets and accounts",
         "summary": "Understand account categories, balances, and ownership.",

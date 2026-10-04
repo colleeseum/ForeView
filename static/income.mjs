@@ -1,4 +1,10 @@
 import {escapeHtml} from './html.mjs';
+import {
+  configureIncomeCorrections,
+  correctionPresentation,
+  initializeIncomeCorrections,
+  openIncomeCorrection,
+} from './income-corrections.mjs';
 
 const elements = {
   tabs: document.querySelector('#income-tabs'),
@@ -30,6 +36,8 @@ const elements = {
 let people = [];
 let records = [];
 let selectedPersonId = null;
+let selectedSnapshotYear = null;
+let latestSnapshotYear = null;
 let pendingImport = null;
 let pendingTaxReturn = null;
 const defaultTaxYear = elements.form.elements.tax_year.value;
@@ -78,7 +86,11 @@ function normalizedName(value) {
 
 async function json(response) {
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Request failed');
+  if (!response.ok) {
+    const error = new Error(result.error || 'Request failed');
+    error.status = response.status;
+    throw error;
+  }
   return result;
 }
 
@@ -133,13 +145,26 @@ function renderSummary(snapshot, rooms) {
   const optionalIncome = new Set([
     'oas_income', 'cpp_qpp_benefits', 'other_pension_income', 'interest_investment_income',
   ]);
+  const yearOptions = snapshot.available_years.map((year) =>
+    `<option value="${year}"${year === snapshot.tax_year ? ' selected' : ''}>${year}</option>`
+  ).join('');
   const cards = snapshot.values
-    .filter((value) => !optionalIncome.has(value.concept) || Number(value.amount) !== 0)
-    .map((value) => `<div class="income-summary-value">
+    .filter((value) => correctionPresentation(value.concept) || !optionalIncome.has(value.concept) || Number(value.amount) !== 0)
+    .map((value) => {
+      const presentation = correctionPresentation(value.concept);
+      const correction = presentation?.correction;
+      const underlying = correction?.current_underlying;
+      const note = correction
+        ? `User correction · Underlying: ${sourceNote(underlying)}`
+        : sourceNote(value);
+      return `<div class="income-summary-value${presentation ? ' corrected' : ''}${presentation?.reviewRequired ? ' review-required' : ''}">
       <span class="income-summary-label">${escapeHtml(value.label)}</span>
       <strong class="income-summary-amount">${money(value.amount)}</strong>
-      <small class="income-summary-note">${sourceNote(value)}</small>
-    </div>`);
+      ${presentation ? `<span class="income-correction-badge">${escapeHtml(presentation.badge)}</span>` : ''}
+      <small class="income-summary-note">${note}</small>
+      <button class="income-correction-action" type="button" data-correct-concept="${escapeHtml(value.concept)}">${presentation ? escapeHtml(presentation.action) : 'Correct'}</button>
+    </div>`;
+    });
   const latestRooms = new Map();
   for (const room of rooms || []) {
     if (!latestRooms.has(room.plan_type)) latestRooms.set(room.plan_type, room);
@@ -154,9 +179,10 @@ function renderSummary(snapshot, rooms) {
   elements.summary.innerHTML = `<section class="income-summary-panel">
     <div class="income-summary-heading">
       <div>
-        <p class="eyebrow">Latest consolidated snapshot</p>
+        <p class="eyebrow">${selectedSnapshotYear ? 'Historical' : 'Latest'} consolidated snapshot</p>
         <h2 class="income-summary-title">Tax year ${snapshot.tax_year}</h2>
       </div>
+      <label class="income-year-filter">View tax year<select data-income-snapshot-year>${yearOptions}</select></label>
       <p class="income-summary-note">Assessed values take precedence over the filed return for the same year. Each value retains its source.</p>
     </div>
     <div class="income-summary-grid">${cards.join('')}</div>
@@ -291,9 +317,20 @@ async function load() {
     renderHistory();
     return;
   }
-  const result = await fetch(`/api/income?person_id=${selectedPersonId}`).then(json);
-  records = result.records;
-  renderSummary(result.snapshot, result.registered_rooms || []);
+  const yearQuery = selectedSnapshotYear ? `&year=${selectedSnapshotYear}` : '';
+  const result = await fetch(`/api/income?person_id=${selectedPersonId}${yearQuery}`).then(json);
+  if (!selectedSnapshotYear) records = result.records;
+  latestSnapshotYear = result.snapshot?.available_years?.[0] || null;
+  configureIncomeCorrections({
+    personId: selectedPersonId,
+    personName: selectedPerson()?.name,
+    snapshot: result.snapshot,
+    corrections: result.corrections || [],
+  });
+  renderSummary(
+    result.snapshot,
+    selectedSnapshotYear ? [] : result.registered_rooms || [],
+  );
   renderHistory();
   // renderSupplementary() handles all other sections including assessments, rooms, pension, normalized
   renderSupplementary(
@@ -309,7 +346,20 @@ elements.tabs.addEventListener('click', (event) => {
   const tab = event.target.closest('[data-person-id]');
   if (!tab) return;
   selectedPersonId = Number(tab.dataset.personId);
+  selectedSnapshotYear = null;
   load().catch((error) => showMessage(error.message, true));
+});
+elements.summary.addEventListener('change', (event) => {
+  const filter = event.target.closest('[data-income-snapshot-year]');
+  if (!filter) return;
+  const year = Number(filter.value);
+  selectedSnapshotYear = year === latestSnapshotYear ? null : year;
+  load().catch((error) => showMessage(error.message, true));
+});
+elements.summary.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-correct-concept]');
+  if (!button) return;
+  openIncomeCorrection(button.dataset.correctConcept);
 });
 elements.history.addEventListener('click', (event) => {
   const button = event.target.closest('[data-edit-year]');
@@ -421,4 +471,10 @@ elements.form.addEventListener('submit', async (event) => {
   } catch (error) { showMessage(error.message, true); }
 });
 
+initializeIncomeCorrections({
+  requestJson: (url, options) => fetch(url, options).then(json),
+  reload: load,
+  notify: showMessage,
+  money,
+});
 load().catch((error) => showMessage(error.message, true));

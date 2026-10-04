@@ -34,15 +34,22 @@ class CorrectionRepository:
         *,
         expected_revision: int = 0,
     ) -> FactualCorrectionRevision:
-        """Create revision one when the correction stream does not exist."""
-        if expected_revision != 0 or self.get_latest(person_id, tax_year, concept) is not None:
+        """Create a stream or reactivate its removed latest revision."""
+        latest = self.get_latest(person_id, tax_year, concept)
+        if latest is None:
+            if expected_revision != 0:
+                raise CorrectionConflictError("Correction stream revision is stale")
+            revision_number = 1
+        elif not latest.is_active and expected_revision == latest.revision_number:
+            revision_number = latest.revision_number + 1
+        else:
             raise CorrectionConflictError("Correction stream already exists")
         try:
             revision_id = self._insert(
                 person_id,
                 tax_year,
                 concept,
-                1,
+                revision_number,
                 "create",
                 correct_amount,
                 reason,

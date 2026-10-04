@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div><p class="eyebrow">Financial record</p><h1>Expenses</h1>
+    <p>High-level factual household spending. Missing evidence is kept distinct from an explicit zero.</p></div>
+</section>
+<section class="card">
+  <h2>{{ year }} factual spending</h2>
+  {% if summary.status == 'missing' %}
+    <p>No factual expense information has been recorded for {{ year }}. Spending is unknown, not $0.</p>
+  {% else %}
+    {% if summary.status == 'needs_resolution' %}
+      <p><strong>Review required:</strong> overlapping evidence is present. Resolve it before using this year as a projection baseline.</p>
+    {% endif %}
+    <dl>
+      <dt>Required</dt><dd>${{ '%.2f'|format(summary.required) }}</dd>
+      <dt>Discretionary</dt><dd>${{ '%.2f'|format(summary.discretionary) }}</dd>
+      <dt>Total</dt><dd>${{ '%.2f'|format(summary.total) }}</dd>
+    </dl>
+  {% endif %}
+</section>
+<section class="card">
+  <h2>Supporting records</h2>
+  {% if expenses %}
+  <table><thead><tr><th>Name</th><th>Category</th><th>Classification</th><th>Period</th><th>Amount</th><th>Source</th><th>Status</th></tr></thead>
+  <tbody>{% for expense in expenses %}<tr>
+    <td>{{ expense.name }}</td><td>{{ expense.category_name }}</td><td>{{ expense.classification }}</td>
+    <td>{{ expense.period_start }} – {{ expense.period_end }}</td><td>${{ '%.2f'|format(expense.amount) }}</td>
+    <td>{{ expense.source_kind }}{% if expense.source_name %}: {{ expense.source_name }}{% endif %}</td>
+    <td>{{ expense.overlap_status }}</td>
+  </tr>{% endfor %}</tbody></table>
+  {% else %}<p>No expense records for this year.</p>{% endif %}
+</section>
+<section class="card">
+  <h2>Add manual expense</h2>
+  <form method="post" action="/api/expenses/manual">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Name <input name="name" required></label>
+    <label>Category <select name="category_id" required>{% for category in categories if category.is_active %}<option value="{{ category.id }}">{{ category.name }} ({{ category.classification }})</option>{% endfor %}</select></label>
+    <label>Amount <input name="amount" inputmode="decimal" required></label>
+    <label>Period start <input type="date" name="period_start" required></label>
+    <label>Period end <input type="date" name="period_end" required></label>
+    <button type="submit">Save factual expense</button>
+  </form>
+</section>
+{% endblock %}

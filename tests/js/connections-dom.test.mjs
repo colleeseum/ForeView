@@ -26,6 +26,7 @@ test('connections uses the clicked sync controls and restores failures', async (
   await waitForTasks();
   const list = document.querySelector('#connection-list');
   assert.match(list.textContent, /last successful sync never/);
+  assert.equal(list.querySelector('.connection-advanced').open, false);
 
   list.querySelector('.refetch-connection').click();
   await waitForTasks();

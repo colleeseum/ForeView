@@ -6,16 +6,25 @@ import unittest
 import urllib.error
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
 import app as application
+from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
+from domain.parsed_tax_assessment import ParsedTaxAssessment
+from domain.parsed_tax_value import ParsedTaxValue
+from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 from infrastructure.runtime_config import RuntimeConfig
 from institutions.questrade.client import QuestradeClient
 from institutions.questrade.connection import QuestradeConnectionProvider
 from institutions.questrade.settings import AUTHORIZE_URL, TOKEN_URL, QuestradeSettings
 from institutions.questrade.unauthorized import QuestradeUnauthorized
+from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
+from repositories.real_estate_asset_repository import RealEstateAssetRepository
+from repositories.real_estate_projection_repository import RealEstateProjectionRepository
+from repositories.scenario_assumption_repository import ScenarioAssumptionRepository
 from services.public_rule_catalog import PublicRuleCatalog
 from synthetic_questrade import SyntheticQuestradeAPI
 from synthetic_runtime import create_synthetic_runtime
@@ -46,6 +55,14 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         return response.get_json()["people"]
 
+    def test_account_api_exposes_registered_account_type_contract(self):
+        response = self.client.get("/api/model/accounts")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item["key"] for item in response.get_json()["account_types"]],
+            ["non_registered", "resp", "rrsp", "tfsa"],
+        )
+
     def _questrade(self):
         return application.connection_providers(self.runtime_config)["questrade"]
 
@@ -64,7 +81,17 @@ class AppRouteTests(unittest.TestCase):
         return QuestradeAuthorizationRepository(connection).get_by_name(name)
 
     def test_html_pages_and_legacy_workbook_endpoints_are_absent(self):
-        for path in ("/", "/setup", "/accounts", "/connections", "/transactions", "/settings"):
+        for path in (
+            "/",
+            "/setup",
+            "/accounts",
+            "/connections",
+            "/transactions",
+            "/settings",
+            "/application-settings",
+            "/about",
+            "/salary-projection",
+        ):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 200)
         self.assertEqual(self.client.get("/api/sheets/Missing").status_code, 404)
@@ -78,6 +105,7 @@ class AppRouteTests(unittest.TestCase):
             "/accounts": "accounts.mjs",
             "/connections": "connections.mjs",
             "/transactions": "transactions.mjs",
+            "/salary-projection": "salary-projection.mjs",
         }
         for path, filename in expected_entries.items():
             with self.subTest(path=path):
@@ -105,6 +133,7 @@ class AppRouteTests(unittest.TestCase):
             "form-state.mjs",
             "gic-dialog.mjs",
             "ownership-fields.mjs",
+            "salary-projection.mjs",
         ):
             with self.subTest(filename=filename):
                 response = self.client.get(f"/static/{filename}")
@@ -113,6 +142,509 @@ class AppRouteTests(unittest.TestCase):
                     self.assertIn("javascript", response.content_type)
                 finally:
                     response.close()
+
+    def test_salary_projection_api_persists_inputs_and_calculates_household(self):
+        person_id = self._people()[0]["id"]
+        scenario = self.client.post(
+            "/api/model/scenarios",
+            json={"name": "Salary baseline", "baseline_date": "2026-01-01"},
+        )
+        self.assertEqual(scenario.status_code, 201)
+        scenario_id = scenario.get_json()["id"]
+        baseline = self.client.put(
+            f"/api/salary-projection/people/{person_id}/baseline",
+            json={
+                "effective_date": "2026-01-01",
+                "annual_salary": "100000",
+                "province_of_employment": "ON",
+                "payroll_plan": "CPP",
+            },
+        )
+        self.assertEqual(baseline.status_code, 200)
+        settings = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/settings",
+            json={
+                "default_raise": "0.04",
+                "recurring_rrsp_contribution": "10000",
+                "recurring_rrsp_deduction": "10000",
+                "recurring_other_income": "1000",
+            },
+        )
+        self.assertEqual(settings.status_code, 200)
+        partial_settings = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/settings",
+            json={"default_raise": "0.04"},
+        )
+        self.assertEqual(partial_settings.status_code, 200)
+        self.assertEqual(partial_settings.get_json()["recurring_rrsp_contribution"], "10000.00")
+        self.assertEqual(partial_settings.get_json()["recurring_other_income"], "1000.00")
+        with self.runtime_config.connect() as connection:
+            approvals = PublicRuleApprovalRepository(connection)
+            catalog = PublicRuleCatalog(application.ROOT / "public_rules")
+            for rule_set_id in (
+                "ca-2026-official",
+                "ca-qc-2026-official",
+                "ca-on-2026-official",
+            ):
+                package = catalog.get(rule_set_id)
+                self.assertIsNotNone(package)
+                approvals.approve(rule_set_id, package.content_hash)
+
+        expenses = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/expenses",
+            json={
+                "start_year": 2026,
+                "required_annual_amount": "60000",
+                "required_annual_growth": "0.02",
+                "discretionary_annual_amount": "10000",
+                "discretionary_annual_growth": "0.03",
+            },
+        )
+        self.assertEqual(expenses.status_code, 200)
+        self.assertEqual(expenses.get_json()["required_annual_amount"], "60000.00")
+
+        response = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        person = next(item for item in payload["people"] if item["id"] == person_id)
+        self.assertEqual(person["projection"][0]["annual_salary_rate"], "105560.00")
+        self.assertEqual(person["projection"][1]["annual_salary_rate"], "109782.40")
+        self.assertTrue(person["projection"][1]["rules_held_constant"])
+        self.assertEqual(len(payload["household"]), 2)
+        household = payload["household"][0]
+        self.assertEqual(household["required_expenses"], "60000.00")
+        self.assertEqual(household["discretionary_expenses"], "10000.00")
+        self.assertEqual(household["planned_expenses"], "70000.00")
+        self.assertEqual(
+            Decimal(household["surplus_deficit"]),
+            Decimal(household["disposable_income"]) - Decimal("70000.00"),
+        )
+
+        rejected = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/overrides",
+            json={"overrides": [{"year": 2026, "salary": "130000"}, {"salary": "1"}]},
+        )
+        self.assertEqual(rejected.status_code, 400)
+        unchanged = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2026"
+        ).get_json()
+        unchanged_person = next(item for item in unchanged["people"] if item["id"] == person_id)
+        self.assertEqual(unchanged_person["projection"][0]["annual_salary_rate"], "105560.00")
+
+        override = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/overrides",
+            json={"overrides": [{"year": 2027, "salary": "120000", "rrsp_contribution": "0"}]},
+        )
+        self.assertEqual(override.status_code, 200)
+        self.assertEqual(override.get_json()["saved_years"], [2027])
+        actual = self.client.put(
+            f"/api/salary-projection/people/{person_id}/actuals/2025",
+            json={
+                "salary_income": "95000",
+                "province_of_residence": "ON",
+                "payroll_plan": "CPP",
+                "rrsp_contribution": "9000",
+                "rrsp_deduction": "9000",
+                "cpp_qpp": "4000",
+                "ei": "1000",
+                "federal_tax": "12000",
+                "quebec_tax": "14000",
+            },
+        )
+        self.assertEqual(actual.status_code, 200)
+        earlier_actual = self.client.put(
+            f"/api/salary-projection/people/{person_id}/actuals/2024",
+            json={
+                "salary_income": "90000",
+                "province_of_residence": "ON",
+                "cpp_qpp": "3800",
+                "ei": "900",
+                "federal_tax": "11000",
+                "quebec_tax": "13000",
+            },
+        )
+        self.assertEqual(earlier_actual.status_code, 200)
+
+        updated = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        person = next(item for item in updated["people"] if item["id"] == person_id)
+        self.assertEqual(person["projection"][0]["annual_salary_rate"], "98800.00")
+        self.assertEqual(person["projection"][1]["annual_salary_rate"], "120000.00")
+        self.assertEqual(person["projection"][1]["rrsp_contribution"], "0.00")
+        self.assertEqual([item["year"] for item in person["actuals"]], [2024, 2025])
+        self.assertEqual(person["actuals"][0]["age"], 49)
+        self.assertEqual(person["actuals"][0]["net_income_after_tax"], "61300.00")
+        self.assertEqual(person["salary_anchor"]["annual_salary_rate"], "95000.00")
+
+        reset = self.client.put(
+            f"/api/salary-projection/scenarios/{scenario_id}/people/{person_id}/draft",
+            json={
+                "settings": {"default_raise": "0.04", "retirement_date": None},
+                "overrides": [
+                    {
+                        "year": 2027,
+                        "salary": None,
+                        "raise_rate": None,
+                        "rrsp_contribution": None,
+                        "rrsp_deduction": None,
+                        "other_income": None,
+                    }
+                ],
+            },
+        )
+        self.assertEqual(reset.status_code, 200)
+        reset_projection = self.client.get(
+            f"/api/salary-projection?scenario_id={scenario_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        reset_person = next(item for item in reset_projection["people"] if item["id"] == person_id)
+        self.assertEqual(reset_person["overrides"], [])
+        self.assertEqual(reset_person["projection"][1]["annual_salary_rate"], "102752.00")
+
+    def test_salary_projection_save_as_clones_every_person_and_applies_visible_draft(self):
+        people = self._people()
+        source = self.client.post(
+            "/api/model/scenarios",
+            json={
+                "name": "Source projection",
+                "baseline_date": "2026-01-01",
+                "growth_rate": "0.025",
+            },
+        )
+        self.assertEqual(source.status_code, 201)
+        source_id = source.get_json()["id"]
+        with self.runtime_config.connect() as connection:
+            asset_id = RealEstateAssetRepository(connection).list_all()[0].id
+            RealEstateProjectionRepository(connection).create(
+                asset_id,
+                "2035-01-01",
+                "250000",
+                scenario_id=source_id,
+                projected_acb="125000",
+                note="Scenario-specific land value",
+            )
+        for index, person in enumerate(people[:2]):
+            person_id = person["id"]
+            settings = self.client.put(
+                f"/api/salary-projection/scenarios/{source_id}/people/{person_id}/settings",
+                json={"default_raise": str(Decimal("0.03") + Decimal(index) / 100)},
+            )
+            self.assertEqual(settings.status_code, 200)
+            override = self.client.put(
+                f"/api/salary-projection/scenarios/{source_id}/people/{person_id}/overrides",
+                json={"overrides": [{"year": 2027, "salary": str(100000 + index * 10000)}]},
+            )
+            self.assertEqual(override.status_code, 200)
+
+        selected_person_id = people[0]["id"]
+        clone = self.client.post(
+            f"/api/salary-projection/scenarios/{source_id}/clone",
+            json={
+                "name": "Alternative projection",
+                "person_id": selected_person_id,
+                "settings": {"default_raise": "0.05", "retirement_date": "2035-07-01"},
+                "overrides": [{"year": 2027, "salary": "125000"}],
+            },
+        )
+        self.assertEqual(clone.status_code, 201)
+        clone_id = clone.get_json()["id"]
+
+        cloned = self.client.get(
+            f"/api/salary-projection?scenario_id={clone_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        cloned_people = {item["id"]: item for item in cloned["people"]}
+        self.assertEqual(cloned_people[selected_person_id]["settings"]["default_raise"], "0.05")
+        self.assertEqual(
+            cloned_people[selected_person_id]["settings"]["retirement_date"], "2035-07-01"
+        )
+        self.assertEqual(cloned_people[selected_person_id]["overrides"][0]["salary"], "125000.00")
+        second_person_id = people[1]["id"]
+        self.assertEqual(cloned_people[second_person_id]["settings"]["default_raise"], "0.04")
+        self.assertEqual(cloned_people[second_person_id]["overrides"][0]["salary"], "110000.00")
+
+        original = self.client.get(
+            f"/api/salary-projection?scenario_id={source_id}&start_year=2026&end_year=2027"
+        ).get_json()
+        original_people = {item["id"]: item for item in original["people"]}
+        self.assertEqual(original_people[selected_person_id]["settings"]["default_raise"], "0.03")
+        self.assertEqual(original_people[selected_person_id]["overrides"][0]["salary"], "100000.00")
+        with self.runtime_config.connect() as connection:
+            assumption = ScenarioAssumptionRepository(connection).get(
+                clone_id, "general_growth_rate"
+            )
+            real_estate = RealEstateProjectionRepository(connection).list_for_scenario(clone_id)
+        self.assertIsNotNone(assumption)
+        self.assertEqual(assumption.value, "0.025")
+        self.assertEqual(len(real_estate), 1)
+        self.assertEqual(real_estate[0].projected_value, 250000.0)
+
+        rejected = self.client.post(
+            f"/api/salary-projection/scenarios/{source_id}/clone",
+            json={"name": "Incomplete projection", "person_id": selected_person_id},
+        )
+        self.assertEqual(rejected.status_code, 400)
+        scenarios = self.client.get("/api/salary-projection").get_json()["scenarios"]
+        self.assertNotIn("Incomplete projection", [item["name"] for item in scenarios])
+
+    def test_ufile_preview_does_not_save_until_user_confirms(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedUFileTaxReturn(
+            tax_year=2024,
+            employment_income=Decimal("100000.00"),
+            other_employment_income=Decimal("500.00"),
+            cpp_qpp=Decimal("4000.00"),
+            ei=Decimal("900.00"),
+            qpip=Decimal("400.00"),
+            rrsp_contribution=Decimal("15000.00"),
+            rrsp_deduction=Decimal("14000.00"),
+            federal_tax=Decimal("12000.00"),
+            provincial_tax=Decimal("13000.00"),
+            taxpayer_name="Alex Example",
+            tax_values=(
+                ParsedTaxValue(
+                    "interest_investment_income",
+                    "Interest and other investment income",
+                    Decimal("725.50"),
+                    line_code="12100",
+                    effective_year=2024,
+                ),
+            ),
+        )
+        with patch("web.income_routes.income_source_registry.detect") as detect_source:
+            detect_source.return_value.parser.return_value = parsed
+            detect_source.return_value.source_label = "UFile T1"
+            detect_source.return_value.key = "ufile"
+            detect_source.return_value.display_name = "UFile T1 PDF"
+            detect_source.return_value.version = "2026.09.29"
+            detect_source.return_value.help_text = "Help"
+            response = self.client.post(
+                "/api/income/import/ufile/preview",
+                data={"file": (io.BytesIO(b"synthetic"), "return.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["employment_income"], "100000.00")
+        self.assertEqual(response.get_json()["taxpayer_name"], "Alex Example")
+        self.assertEqual(response.get_json()["interest_income"], "725.50")
+        record = self.client.get(f"/api/income?person_id={person_id}&year=2024").get_json()
+        self.assertIsNone(record["record"])
+
+    def test_notice_preview_and_confirmation_save_assessment_and_rrsp_room(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedTaxAssessment(
+            tax_year=2025,
+            jurisdiction="CA",
+            issued_on="2026-05-11",
+            taxpayer_name="Alex Example",
+            total_income=Decimal("105000.00"),
+            net_income=Decimal("90000.00"),
+            taxable_income=Decimal("89500.00"),
+            net_tax=Decimal("17500.00"),
+            additional_contributions=Decimal("0.00"),
+            tax_withheld=Decimal("18000.00"),
+            balance=Decimal("-500.00"),
+            rrsp_effective_year=2026,
+            rrsp_deduction_limit=Decimal("22000.00"),
+            rrsp_unused_deduction_room=Decimal("3000.00"),
+            rrsp_new_room=Decimal("19000.00"),
+            rrsp_unused_contributions=Decimal("1200.00"),
+            rrsp_available_room=Decimal("20800.00"),
+            tax_values=(
+                ParsedTaxValue(
+                    "canada_training_credit_limit",
+                    "Canada training credit limit",
+                    None,
+                    Decimal("250"),
+                    effective_year=2026,
+                ),
+            ),
+        )
+        with patch("web.income_routes.tax_notice_registry.detect") as detect_notice:
+            detect_notice.return_value.parser.return_value = parsed
+            detect_notice.return_value.source_label = "CRA notice of assessment"
+            detect_notice.return_value.display_name = "CRA notice of assessment PDF"
+            detect_notice.return_value.version = "2026.09.29"
+            preview = self.client.post(
+                "/api/income/import/preview",
+                data={"file": (io.BytesIO(b"notice"), "notice.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(preview.status_code, 200)
+        payload = preview.get_json()
+        self.assertEqual(payload["kind"], "tax_assessment")
+        self.assertEqual(payload["rrsp_available_room"], "20800.00")
+        self.assertEqual(len(payload["document_hash"]), 64)
+        saved = self.client.post(
+            f"/api/income/people/{person_id}/assessments",
+            json=payload,
+        )
+        self.assertEqual(saved.status_code, 201)
+
+        income = self.client.get(f"/api/income?person_id={person_id}").get_json()
+        self.assertEqual(income["assessments"][0]["net_tax"], "17500.00")
+        self.assertEqual(income["registered_rooms"][0]["effective_year"], 2026)
+        self.assertEqual(income["registered_rooms"][0]["available_room"], "20800.00")
+        self.assertEqual(income["tax_values"][0]["concept"], "canada_training_credit_limit")
+        self.assertEqual(income["snapshot"]["tax_year"], 2025)
+        snapshot_values = {value["concept"]: value for value in income["snapshot"]["values"]}
+        self.assertEqual(snapshot_values["total_income"]["amount"], "105000.00")
+        self.assertEqual(snapshot_values["total_income"]["source"], "CRA notice of assessment")
+
+    def test_pension_preview_and_confirmation_save_earnings_and_estimates(self):
+        person_id = self._people()[0]["id"]
+        parsed = ParsedPublicPensionStatement(
+            issued_on="2026-06-15",
+            taxpayer_name="Alex Example",
+            birth_date="1975-01-02",
+            provider="QPP",
+            excludes_second_enhancement=True,
+            earnings=((2024, Decimal("0"), Decimal("68500"), "C"),),
+            estimates=(
+                ("continue", 60, Decimal("900")),
+                ("continue", 65, Decimal("1400")),
+                ("stop", 60, Decimal("700")),
+                ("stop", 65, Decimal("1100")),
+            ),
+        )
+        with (
+            patch("web.income_routes.tax_notice_registry.detect", return_value=None),
+            patch("web.income_routes.public_pension_source_registry.detect") as detect_pension,
+        ):
+            detect_pension.return_value.parser.return_value = parsed
+            detect_pension.return_value.display_name = "Retraite Québec statement"
+            detect_pension.return_value.version = "2026.09.29"
+            preview = self.client.post(
+                "/api/income/import/preview",
+                data={"file": (io.BytesIO(b"statement"), "statement.pdf")},
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(preview.status_code, 200)
+        payload = preview.get_json()
+        self.assertEqual(payload["kind"], "public_pension_statement")
+        self.assertEqual(payload["earnings"][0]["cpp_earnings"], "68500.00")
+        saved = self.client.post(
+            f"/api/income/people/{person_id}/public-pension-statements",
+            json=payload,
+        )
+        self.assertEqual(saved.status_code, 201)
+
+        pension = self.client.get(f"/api/income?person_id={person_id}").get_json()["public_pension"]
+        self.assertEqual(pension["provider"], "QPP")
+        self.assertTrue(pension["excludes_second_enhancement"])
+        self.assertEqual(pension["earnings"][0]["cpp_earnings"], "68500.00")
+        self.assertEqual(len(pension["estimates"]), 4)
+
+    def test_income_history_keeps_all_years_newest_first(self):
+        person_id = self._people()[0]["id"]
+        response = self.client.put(
+            f"/api/income/people/{person_id}/years/2024",
+            json={
+                "employment_income": "90000",
+                "bonus": "5000",
+                "province_of_residence": "ON",
+                "source": "T1",
+                "interest_income": "425.75",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        history = self.client.get(f"/api/income?person_id={person_id}")
+
+        self.assertEqual(history.status_code, 200)
+        records = history.get_json()["records"]
+        self.assertGreaterEqual(len(records), 2)
+        self.assertEqual([record["year"] for record in records[:2]], [2025, 2024])
+        self.assertEqual(records[1]["salary_rate"], "85000.00")
+        self.assertEqual(records[1]["province_of_residence"], "ON")
+        self.assertEqual(records[1]["interest_income"], "425.75")
+
+    def test_income_snapshot_api_returns_correctly_structured_data(self):
+        person_id = self._people()[0]["id"]
+        # Setup: 1 annual record, 1 assessment
+        self.client.put(
+            f"/api/income/people/{person_id}/years/2025",
+            json={
+                "employment_income": "100000",
+                "bonus": "5000",
+                "province_of_residence": "ON",
+                "source": "T1",
+            },
+        )
+
+        assessment_payload = {
+            "tax_year": 2025,
+            "jurisdiction": "CA",
+            "issued_on": "2026-05-11",
+            "taxpayer_name": "Alex Example",
+            "total_income": "120000.00",
+            "net_income": "100000.00",
+            "taxable_income": "95000.00",
+            "net_tax": "20000.00",
+            "additional_contributions": "0.00",
+            "tax_withheld": "22000.00",
+            "balance": "-2000.00",
+            "rrsp_effective_year": 2026,
+            "rrsp_deduction_limit": "25000.00",
+            "rrsp_unused_deduction_room": "5000.00",
+            "rrsp_new_room": "20000.00",
+            "rrsp_unused_contributions": "0.00",
+            "rrsp_available_room": "25000.00",
+            "source": "CRA Assessment",
+            "source_version": "1.0",
+            "document_hash": "a" * 64,
+        }
+        self.client.post(
+            f"/api/income/people/{person_id}/assessments",
+            json=assessment_payload,
+        )
+
+        response = self.client.get(f"/api/income?person_id={person_id}")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+
+        self.assertIn("snapshot", data)
+        self.assertIn("records", data)
+        self.assertIn("assessments", data)
+        self.assertIn("registered_rooms", data)
+        self.assertIn("public_pension", data)
+        self.assertIn("tax_values", data)
+
+        snapshot = data["snapshot"]
+        self.assertEqual(snapshot["tax_year"], 2025)
+        self.assertIsInstance(snapshot["values"], list)
+
+        # Verify snapshot values include required concepts
+        concepts = {v["concept"] for v in snapshot["values"]}
+        self.assertIn("employment_income", concepts)
+        self.assertIn("total_income", concepts)
+        self.assertIn("taxable_income", concepts)
+
+    def test_income_snapshot_precedence_via_api(self):
+        person_id = self._people()[0]["id"]
+        # 1. Manual Record (lowest precedence)
+        self.client.put(
+            f"/api/income/people/{person_id}/years/2025",
+            json={
+                "employment_income": "100000",
+                "bonus": "0",
+                "province_of_residence": "ON",
+                "source": "Manual",
+            },
+        )
+
+        response = self.client.get(f"/api/income?person_id={person_id}")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+
+        # Check that the snapshot reflects the manual record for now
+        snapshot_values = {v["concept"]: v for v in data["snapshot"]["values"]}
+        self.assertEqual(snapshot_values["employment_income"]["amount"], "100000.00")
+        self.assertEqual(snapshot_values["employment_income"]["source"], "Manual")
 
     def test_state_changes_require_a_matching_csrf_token(self):
         untrusted_client = self.app.test_client()
@@ -171,12 +703,17 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b'<option value="2025">2025</option>', default_page.data)
         self.assertIn(b"ca-2026-official", default_page.data)
         self.assertNotIn(b"ca-qc-2026-official", default_page.data)
-        self.assertIn(b'data-help-key="public-rule-approval"', default_page.data)
-        self.assertIn(b'aria-label="Public-rule approval help"', default_page.data)
+        self.assertIn(b'data-help-article="public-rule-approval"', default_page.data)
 
-        help_script = (application.ROOT / "static" / "help.js").read_text()
-        self.assertIn("added, removed, or changed any tax concept", help_script)
-        self.assertIn("importer may require a code change", help_script)
+        help_response = self.client.get("/api/help")
+        self.assertEqual(help_response.status_code, 200)
+        approval_help = next(
+            article
+            for article in help_response.get_json()["articles"]
+            if article["key"] == "public-rule-approval"
+        )
+        self.assertIn("added, removed, or changed tax concepts", approval_help["body"])
+        self.assertIn("importer code change", approval_help["body"])
 
         quebec_2025 = self.client.get("/settings?jurisdiction=CA-QC&year=2025")
         self.assertIn(b"ca-qc-2025-official", quebec_2025.data)
@@ -201,14 +738,41 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         providers = {item["key"]: item for item in response.get_json()["institutions"]}
 
-        self.assertEqual(len(providers["rbc"]["importers"]), 3)
+        self.assertEqual(len(providers["rbc"]["importers"]), 4)
         self.assertIsNone(providers["rbc"]["connection"])
         self.assertEqual(
             providers["questrade"]["connection"]["sync_path"], "/api/connections/questrade/sync"
         )
+        self.assertEqual(providers["questrade"]["version"], "2026.09.29")
         self.assertIn(
             "connection", {topic["key"] for topic in providers["questrade"]["help_topics"]}
         )
+
+    def test_income_source_contract_exposes_retrieval_help_and_calver(self):
+        page = self.client.get("/income")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b'data-help-article="income-source-ufile"', page.data)
+
+        sources = self.client.get("/api/income/sources")
+        self.assertEqual(sources.status_code, 200)
+        source = sources.get_json()["sources"][0]
+        self.assertEqual(source["key"], "ufile")
+        self.assertEqual(source["version"], "2026.09.29.1")
+        self.assertNotIn("last_changed", source)
+        self.assertIn("Tax Return - view or download", source["help_text"])
+
+        help_catalog = self.client.get("/api/help").get_json()
+        ufile_help = next(
+            article
+            for article in help_catalog["articles"]
+            if article["key"] == "income-source-ufile"
+        )
+        self.assertIn("Tax Return - view or download", ufile_help["body"])
+
+        about = self.client.get("/about")
+        self.assertIn(b"Income source modules", about.data)
+        self.assertIn(b"Institution modules", about.data)
+        self.assertIn(b"UFile T1 PDF", about.data)
 
     def test_people_can_be_created_and_updated(self):
         created = self.client.post(
@@ -639,13 +1203,14 @@ class AppRouteTests(unittest.TestCase):
             self.assertEqual(response.status_code, 201)
             return response.get_json()["id"]
 
-        def upload(account_id, filename):
+        def upload(account_id, filename, **fields):
             path = fixtures / filename
             return self.client.post(
                 "/api/model/transactions/import",
                 data={
                     "account_id": str(account_id),
                     "files": (io.BytesIO(path.read_bytes()), path.name),
+                    **fields,
                 },
                 content_type="multipart/form-data",
             )
@@ -662,7 +1227,10 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(achieva.status_code, 201)
         self.assertEqual(achieva.get_json()["imported"], 2)
 
-        manulife = upload("auto", "manulife-rrsp-statement.pdf")
+        pending_manulife = upload("auto", "manulife-rrsp-statement.pdf")
+        self.assertEqual(pending_manulife.status_code, 409)
+        self.assertTrue(pending_manulife.get_json()["confirm_account_creation"])
+        manulife = upload("auto", "manulife-rrsp-statement.pdf", confirm_account_creation="1")
         self.assertEqual(manulife.status_code, 201)
         self.assertEqual(manulife.get_json()["imported"], 4)
 

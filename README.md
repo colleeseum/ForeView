@@ -8,6 +8,20 @@ auditable salary and retirement projections without hiding assumptions in a spre
 The project is under active development. Asset tracking and institution imports are implemented;
 expense modelling and the complete retirement projection engine are not yet complete.
 
+## Shared project context
+
+The repository is the durable handoff point for human contributors and coding agents:
+
+- [Architecture](docs/architecture.md) describes the system that currently exists.
+- [Design decisions](docs/decisions.md) records durable constraints and their rationale.
+- [Current state](docs/current-state.md) identifies active work, known limitations, and next steps.
+- The [GitHub Project](https://github.com/users/colleeseum/projects/3) is the authoritative product
+  roadmap and progress tracker.
+- [Agent instructions](AGENTS.md) defines the workflow and engineering rules for coding agents.
+
+Keep these documents aligned with executable code and tests. Focused contracts and requirements
+remain beside their implementation or under `docs/` rather than being duplicated here.
+
 ## Important disclaimer
 
 This project is provided for informational and personal planning purposes only. The author is not
@@ -148,6 +162,13 @@ with:
 .venv/bin/python app.py --profile prod
 ```
 
+During local development against the private runtime, enable source reload without exposing the
+interactive debugger:
+
+```sh
+.venv/bin/python app.py --profile prod --reload
+```
+
 Use `--data-dir /absolute/path/to/runtime` for another location. WSGI and other tooling may set
 `FINANCE_DATA_DIR`; otherwise `FINANCE_PROFILE` accepts `dev` or `prod`. Use `--port` to override
 the profile default. Every profile binds to `127.0.0.1` by default. To make a server reachable on
@@ -258,11 +279,13 @@ Run the complete QA suite with:
 make qa
 ```
 
-It runs Ruff formatting and lint checks, mypy, pytest with branch coverage, integration coverage,
-Bandit, and `pip-audit`. Useful focused targets include:
+It checks the Git diff for whitespace errors, then runs Ruff formatting and lint checks, JavaScript
+tests and coverage, mypy, pytest with branch coverage, integration coverage, Bandit, and dependency
+audits. Useful focused targets include:
 
 ```sh
 make test
+make diff-check
 make coverage
 make integration-coverage
 make lint

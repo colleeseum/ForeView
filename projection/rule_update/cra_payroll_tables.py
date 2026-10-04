@@ -61,6 +61,37 @@ def federal_basic_personal_amounts(content: bytes, source_id: str) -> tuple[Deci
     raise RuleSourceFormatError(f"Could not find federal basic personal amounts in {source_id}")
 
 
+def canada_employment_amount(content: bytes, source_id: str) -> Decimal:
+    text = OfficialHtmlDocument(content).text
+    match = re.search(
+        r"Canada Employment Amount.*?lesser of:\s*\$?([\d,]+)",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if match is None:
+        match = re.search(
+            r"Canada Employment Amount.*?annual maximum\s*\$([\d,]+(?:\.\d+)?)",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    if match is None:
+        raise RuleSourceFormatError(f"Could not find Canada employment amount in {source_id}")
+    return decimal_value(match.group(1))
+
+
+def cpp_component_rates(content: bytes, source_id: str) -> tuple[Decimal, Decimal]:
+    text = OfficialHtmlDocument(content).text
+    base = re.search(r"CPP base contribution(?:\s+[\d,.]+){3}\s+(0\.\d+)", text, flags=re.I)
+    additional = re.search(
+        r"First additional CPP contribution(?:\s+[\d,.]+){3}\s+(0\.\d+)",
+        text,
+        flags=re.I,
+    )
+    if base is None or additional is None:
+        raise RuleSourceFormatError(f"Could not find CPP component rates in {source_id}")
+    return Decimal(base.group(1)), Decimal(additional.group(1))
+
+
 def ontario_tax_parameters(
     content: bytes, source_id: str
 ) -> tuple[Decimal, Decimal, Decimal, Decimal, Decimal]:

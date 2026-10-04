@@ -62,13 +62,13 @@ def create_synthetic_achieva_gic(path: Path) -> Path:
     )
 
 
-def create_synthetic_rbc_gic_history(path: Path) -> Path:
+def _create_synthetic_rbc_gic_history(path: Path, account_type: str) -> Path:
     return _write_pdf(
         path,
         [
             "Account Transaction History As of 24 Sep 2026",
-            "TFSA.. 999888777",
-            "TFSA Term Deposit #900000001",
+            f"{account_type}.. 999888777",
+            f"{account_type} Term Deposit #900000001",
             "Total",
             "Date Description Value",
             "Value",
@@ -84,6 +84,14 @@ def create_synthetic_rbc_gic_history(path: Path) -> Path:
             "24 Sep 2026 Closing Balance 107.50",
         ],
     )
+
+
+def create_synthetic_rbc_gic_history(path: Path) -> Path:
+    return _create_synthetic_rbc_gic_history(path, "TFSA")
+
+
+def create_synthetic_rbc_resp_history(path: Path) -> Path:
+    return _create_synthetic_rbc_gic_history(path, "RESP")
 
 
 def create_synthetic_rbc_tfsa_statement(path: Path) -> Path:
@@ -216,6 +224,7 @@ def create_synthetic_fixture_set(directory: Path) -> dict[str, Path]:
         "eq_pdf": ("eq-monthly-statement.pdf", create_synthetic_eq_statement),
         "achieva_gic_pdf": ("achieva-gic-history.pdf", create_synthetic_achieva_gic),
         "rbc_gic_pdf": ("rbc-gic-history.pdf", create_synthetic_rbc_gic_history),
+        "rbc_resp_pdf": ("rbc-resp-history.pdf", create_synthetic_rbc_resp_history),
         "rbc_tfsa_pdf": ("rbc-tfsa-statement.pdf", create_synthetic_rbc_tfsa_statement),
         "rbc_maturity_pdf": ("rbc-gic-maturity-notice.pdf", create_synthetic_rbc_maturity_notice),
         "rbc_deposit_pdf": ("rbc-deposit-statement.pdf", create_synthetic_rbc_deposit_statement),

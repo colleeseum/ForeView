@@ -5,33 +5,57 @@
     {
       "filename": "ca-qc-2026-official.json",
       "rule_set_id": "ca-qc-2026-official",
-      "sha256": "2f2a5df15e378ca86d57d33d89da42682e0e8f24033f432dff18e57136bd0e55"
+      "sha256": "8201e929c422e44c0b181cc0cdfec372378539d7370a3b55347d3fc0f9eec77b"
     }
   ],
   "sources": [
     {
       "content_type": "text/html",
       "filename": "sources/rq-income-tax-rates-2026.html",
-      "retrieved_at": "2026-09-28T00:29:57.145830+00:00",
-      "sha256": "c9e97f0a41c132fcbaaf86019ba5b7f3ac3ab11f2a0d8d3a517df2f43cdb5790",
+      "retrieved_at": "2026-09-29T02:01:01.497454+00:00",
+      "sha256": "cf489822c4d3cee1add53eee565b17f9778d76b2c24f62211f983dfddbf1e72c",
       "source_id": "rq-income-tax-rates-2026",
       "url": "https://www.revenuquebec.ca/en/citizens/income-tax-return/completing-your-income-tax-return/income-tax-rates/?wbdisable=true"
     },
     {
       "content_type": "text/html",
       "filename": "sources/rq-qpp-pensionable-earnings-contributions.html",
-      "retrieved_at": "2026-09-28T00:29:57.283374+00:00",
-      "sha256": "b3ab9579cf4ca9bde1a58efdecd47e85773ab44b854590fa14562bfc755f6d38",
+      "retrieved_at": "2026-09-29T02:01:01.578895+00:00",
+      "sha256": "2c89f4852002d38cbccabf3cb29f7b02513f11f92e23a20dc9a31936fe3c584a",
       "source_id": "rq-qpp-pensionable-earnings-contributions",
       "url": "https://www.retraitequebec.gouv.qc.ca/en/programs/quebec-pension-plan/work-contributions/pensionable-earnings-contributions"
     },
     {
       "content_type": "text/html",
       "filename": "sources/finance-canada-quebec-abatement.html",
-      "retrieved_at": "2026-09-28T00:29:59.429271+00:00",
-      "sha256": "aa65755b58a9a97254dec2630aa5a4ac06c90f21dd5d3a7c0e14771f042736b0",
+      "retrieved_at": "2026-09-29T02:01:03.723387+00:00",
+      "sha256": "7ac9fbcb8f724caec5ef6d02a930788c81459b155784d9c563be7ddca296c0d2",
       "source_id": "finance-canada-quebec-abatement",
       "url": "https://www.canada.ca/en/department-finance/programs/federal-transfers/quebec-abatement.html?wbdisable=true"
+    },
+    {
+      "content_type": "text/csv",
+      "filename": "sources/cra-ei-rates-2026.csv",
+      "retrieved_at": "2026-09-29T02:01:06.896874+00:00",
+      "sha256": "524162a6e1e62a7b2bdfe304a29f337273d03277519521a3cd380ec8e2fb0d1f",
+      "source_id": "cra-ei-rates-2026",
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pub/t4127-jan/ei-01-26e.csv"
+    },
+    {
+      "content_type": "text/csv",
+      "filename": "sources/cra-qpip-rates-2026.csv",
+      "retrieved_at": "2026-09-29T02:01:08.972240+00:00",
+      "sha256": "41b73748b7559902360f5e03eecdc133f82e3c25f54922452d2d3632b4e886d5",
+      "source_id": "cra-qpip-rates-2026",
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pub/t4127-jan/qpip-01-26e.csv"
+    },
+    {
+      "content_type": "application/pdf",
+      "filename": "sources/rq-tax-formulas-2026.pdf",
+      "retrieved_at": "2026-09-29T02:01:09.090225+00:00",
+      "sha256": "bb013c8d2c4f3f27d5e2f031699e835ad7819bcea65365ebda19f406f4442853",
+      "source_id": "rq-tax-formulas-2026",
+      "url": "https://www.revenuquebec.ca/documents/en/formulaires/tp/TP-1015.F-V%282026-01%29.pdf"
     }
   ],
   "tax_year": 2026

@@ -125,7 +125,7 @@ class TransactionRepository:
         # Column names come from the fixed set above; IS compares NULLs as equal.
         conditions = " AND ".join(f"{column} IS ?" for column in columns)
         row = self._connection.execute(
-            f"SELECT COUNT(*) FROM transactions WHERE account_id = ? AND {conditions}",  # noqa: S608  # nosec B608
+            f"SELECT COUNT(*) FROM transactions WHERE account_id = ? AND {conditions}",  # noqa: S608  # nosec
             (account_id, *(stored_values[column] for column in columns)),
         ).fetchone()
         return int(row[0])
@@ -281,7 +281,7 @@ class TransactionRepository:
         placeholders = ", ".join("?" for _ in source_names)
         row = self._connection.execute(
             f"""SELECT 1 FROM balance_snapshots
-                WHERE account_id = ? AND source_sheet IN ({placeholders}) LIMIT 1""",  # noqa: S608  # nosec B608
+                WHERE account_id = ? AND source_sheet IN ({placeholders}) LIMIT 1""",  # noqa: S608  # nosec
             (account_id, *source_names),
         ).fetchone()
         return row is not None
@@ -308,7 +308,7 @@ class TransactionRepository:
                LEFT JOIN raw_transactions r ON r.id = t.raw_transaction_id
                WHERE t.account_id = ?
                  {source_filter}
-               ORDER BY t.transaction_date DESC, t.id DESC""",  # noqa: S608  # nosec B608
+               ORDER BY t.transaction_date DESC, t.id DESC""",  # noqa: S608  # nosec
             parameters,
         ).fetchall()
         return [

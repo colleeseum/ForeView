@@ -13,7 +13,10 @@ from institution_support.registry import institution_registry
 from institutions.eq.document_importers import import_eq_statement_pdf
 from repositories.account_repository import AccountRepository
 from services.csv_import_service import CsvImportService
-from services.document_import_account_resolver import DocumentImportAccountResolver
+from services.document_import_account_resolver import (
+    AccountCreationRequired,
+    DocumentImportAccountResolver,
+)
 from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
 from services.transaction_service import TransactionService
 from web.dependencies import dependency
@@ -39,6 +42,7 @@ def import_transactions_route():
     account_id = request.form.get("account_id")
     # Set when the user confirmed importing into an already-reconciled period.
     allow_reconciled = payload_bool(request.form.get("confirm_reconciled", False))
+    allow_account_creation = payload_bool(request.form.get("confirm_account_creation", False))
     uploaded_files = [
         item
         for item in request.files.getlist("files")
@@ -79,7 +83,12 @@ def import_transactions_route():
                         resolved_account_id = (
                             DocumentImportAccountResolver(
                                 connection, institution_registry()
-                            ).resolve(detected.spec.importer_name, content, filename)
+                            ).resolve(
+                                detected.spec.importer_name,
+                                content,
+                                filename,
+                                allow_create=allow_account_creation,
+                            )
                             if auto_detect and detected
                             else (None if auto_detect else int(account_id))
                         )
@@ -122,6 +131,19 @@ def import_transactions_route():
                         if checkpoint.status == checkpoint.NEEDS_REVIEW
                     ]
                     results.append(result)
+                except AccountCreationRequired as error:
+                    return jsonify(
+                        {
+                            "error": str(error),
+                            "confirm_account_creation": True,
+                            "account": {
+                                "institution": error.institution,
+                                "account_number": error.account_number,
+                                "account_type": error.account_type,
+                            },
+                            "files_imported": len(results),
+                        }
+                    ), 409
                 except (TypeError, ValueError, sqlite3.IntegrityError, UnicodeDecodeError) as error:
                     raise ValueError(f"{item.filename}: {error}") from error
         return jsonify(

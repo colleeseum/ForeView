@@ -21,13 +21,13 @@ const importDescription = document.querySelector('#import-dialog-description');
 const breadcrumbCategory = document.querySelector('#breadcrumb-category');
 const breadcrumbAccount = document.querySelector('#breadcrumb-account');
 const pageParams = new URLSearchParams(window.location.search);
-const validTypes = ['non_registered', 'tfsa', 'rrsp'];
+const validTypes = ['non_registered', 'tfsa', 'rrsp', 'resp'];
 let transactionType = validTypes.includes(pageParams.get('type')) ? pageParams.get('type') : 'non_registered';
 let requestedAccountId = pageParams.get('account_id') || '';
 const transactionsGate = createLatestRequestGate();
 const historyGate = createLatestRequestGate();
 
-const typeLabels = {non_registered: 'Non-registered', tfsa: 'TFSA', rrsp: 'RRSP'};
+const typeLabels = {non_registered: 'Non-registered', tfsa: 'TFSA', rrsp: 'RRSP', resp: 'RESP'};
 
 function accountLabel(account) {
   return account.asset_kind === 'gic'
@@ -211,6 +211,20 @@ importForm.addEventListener('submit', async (event) => {
   try {
     const formData = new FormData(importForm);
     let {response, data} = await postImport(formData);
+    if (response.status === 409 && data.confirm_account_creation) {
+      const account = data.account;
+      const proceed = window.confirm(
+        `${data.error}\n\nCreate this account and continue importing?`
+      );
+      if (!proceed) {
+        importResult.textContent = 'Import cancelled. No account or transactions were added.';
+        importResult.classList.remove('error');
+        updateImportButton();
+        return;
+      }
+      formData.set('confirm_account_creation', '1');
+      ({response, data} = await postImport(formData));
+    }
     if (response.status === 409 && data.confirm_reconciled) {
       const proceed = window.confirm(`${data.error}\n\nImport anyway? The reconciled period will be checked again and flagged for review if it no longer matches.`);
       if (!proceed) {

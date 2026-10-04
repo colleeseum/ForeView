@@ -22,7 +22,7 @@ class InstitutionRegistryTests(unittest.TestCase):
         rbc = registry.find("Royal Bank of Canada")
         self.assertIsNotNone(rbc)
         self.assertEqual(rbc.key, "rbc")
-        self.assertEqual(len(rbc.importers), 3)
+        self.assertEqual(len(rbc.importers), 4)
         self.assertEqual(
             {importer.document_type for importer in rbc.importers},
             {"account", "gic", "tfsa"},
@@ -48,8 +48,8 @@ class InstitutionRegistryTests(unittest.TestCase):
     def test_registry_limits_importers_to_known_institution_aliases(self):
         registry = institution_registry()
 
-        self.assertEqual(len(registry.importers("RBC")), 3)
-        self.assertEqual(len(registry.importers("Royal Bank")), 3)
+        self.assertEqual(len(registry.importers("RBC")), 4)
+        self.assertEqual(len(registry.importers("Royal Bank")), 4)
         self.assertEqual(registry.importers("Unknown Bank"), ())
         self.assertGreater(len(registry.importers()), 3)
 
@@ -61,6 +61,12 @@ class InstitutionRegistryTests(unittest.TestCase):
             first.display_name = "Changed"
         with self.assertRaisesRegex(ValueError, "already registered"):
             InstitutionRegistry((first, second))
+
+    def test_registry_rejects_non_calver_module_versions(self):
+        provider = InstitutionProvider("old", "Old Bank", version="0.1.0")
+
+        with self.assertRaisesRegex(ValueError, "must use CalVer"):
+            InstitutionRegistry((provider,))
 
     def test_registry_rejects_duplicate_importer_names(self):
         importer = DocumentImporter("Statement", "account", lambda _: True, Mock(), "load", "")

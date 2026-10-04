@@ -40,7 +40,7 @@
           <label>Institution<input name="institution" required placeholder="Questrade or EQ"></label>
           <label>Account name<input name="name" placeholder="Optional description"></label>
           <label>Account number<input name="account_number" required placeholder="Required bank or broker number"></label>
-          <label>Category<select name="category"><option value="non_registered">Non-registered savings</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option></select></label>
+          <label>Category<select name="category"><option value="non_registered">Non-registered savings</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option><option value="resp">RESP</option></select></label>
           <fieldset><legend>Ownership</legend><div id="owner-fields"></div></fieldset>
           <button type="submit">Add account</button>
         </form>
@@ -81,5 +81,6 @@
   </main>
   <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
   <script type="module" src="{{ url_for('static', filename='setup.mjs', v='20260928-1') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='help.mjs', v='20260929-1') }}"></script>
 </body>
 </html>

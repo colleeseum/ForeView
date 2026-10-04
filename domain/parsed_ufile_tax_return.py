@@ -1,0 +1,5 @@
+from __future__ import annotations
+
+from domain.parsed_annual_employment_actual import ParsedAnnualEmploymentActual
+
+ParsedUFileTaxReturn = ParsedAnnualEmploymentActual

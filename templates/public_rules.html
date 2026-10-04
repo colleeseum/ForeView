@@ -4,24 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Settings</title>
+  <title>Tax rules</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
   <header>
-    <p class="eyebrow">Application</p>
-    <h1>Settings</h1>
-    <p class="lede">Application-wide configuration and trusted public data.</p>
+    <p class="eyebrow">Administration</p>
+    <h1>Tax rules</h1>
+    <p class="lede">Review and approve the public tax and payroll rules used by projections.</p>
   </header>
   <div class="page-shell">
-    <aside class="side-menu">
-      <div class="side-menu-brand">Retirement model</div>
-      <a href="{{ url_for('index') }}">Summary</a>
-      <a href="{{ url_for('accounts_page') }}">Assets</a>
-      <a href="{{ url_for('transactions_page') }}">Transactions</a>
-      <a href="{{ url_for('connections_page') }}">Connections</a>
-      <a class="active" href="{{ url_for('public_rules.settings') }}">Settings</a>
-    </aside>
+    {% set active_page = 'tax_rules' %}{% include '_side_menu.html' %}
     <div class="page-content">
       <section class="connection-toolbar">
         <div>
@@ -74,7 +67,7 @@
             {% if row.approval %}
             <div class="public-rule-approval-actions">
               <span class="approval-badge approved">Approved {{ row.approval.approved_at }}</span>
-              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
             </div>
             {% else %}
             <div class="public-rule-approval-actions">
@@ -83,7 +76,7 @@
                 <input type="hidden" name="content_hash" value="{{ package.content_hash }}">
                 <button class="view-action" type="submit">Approve exact hash</button>
               </form>
-              <button class="help-button" type="button" data-help-key="public-rule-approval" aria-label="Public-rule approval help">?</button>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
             </div>
             {% endif %}
           </div>
@@ -111,4 +104,4 @@
       </div>
     </div>
   </div>
-</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script><script src="{{ url_for('static', filename='help.js', v='20260928-1') }}"></script></body></html>
+</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script></body></html>

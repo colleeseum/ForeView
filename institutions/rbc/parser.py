@@ -17,7 +17,7 @@ def parse_gic_transaction_history(
 ) -> dict[str, object]:
     """Parse RBC Online Banking transaction history for one GIC."""
     text = "\n".join(page_texts).replace("\xa0", " ")
-    account_match = re.search(r"Account Transaction History.*?TFSA\.\.\s*(\d+)", text, re.S)
+    account_match = re.search(r"Account Transaction History.*?(TFSA|RESP)\.\.\s*(\d+)", text, re.S)
     if not account_match or "RBC Savings Deposit" not in text:
         raise ValueError(f"{filename} does not look like an RBC GIC transaction history")
     gic_section = text.split("RBC Savings Deposit", 1)[0]
@@ -79,7 +79,8 @@ def parse_gic_transaction_history(
         )
     certificate_match = re.search(r"#(\d+)", title_match.group(1))
     return {
-        "account_number": account_match.group(1),
+        "account_type": account_match.group(1).lower(),
+        "account_number": account_match.group(2),
         "certificate": certificate_match.group(1) if certificate_match else None,
         "gic_name": title_match.group(1).strip(),
         "redeemable": "redeemable" in title_match.group(1).lower(),
@@ -395,6 +396,34 @@ def is_gic_transaction_history_pdf(content: bytes) -> bool:
             text = "\n".join(page.extract_text() or "" for page in pdf.pages[:1])
         return (
             "Account Transaction History" in text
+            and "RBC Savings Deposit" in text
+            and "Closing Balance" in text
+        )
+    except Exception:
+        return False
+
+
+def is_resp_gic_transaction_history_pdf(content: bytes) -> bool:
+    try:
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            text = "\n".join(page.extract_text() or "" for page in pdf.pages[:1])
+        return (
+            "Account Transaction History" in text
+            and "RESP.." in text
+            and "RBC Savings Deposit" in text
+            and "Closing Balance" in text
+        )
+    except Exception:
+        return False
+
+
+def is_tfsa_gic_transaction_history_pdf(content: bytes) -> bool:
+    try:
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            text = "\n".join(page.extract_text() or "" for page in pdf.pages[:1])
+        return (
+            "Account Transaction History" in text
+            and "TFSA.." in text
             and "RBC Savings Deposit" in text
             and "Closing Balance" in text
         )

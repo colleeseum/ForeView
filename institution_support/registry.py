@@ -6,6 +6,7 @@ import importlib
 import pkgutil
 from collections.abc import Callable, Iterable
 
+from domain.calver import is_calver
 from institution_support.csv_parser import CsvParser
 from institution_support.document_importer import DocumentImporter
 from institution_support.institution_provider import InstitutionProvider
@@ -27,6 +28,8 @@ class InstitutionRegistry:
         for provider in self._providers:
             if not provider.key or not provider.display_name:
                 raise ValueError("Institution providers require a key and display name")
+            if not is_calver(provider.version):
+                raise ValueError(f"Institution '{provider.key}' must use CalVer")
             for name in provider.names():
                 normalized = _normalize(name)
                 existing = self._names.get(normalized)

@@ -5,39 +5,39 @@
     {
       "filename": "ca-2026-official.json",
       "rule_set_id": "ca-2026-official",
-      "sha256": "987460d7ded76f581da46baa4dbfb72cb026879083984ea76cee87f928d3c6e3"
+      "sha256": "43d64ab1c2b49f9516f8f6f71b86401ad38bbad0ae7499ad48ef3817486ab67d"
     }
   ],
   "sources": [
     {
       "content_type": "text/html",
       "filename": "sources/cra-federal-brackets-2026.html",
-      "retrieved_at": "2026-09-28T00:29:49.531450+00:00",
-      "sha256": "ea09815c99f52f47eda3d7471437dd06dcea222666323cabe94ab396d0e88d0e",
+      "retrieved_at": "2026-09-29T02:00:54.843890+00:00",
+      "sha256": "501ef74f96ec3f987e57325af05fc78b982fd95526646aa64b1932ff73af29f8",
       "source_id": "cra-federal-brackets-2026",
       "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html?wbdisable=true"
     },
     {
       "content_type": "text/html",
       "filename": "sources/cra-registered-plan-limits.html",
-      "retrieved_at": "2026-09-28T00:29:52.648960+00:00",
-      "sha256": "9941c103e569a5a60aa2eb7bcc18a8fcbddcb1c0c7312a790239782a2059f9bb",
+      "retrieved_at": "2026-09-29T02:00:56.055966+00:00",
+      "sha256": "628b5e485a568dce26daa7b4f4eea2605bb547744145408f5eca94b0fceba8a0",
       "source_id": "cra-registered-plan-limits",
       "url": "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html?wbdisable=true"
     },
     {
       "content_type": "text/html",
       "filename": "sources/cra-rrsp-deduction-limit-formula.html",
-      "retrieved_at": "2026-09-28T00:29:54.784951+00:00",
-      "sha256": "1782b242ab14b5d9bbc40af1aaea91f6ba5e203080a75336b7a0a66ee28e1699",
+      "retrieved_at": "2026-09-29T02:00:59.230776+00:00",
+      "sha256": "9e054df3870d09a05edc48e7fff26eceeff4beb67d707a50d5c8b0bbc4ad1ba3",
       "source_id": "cra-rrsp-deduction-limit-formula",
       "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans/contributing-a-rrsp-prpp/contributions-affect-your-rrsp-prpp-deduction-limit.html?wbdisable=true"
     },
     {
       "content_type": "text/html",
       "filename": "sources/cra-payroll-tables-on-2026.html",
-      "retrieved_at": "2026-09-28T00:29:57.011066+00:00",
-      "sha256": "672d2313998a7204fddc6ff08458470281a7816f43d432121a6b3392a663dcf8",
+      "retrieved_at": "2026-09-29T02:01:01.337410+00:00",
+      "sha256": "344b5761b3528f1f51c3e3a801b52bd1b48a53bc3641d32f80d6f30763e19ea5",
       "source_id": "cra-payroll-tables-on-2026",
       "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html?wbdisable=true"
     }

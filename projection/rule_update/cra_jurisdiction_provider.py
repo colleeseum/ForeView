@@ -15,6 +15,7 @@ from projection.public_rules import (
     TaxBracketSchedule,
 )
 
+from .cra_payroll_csv import payroll_record
 from .cra_payroll_tables import (
     MANITOBA_PHASEOUT_URL,
     manitoba_payroll_table_url,
@@ -50,6 +51,9 @@ class CraJurisdictionRuleProvider:
         "https://www.canada.ca/en/employment-social-development/programs/pensions/"
         "pension/statistics/{year}-quarterly-july-september.html?wbdisable=true"
     )
+    EI_URL_TEMPLATE = (
+        "https://www.canada.ca/content/dam/cra-arc/formspubs/pub/t4127-jan/ei-01-{year_short}e.csv"
+    )
 
     def __init__(
         self,
@@ -79,6 +83,7 @@ class CraJurisdictionRuleProvider:
         )
         tax_parameter_sources = []
         tax_parameters: tuple[RuleParameter, ...] = ()
+        additional_payroll: tuple[RuleParameter, ...] = ()
         if self.jurisdiction == "CA-ON":
             tax_parameters_source = retriever.retrieve(
                 source_id=f"cra-payroll-tables-on-{tax_year}",
@@ -87,6 +92,33 @@ class CraJurisdictionRuleProvider:
                 url=ontario_payroll_table_url(tax_year),
             )
             tax_parameter_sources.append(tax_parameters_source)
+            ei_source = retriever.retrieve(
+                source_id=f"cra-ei-rates-{tax_year}",
+                title=f"Employment Insurance rates and amounts for {tax_year}",
+                publisher="Canada Revenue Agency",
+                url=self.EI_URL_TEMPLATE.format(year_short=str(tax_year)[-2:]),
+            )
+            tax_parameter_sources.append(ei_source)
+            ei_values = payroll_record(
+                ei_source.content, "EI", "Canada except QC", ei_source.source_id
+            )
+            additional_payroll = (
+                self._money(
+                    "ei_max_insurable_earnings",
+                    ei_values["Maximum Annual Insurable Earnings"],
+                    ei_source.source_id,
+                ),
+                self._rate(
+                    "ei_employee_rate",
+                    ei_values["Employee Contribution Rate"],
+                    ei_source.source_id,
+                ),
+                self._statutory_money(
+                    "ei_employee_max_premium",
+                    ei_values["Maximum Annual Employee Premium"],
+                    ei_source.source_id,
+                ),
+            )
             basic, first_threshold, first_rate, second_threshold, second_rate = (
                 ontario_tax_parameters(
                     tax_parameters_source.content, tax_parameters_source.source_id
@@ -204,7 +236,7 @@ class CraJurisdictionRuleProvider:
                         rate_indexing=IndexingMetadata(mechanism=IndexingMechanism.NONE),
                     ),
                 ),
-                payroll_parameters=payroll,
+                payroll_parameters=(*payroll, *additional_payroll),
                 other_parameters=tax_parameters,
             ),
         )
@@ -248,6 +280,16 @@ class CraJurisdictionRuleProvider:
             unit=RuleUnit.CAD,
             source_ids=(source_id,),
             indexing=IndexingMetadata(mechanism=IndexingMechanism.NONE),
+        )
+
+    @staticmethod
+    def _statutory_money(code: str, value: Decimal, source_id: str) -> RuleParameter:
+        return RuleParameter(
+            code=code,
+            value=value,
+            unit=RuleUnit.CAD,
+            source_ids=(source_id,),
+            indexing=IndexingMetadata(mechanism=IndexingMechanism.STATUTORY_SCHEDULE),
         )
 
 

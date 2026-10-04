@@ -6,6 +6,7 @@ from typing import Any
 
 from flask import jsonify, request
 
+from account_types import account_type_registry
 from domain.money import as_decimal
 from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
@@ -27,6 +28,10 @@ def model_accounts():
             {
                 "accounts": accounts,
                 "category_totals": AccountAggregationService().category_totals(accounts),
+                "account_types": [
+                    {"key": item.key, "display_name": item.display_name}
+                    for item in account_type_registry().providers
+                ],
             }
         )
 

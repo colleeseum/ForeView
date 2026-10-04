@@ -1,0 +1,1 @@
+In Retraite Québec My Account, download your Québec Pension Plan Statement of Participation. The importer reads the issue date, combined CPP/QPP pensionable-earnings history, and retirement estimates. It does not store the PDF, address, client number, or date of birth. Estimates that exclude the second enhancement component are labelled as incomplete.

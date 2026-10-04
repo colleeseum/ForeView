@@ -14,11 +14,15 @@ from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
 from services.database_initialization import ensure_domain_schema as ensure_domain_schema
 from services.database_initialization import initialize_database
+from web.correction_routes import blueprint as correction_blueprint
 from web.dashboard_routes import blueprint as dashboard_blueprint
+from web.help_routes import blueprint as help_blueprint
+from web.income_routes import blueprint as income_blueprint
 from web.institution_routes import blueprint as institution_blueprint
 from web.model_routes import blueprint as model_blueprint
 from web.page_routes import blueprint as page_blueprint
 from web.public_rule_routes import blueprint as public_rule_blueprint
+from web.salary_projection_routes import blueprint as salary_projection_blueprint
 
 ROOT = Path(__file__).parent
 PROFILE_DATA_DIRS = {
@@ -100,9 +104,13 @@ def create_app(runtime: RuntimeConfig) -> Flask:
     for blueprint in (
         page_blueprint,
         dashboard_blueprint,
+        help_blueprint,
         institution_blueprint,
+        income_blueprint,
         model_blueprint,
         public_rule_blueprint,
+        salary_projection_blueprint,
+        correction_blueprint,
     ):
         app.register_blueprint(blueprint)
     for institution in institution_registry().providers:
@@ -112,6 +120,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         ("/", "index"),
         ("/setup", "setup"),
         ("/accounts", "accounts_page"),
+        ("/income", "income_page"),
         ("/connections", "connections_page"),
         ("/transactions", "transactions_page"),
         ("/settings", "settings_page"),
@@ -131,6 +140,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--debug", action="store_true", help="Enable Flask debug mode and automatic reload"
+    )
+    parser.add_argument(
+        "--reload",
+        action="store_true",
+        help="Restart when source files change without enabling the interactive debugger",
     )
     parser.add_argument(
         "--port", type=int, help="Listening port; defaults to 5124 for dev and 5123 otherwise"
@@ -156,5 +170,9 @@ if __name__ == "__main__":
         5124 if selected_profile == "dev" and arguments.data_dir is None else 5123
     )
     create_app(runtime).run(
-        host=arguments.host, port=port, debug=debug_mode, ssl_context=runtime.ssl_context()
+        host=arguments.host,
+        port=port,
+        debug=debug_mode,
+        use_reloader=debug_mode or arguments.reload,
+        ssl_context=runtime.ssl_context(),
     )

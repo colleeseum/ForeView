@@ -9,6 +9,12 @@ from institutions.rbc.parser import (
     is_gic_transaction_history_pdf as is_rbc_gic_transaction_history_pdf,
 )
 from institutions.rbc.parser import (
+    is_resp_gic_transaction_history_pdf as is_rbc_resp_gic_transaction_history_pdf,
+)
+from institutions.rbc.parser import (
+    is_tfsa_gic_transaction_history_pdf as is_rbc_tfsa_gic_transaction_history_pdf,
+)
+from institutions.rbc.parser import (
     parse_deposit_statement_text,
 )
 from institutions.rbc.parser import (
@@ -25,9 +31,12 @@ from .tfsa_import_service import RbcTfsaImportService
 
 __all__ = [
     "import_rbc_gic_transaction_history_pdf",
+    "import_rbc_resp_gic_transaction_history_pdf",
     "import_rbc_statement_pdf",
     "import_rbc_tfsa_pdf",
     "is_rbc_gic_transaction_history_pdf",
+    "is_rbc_resp_gic_transaction_history_pdf",
+    "is_rbc_tfsa_gic_transaction_history_pdf",
     "is_rbc_statement_pdf",
     "is_rbc_tfsa_pdf",
     "parse_rbc_statement_summary",
@@ -68,6 +77,23 @@ def import_rbc_gic_transaction_history_pdf(
         pdf_opener=open_pdf,
         allow_reconciled=allow_reconciled,
     ).import_history(account_id, filename, content)
+
+
+def import_rbc_resp_gic_transaction_history_pdf(
+    connection: sqlite3.Connection,
+    account_id: int,
+    filename: str,
+    content: bytes,
+    *,
+    allow_reconciled: bool = False,
+) -> dict[str, int | float | str]:
+    return import_rbc_gic_transaction_history_pdf(
+        connection,
+        account_id,
+        filename,
+        content,
+        allow_reconciled=allow_reconciled,
+    )
 
 
 def _tfsa_service(

@@ -80,6 +80,7 @@ class DocumentReimportTests(unittest.TestCase):
             "eq_pdf",
             "achieva_gic_pdf",
             "rbc_gic_pdf",
+            "rbc_resp_pdf",
             "rbc_tfsa_pdf",
             "manulife_pdf",
             "sunlife_history_pdf",

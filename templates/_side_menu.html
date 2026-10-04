@@ -1,0 +1,23 @@
+<aside class="side-menu">
+  <div class="side-menu-brand">Financial model</div>
+  <section class="side-menu-group" aria-label="Financial records">
+    <p class="side-menu-heading">Financial records</p>
+    <a{% if active_page == 'summary' %} class="active"{% endif %} href="{{ url_for('index') }}">Summary</a>
+    <a{% if active_page == 'assets' %} class="active"{% elif active_page == 'transactions' %} class="section-active"{% endif %} href="{{ url_for('accounts_page') }}">Assets</a>
+    <a class="side-menu-sub{% if active_page == 'transactions' %} active{% endif %}" href="{{ url_for('transactions_page') }}">Transactions</a>
+    <a{% if active_page == 'income' %} class="active"{% endif %} href="{{ url_for('income_page') }}">Income</a>
+  </section>
+  <section class="side-menu-group" aria-label="Projection">
+    <p class="side-menu-heading">Projection</p>
+    <a{% if active_page == 'employment_projection' %} class="active"{% endif %} href="{{ url_for('salary_projection.salary_projection_page') }}">Employment</a>
+  </section>
+  <section class="side-menu-group" aria-label="Administration">
+    <p class="side-menu-heading">Administration</p>
+    <a{% if active_page == 'people' %} class="active"{% endif %} href="{{ url_for('pages.setup') }}">People</a>
+    <a{% if active_page == 'connections' %} class="active"{% endif %} href="{{ url_for('connections_page') }}">Connections</a>
+    <a{% if active_page == 'tax_rules' %} class="active"{% endif %} href="{{ url_for('public_rules.settings') }}">Tax rules</a>
+    <a{% if active_page == 'settings' %} class="active"{% endif %} href="{{ url_for('pages.application_settings') }}">Settings</a>
+    <a{% if active_page == 'about' %} class="active"{% endif %} href="{{ url_for('pages.about_page') }}">About</a>
+  </section>
+</aside>
+<script type="module" src="{{ url_for('static', filename='help.mjs', v='20260929-1') }}"></script>

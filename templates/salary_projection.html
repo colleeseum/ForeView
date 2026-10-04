@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Salary projection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">Projection</p>
+    <h1>Employment and disposable income</h1>
+    <p class="lede">Project salary, payroll contributions, income tax, RRSP contributions and disposable employment income.</p>
+  </header>
+  <div class="page-shell">
+    {% set active_page = 'employment_projection' %}{% include '_side_menu.html' %}
+    <div class="page-content salary-projection-page">
+      <section class="connection-toolbar salary-toolbar">
+        <label>Scenario <select id="salary-scenario"></select></label>
+        <label>From <input id="salary-start-year" type="number" min="2000" max="9999"></label>
+        <label>To <input id="salary-end-year" type="number" min="2000" max="9999"></label>
+        <div class="salary-toolbar-actions">
+          <button id="salary-view" class="table-action" type="button">View</button>
+          <button id="salary-discard" class="table-action" type="button" disabled>Discard</button>
+          <button id="salary-save" class="view-action" type="button" disabled>Save</button>
+          <button id="salary-save-as" class="view-action" type="button">Save As</button>
+        </div>
+      </section>
+      <p id="salary-message" class="connection-status" role="status"></p>
+      <nav id="salary-tabs" class="view-tabs" aria-label="Projection person" role="tablist"></nav>
+      <section id="salary-setup" class="public-rule-card" hidden>
+        <h2>Employment inputs</h2>
+        <p id="salary-source-note" class="dashboard-note"></p>
+        <form id="salary-settings-form" class="salary-settings-grid">
+          <div class="salary-readonly-field"><span>Current annual salary</span><output id="salary-current-rate">—</output></div>
+          <div class="salary-readonly-field"><span>Latest income year</span><output id="salary-current-year">—</output></div>
+          <div class="salary-readonly-field"><span>Province of residence</span><small>Controls income-tax rules</small><output id="salary-current-province">—</output></div>
+          <div class="salary-readonly-field"><span>Payroll plan</span><small>CPP or QPP contributions recorded on the tax return</small><output id="salary-current-payroll">—</output></div>
+          <div class="salary-readonly-field"><span>Current RRSP contribution</span><small>Cash deposited, not contribution room</small><output id="salary-current-rrsp-contribution">—</output></div>
+          <div class="salary-readonly-field"><span>Current RRSP deduction</span><small>Amount claimed against taxable income</small><output id="salary-current-rrsp-deduction">—</output></div>
+          <div class="salary-readonly-field"><span>Current other employment income</span><output id="salary-current-other-income">—</output></div>
+          <label>Default annual raise % <input name="default_raise" type="number" step="0.001"></label>
+          <label>First non-working day <input name="retirement_date" type="date"></label>
+        </form>
+      </section>
+      <section id="salary-expense-setup" class="public-rule-card" hidden>
+        <h2>Household spending</h2>
+        <p class="dashboard-note">Enter annual after-tax spending. Required spending covers costs such as utilities, taxes and tuition. Discretionary spending is a flexible fund for items such as hobbies, tools and travel. Planned one-time events and contingency reserves will be added separately.</p>
+        <form id="salary-expense-form" class="salary-settings-grid">
+          <label>Spending starts in <input name="start_year" type="number" min="1900" max="9999" required></label>
+          <label>Required annual spending <input name="required_annual_amount" type="number" min="0" step="0.01" required></label>
+          <label>Required annual growth % <input name="required_annual_growth" type="number" step="0.001" required></label>
+          <label>Discretionary annual fund <input name="discretionary_annual_amount" type="number" min="0" step="0.01" required></label>
+          <label>Discretionary annual growth % <input name="discretionary_annual_growth" type="number" step="0.001" required></label>
+          <div class="salary-expense-actions"><button id="salary-expense-save" class="view-action" type="submit" disabled>Save spending assumptions</button><span id="salary-expense-status" class="field-note">No spending assumptions saved.</span></div>
+        </form>
+      </section>
+      <p class="dashboard-note">Each annual salary is the previous row's salary with that year's raise applied, unless manually overridden. Other employment income is then added to the salary earned during the year to produce total employment income. Future years use the latest approved official rules held constant until a newer rule year is available. Retirement date is the first non-working day. RRSP cash contribution and tax deduction are separate values. Use × beside a saved override to reset that cell to its calculated value, then click Save.</p>
+      <div class="salary-annual-actions">
+        <span id="salary-change-status" class="field-note">Changes are saved to the selected scenario. Use Save As to compare alternatives.</span>
+      </div>
+      <section class="dashboard-panel salary-table-panel">
+        <div id="salary-table"><p class="empty-panel">Loading salary projection...</p></div>
+      </section>
+    </div>
+  </div>
+</main>
+<div id="salary-save-as-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="salary-save-as-title">
+    <button id="salary-save-as-close" class="dialog-close" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Projection scenario</p>
+    <h2 id="salary-save-as-title">Save as a new scenario</h2>
+    <p class="field-note">The selected scenario and all people are copied. Any changes currently visible are applied to the copy.</p>
+    <form id="salary-save-as-form" class="setup-form">
+      <label>Scenario name<input name="name" required autocomplete="off"></label>
+      <button type="submit">Save as new scenario</button>
+    </form>
+    <p id="salary-save-as-message" class="form-message" role="status"></p>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='salary-projection.mjs', v='20260929-8') }}"></script>
+</body></html>

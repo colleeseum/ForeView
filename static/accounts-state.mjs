@@ -2,6 +2,7 @@ export const assetGroups = [
   ['non_registered', 'Non-registered'],
   ['tfsa', 'TFSA'],
   ['rrsp', 'RRSP'],
+  ['resp', 'RESP'],
 ];
 
 const requestedView = new URLSearchParams(window.location.search).get('tab');

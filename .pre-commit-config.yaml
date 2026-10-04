@@ -1,6 +1,11 @@
 repos:
   - repo: local
     hooks:
+      - id: diff-check
+        name: Git whitespace check
+        entry: git diff --cached --check
+        language: system
+        pass_filenames: false
       - id: ruff-check
         name: Ruff lint
         entry: .venv/bin/python -m ruff check --fix
@@ -14,5 +19,10 @@ repos:
       - id: mypy
         name: mypy
         entry: .venv/bin/python -m mypy
+        language: system
+        pass_filenames: false
+      - id: coverage-gate
+        name: Coverage gate
+        entry: make coverage-gate
         language: system
         pass_filenames: false

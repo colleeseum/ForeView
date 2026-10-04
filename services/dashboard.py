@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping, Sequence
 from decimal import Decimal
 from typing import Any
 
+from account_types import account_type_registry
 from domain.money import as_decimal
 
 SAVINGS_RATE_THRESHOLD = 0.025
@@ -39,7 +40,8 @@ def build_dashboard_summary(
         ),
         start=zero,
     )
-    liquidity_by_type = {"non_registered": zero, "tfsa": zero, "rrsp": zero}
+    type_registry = account_type_registry()
+    liquidity_by_type = {provider.key: zero for provider in type_registry.providers}
     low_rate_value = zero
     low_rate_accounts: list[dict[str, Any]] = []
     uninvested_security_accounts: list[dict[str, Any]] = []
@@ -79,8 +81,9 @@ def build_dashboard_summary(
             start=zero,
         )
         account_type = parent.get("account_type")
-        if account_type in liquidity_by_type:
-            liquidity_by_type[account_type] += uninvested + redeemable_gics
+        provider = type_registry.find(str(account_type) if account_type is not None else None)
+        if provider and provider.liquidity_class == "liquid":
+            liquidity_by_type[provider.key] += uninvested + redeemable_gics
         if (
             parent.get("asset_kind") == "account"
             and parent.get("interest_rate") is not None
@@ -114,8 +117,17 @@ def build_dashboard_summary(
         "immovable_value": float(immovable_value),
         "invested_value": float(invested_value),
         "gic_value": float(gic_value),
-        "liquidity_value": float(liquidity_by_type["non_registered"] + liquidity_by_type["tfsa"]),
-        "rrsp_uninvested": float(liquidity_by_type["rrsp"]),
+        "liquidity_value": float(
+            sum(
+                (
+                    value
+                    for key, value in liquidity_by_type.items()
+                    if type_registry.get(key).liquidity_class == "liquid"
+                ),
+                start=zero,
+            )
+        ),
+        "rrsp_uninvested": float(liquidity_by_type.get("rrsp", zero)),
         "uninvested_security_value": float(
             sum(
                 (as_decimal(item["amount"]) for item in uninvested_security_accounts),

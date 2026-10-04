@@ -15,6 +15,10 @@ let baseline = '';
 let editingId = null;
 let saved = async () => {};
 
+function closeDialog() {
+  dialog.hidden = true;
+}
+
 function signature() {
   return formSignature(form, ownershipSignature(ownerFields));
 }
@@ -49,7 +53,11 @@ export function openAccountDialog(accountId = null, category = 'non_registered')
 
 export function initializeAccountDialog(onSaved) {
   saved = onSaved;
-  document.querySelector('#close-account-dialog').addEventListener('click', () => { dialog.hidden = true; });
+  document.querySelector('#close-account-dialog').addEventListener('click', closeDialog);
+  document.querySelector('#cancel-account-dialog')?.addEventListener('click', closeDialog);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !dialog.hidden) closeDialog();
+  });
   form.addEventListener('input', updateSaveButton);
   form.addEventListener('change', updateSaveButton);
   form.addEventListener('submit', async (event) => {

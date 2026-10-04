@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Settings</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body><main>
+  <header><p class="eyebrow">Administration</p><h1>Settings</h1><p class="lede">Application-wide settings will be managed here.</p></header>
+  <div class="page-shell">{% set active_page = 'settings' %}{% include '_side_menu.html' %}<div class="page-content">
+    <section class="empty-panel"><h2>Application settings</h2><p>Runtime, backup, and application preferences will be added here. Tax-rule review is available under Tax rules.</p></section>
+  </div></div>
+</main></body></html>

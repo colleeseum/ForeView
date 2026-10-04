@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>About</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">Application</p>
+    <h1>About</h1>
+    <p class="lede">Registered modules and the versions used by this installation.</p>
+  </header>
+  <div class="page-shell">
+    {% set active_page = 'about' %}{% include '_side_menu.html' %}
+    <div class="page-content">
+      <section class="dashboard-panel">
+        <h2>Income source modules</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for source in income_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+      <section class="dashboard-panel">
+        <h2>Tax notice modules</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for source in tax_notice_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+      <section class="dashboard-panel">
+        <h2>Public pension modules</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for source in public_pension_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+      <section class="dashboard-panel">
+        <h2>Institution modules</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for institution in institutions %}<tr><td>{{ institution.display_name }}</td><td>{{ institution.key }}</td><td>{{ institution.version }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+      <p class="field-note">Module versions use calendar versioning: YYYY.MM.DD, with an optional numeric revision for multiple changes on the same day.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

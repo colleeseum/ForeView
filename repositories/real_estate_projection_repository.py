@@ -77,6 +77,13 @@ class RealEstateProjectionRepository:
         ).fetchall()
         return [self._from_row(row) for row in rows]
 
+    def list_for_scenario(self, scenario_id: int) -> list[RealEstateProjection]:
+        rows = self._connection.execute(
+            f"{self._SELECT} WHERE scenario_id = ? ORDER BY asset_id, projection_date, id",  # noqa: S608
+            (scenario_id,),
+        ).fetchall()
+        return [self._from_row(row) for row in rows]
+
     _SELECT = """SELECT id, asset_id, scenario_id, projection_date, projected_value_cents,
                          projected_acb_cents, effective_tax_rate, note
                   FROM real_estate_projections"""

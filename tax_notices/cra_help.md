@@ -1,0 +1,1 @@
+Download the individual notice of assessment from CRA My Account. The importer reads assessed federal totals and, when present, the RRSP deduction-limit statement. It does not store the PDF, address, social insurance number, or CRA account identifiers.

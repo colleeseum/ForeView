@@ -21,6 +21,14 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <div class="page-shell">
     {% set active_page = 'about' %}{% include '_side_menu.html' %}
     <div class="page-content">
+      <section class="dashboard-panel legal-summary">
+        <p class="eyebrow">License and disclaimer</p>
+        <h2>Application terms</h2>
+        <p>Copyright 2026 Mindstep Corporation.</p>
+        <p>Licensed under PolyForm Noncommercial 1.0.0.</p>
+        <p>Commercial licensing: <a href="mailto:info@mindstep.ca">info@mindstep.ca</a></p>
+        <p><a href="{{ url_for('pages.disclaimer_page') }}">Read the full financial disclaimer</a></p>
+      </section>
       <section class="dashboard-panel">
         <h2>Income source modules</h2>
         <div class="table-wrap"><table>

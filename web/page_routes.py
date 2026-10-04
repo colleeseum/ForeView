@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 from datetime import date
+from pathlib import Path
 
 from flask import Blueprint, render_template
 
@@ -11,6 +12,17 @@ from public_pension_sources import public_pension_source_registry
 from tax_notices import tax_notice_registry
 
 blueprint = Blueprint("pages", __name__)
+DISCLAIMER_PATH = Path(__file__).resolve().parents[1] / "DISCLAIMER.md"
+
+
+def _read_disclaimer(path: Path) -> tuple[str, tuple[str, ...]]:
+    blocks = tuple(block.strip() for block in path.read_text(encoding="utf-8").split("\n\n"))
+    content = tuple(block for block in blocks if block)
+    if not content or not content[0].startswith("# "):
+        raise RuntimeError(f"Disclaimer must begin with a Markdown heading: {path}")
+    title = content[0].removeprefix("# ").strip()
+    paragraphs = tuple(" ".join(block.splitlines()).replace("**", "") for block in content[1:])
+    return title, paragraphs
 
 
 @blueprint.get("/")
@@ -53,6 +65,12 @@ def about_page():
         public_pension_sources=public_pension_source_registry.providers,
         institutions=institution_registry().providers,
     )
+
+
+@blueprint.get("/disclaimer")
+def disclaimer_page():
+    title, paragraphs = _read_disclaimer(DISCLAIMER_PATH)
+    return render_template("disclaimer.html", title=title, paragraphs=paragraphs)
 
 
 @blueprint.get("/connections")

@@ -93,6 +93,7 @@ class AppRouteTests(unittest.TestCase):
             "/settings",
             "/application-settings",
             "/about",
+            "/disclaimer",
             "/salary-projection",
         ):
             with self.subTest(path=path):
@@ -776,6 +777,34 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b"Income source modules", about.data)
         self.assertIn(b"Institution modules", about.data)
         self.assertIn(b"UFile T1 PDF", about.data)
+
+    def test_financial_disclaimer_is_accessible_from_projection_and_about(self):
+        projection = self.client.get("/salary-projection")
+        self.assertIn(b"Projections are estimates for planning purposes only", projection.data)
+        self.assertIn(b"not financial, tax, investment", projection.data)
+        self.assertIn(b'href="/disclaimer"', projection.data)
+
+        about = self.client.get("/about")
+        self.assertIn(b"Copyright 2026 Mindstep Corporation", about.data)
+        self.assertIn(b"PolyForm Noncommercial 1.0.0", about.data)
+        self.assertIn(b'href="mailto:info@mindstep.ca"', about.data)
+        self.assertIn(b'href="/disclaimer"', about.data)
+
+        disclaimer = self.client.get("/disclaimer")
+        self.assertEqual(disclaimer.status_code, 200)
+        self.assertIn(b"informational, planning, and modelling purposes only", disclaimer.data)
+        self.assertIn(b"without warranty of any kind", disclaimer.data)
+
+    def test_disclaimer_page_reads_the_authoritative_markdown_file(self):
+        disclaimer_path = self.runtime / "test-disclaimer.md"
+        disclaimer_path.write_text(
+            "# Test disclaimer\n\nCanonical runtime disclaimer content.\n", encoding="utf-8"
+        )
+        with patch("web.page_routes.DISCLAIMER_PATH", disclaimer_path):
+            response = self.client.get("/disclaimer")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Test disclaimer", response.data)
+        self.assertIn(b"Canonical runtime disclaimer content.", response.data)
 
     def test_people_can_be_created_and_updated(self):
         created = self.client.post(

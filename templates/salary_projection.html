@@ -21,6 +21,11 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <div class="page-shell">
     {% set active_page = 'employment_projection' %}{% include '_side_menu.html' %}
     <div class="page-content salary-projection-page">
+      <aside class="projection-disclaimer" aria-label="Projection disclaimer">
+        Projections are estimates for planning purposes only, are not financial, tax, investment,
+        accounting, or legal advice, and important results should be independently verified.
+        <a href="{{ url_for('pages.disclaimer_page') }}">Full disclaimer</a>
+      </aside>
       <section class="connection-toolbar salary-toolbar">
         <label>Scenario <select id="salary-scenario"></select></label>
         <label>From <input id="salary-start-year" type="number" min="2000" max="9999"></label>

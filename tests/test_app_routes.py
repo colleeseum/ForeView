@@ -982,6 +982,19 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b"informational, planning, and modelling purposes only", disclaimer.data)
         self.assertIn(b"without warranty of any kind", disclaimer.data)
 
+    def test_general_pages_describe_a_broad_financial_application(self):
+        summary = self.client.get("/")
+        self.assertIn(b"ForeView | Financial summary", summary.data)
+        self.assertIn(b"ForeView", summary.data)
+        self.assertNotIn(b"Retirement model", summary.data)
+
+        setup = self.client.get("/setup")
+        self.assertIn(b"financial records and projections", setup.data)
+
+        about = self.client.get("/about")
+        self.assertIn(b"Understand, manage, and model your financial life", about.data)
+        self.assertIn(b"personal and household financial management", about.data)
+
     def test_disclaimer_page_reads_the_authoritative_markdown_file(self):
         disclaimer_path = self.runtime / "test-disclaimer.md"
         disclaimer_path.write_text(

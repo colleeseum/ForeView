@@ -135,7 +135,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the local retirement application")
+    parser = argparse.ArgumentParser(description="Run ForeView locally")
     runtime_group = parser.add_mutually_exclusive_group()
     runtime_group.add_argument(
         "--profile", choices=sorted(PROFILE_DATA_DIRS), help="Use a named runtime profile"

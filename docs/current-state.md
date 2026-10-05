@@ -4,10 +4,11 @@ Updated: 2026-10-04
 
 ## Development focus
 
-The active product slice is factual annual income and tax records feeding an employment and
-disposable-income projection. The application can retain multiple annual records, import an
-individual UFile T1, CRA and Revenu Québec notices of assessment, and a Retraite Québec Statement
-of Participation. Detailed normalized tax concepts are retained for future calculations and audit.
+The current development focus, rather than the permanent product boundary, is factual annual income
+and tax records feeding an employment and disposable-income projection. The application can retain
+multiple annual records, import an individual UFile T1, CRA and Revenu Québec notices of assessment,
+and a Retraite Québec Statement of Participation. Detailed normalized tax concepts are retained for
+future calculations and audit.
 
 A consolidated latest-year income and tax snapshot is implemented as an API and UI read model. It
 uses the newest available tax year, resolves each concept from same-year sources, retains

@@ -1,6 +1,6 @@
 # Licensing
 
-Retirement Finance is source-available for noncommercial use under the
+ForeView is source-available for noncommercial use under the
 [PolyForm Noncommercial License 1.0.0](LICENSE). It is not open-source software under the Open
 Source Definition. The license applies only to original software and documentation that Mindstep
 Corporation has the right to license under those terms.

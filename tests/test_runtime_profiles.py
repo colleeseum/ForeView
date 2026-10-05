@@ -10,6 +10,7 @@ from pathlib import Path
 
 import app as application
 from infrastructure.runtime_config import RuntimeConfig
+from synthetic_expenses import load_synthetic_expenses
 from synthetic_questrade import load_synthetic_questrade
 from synthetic_runtime import create_synthetic_runtime
 
@@ -162,11 +163,18 @@ class RuntimeProfileTests(unittest.TestCase):
                     "/api/model/transactions?account_type=non_registered"
                 )
                 salary_response = client.get("/api/salary-projection?start_year=2026&end_year=2027")
+                expenses_response = client.get("/expenses?year=2026")
             self.assertEqual(accounts_response.status_code, 200)
             self.assertEqual(dashboard_response.status_code, 200)
             self.assertEqual(real_estate_response.status_code, 200)
             self.assertEqual(transactions_response.status_code, 200)
             self.assertEqual(salary_response.status_code, 200)
+            self.assertEqual(expenses_response.status_code, 200)
+            self.assertIn(b"Hydro", expenses_response.data)
+            self.assertIn(b"Energir", expenses_response.data)
+            self.assertIn(b"Montreal property tax", expenses_response.data)
+            self.assertIn(b"$4293.00", expenses_response.data)
+            self.assertIn(b"$5295.00", expenses_response.data)
             accounts = accounts_response.get_json()["accounts"]
             account_totals = {
                 item["type"]: item for item in accounts_response.get_json()["category_totals"]
@@ -274,6 +282,11 @@ class RuntimeProfileTests(unittest.TestCase):
                 self.assertEqual(
                     connection.execute("SELECT COUNT(*) FROM import_batches").fetchone()[0], 12
                 )
+                self.assertEqual(
+                    connection.execute("SELECT COUNT(*) FROM expense_records").fetchone()[0], 3
+                )
+
+            self.assertEqual(load_synthetic_expenses(runtime), 0)
 
     def test_synthetic_runtime_refuses_to_overwrite_existing_files(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -281,6 +294,17 @@ class RuntimeProfileTests(unittest.TestCase):
             create_synthetic_runtime(runtime)
             with self.assertRaises(FileExistsError):
                 create_synthetic_runtime(runtime)
+
+    def test_synthetic_expense_loader_refuses_private_runtime(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = Path(directory)
+            runtime.mkdir(exist_ok=True)
+            (runtime / "finance.config.json").write_text(
+                json.dumps({"RUNTIME_ENVIRONMENT": "private"})
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "non-synthetic runtime"):
+                load_synthetic_expenses(runtime)
 
 
 if __name__ == "__main__":

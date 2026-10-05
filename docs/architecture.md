@@ -133,6 +133,16 @@ approved in the runtime database.
 Factual assets, transactions, balances, ownership, annual income, assessments, registered-plan
 room, and pension statements are stored independently of scenario assumptions.
 
+Factual expenses are stored as dated evidence under user-defined required or discretionary
+categories. Each record snapshots its category name and classification, may identify a person,
+account, or real-estate association, and keeps import-batch and parser provenance when created by a
+future source module. Stable expense identities distinguish separate streams such as Hydro and
+Energir within the same Utilities category. Potential overlaps within one identity block the
+annual factual total until every candidate has an explicit include or exclude decision. Recorded
+totals remain factual; recurring statement periods also produce a separately labelled annualized
+run-rate estimate. Import providers must classify the amount basis explicitly. Scenario-level
+household expense plans remain separate projection assumptions.
+
 The consolidated income and tax read model resolves each same-year concept through assessment,
 filed-return, and supported annual-record precedence. Factual corrections are separate append-only
 revision streams above that resolver. Their stored source snapshots preserve audit history, while

@@ -37,6 +37,7 @@ from services.document_import_account_resolver import DocumentImportAccountResol
 from services.public_rule_catalog import PublicRuleCatalog
 from services.transaction_service import TransactionService
 from synthetic_documents import create_synthetic_fixture_set
+from synthetic_expenses import seed_synthetic_expenses
 
 
 def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
@@ -433,6 +434,7 @@ def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
         )
         history_detected.importer(connection, history_account, history_pdf.name, history_content)
         accounts.rename(statement_account, "PDF statement + TR")
+        seed_synthetic_expenses(connection)
         connection.commit()
 
     config.write_text(

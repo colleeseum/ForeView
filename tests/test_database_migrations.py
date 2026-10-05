@@ -17,6 +17,11 @@ from infrastructure.migrations.correction_revision_history import (
     CorrectionRevisionHistoryMigration,
 )
 from infrastructure.migrations.corrections_table import CorrectionsTableMigration
+from infrastructure.migrations.expense_identities import ExpenseIdentitiesMigration
+from infrastructure.migrations.factual_expense_schema_upgrade import (
+    FactualExpenseSchemaUpgradeMigration,
+)
+from infrastructure.migrations.factual_expenses import create_expense_records_table
 from infrastructure.runtime_config import RuntimeConfig
 
 
@@ -48,8 +53,110 @@ class DatabaseMigrationTests(unittest.TestCase):
                     (11, "annual_tax_values"),
                     (12, "corrections_table"),
                     (13, "correction_revision_history"),
+                    (14, "factual_expenses"),
+                    (15, "factual_expense_schema_upgrade"),
+                    (16, "expense_identities"),
+                    (17, "expense_period_kind"),
                 ],
             )
+
+    def test_expense_identity_migration_backfills_existing_records(self):
+        connection = sqlite3.connect(":memory:")
+        self.addCleanup(connection.close)
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("CREATE TABLE import_batches(id INTEGER PRIMARY KEY)")
+        connection.execute(
+            """CREATE TABLE expense_categories(
+                   id INTEGER PRIMARY KEY,
+                   name TEXT NOT NULL,
+                   classification TEXT NOT NULL,
+                   is_active INTEGER NOT NULL DEFAULT 1,
+                   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+               )"""
+        )
+        connection.execute(
+            "INSERT INTO expense_categories(id, name, classification) VALUES (1, 'Utilities', 'required')"
+        )
+        create_expense_records_table(connection)
+        connection.executemany(
+            """INSERT INTO expense_records(
+                   name, category_id, category_name, classification, amount_cents,
+                   period_start, period_end, source_kind, association_kind, overlap_status
+               ) VALUES (?, 1, 'Utilities', 'required', 10000, ?, ?, 'manual', 'household', ?)""",
+            (
+                ("Hydro", "2025-01-01", "2025-01-31", "clear"),
+                ("Hydro", "2025-01-15", "2025-02-28", "clear"),
+                ("Energir", "2025-01-01", "2025-01-31", "potential"),
+            ),
+        )
+
+        ExpenseIdentitiesMigration().apply(connection)
+
+        identities = connection.execute(
+            "SELECT name FROM expense_identities ORDER BY name"
+        ).fetchall()
+        record_identities = connection.execute(
+            "SELECT name, identity_id, overlap_status FROM expense_records ORDER BY id"
+        ).fetchall()
+        assert identities == [("Energir",), ("Hydro",)]
+        assert record_identities[0][1] == record_identities[1][1]
+        assert record_identities[0][1] != record_identities[2][1]
+        assert [row[2] for row in record_identities] == ["potential", "potential", "clear"]
+
+    def test_factual_expense_upgrade_preserves_draft_migration_records(self):
+        connection = sqlite3.connect(":memory:")
+        self.addCleanup(connection.close)
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("CREATE TABLE import_batches(id INTEGER PRIMARY KEY)")
+        connection.execute(
+            """CREATE TABLE expense_categories(
+                   id INTEGER PRIMARY KEY,
+                   name TEXT NOT NULL,
+                   classification TEXT NOT NULL,
+                   is_active INTEGER NOT NULL DEFAULT 1,
+                   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+               )"""
+        )
+        connection.execute(
+            """CREATE TABLE expense_records(
+                   id INTEGER PRIMARY KEY,
+                   name TEXT NOT NULL,
+                   category_id INTEGER NOT NULL,
+                   amount_cents INTEGER NOT NULL,
+                   period_start TEXT NOT NULL,
+                   period_end TEXT NOT NULL,
+                   source_kind TEXT NOT NULL,
+                   source_document_id INTEGER,
+                   association_kind TEXT NOT NULL,
+                   association_id INTEGER,
+                   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+               )"""
+        )
+        connection.execute(
+            "INSERT INTO expense_categories(id, name, classification) VALUES (1, 'Utilities', 'required')"
+        )
+        connection.execute(
+            """INSERT INTO expense_records(
+                   id, name, category_id, amount_cents, period_start, period_end,
+                   source_kind, association_kind
+               ) VALUES (1, 'Hydro', 1, 10000, '2026-01-01', '2026-01-31',
+                         'manual', 'household')"""
+        )
+
+        FactualExpenseSchemaUpgradeMigration().apply(connection)
+
+        record = connection.execute(
+            """SELECT category_name, classification, overlap_status, updated_at
+                 FROM expense_records WHERE id = 1"""
+        ).fetchone()
+        self.assertEqual(tuple(record[:3]), ("Utilities", "required", "clear"))
+        self.assertIsNotNone(record[3])
+        foreign_tables = {
+            str(row[2]) for row in connection.execute("PRAGMA foreign_key_list(expense_records)")
+        }
+        self.assertIn("import_batches", foreign_tables)
 
     def test_correction_history_migration_preserves_active_and_removed_rows(self):
         connection = sqlite3.connect(":memory:")
@@ -153,6 +260,8 @@ class DatabaseMigrationTests(unittest.TestCase):
                     "employment_projection_settings",
                     "employment_projection_overrides",
                     "household_expense_plans",
+                    "expense_categories",
+                    "expense_records",
                 }.issubset(tables)
             )
             with runtime.connect() as connection:

@@ -30,6 +30,14 @@ date with partial-year proration, recurring and annual salary/RRSP/other-employm
 overrides, payroll contributions, federal and Quebec tax estimates, disposable income, saved
 scenarios, scenario cloning, and coarse required/discretionary household expenses.
 
+Factual household expenses are retained separately from scenario assumptions. Users can manage
+required or discretionary categories, record dated manual evidence, associate it with the
+household, a person, an account, or real estate, and review annual summaries. Potentially
+overlapping evidence within the same stable expense identity must be resolved before an annual
+factual total is available. Irregular recurring statement periods retain their factual amounts and
+also provide a separately labelled annualized run-rate estimate. The persistence and service
+boundary retains import-batch provenance for future source-specific expense parsers.
+
 ## Intentional or known limitations
 
 - The broader retirement cash-flow, account drawdown, CPP/QPP and OAS benefit, RRIF/LIF,
@@ -42,8 +50,9 @@ scenarios, scenario cloning, and coarse required/discretionary household expense
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
 - Scenario comparison is not implemented even though scenarios can be saved and cloned.
-- Household expenses are annual required and discretionary totals with growth assumptions, not a
-  detailed budget or transaction-derived expense model.
+- Expense tracking remains high-level rather than transaction-level budgeting. No expense-statement
+  parser is implemented yet, so the current UI supports manual factual records while the import
+  contract is available for future source modules.
 - Account-type providers describe classification and presentation behavior but do not yet supply
   full projection, beneficiary, contribution-room, or withdrawal contracts. RESP beneficiary
   modeling is therefore absent.

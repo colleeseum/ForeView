@@ -88,6 +88,7 @@ class AppRouteTests(unittest.TestCase):
             "/",
             "/setup",
             "/accounts",
+            "/expenses",
             "/connections",
             "/transactions",
             "/settings",
@@ -102,11 +103,197 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/import", json={}).status_code, 404)
         self.assertEqual(self.client.get("/api/taxes/years").status_code, 404)
 
+    def test_factual_expense_workflow_validates_and_resolves_overlaps(self):
+        category_response = self.client.post(
+            "/api/expenses/categories",
+            json={"name": "Overlap utilities", "classification": "required"},
+        )
+        self.assertEqual(category_response.status_code, 201)
+        category_id = category_response.get_json()["id"]
+
+        first = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Hydro",
+                "category_id": category_id,
+                "amount": "1200.00",
+                "period_start": "2028-01-01",
+                "period_end": "2028-12-31",
+            },
+        )
+        second = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Hydro",
+                "category_id": category_id,
+                "amount": "1100.00",
+                "period_start": "2028-01-01",
+                "period_end": "2028-12-31",
+            },
+        )
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(second.status_code, 201)
+
+        page = self.client.get("/expenses?year=2028")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"Review required", page.data)
+        self.assertIn(b"Hydro", page.data)
+        self.assertIn(b'id="expense-add"', page.data)
+        self.assertIn(b'id="expense-categories"', page.data)
+        self.assertIn(b'class="dashboard-panel expense-record-details" open', page.data)
+        self.assertIn(b'id="expense-dialog-backdrop" class="dialog-backdrop" hidden', page.data)
+
+        first_id = first.get_json()["id"]
+        second_id = second.get_json()["id"]
+        included = self.client.post(
+            f"/api/expenses/{first_id}/overlap",
+            json={"include": True, "note": "Use supported amount"},
+        )
+        excluded = self.client.post(
+            f"/api/expenses/{second_id}/overlap",
+            json={"include": False, "note": "Duplicate evidence"},
+        )
+        self.assertEqual(included.status_code, 200)
+        self.assertEqual(excluded.status_code, 200)
+
+        resolved_page = self.client.get("/expenses?year=2028")
+        self.assertIn(b"$1200.00", resolved_page.data)
+        self.assertIn(b"Category totals", resolved_page.data)
+        self.assertIn(b"Overlap utilities", resolved_page.data)
+        self.assertIn(
+            b"do not imply that every expense has been recorded",
+            resolved_page.data,
+        )
+        self.assertNotIn(b"Review required", resolved_page.data)
+        self.assertIn(b'class="dashboard-panel expense-record-details">', resolved_page.data)
+
+        invalid = self.client.post("/api/expenses/manual", json={})
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("error", invalid.get_json())
+
+    def test_expense_form_workflow_redirects_back_to_the_application(self):
+        response = self.client.post(
+            "/expenses/categories",
+            data={
+                "csrf_token": "test-csrf-token",
+                "year": "2026",
+                "name": "Travel",
+                "classification": "discretionary",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/expenses?", response.headers["Location"])
+        self.assertIn("Expense+category+created", response.headers["Location"])
+        self.assertIn("dialog=categories", response.headers["Location"])
+
+        category_list = self.client.get(response.headers["Location"])
+        self.assertIn(b'id="category-dialog-backdrop" class="dialog-backdrop">', category_list.data)
+        self.assertIn(b"Expense category created.", category_list.data)
+        self.assertIn(b"Travel", category_list.data)
+
+    def test_expense_page_integrates_identity_overlap_and_period_estimation(self):
+        utilities = self.client.post(
+            "/api/expenses/categories",
+            json={"name": "Integration utilities", "classification": "required"},
+        ).get_json()
+        property_tax = self.client.post(
+            "/api/expenses/categories",
+            json={"name": "Integration property tax", "classification": "required"},
+        ).get_json()
+        hydro = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Hydro",
+                "category_id": utilities["id"],
+                "amount": "31.00",
+                "period_start": "2027-01-01",
+                "period_end": "2027-01-31",
+                "period_kind": "recurring_statement",
+            },
+        )
+        energir = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Energir",
+                "category_id": utilities["id"],
+                "amount": "62.00",
+                "period_start": "2027-01-01",
+                "period_end": "2027-01-31",
+                "period_kind": "recurring_statement",
+            },
+        )
+        annual_tax = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Montreal property tax",
+                "category_id": property_tax["id"],
+                "amount": "4200.00",
+                "period_start": "2027-06-01",
+                "period_end": "2027-06-01",
+                "period_kind": "annual_or_one_time",
+            },
+        )
+
+        self.assertEqual(hydro.status_code, 201)
+        self.assertEqual(energir.status_code, 201)
+        self.assertEqual(annual_tax.status_code, 201)
+        self.assertEqual(hydro.get_json()["overlap_status"], "clear")
+        self.assertEqual(energir.get_json()["overlap_status"], "clear")
+        page = self.client.get("/expenses?year=2027")
+        self.assertNotIn(b"Review required", page.data)
+        self.assertIn(b"Recorded total", page.data)
+        self.assertIn(b"$4293.00", page.data)
+        self.assertIn(b"Annualized estimate", page.data)
+        self.assertIn(b"$5295.00", page.data)
+        self.assertIn(b"may not reflect seasonal utility costs", page.data)
+
+        duplicate = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Hydro",
+                "category_id": utilities["id"],
+                "amount": "30.00",
+                "period_start": "2027-01-01",
+                "period_end": "2027-01-31",
+                "period_kind": "recurring_statement",
+            },
+        )
+        self.assertEqual(duplicate.status_code, 201)
+        self.assertEqual(duplicate.get_json()["overlap_status"], "potential")
+        records = self.client.get("/api/expenses?year=2027").get_json()
+        hydro_statuses = [
+            record["overlap_status"] for record in records if record["name"] == "Hydro"
+        ]
+        energir_statuses = [
+            record["overlap_status"] for record in records if record["name"] == "Energir"
+        ]
+        self.assertEqual(hydro_statuses, ["potential", "potential"])
+        self.assertEqual(energir_statuses, ["clear"])
+        self.assertIn(b"Review required", self.client.get("/expenses?year=2027").data)
+
+        included = self.client.post(
+            f"/api/expenses/{hydro.get_json()['id']}/overlap",
+            json={"include": True, "note": "Confirmed statement"},
+        )
+        excluded = self.client.post(
+            f"/api/expenses/{duplicate.get_json()['id']}/overlap",
+            json={"include": False, "note": "Duplicate statement"},
+        )
+        self.assertEqual(included.status_code, 200)
+        self.assertEqual(excluded.status_code, 200)
+
+        resolved = self.client.get("/expenses?year=2027")
+        self.assertNotIn(b"Review required", resolved.data)
+        self.assertIn(b"$4293.00", resolved.data)
+        self.assertIn(b"$5295.00", resolved.data)
+
     def test_pages_load_native_javascript_modules(self):
         expected_entries = {
             "/": "dashboard.mjs",
             "/setup": "setup.mjs",
             "/accounts": "accounts.mjs",
+            "/expenses": "expenses.mjs",
             "/connections": "connections.mjs",
             "/transactions": "transactions.mjs",
             "/salary-projection": "salary-projection.mjs",

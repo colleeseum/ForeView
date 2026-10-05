@@ -137,6 +137,15 @@ To add the synthetic Questrade synchronization scenario:
 make load-questrade-dev
 ```
 
+New synthetic runtimes include factual expense examples. To add those examples to an existing
+synthetic development runtime without rebuilding it:
+
+```sh
+make load-expenses-dev
+```
+
+The expense loader refuses non-synthetic runtimes and is idempotent.
+
 The loader refuses to run unless the selected runtime identifies itself as synthetic. It is
 idempotent. An updated synchronization can be simulated with:
 

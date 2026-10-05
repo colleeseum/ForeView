@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Mindstep Corporation
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-.PHONY: install-dev diff-check identity-check license-check format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target coverage-gate security audit qa load-questrade-dev update-public-rules
+.PHONY: install-dev diff-check identity-check license-check format format-check lint javascript javascript-coverage javascript-audit typecheck test coverage integration-coverage coverage-target coverage-gate security audit qa load-questrade-dev load-expenses-dev update-public-rules
 
 PYTHON := .venv/bin/python
 
@@ -61,13 +61,16 @@ coverage-gate:
 	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-report=xml --cov-fail-under=80
 
 security:
-	$(PYTHON) -m bandit -c pyproject.toml -r app.py runtime_backup.py synthetic_documents.py synthetic_questrade.py synthetic_runtime.py domain infrastructure ingestion institution_support institutions projection repositories services web
+	$(PYTHON) -m bandit -c pyproject.toml -r app.py runtime_backup.py synthetic_documents.py synthetic_expenses.py synthetic_questrade.py synthetic_runtime.py domain infrastructure ingestion institution_support institutions projection repositories services web
 
 audit:
 	$(PYTHON) -m pip_audit -r requirements.txt
 
 load-questrade-dev:
 	$(PYTHON) synthetic_questrade.py .runtime/dev --scenario initial
+
+load-expenses-dev:
+	$(PYTHON) synthetic_expenses.py .runtime/dev
 
 update-public-rules:
 	$(PYTHON) update_public_rules.py

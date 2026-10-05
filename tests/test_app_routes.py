@@ -288,6 +288,32 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b"$4293.00", resolved.data)
         self.assertIn(b"$5295.00", resolved.data)
 
+    def test_expense_page_supports_recurring_evidence_in_year_9999(self):
+        category = self.client.post(
+            "/api/expenses/categories",
+            json={"name": "Far-future utilities", "classification": "required"},
+        )
+        self.assertEqual(category.status_code, 201)
+        expense = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Hydro",
+                "category_id": category.get_json()["id"],
+                "amount": "31.00",
+                "period_start": "9999-01-01",
+                "period_end": "9999-01-31",
+                "period_kind": "recurring_statement",
+            },
+        )
+        self.assertEqual(expense.status_code, 201)
+
+        page = self.client.get("/expenses?year=9999")
+
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"9999 spending", page.data)
+        self.assertIn(b"$31.00", page.data)
+        self.assertIn(b"$365.00", page.data)
+
     def test_pages_load_native_javascript_modules(self):
         expected_entries = {
             "/": "dashboard.mjs",

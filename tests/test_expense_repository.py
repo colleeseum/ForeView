@@ -239,6 +239,97 @@ def test_irregular_period_retains_factual_amount_and_estimates_full_year(
     assert summary["has_partial_coverage"] is True
 
 
+def test_annualized_totals_preserve_historical_category_snapshots(
+    repo: ExpenseRepository,
+) -> None:
+    category = repo.create_category("Utilities", "required")
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="31.00",
+        period_start=date(2025, 1, 1),
+        period_end=date(2025, 1, 31),
+        period_kind="recurring_statement",
+    )
+    repo.rename_category(category.id, "Home utilities")
+    repo.reclassify_category(category.id, "discretionary")
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="28.00",
+        period_start=date(2025, 2, 1),
+        period_end=date(2025, 2, 28),
+        period_kind="recurring_statement",
+    )
+
+    summary = repo.totals_for_year(2025)
+
+    categories = {item["name"]: item for item in summary["categories"]}
+    assert categories["Utilities"]["classification"] == "required"
+    assert categories["Utilities"]["amount"] == Decimal("31.00")
+    assert categories["Utilities"]["annualized_estimate"] == Decimal("365.00")
+    assert categories["Home utilities"]["classification"] == "discretionary"
+    assert categories["Home utilities"]["amount"] == Decimal("28.00")
+    assert categories["Home utilities"]["annualized_estimate"] == Decimal("365.00")
+    assert summary["estimated_required"] == Decimal("365.00")
+    assert summary["estimated_discretionary"] == Decimal("365.00")
+
+
+def test_edit_clears_orphaned_resolved_overlap_statuses(repo: ExpenseRepository) -> None:
+    category = repo.create_category("Utilities", "required")
+    first = repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="100.00",
+        period_start=date(2026, 1, 1),
+        period_end=date(2026, 1, 31),
+    )
+    second = repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="80.00",
+        period_start=date(2026, 1, 1),
+        period_end=date(2026, 1, 31),
+    )
+    repo.resolve_overlap(first.id, include=True, note="Supported statement")
+    repo.resolve_overlap(second.id, include=False, note="Duplicate statement")
+
+    repo.update_expense(
+        first.id,
+        name="Hydro",
+        category_id=category.id,
+        amount="100.00",
+        period_start=date(2026, 2, 1),
+        period_end=date(2026, 2, 28),
+    )
+
+    updated_first = repo.get_expense(first.id)
+    updated_second = repo.get_expense(second.id)
+    assert updated_first.overlap_status == "clear"
+    assert updated_first.overlap_resolution_note is None
+    assert updated_second.overlap_status == "clear"
+    assert updated_second.overlap_resolution_note is None
+    assert repo.totals_for_year(2026)["total"] == Decimal("180.00")
+
+
+def test_year_9999_recurring_expense_can_be_annualized(repo: ExpenseRepository) -> None:
+    category = repo.create_category("Utilities", "required")
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="31.00",
+        period_start=date(9999, 1, 1),
+        period_end=date(9999, 1, 31),
+        period_kind="recurring_statement",
+    )
+
+    summary = repo.totals_for_year(9999)
+
+    assert summary["status"] == "recorded"
+    assert summary["total"] == Decimal("31.00")
+    assert summary["estimated_total"] == Decimal("365.00")
+
+
 def test_full_year_evidence_does_not_report_partial_coverage(repo: ExpenseRepository) -> None:
     category = repo.create_category("Property tax", "required")
     repo.create_manual_expense(

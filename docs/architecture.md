@@ -5,9 +5,11 @@ target-state design.
 
 ## System shape
 
-Retirement Finance is a local-first Flask application backed by one SQLite database per runtime.
-Server-rendered pages establish the workspace, and vanilla JavaScript ES modules call JSON APIs for
-interactive behavior. The application is assembled by `create_app(RuntimeConfig)` in `app.py`.
+ForeView is a local-first personal and household financial management, analysis, and modelling
+system backed by one SQLite database per runtime. Its implemented financial domains are currently
+oriented toward Canadian personal finance, tax, and retirement planning. Server-rendered pages
+establish the workspace, and vanilla JavaScript ES modules call JSON APIs for interactive behavior.
+The application is assembled by `create_app(RuntimeConfig)` in `app.py`.
 
 ```text
 Browser templates and ES modules

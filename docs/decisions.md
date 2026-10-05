@@ -4,6 +4,21 @@ This document records decisions supported by the current implementation and trac
 documentation. It does not reconstruct unavailable conversation history. When rationale cannot be
 reliably inferred, the entry says so.
 
+## Product scope is broader than retirement planning
+
+ForeView is a local-first personal and household financial management, analysis, and modelling
+system. Canadian tax and retirement planning are important current priorities, but they do not
+define a permanent product boundary. Additional financial domains may be considered without being
+promised or placed on the roadmap prematurely.
+
+Focused retirement modules and terminology remain appropriate where they describe retirement
+facts, assumptions, or projections. Existing persisted and public technical identifiers are not
+renamed merely to align them with the broader product scope.
+
+Reason: factual financial records, analysis, and modelling already span concerns beyond retirement,
+while preserving focused domain terminology and compatibility avoids obscuring meaning or creating
+unnecessary migrations.
+
 ## Local-first, runtime-isolated storage
 
 The application stores private data in a configurable runtime directory with one SQLite database

@@ -1,12 +1,15 @@
-# Retirement Finance
+# ForeView
 
-Retirement Finance is a local-first Canadian financial modelling application. It consolidates
-accounts, balances, transactions, investment holdings, GICs, real estate, and versioned public
-tax rules into a private SQLite runtime. The longer-term objective is to support explicit,
-auditable salary and retirement projections without hiding assumptions in a spreadsheet.
+*Understand, manage, and model your financial life. See where you are. Explore what's ahead.*
 
-The project is under active development. Asset tracking and institution imports are implemented;
-expense modelling and the complete retirement projection engine are not yet complete.
+ForeView is a local-first personal and household financial management, analysis, and modelling
+application. Its present focus is Canadian personal finance, tax, and retirement planning. It
+consolidates accounts, balances, transactions, investment holdings, GICs, real estate, factual
+income and expenses, and versioned public tax rules into a private SQLite runtime.
+
+The project is under active development. Retirement planning is an important current use case,
+not the permanent boundary of the application. Implemented capabilities and current limitations
+are recorded in [Current state](docs/current-state.md).
 
 ## Shared project context
 
@@ -15,6 +18,8 @@ The repository is the durable handoff point for human contributors and coding ag
 - [Architecture](docs/architecture.md) describes the system that currently exists.
 - [Design decisions](docs/decisions.md) records durable constraints and their rationale.
 - [Current state](docs/current-state.md) identifies active work, known limitations, and next steps.
+- [Contributing](CONTRIBUTING.md) describes contribution paths, project principles, and review
+  expectations for code and non-code work.
 - The [GitHub Project](https://github.com/users/colleeseum/projects/3) is the authoritative product
   roadmap and progress tracker.
 - [Agent instructions](AGENTS.md) defines the workflow and engineering rules for coding agents.
@@ -161,6 +166,10 @@ Source code and private runtime data are intentionally separate:
 | --- | --- | --- |
 | `dev` | `.runtime/dev` | Invented data for development and tests |
 | `prod` | `~/.local/share/retirement-finance/prod` | Private user data and credentials |
+
+The `retirement-finance` runtime directory, `RETIREMENT_*` configuration names, and
+`retirement-model-browser` package identifier predate the ForeView product name. They remain
+unchanged for backward compatibility.
 
 A runtime directory contains `finance.sqlite3` and `finance.config.json`. Start the private runtime
 with:
@@ -326,14 +335,8 @@ example, a salary projection until retirement and a retirement-income strategy a
 
 ## Contributing
 
-Changes should preserve the separation between private runtime data and source-controlled public
-artifacts. New institution support should be added as a module under `institutions/` using the
-institution contract, rather than adding institution-specific branches throughout the application. Calculation changes should document
-their assumptions, cite authoritative inputs, and include tests that exercise boundary conditions
-and known reference cases.
-
-Before submitting a change, run `make qa` and include any relevant public-rule provenance without
-including private financial documents or credentials.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution paths, project principles, financial-rule
+expectations, testing requirements, and credit for substantive code and non-code contributions.
 
 ## License
 

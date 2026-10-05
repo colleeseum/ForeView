@@ -9,12 +9,12 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Retirement model</title>
+  <title>ForeView | Financial summary</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <main>
-    <header><p class="eyebrow">Retirement model</p><h1>Summary</h1><p class="lede">A consolidated view of the portfolio before tax.</p></header>
+    <header><p class="eyebrow">ForeView</p><h1>Summary</h1><p class="lede">A consolidated view of the portfolio before tax.</p></header>
     <div class="page-shell">{% set active_page = 'summary' %}{% include '_side_menu.html' %}<div class="page-content">
       <section id="dashboard-metrics" class="summary-pill-grid"><p class="empty-panel">Loading dashboard...</p></section>
       <p class="dashboard-note">RRSP uninvested value is shown separately because withdrawals are taxable and restricted by the retirement plan.</p>

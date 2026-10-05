@@ -8,6 +8,7 @@ the shared project memory. Do not rely on access to prior agent conversations.
 Read these tracked documents before substantial work:
 
 - `README.md` for product scope, setup, runtime operations, assumptions, and safety warnings;
+- `CONTRIBUTING.md` for contributor workflow, project principles, and the intended product scope;
 - `docs/architecture.md` for the implemented system structure and boundaries;
 - `docs/decisions.md` for durable design decisions and their rationale;
 - `docs/current-state.md` for the active development focus, known limitations, and next steps;

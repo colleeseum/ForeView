@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sqlite3
+from calendar import isleap
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import cast
@@ -442,14 +443,14 @@ class ExpenseRepository:
                     WHERE id = ?""",
                 ((affected_id,) for affected_id in affected_ids),
             )
-        self._clear_orphaned_potential_overlaps()
+        self._clear_orphaned_overlap_resolutions()
         return self.get_expense(expense_id)
 
-    def _clear_orphaned_potential_overlaps(self) -> None:
+    def _clear_orphaned_overlap_resolutions(self) -> None:
         self._connection.execute(
             """UPDATE expense_records AS candidate
                   SET overlap_status = 'clear', overlap_resolution_note = NULL
-                WHERE candidate.overlap_status = 'potential'
+                WHERE candidate.overlap_status <> 'clear'
                   AND NOT EXISTS (
                       SELECT 1 FROM expense_records AS other
                        WHERE other.id <> candidate.id
@@ -532,20 +533,17 @@ class ExpenseRepository:
                 "unresolved_overlaps": unresolved,
             }
         included = [record for record in records if record.overlap_status != "resolved_exclude"]
-        totals: dict[tuple[int, str, str], Decimal] = {}
-        estimated_totals: dict[tuple[int, str, str], Decimal] = {}
-        records_by_identity: dict[int, list[ExpenseRecord]] = {}
+        totals: dict[tuple[int, str, ExpenseClassification], Decimal] = {}
+        estimated_totals: dict[tuple[int, str, ExpenseClassification], Decimal] = {}
+        records_by_identity_snapshot: dict[
+            tuple[int, tuple[int, str, ExpenseClassification]], list[ExpenseRecord]
+        ] = {}
         for record in included:
             key = (record.category_id, record.category_name, record.classification)
             totals[key] = totals.get(key, Decimal("0")) + self._amount_for_year(record, year)
-            records_by_identity.setdefault(record.identity_id, []).append(record)
+            records_by_identity_snapshot.setdefault((record.identity_id, key), []).append(record)
         has_partial_coverage = False
-        for identity_records in records_by_identity.values():
-            key = (
-                identity_records[0].category_id,
-                identity_records[0].category_name,
-                identity_records[0].classification,
-            )
+        for (_, key), identity_records in records_by_identity_snapshot.items():
             fixed_records = [
                 record for record in identity_records if record.period_kind == "annual_or_one_time"
             ]
@@ -563,7 +561,7 @@ class ExpenseRepository:
                     start=Decimal("0"),
                 )
                 covered_days = self._covered_days(periodic_records, year)
-                year_days = (date(year + 1, 1, 1) - date(year, 1, 1)).days
+                year_days = 366 if isleap(year) else 365
                 if covered_days < year_days:
                     has_partial_coverage = True
                 estimated_cents = (

@@ -124,12 +124,16 @@ h1 { margin: 4px 0; font-size: clamp(1.9rem, 2.8vw, 3rem); line-height: 1; font-
 .summary-pill-alert { width: 100%; display: block; border-color: #9f2e22; color: #9f2e22; background: #f8e5df; text-align: left; font: inherit; text-decoration: none; }
 .summary-pill-alert p, .summary-pill-alert small { color: #9f2e22; }
 .dashboard-note { margin: 8px 0 10px; color: var(--muted); font: .75rem ui-monospace, SFMono-Regular, Menlo, monospace; }
-.expense-heading, .expense-toolbar, .expense-year-form, .overlap-form { display: flex; align-items: end; gap: 8px; }
+.expense-heading, .expense-toolbar, .overlap-form { display: flex; align-items: end; gap: 8px; }
 .expense-heading { justify-content: space-between; margin-bottom: 14px; }
 .expense-heading h2, .expense-heading p { margin: 0; }
-.expense-toolbar { flex-wrap: wrap; justify-content: flex-end; }
-.expense-year-form label { display: grid; gap: 4px; color: var(--muted); font: .72rem ui-monospace, SFMono-Regular, Menlo, monospace; }
-.expense-year-form input, .overlap-form input { min-height: 34px; border: 1px solid var(--line); padding: 6px 8px; background: white; font: inherit; }
+.expense-toolbar { flex-wrap: wrap; justify-content: flex-end; margin-bottom: 14px; }
+.expense-year-form { margin-left: auto; }
+.expense-year-form label { display: grid; gap: 3px; color: var(--muted); font: 700 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.expense-year-form select { min-height: 32px; border: 1px solid var(--line); padding: 5px 28px 5px 8px; background: white; font: inherit; }
+.expense-import-result { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.expense-import-result a { color: var(--accent); font-weight: 700; }
+.overlap-form input { min-height: 34px; border: 1px solid var(--line); padding: 6px 8px; background: white; font: inherit; }
 .expense-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .expense-category-dialog { width: min(900px, 100%); }
 .expense-category-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -347,5 +351,5 @@ th, td { min-width: 110px; max-width: 280px; padding: 8px 10px; border-right: 1p
 th { position: sticky; left: 0; z-index: 1; min-width: 44px; color: var(--muted); background: #eef1eb; text-align: right; }
 .total-row th { color: var(--ink); background: #e9eee5; font-weight: 700; }
 @media (max-width: 900px) { main { padding: 30px 16px; } .workspace, .tax-tool, .page-shell, .dashboard-grid { grid-template-columns: 1fr; } nav { display: flex; gap: 6px; overflow-x: auto; } .sheet-tab { min-width: max-content; border: 1px solid var(--line); } #tax-result { grid-column: auto; } .side-menu { position: static; display: flex; overflow-x: auto; } .side-menu-brand, .side-menu-heading { display: none; } .side-menu-group { display: contents; } .side-menu a { white-space: nowrap; } .side-menu a.side-menu-sub { margin-left: 0; border-left: 0; } .salary-toolbar { align-items: stretch; flex-direction: column; } .salary-toolbar-actions { margin-left: 0; flex-wrap: wrap; } .salary-settings-grid { grid-template-columns: 1fr; } }
-@media (max-width: 900px) { .expense-heading { align-items: stretch; flex-direction: column; } .expense-toolbar { justify-content: flex-start; } .expense-summary-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .expense-heading { align-items: stretch; flex-direction: column; } .expense-year-form { margin-left: 0; } .expense-toolbar { justify-content: flex-start; } .expense-summary-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .asset-section .table-card table { width: 760px; min-width: 760px; } .summary-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

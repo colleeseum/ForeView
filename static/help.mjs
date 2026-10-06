@@ -41,6 +41,8 @@ const articleBody = backdrop.querySelector('.help-article-body');
 let selectedArticleKey = null;
 
 function pageArticleKey() {
+  const declaredKey = document.querySelector('main > header')?.dataset.helpArticle;
+  if (declaredKey) return declaredKey;
   const mapping = {
     '/accounts': 'assets',
     '/income': 'income',

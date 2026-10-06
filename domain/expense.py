@@ -13,6 +13,7 @@ ExpenseAssociationKind = Literal["household", "person", "account", "real_estate"
 ExpenseOverlapStatus = Literal["clear", "potential", "resolved_include", "resolved_exclude"]
 ExpensePeriodKind = Literal["annual_or_one_time", "recurring_statement"]
 ExpenseYearStatus = Literal["missing", "needs_resolution", "recorded"]
+SEASONAL_ESTIMATE_INFLATION_RATE = Decimal("0.02")
 
 
 class ExpenseCategoryTotal(TypedDict):
@@ -20,7 +21,7 @@ class ExpenseCategoryTotal(TypedDict):
     name: str
     classification: ExpenseClassification
     amount: Decimal
-    annualized_estimate: Decimal
+    annualized_estimate: Decimal | None
 
 
 class ExpenseYearSummary(TypedDict):
@@ -33,6 +34,7 @@ class ExpenseYearSummary(TypedDict):
     estimated_required: Decimal | None
     estimated_discretionary: Decimal | None
     estimated_total: Decimal | None
+    estimate_inflation_rate: Decimal
     has_partial_coverage: bool
     unresolved_overlaps: list[int]
 

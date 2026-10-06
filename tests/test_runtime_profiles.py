@@ -174,7 +174,8 @@ class RuntimeProfileTests(unittest.TestCase):
             self.assertIn(b"Energir", expenses_response.data)
             self.assertIn(b"Montreal property tax", expenses_response.data)
             self.assertIn(b"$4293.00", expenses_response.data)
-            self.assertIn(b"$5295.00", expenses_response.data)
+            self.assertIn(b"Seasonal estimate", expenses_response.data)
+            self.assertNotIn(b"Unavailable", expenses_response.data)
             accounts = accounts_response.get_json()["accounts"]
             account_totals = {
                 item["type"]: item for item in accounts_response.get_json()["category_totals"]
@@ -283,7 +284,7 @@ class RuntimeProfileTests(unittest.TestCase):
                     connection.execute("SELECT COUNT(*) FROM import_batches").fetchone()[0], 12
                 )
                 self.assertEqual(
-                    connection.execute("SELECT COUNT(*) FROM expense_records").fetchone()[0], 3
+                    connection.execute("SELECT COUNT(*) FROM expense_records").fetchone()[0], 7
                 )
 
             self.assertEqual(load_synthetic_expenses(runtime), 0)

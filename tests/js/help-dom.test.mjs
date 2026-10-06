@@ -14,13 +14,15 @@ const catalog = {
   ],
   articles: [
     {key: 'income', title: 'Employment income', summary: 'Annual facts.', body: 'Income article.', keywords: ['salary']},
+    {key: 'expenses', title: 'Expenses', summary: 'Household spending.', body: 'Expenses article.', keywords: ['spending']},
     {key: 'transaction-import', title: 'Bank imports', summary: 'Load statements.', body: 'Bank article.', keywords: ['PDF', 'bank']},
     {key: 'income-source-ufile', title: 'Loading UFile', summary: 'Get a T1.', body: 'UFile article.', keywords: ['T1', 'UFile']},
   ],
 };
 
-function installDom(url = 'http://localhost/income') {
-  const dom = new JSDOM(`<!doctype html><body><main><header><h1>Income</h1></header></main>
+function installDom(url = 'http://localhost/income', pageArticle = null) {
+  const helpAttribute = pageArticle ? ` data-help-article="${pageArticle}"` : '';
+  const dom = new JSDOM(`<!doctype html><body><main><header${helpAttribute}><h1>Income</h1></header></main>
     <button data-help-tooltip="salary-rate">?</button>
     <button data-help-article="income-source-ufile">UFile help</button></body>`, {url});
   Object.assign(globalThis, {window: dom.window, document: dom.window.document});
@@ -59,6 +61,22 @@ test('help provides quick tooltips, searchable full help, and contextual article
   document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
   assert.equal(document.querySelector('.help-tooltip').hidden, true);
   assert.equal(document.querySelector('.help-drawer-backdrop').hidden, true);
+  dom.window.close();
+});
+
+test('full help opens the Expenses article from the Expenses page', async () => {
+  const dom = installDom('http://localhost/expenses?year=2026', 'expenses');
+  globalThis.fetch = async () => ({ok: true, json: async () => catalog});
+  await import(`../../static/help.mjs?expenses=${Date.now()}`);
+
+  document.querySelector('.full-help-button').click();
+  await tick();
+
+  assert.equal(document.querySelector('.help-article h2').textContent, 'Expenses');
+  assert.equal(
+    document.querySelector('[data-help-result="expenses"]').classList.contains('active'),
+    true,
+  );
   dom.window.close();
 });
 

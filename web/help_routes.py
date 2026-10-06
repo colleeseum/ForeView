@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify
 
+from expense_sources import expense_source_registry
 from income_sources import income_source_registry
 from institution_support import institution_registry
 from public_pension_sources import public_pension_source_registry
@@ -89,6 +90,60 @@ _ARTICLES = (
         "keywords": ("transaction", "cash flow", "account", "history"),
     },
     {
+        "key": "expenses",
+        "title": "Expenses",
+        "summary": "Record and review factual household spending.",
+        "body": (
+            "Create required or discretionary categories, then add expenses manually or load "
+            "statements from a supported source. Recorded totals use retained factual evidence "
+            "and remain separate from projection assumptions. Resolve possible overlaps before "
+            "relying on an annual total. For an incomplete year, a separately labelled seasonal "
+            "estimate may be available when the preceding year provides a complete comparison. "
+            "Use the related help topics for the estimation method and source-specific import "
+            "instructions."
+        ),
+        "keywords": (
+            "expense",
+            "spending",
+            "category",
+            "required",
+            "discretionary",
+            "statement",
+            "overlap",
+            "estimate",
+        ),
+    },
+    {
+        "key": "expense-seasonal-estimate",
+        "title": "Seasonal expense estimates",
+        "summary": "Estimate an incomplete year without assuming utilities are linear.",
+        "body": (
+            "The estimate retains current-year actual statements and fills only uncovered dates "
+            "from the same expense stream in the preceding year. Let A(y,C) be the current-year "
+            "actual amount over covered dates C, P(U) the preceding-year amount for dates U "
+            "that remain uncovered in the current year, and i the displayed inflation "
+            "assumption. The estimate is E(y) = A(y,C) + (1 + i) × P(U). The current "
+            "application assumption is i = 2.00%. Statement amounts are distributed over their "
+            "actual service dates solely to align billing periods. Annual and one-time expenses "
+            "are never extrapolated. An estimate is unavailable when the preceding year does "
+            "not cover the full calendar year or prior overlaps remain unresolved. The estimate "
+            "is planning information and never replaces the "
+            "recorded factual total. This method preserves a prior seasonal pattern but cannot "
+            "predict unusual weather, usage, tariff, or household changes."
+        ),
+        "keywords": (
+            "expense",
+            "seasonal",
+            "estimate",
+            "annual",
+            "utility",
+            "inflation",
+            "Hydro",
+            "Energir",
+            "formula",
+        ),
+    },
+    {
         "key": "transaction-import",
         "title": "Importing bank documents",
         "summary": "Supported statements, exports, deduplication, and account confirmation.",
@@ -160,6 +215,16 @@ def help_catalog():
             "keywords": ("CPP", "QPP", "pension", "statement", source.key),
         }
         for source in public_pension_source_registry.providers
+    )
+    articles.extend(
+        {
+            "key": f"expense-source-{source.key}",
+            "title": f"Loading {source.display_name}",
+            "summary": "Import household expense statement from a supported source.",
+            "body": source.help_text,
+            "keywords": ("expense", "statement", "PDF", source.key, source.display_name),
+        }
+        for source in expense_source_registry.providers
     )
     articles.extend(
         {

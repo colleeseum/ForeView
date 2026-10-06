@@ -15,7 +15,7 @@ SYNTHETIC_NOTICE = "SYNTHETIC TEST DOCUMENT - NO REAL FINANCIAL DATA"
 
 def _write_pdf(path: Path, lines: list[str]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    document = canvas.Canvas(str(path), pagesize=letter, pageCompression=0)
+    document = canvas.Canvas(str(path), pagesize=letter, pageCompression=1)
     document.setTitle(f"Synthetic fixture: {path.stem}")
     document.setAuthor("Retirement app synthetic fixture")
     document.setFont("Courier", 9)
@@ -220,6 +220,30 @@ def create_synthetic_sunlife_history(path: Path) -> Path:
     )
 
 
+def create_synthetic_hydro_qc_statement(path: Path) -> Path:
+    """Create an invented statement shaped like a current Hydro-Québec bill."""
+
+    return _write_pdf(
+        path,
+        [
+            "Hydro-Québec",
+            "Facture d'électricité du 2 février 2026",
+            "Compte synthétique 999 888 777 000",
+            "SOMMAIRE DE VOTRE FACTURE",
+            "Coûts de l'électricité 26,96 $",
+            "TPS 1,35 $",
+            "TVQ 2,69 $",
+            "Montant de la présente facture 31,00 $",
+            "Amount of this bill",
+            "Solde précédent 80,00 $",
+            "Montant total à payer 111,00 $",
+            "DÉTAIL DES COÛTS - TARIF DOMESTIQUE D",
+            "Du 31 décembre 2025 au 31 janvier 2026 (31 jours)",
+            "DETAILS OF COSTS - DOMESTIC RATE D",
+        ],
+    )
+
+
 def create_synthetic_fixture_set(directory: Path) -> dict[str, Path]:
     """Create every supported synthetic PDF and CSV fixture."""
     directory.mkdir(parents=True, exist_ok=True)
@@ -236,6 +260,10 @@ def create_synthetic_fixture_set(directory: Path) -> dict[str, Path]:
         "sunlife_history_pdf": (
             "sunlife-transaction-history.pdf",
             create_synthetic_sunlife_history,
+        ),
+        "hydro_qc_pdf": (
+            "hydro-quebec-electricity-bill.pdf",
+            create_synthetic_hydro_qc_statement,
         ),
     }
     fixtures = {key: creator(directory / filename) for key, (filename, creator) in creators.items()}

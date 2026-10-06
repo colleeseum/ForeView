@@ -242,11 +242,39 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(energir.get_json()["overlap_status"], "clear")
         page = self.client.get("/expenses?year=2027")
         self.assertNotIn(b"Review required", page.data)
+        self.assertIn(b'<label>View year<select id="expense-year-select"', page.data)
+        self.assertIn(b'<option value="2027" selected>2027</option>', page.data)
         self.assertIn(b"Recorded total", page.data)
         self.assertIn(b"$4293.00", page.data)
-        self.assertIn(b"Annualized estimate", page.data)
-        self.assertIn(b"$5295.00", page.data)
-        self.assertIn(b"may not reflect seasonal utility costs", page.data)
+        self.assertIn(b'<header data-help-article="expenses">', page.data)
+        self.assertIn(b"Seasonal estimate", page.data)
+        self.assertIn(b"2.00% inflation", page.data)
+        self.assertIn(b"Unavailable", page.data)
+        self.assertIn(b'data-help-article="expense-seasonal-estimate"', page.data)
+        self.assertIn(b"preceding year's corresponding uncovered periods", page.data)
+        estimate_help = next(
+            article
+            for article in self.client.get("/api/help").get_json()["articles"]
+            if article["key"] == "expense-seasonal-estimate"
+        )
+        self.assertIn("E(y) = A(y,C) + (1 + i) \u00d7 P(U)", estimate_help["body"])
+        self.assertIn("i = 2.00%", estimate_help["body"])
+        self.assertIn("Annual and one-time expenses are never extrapolated", estimate_help["body"])
+        expenses_help = next(
+            article
+            for article in self.client.get("/api/help").get_json()["articles"]
+            if article["key"] == "expenses"
+        )
+        self.assertIn("required or discretionary categories", expenses_help["body"])
+        self.assertIn("separate from projection assumptions", expenses_help["body"])
+
+        import_result = self.client.get(
+            "/expenses?year=2027&imported=3&imported_years=2025,2026,2027"
+        )
+        self.assertIn(b"3 expense statements saved", import_result.data)
+        self.assertIn(b'href="/expenses?year=2025"', import_result.data)
+        self.assertIn(b'href="/expenses?year=2026"', import_result.data)
+        self.assertIn(b'href="/expenses?year=2027"', import_result.data)
 
         duplicate = self.client.post(
             "/api/expenses/manual",
@@ -286,7 +314,7 @@ class AppRouteTests(unittest.TestCase):
         resolved = self.client.get("/expenses?year=2027")
         self.assertNotIn(b"Review required", resolved.data)
         self.assertIn(b"$4293.00", resolved.data)
-        self.assertIn(b"$5295.00", resolved.data)
+        self.assertIn(b"Unavailable", resolved.data)
 
     def test_expense_page_supports_recurring_evidence_in_year_9999(self):
         category = self.client.post(
@@ -312,7 +340,8 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertIn(b"9999 spending", page.data)
         self.assertIn(b"$31.00", page.data)
-        self.assertIn(b"$365.00", page.data)
+        self.assertIn(b"Seasonal estimate", page.data)
+        self.assertIn(b"Unavailable", page.data)
 
     def test_pages_load_native_javascript_modules(self):
         expected_entries = {

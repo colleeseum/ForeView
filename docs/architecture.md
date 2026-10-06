@@ -113,10 +113,13 @@ The detailed provider contract and extension procedure are maintained in
 - `tax_notices/` registers CRA and Revenu Québec notice parsers.
 - `public_pension_sources/` registers public-pension statement parsers. A Retraite Québec
   participation statement is currently supported.
+- `expense_sources/` discovers household expense-statement providers. Hydro-Québec electricity
+  bills are currently supported.
 - `projection/rule_update/` uses an explicit provider registry for official public-rule retrieval.
 
-The institution and account-type registries use package discovery. Income, tax-notice,
-public-pension, and public-rule providers are currently assembled explicitly in their registries.
+The institution, account-type, and expense-source registries use package discovery. Income,
+tax-notice, public-pension, and public-rule providers are currently assembled explicitly in their
+registries.
 
 ## Public financial rules
 
@@ -138,11 +141,15 @@ room, and pension statements are stored independently of scenario assumptions.
 Factual expenses are stored as dated evidence under user-defined required or discretionary
 categories. Each record snapshots its category name and classification, may identify a person,
 account, or real-estate association, and keeps import-batch and parser provenance when created by a
-future source module. Stable expense identities distinguish separate streams such as Hydro and
-Energir within the same Utilities category. Potential overlaps within one identity block the
-annual factual total until every candidate has an explicit include or exclude decision. Recorded
-totals remain factual; recurring statement periods also produce a separately labelled annualized
-run-rate estimate. Import providers must classify the amount basis explicitly. Scenario-level
+source module. The generic import service detects a provider for preview and re-detects and parses
+the uploaded bytes during confirmation; extracted amount and period evidence are not accepted from
+the browser. Stable expense identities distinguish separate streams such as Hydro and Energir
+within the same Utilities category. Potential overlaps within one identity block the
+annual factual total until every candidate has an explicit include or exclude decision. Repeated
+source hashes enter the same review workflow even when editable identity fields differ. Recorded
+totals remain factual; recurring statement periods can also produce a separately labelled
+seasonal estimate from current actuals and an explicitly inflation-adjusted, complete
+preceding-year baseline. Import providers must classify the amount basis explicitly. Scenario-level
 household expense plans remain separate projection assumptions.
 
 The consolidated income and tax read model resolves each same-year concept through assessment,

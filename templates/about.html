@@ -52,6 +52,13 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         </table></div>
       </section>
       <section class="dashboard-panel">
+        <h2>Expense source modules</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>
+          <tbody>{% for source in expense_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+      <section class="dashboard-panel">
         <h2>Institution modules</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>Module</th><th>Key</th><th>Version</th></tr></thead>

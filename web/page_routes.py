@@ -6,6 +6,7 @@ from pathlib import Path
 
 from flask import Blueprint, render_template
 
+from expense_sources import expense_source_registry
 from income_sources import income_source_registry
 from institution_support import institution_registry
 from public_pension_sources import public_pension_source_registry
@@ -63,6 +64,7 @@ def about_page():
         income_sources=income_source_registry.providers,
         tax_notice_sources=tax_notice_registry.providers,
         public_pension_sources=public_pension_source_registry.providers,
+        expense_sources=expense_source_registry.providers,
         institutions=institution_registry().providers,
     )
 

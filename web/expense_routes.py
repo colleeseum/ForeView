@@ -10,10 +10,12 @@ from typing import Any
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 
 from domain.expense import ExpenseRecord
+from expense_sources import expense_source_registry
 from repositories.account_repository import AccountRepository
 from repositories.expense_repository import ExpenseRepository
 from repositories.person_repository import PersonRepository
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
+from services.expense_import_service import ExpenseImportService
 from services.expense_service import ExpenseService
 from web.dependencies import dependency
 
@@ -88,21 +90,31 @@ def _page(
     error: str | None = None,
     message: str | None = None,
     open_dialog: str | None = None,
+    imported_count: int = 0,
+    imported_years: tuple[int, ...] = (),
 ):
     with dependency("connect")() as connection:
         repository = ExpenseRepository(connection)
+        available_years = repository.available_years()
+        if year not in available_years:
+            available_years.append(year)
+            available_years.sort(reverse=True)
         return render_template(
             "expenses.html",
             year=year,
+            available_years=available_years,
             summary=repository.totals_for_year(year),
             expenses=repository.list_expenses(year=year),
             categories=repository.list_categories(include_inactive=True),
             people=PersonRepository(connection).list_all(),
             accounts=AccountRepository(connection).summary_rows(),
             real_estate=RealEstateAssetRepository(connection).list_all(),
+            expense_sources=expense_source_registry.providers,
             error=error,
             message=message,
             open_dialog=open_dialog,
+            imported_count=imported_count,
+            imported_years=imported_years,
         )
 
 
@@ -127,11 +139,23 @@ def _redirect(
 @blueprint.get("/expenses")
 def expenses_page():
     try:
+        imported_count = int(request.args.get("imported", "0"))
+        if imported_count < 0:
+            raise ValueError("Imported statement count cannot be negative")
+        imported_years = tuple(
+            sorted(
+                {int(value) for value in request.args.get("imported_years", "").split(",") if value}
+            )
+        )
+        if any(year < 1900 or year > 9999 for year in imported_years):
+            raise ValueError("Imported expense years must be between 1900 and 9999")
         return _page(
             _year(),
             error=request.args.get("error"),
             message=request.args.get("message"),
             open_dialog=("categories" if request.args.get("dialog") == "categories" else None),
+            imported_count=imported_count,
+            imported_years=imported_years,
         )
     except (TypeError, ValueError) as error:
         return _page(date.today().year, error=str(error)), 400
@@ -306,3 +330,56 @@ def resolve_overlap_form(expense_id: int):
         return _redirect(year, message="Overlap decision saved.")
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect(year, error=str(error))
+
+
+# ----------------------------------------------------------------------
+# Imported-expense preview and confirmation
+# ----------------------------------------------------------------------
+
+
+@blueprint.post("/api/expenses/import/preview")
+def import_expense_preview():
+    """Detect + parse a PDF and return reviewable evidence without persisting."""
+    try:
+        pdf_file = request.files.get("file")
+        if not pdf_file or not pdf_file.filename:
+            return jsonify({"error": "A PDF file is required."}), 400
+
+        content = pdf_file.read()
+        filename = pdf_file.filename
+
+        with dependency("connect")() as connection:
+            preview = ExpenseImportService(connection).preview(content, source_filename=filename)
+
+        return jsonify({"preview": preview.to_dict()})
+    except (TypeError, ValueError, LookupError) as error:
+        return jsonify({"error": str(error)}), 400
+
+
+@blueprint.post("/api/expenses/import/confirm")
+def import_expense_confirm():
+    """Re-parse the uploaded PDF and persist a factual expense record."""
+    try:
+        form = request.form
+        pdf_file = request.files.get("file")
+        if not pdf_file or not pdf_file.filename:
+            return jsonify({"error": "A PDF file is required."}), 400
+
+        content = pdf_file.read()
+        payload = dict(form)
+        association_kind, association_id = _association(payload)
+
+        with dependency("connect")() as connection:
+            record = ExpenseImportService(connection).confirm(
+                content=content,
+                source_filename=pdf_file.filename,
+                provider_key=str(payload.get("provider_key", "")),
+                name=str(payload.get("name", "")),
+                category_id=int(payload["category_id"]),
+                association_kind=association_kind,  # type: ignore[arg-type]
+                association_id=association_id,
+            )
+
+        return jsonify(_record(record)), 201
+    except (TypeError, ValueError, LookupError, KeyError, sqlite3.IntegrityError) as error:
+        return jsonify({"error": str(error)}), 400

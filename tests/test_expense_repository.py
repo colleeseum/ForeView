@@ -97,6 +97,7 @@ def test_multi_year_record_is_prorated_by_days(repo: ExpenseRepository) -> None:
     )
     assert repo.totals_for_year(2025)["total"] == Decimal("600.00")
     assert repo.totals_for_year(2026)["total"] == Decimal("600.00")
+    assert repo.available_years() == [2026, 2025]
 
 
 def test_archived_category_rejects_new_records(repo: ExpenseRepository) -> None:
@@ -217,7 +218,7 @@ def test_different_utilities_can_cover_the_same_period_without_overlap(
     assert repo.totals_for_year(2026)["total"] == Decimal("180.00")
 
 
-def test_irregular_period_retains_factual_amount_and_estimates_full_year(
+def test_partial_period_without_complete_prior_year_has_no_seasonal_estimate(
     repo: ExpenseRepository,
 ) -> None:
     category = repo.create_category("Utilities", "required")
@@ -233,9 +234,47 @@ def test_irregular_period_retains_factual_amount_and_estimates_full_year(
     summary = repo.totals_for_year(2025)
 
     assert summary["total"] == Decimal("31.00")
-    assert summary["estimated_total"] == Decimal("365.00")
+    assert summary["estimated_total"] is None
     assert summary["categories"][0]["amount"] == Decimal("31.00")
-    assert summary["categories"][0]["annualized_estimate"] == Decimal("365.00")
+    assert summary["categories"][0]["annualized_estimate"] is None
+    assert summary["has_partial_coverage"] is True
+
+
+def test_seasonal_estimate_uses_current_actuals_and_adjusted_prior_uncovered_period(
+    repo: ExpenseRepository,
+) -> None:
+    category = repo.create_category("Utilities", "required")
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="600.00",
+        period_start=date(2025, 1, 1),
+        period_end=date(2025, 6, 30),
+        period_kind="recurring_statement",
+    )
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="1000.00",
+        period_start=date(2025, 7, 1),
+        period_end=date(2025, 12, 31),
+        period_kind="recurring_statement",
+    )
+    repo.create_manual_expense(
+        name="Hydro",
+        category_id=category.id,
+        amount="660.00",
+        period_start=date(2026, 1, 1),
+        period_end=date(2026, 6, 30),
+        period_kind="recurring_statement",
+    )
+
+    summary = repo.totals_for_year(2026)
+
+    assert summary["total"] == Decimal("660.00")
+    assert summary["estimated_total"] == Decimal("1680.00")
+    assert summary["categories"][0]["annualized_estimate"] == Decimal("1680.00")
+    assert summary["estimate_inflation_rate"] == Decimal("0.02")
     assert summary["has_partial_coverage"] is True
 
 
@@ -267,12 +306,12 @@ def test_annualized_totals_preserve_historical_category_snapshots(
     categories = {item["name"]: item for item in summary["categories"]}
     assert categories["Utilities"]["classification"] == "required"
     assert categories["Utilities"]["amount"] == Decimal("31.00")
-    assert categories["Utilities"]["annualized_estimate"] == Decimal("365.00")
+    assert categories["Utilities"]["annualized_estimate"] is None
     assert categories["Home utilities"]["classification"] == "discretionary"
     assert categories["Home utilities"]["amount"] == Decimal("28.00")
-    assert categories["Home utilities"]["annualized_estimate"] == Decimal("365.00")
-    assert summary["estimated_required"] == Decimal("365.00")
-    assert summary["estimated_discretionary"] == Decimal("365.00")
+    assert categories["Home utilities"]["annualized_estimate"] is None
+    assert summary["estimated_required"] is None
+    assert summary["estimated_discretionary"] is None
 
 
 def test_edit_clears_orphaned_resolved_overlap_statuses(repo: ExpenseRepository) -> None:
@@ -312,7 +351,9 @@ def test_edit_clears_orphaned_resolved_overlap_statuses(repo: ExpenseRepository)
     assert repo.totals_for_year(2026)["total"] == Decimal("180.00")
 
 
-def test_year_9999_recurring_expense_can_be_annualized(repo: ExpenseRepository) -> None:
+def test_year_9999_partial_expense_without_prior_baseline_is_unavailable(
+    repo: ExpenseRepository,
+) -> None:
     category = repo.create_category("Utilities", "required")
     repo.create_manual_expense(
         name="Hydro",
@@ -327,7 +368,7 @@ def test_year_9999_recurring_expense_can_be_annualized(repo: ExpenseRepository) 
 
     assert summary["status"] == "recorded"
     assert summary["total"] == Decimal("31.00")
-    assert summary["estimated_total"] == Decimal("365.00")
+    assert summary["estimated_total"] is None
 
 
 def test_full_year_evidence_does_not_report_partial_coverage(repo: ExpenseRepository) -> None:

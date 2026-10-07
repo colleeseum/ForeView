@@ -13,7 +13,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
-  <header><p class="eyebrow">Financial records</p><h1>Expenses</h1>
+  <header data-help-article="expenses"><p class="eyebrow">Financial records</p><h1>Expenses</h1>
     <p class="lede">High-level factual household spending retained separately from projection assumptions.</p>
   </header>
   <div class="page-shell">
@@ -21,17 +21,25 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     <div class="page-content">
       {% if error and open_dialog != 'categories' %}<p class="connection-notice error" role="alert">{{ error }}</p>{% endif %}
       {% if message and open_dialog != 'categories' %}<p class="connection-notice" role="status">{{ message }}</p>{% endif %}
+      {% if imported_count %}
+        <div class="connection-notice expense-import-result" role="status">
+          <strong>{{ imported_count }} expense statement{% if imported_count != 1 %}s{% endif %} saved.</strong>
+          {% if imported_years %}
+            <span>View records for {% for imported_year in imported_years %}<a href="{{ url_for('expenses.expenses_page', year=imported_year) }}">{{ imported_year }}</a>{% if not loop.last %}{% if loop.revindex == 2 %} or {% else %}, {% endif %}{% endif %}{% endfor %}.</span>
+          {% endif %}
+        </div>
+      {% endif %}
       <section class="dashboard-panel">
         <div class="expense-heading">
           <div><p class="eyebrow">Annual factual snapshot</p><h2>{{ year }} spending</h2></div>
-          <div class="expense-toolbar">
-            <form method="get" action="{{ url_for('expenses.expenses_page') }}" class="expense-year-form">
-              <label>Year <input name="year" type="number" min="1900" max="9999" value="{{ year }}" required></label>
-              <button class="view-action" type="submit">View</button>
-            </form>
+          <form method="get" action="{{ url_for('expenses.expenses_page') }}" class="expense-year-form">
+            <label>View year<select id="expense-year-select" name="year" required>{% for available_year in available_years %}<option value="{{ available_year }}"{% if available_year == year %} selected{% endif %}>{{ available_year }}</option>{% endfor %}</select></label>
+          </form>
+        </div>
+        <div class="expense-toolbar">
             <button id="expense-add" class="view-action" type="button">+ Add expense</button>
+            <button id="expense-import" class="view-action" type="button">Load expense statement</button>
             <button id="expense-categories" class="view-action" type="button">Manage categories</button>
-          </div>
         </div>
         {% if summary.status == 'missing' %}
           <p>No factual expense information has been recorded for {{ year }}. Spending is unknown, not $0.</p>
@@ -42,15 +50,16 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
             <article class="summary-pill"><p>Required</p><strong>${{ '%.2f'|format(summary.required) }}</strong></article>
             <article class="summary-pill"><p>Discretionary</p><strong>${{ '%.2f'|format(summary.discretionary) }}</strong></article>
             <article class="summary-pill summary-pill-total"><p>Recorded total</p><strong>${{ '%.2f'|format(summary.total) }}</strong></article>
-            {% if summary.has_partial_coverage %}<article class="summary-pill"><p>Annualized estimate</p><strong>${{ '%.2f'|format(summary.estimated_total) }}</strong></article>{% endif %}
+            {% if summary.has_partial_coverage %}<article class="summary-pill"><p>Seasonal estimate · {{ '%.2f'|format(summary.estimate_inflation_rate * 100) }}% inflation</p><strong>{% if summary.estimated_total is not none %}${{ '%.2f'|format(summary.estimated_total) }}{% else %}Unavailable{% endif %}</strong></article>{% endif %}
           </div>
           <h3>Category totals</h3>
-          <div class="table-card"><table><thead><tr><th>Category</th><th>Classification</th><th>Recorded</th>{% if summary.has_partial_coverage %}<th>Annualized estimate</th>{% endif %}</tr></thead>
+          <div class="table-card"><table><thead><tr><th>Category</th><th>Classification</th><th>Recorded</th>{% if summary.has_partial_coverage %}<th>Seasonal estimate</th>{% endif %}</tr></thead>
             <tbody>{% for category in summary.categories %}<tr>
-              <td>{{ category.name }}</td><td>{{ category.classification }}</td><td>${{ '%.2f'|format(category.amount) }}</td>{% if summary.has_partial_coverage %}<td>${{ '%.2f'|format(category.annualized_estimate) }}</td>{% endif %}
+              <td>{{ category.name }}</td><td>{{ category.classification }}</td><td>${{ '%.2f'|format(category.amount) }}</td>{% if summary.has_partial_coverage %}<td>{% if category.annualized_estimate is not none %}${{ '%.2f'|format(category.annualized_estimate) }}{% else %}Unavailable{% endif %}</td>{% endif %}
             </tr>{% endfor %}</tbody>
           </table></div>
-          <p class="dashboard-note">Recorded totals include only evidence for periods that overlap {{ year }}. {% if summary.has_partial_coverage %}The annualized estimate scales recurring statement amounts by covered days. It assumes those periods are representative and may not reflect seasonal utility costs.{% else %}They do not imply that every expense has been recorded.{% endif %}</p>
+          <p class="dashboard-note">Recorded totals include only evidence for periods that overlap {{ year }}. {% if summary.has_partial_coverage %}The seasonal estimate keeps current actuals and applies {{ '%.2f'|format(summary.estimate_inflation_rate * 100) }}% inflation to the preceding year's corresponding uncovered periods when a complete comparison is available.{% else %}They do not imply that every expense has been recorded.{% endif %}</p>
+          {% if summary.has_partial_coverage %}<button class="context-help-button" type="button" data-help-article="expense-seasonal-estimate"><span>?</span> How the seasonal estimate works</button>{% endif %}
         {% endif %}
       </section>
 
@@ -131,7 +140,42 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     </form>
   </section>
 </div>
+
+<div id="expense-import-dialog-backdrop" class="dialog-backdrop" hidden>
+  <section class="dialog expense-import-dialog" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
+    <button id="expense-import-close" class="dialog-close" type="button" aria-label="Close import dialog">×</button>
+    <p class="eyebrow">Import expense statement</p><h2 id="import-dialog-title">Load expense statement</h2>
+    {% for source in expense_sources %}<button class="context-help-button" type="button" data-help-article="expense-source-{{ source.key }}"><span>?</span> How to get {{ source.display_name }}</button>{% endfor %}
+    {% if categories|selectattr('is_active')|list %}
+    <form id="expense-import-form" class="setup-form">
+      <div id="import-step-file"><label>Choose PDF files <input id="expense-import-file" type="file" accept=".pdf,application/pdf" multiple required></label><button id="import-preview-btn" class="secondary-button" type="button" disabled>Preview</button></div>
+      <p id="expense-import-queue-status" class="field-note" role="status" aria-live="polite" hidden></p>
+      <div id="expense-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
+        <progress aria-label="Analysing PDF"></progress><span>Analysing PDF…</span>
+      </div>
+      <p id="expense-import-message" class="connection-notice error" role="alert" hidden></p>
+      <div id="import-step-preview" hidden>
+        <p class="connection-notice"><strong>Detected source:</strong> <span id="import-provider"></span></p>
+        <p><strong>Amount:</strong> $<span id="import-amount"></span></p>
+        <p><strong>Service period:</strong> <span id="import-period-start"></span> to <span id="import-period-end"></span></p>
+        <label>Name <input id="import-name" name="name" required></label>
+        <label>Category <select id="import-category" name="category_id" required>{% for category in categories if category.is_active %}<option value="{{ category.id }}">{{ category.name }} ({{ category.classification }})</option>{% endfor %}</select></label>
+        <label>Association <select id="import-association"><option value="household">Household</option>{% for person in people %}<option value="person:{{ person.id }}">Person: {{ person.name }}</option>{% endfor %}{% for account in accounts %}<option value="account:{{ account.id }}">Account: {{ account.name or account.account_number }}</option>{% endfor %}{% for asset in real_estate %}<option value="real_estate:{{ asset.id }}">Property: {{ asset.name }}</option>{% endfor %}</select></label>
+      </div>
+      <input type="hidden" name="provider_key" id="import-provider-key">
+    </form>
+    {% else %}
+      <div class="connection-notice">
+        <p><strong>Set up an expense category first.</strong></p>
+        <p>Categories group related spending in your summaries and identify it as required or discretionary. For this bill, you could create a required category named Utilities.</p>
+        <button id="import-open-categories" class="view-action" type="button">Create category</button>
+      </div>
+    {% endif %}
+    <div class="dialog-actions"><button id="import-cancel" class="secondary-button" type="button">Cancel</button><button id="import-confirm" class="primary-button" type="button" hidden>Confirm and save</button></div>
+  </section>
+</div>
+
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='expenses.mjs', v='20261004-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='expenses.mjs', v='20261006-1') }}"></script>
 </body>
 </html>

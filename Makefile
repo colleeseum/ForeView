@@ -50,7 +50,7 @@ coverage:
 	$(PYTHON) -m coverage report --include=app.py --fail-under=80
 
 integration-coverage:
-	COVERAGE_FILE=.coverage.integration $(PYTHON) -m pytest tests/test_app_routes.py tests/test_runtime_profiles.py tests/test_synthetic_documents.py tests/test_import_idempotency.py tests/test_reconciliation_checkpoints.py tests/test_transaction_balance_recalculation.py tests/test_tax_notice_parsers.py tests/test_ufile_tax_return_parser.py tests/test_retraite_quebec_statement_parser.py --cov=. --cov-branch --cov-fail-under=0 --cov-report=term-missing --cov-report=xml:coverage-integration.xml
+	COVERAGE_FILE=.coverage.integration $(PYTHON) -m pytest tests/test_app_routes.py tests/test_runtime_profiles.py tests/test_synthetic_documents.py tests/test_import_idempotency.py tests/test_expense_import_routes.py tests/test_expense_import_service.py tests/test_reconciliation_checkpoints.py tests/test_transaction_balance_recalculation.py tests/test_tax_notice_parsers.py tests/test_ufile_tax_return_parser.py tests/test_retraite_quebec_statement_parser.py --cov=. --cov-branch --cov-fail-under=0 --cov-report=term-missing --cov-report=xml:coverage-integration.xml
 	COVERAGE_FILE=.coverage.integration $(PYTHON) -m coverage report --include='repositories/*.py,services/*.py' --omit='services/runtime_backup_service.py' --fail-under=80
 
 coverage-target:

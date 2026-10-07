@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 import sqlite3
-from calendar import isleap
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import cast
 
 from domain.expense import (
+    SEASONAL_ESTIMATE_INFLATION_RATE,
     ExpenseAssociationKind,
     ExpenseCategory,
     ExpenseCategoryTotal,
@@ -197,11 +197,15 @@ class ExpenseRepository:
         identity_id = self._get_or_create_identity(
             name, category_id, association_kind, association_id
         )
-        overlapping_ids = self._overlapping_ids(
-            identity_id,
-            period_start,
-            period_end,
+        overlapping_ids = set(
+            self._overlapping_ids(
+                identity_id,
+                period_start,
+                period_end,
+            )
         )
+        if source_hash is not None:
+            overlapping_ids.update(self._source_hash_duplicate_ids(source_hash))
         overlap_status: ExpenseOverlapStatus = "potential" if overlapping_ids else "clear"
         cursor = self._connection.execute(
             """INSERT INTO expense_records(
@@ -239,7 +243,7 @@ class ExpenseRepository:
                 """UPDATE expense_records
                       SET overlap_status = 'potential', overlap_resolution_note = NULL
                     WHERE id = ?""",
-                ((overlapping_id,) for overlapping_id in overlapping_ids),
+                ((overlapping_id,) for overlapping_id in sorted(overlapping_ids)),
             )
         return self.get_expense(expense_id)
 
@@ -295,6 +299,13 @@ class ExpenseRepository:
                 exclude_id,
                 exclude_id,
             ),
+        ).fetchall()
+        return [int(row[0]) for row in rows]
+
+    def _source_hash_duplicate_ids(self, source_hash: str) -> list[int]:
+        rows = self._connection.execute(
+            "SELECT id FROM expense_records WHERE source_hash = ? ORDER BY id",
+            (source_hash,),
         ).fetchall()
         return [int(row[0]) for row in rows]
 
@@ -375,6 +386,18 @@ class ExpenseRepository:
             ).fetchall()
         return [self.get_expense(int(row[0])) for row in rows]
 
+    def available_years(self) -> list[int]:
+        """Return every calendar year covered by retained expense evidence."""
+        rows = self._connection.execute(
+            "SELECT period_start, period_end FROM expense_records"
+        ).fetchall()
+        years: set[int] = set()
+        for period_start, period_end in rows:
+            start_year = date.fromisoformat(str(period_start)).year
+            end_year = date.fromisoformat(str(period_end)).year
+            years.update(range(start_year, end_year + 1))
+        return sorted(years, reverse=True)
+
     def update_expense(
         self,
         expense_id: int,
@@ -454,9 +477,14 @@ class ExpenseRepository:
                   AND NOT EXISTS (
                       SELECT 1 FROM expense_records AS other
                        WHERE other.id <> candidate.id
-                         AND other.identity_id = candidate.identity_id
-                         AND other.period_start <= candidate.period_end
-                         AND other.period_end >= candidate.period_start
+                         AND (
+                             (other.identity_id = candidate.identity_id
+                              AND other.period_start <= candidate.period_end
+                              AND other.period_end >= candidate.period_start)
+                             OR
+                             (candidate.source_hash IS NOT NULL
+                              AND other.source_hash = candidate.source_hash)
+                         )
                   )"""
         )
 
@@ -514,6 +542,7 @@ class ExpenseRepository:
                 "estimated_required": None,
                 "estimated_discretionary": None,
                 "estimated_total": None,
+                "estimate_inflation_rate": SEASONAL_ESTIMATE_INFLATION_RATE,
                 "has_partial_coverage": False,
                 "unresolved_overlaps": [],
             }
@@ -529,12 +558,13 @@ class ExpenseRepository:
                 "estimated_required": None,
                 "estimated_discretionary": None,
                 "estimated_total": None,
+                "estimate_inflation_rate": SEASONAL_ESTIMATE_INFLATION_RATE,
                 "has_partial_coverage": False,
                 "unresolved_overlaps": unresolved,
             }
         included = [record for record in records if record.overlap_status != "resolved_exclude"]
         totals: dict[tuple[int, str, ExpenseClassification], Decimal] = {}
-        estimated_totals: dict[tuple[int, str, ExpenseClassification], Decimal] = {}
+        estimated_totals: dict[tuple[int, str, ExpenseClassification], Decimal | None] = {}
         records_by_identity_snapshot: dict[
             tuple[int, tuple[int, str, ExpenseClassification]], list[ExpenseRecord]
         ] = {}
@@ -542,8 +572,9 @@ class ExpenseRepository:
             key = (record.category_id, record.category_name, record.classification)
             totals[key] = totals.get(key, Decimal("0")) + self._amount_for_year(record, year)
             records_by_identity_snapshot.setdefault((record.identity_id, key), []).append(record)
+        prior_records = self.list_expenses(year=year - 1) if year > 1900 else []
         has_partial_coverage = False
-        for (_, key), identity_records in records_by_identity_snapshot.items():
+        for (identity_id, key), identity_records in records_by_identity_snapshot.items():
             fixed_records = [
                 record for record in identity_records if record.period_kind == "annual_or_one_time"
             ]
@@ -554,21 +585,40 @@ class ExpenseRepository:
                 (self._amount_for_year(record, year) for record in fixed_records),
                 start=Decimal("0"),
             )
-            estimated = fixed_amount
+            estimated: Decimal | None = fixed_amount
             if periodic_records:
                 recorded = sum(
                     (self._amount_for_year(record, year) for record in periodic_records),
                     start=Decimal("0"),
                 )
                 covered_days = self._covered_days(periodic_records, year)
-                year_days = 366 if isleap(year) else 365
+                year_days = (date(year, 12, 31) - date(year, 1, 1)).days + 1
                 if covered_days < year_days:
                     has_partial_coverage = True
-                estimated_cents = (
-                    Decimal(to_cents(recorded)) * Decimal(year_days) / Decimal(covered_days)
-                ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-                estimated += from_cents(int(estimated_cents))
-            estimated_totals[key] = estimated_totals.get(key, Decimal("0")) + estimated
+                    prior_identity_records = [
+                        record
+                        for record in prior_records
+                        if record.identity_id == identity_id
+                        and record.period_kind == "recurring_statement"
+                    ]
+                    periodic_estimate = self._seasonal_estimate(
+                        periodic_records,
+                        prior_identity_records,
+                        year,
+                        recorded,
+                    )
+                else:
+                    periodic_estimate = recorded
+                if periodic_estimate is None:
+                    estimated = None
+                else:
+                    estimated = fixed_amount + periodic_estimate
+            previous_estimate = estimated_totals.get(key, Decimal("0"))
+            estimated_totals[key] = (
+                None
+                if previous_estimate is None or estimated is None
+                else previous_estimate + estimated
+            )
         categories: list[ExpenseCategoryTotal] = [
             {
                 "category_id": key[0],
@@ -587,21 +637,12 @@ class ExpenseRepository:
             (item["amount"] for item in categories if item["classification"] == "discretionary"),
             start=Decimal("0"),
         )
-        estimated_required = sum(
-            (
-                item["annualized_estimate"]
-                for item in categories
-                if item["classification"] == "required"
-            ),
-            start=Decimal("0"),
-        )
-        estimated_discretionary = sum(
-            (
-                item["annualized_estimate"]
-                for item in categories
-                if item["classification"] == "discretionary"
-            ),
-            start=Decimal("0"),
+        estimated_required = self._category_estimate(categories, "required")
+        estimated_discretionary = self._category_estimate(categories, "discretionary")
+        estimated_total = (
+            None
+            if estimated_required is None or estimated_discretionary is None
+            else estimated_required + estimated_discretionary
         )
         return {
             "year": year,
@@ -612,7 +653,8 @@ class ExpenseRepository:
             "total": required + discretionary,
             "estimated_required": estimated_required,
             "estimated_discretionary": estimated_discretionary,
-            "estimated_total": estimated_required + estimated_discretionary,
+            "estimated_total": estimated_total,
+            "estimate_inflation_rate": SEASONAL_ESTIMATE_INFLATION_RATE,
             "has_partial_coverage": has_partial_coverage,
             "unresolved_overlaps": [],
         }
@@ -635,3 +677,79 @@ class ExpenseRepository:
                 continue
             merged[-1] = (merged[-1][0], max(merged[-1][1], end))
         return sum((end - start).days + 1 for start, end in merged)
+
+    @staticmethod
+    def _category_estimate(
+        categories: list[ExpenseCategoryTotal], classification: ExpenseClassification
+    ) -> Decimal | None:
+        estimates = [
+            item["annualized_estimate"]
+            for item in categories
+            if item["classification"] == classification
+        ]
+        if any(estimate is None for estimate in estimates):
+            return None
+        return sum((estimate for estimate in estimates if estimate is not None), Decimal("0"))
+
+    @classmethod
+    def _seasonal_estimate(
+        cls,
+        current_records: list[ExpenseRecord],
+        prior_records: list[ExpenseRecord],
+        year: int,
+        current_recorded: Decimal,
+    ) -> Decimal | None:
+        """Fill uncovered dates from a complete prior-year seasonal profile."""
+        if year <= 1900 or any(record.overlap_status == "potential" for record in prior_records):
+            return None
+        prior_included = [
+            record for record in prior_records if record.overlap_status != "resolved_exclude"
+        ]
+        current_daily = cls._daily_amount_cents(current_records, year)
+        prior_daily = cls._daily_amount_cents(prior_included, year - 1)
+        current_day = date(year, 1, 1)
+        current_end = date(year, 12, 31)
+        prior_uncovered = Decimal("0")
+        while True:
+            prior_day = cls._previous_year_day(current_day)
+            prior_amount = prior_daily.get(prior_day)
+            if prior_amount is None:
+                return None
+            if current_day not in current_daily:
+                prior_uncovered += prior_amount
+            if current_day == current_end:
+                break
+            current_day += timedelta(days=1)
+        estimated_cents = (
+            Decimal(to_cents(current_recorded))
+            + (Decimal("1") + SEASONAL_ESTIMATE_INFLATION_RATE) * prior_uncovered
+        ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        return from_cents(int(estimated_cents))
+
+    @staticmethod
+    def _daily_amount_cents(records: list[ExpenseRecord], year: int) -> dict[date, Decimal]:
+        year_start = date(year, 1, 1)
+        year_end = date(year, 12, 31)
+        amounts: dict[date, Decimal] = {}
+        for record in records:
+            start = date.fromisoformat(record.period_start)
+            end = date.fromisoformat(record.period_end)
+            overlap_start = max(start, year_start)
+            overlap_end = min(end, year_end)
+            if overlap_end < overlap_start:
+                continue
+            daily_amount = Decimal(to_cents(record.amount)) / Decimal((end - start).days + 1)
+            current_day = overlap_start
+            while True:
+                amounts[current_day] = amounts.get(current_day, Decimal("0")) + daily_amount
+                if current_day == overlap_end:
+                    break
+                current_day += timedelta(days=1)
+        return amounts
+
+    @staticmethod
+    def _previous_year_day(current_day: date) -> date:
+        try:
+            return current_day.replace(year=current_day.year - 1)
+        except ValueError:
+            return date(current_day.year - 1, 2, 28)

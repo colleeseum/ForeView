@@ -88,7 +88,9 @@ rows. A simple unique tuple or filename check is insufficient.
 Institution-specific parsing, importing, help, repairs, and live connections live in the
 institution's own module and are discovered through a provider contract. Account types also use
 discoverable providers. Tax-return, assessment, and pension-document sources use typed provider
-contracts, although those registries are currently assembled explicitly.
+contracts, although those registries are currently assembled explicitly. Expense-statement
+sources use a discoverable provider contract and return typed amount and period evidence to a
+provider-neutral preview and confirmation service.
 
 Reason: supporting a new provider should not require spreading provider-specific branches across
 the application core.
@@ -210,12 +212,19 @@ with an audit note. Imported records derive filename and hash provenance from an
 batch and cannot be edited as manual evidence.
 
 Each amount is identified as either annual/one-time evidence or a recurring statement period.
-Annual and one-time amounts are never extrapolated. Recurring statement amounts can be scaled by
-covered calendar days into a separately labelled annualized estimate. This estimate does not
-replace the factual total and explicitly warns that irregular utility periods may be seasonal.
+Hash-identical imported documents require explicit overlap resolution even when the user selects a
+different name, category, or association on reimport. User-editable identity fields therefore
+cannot bypass duplicate-source review.
+Annual and one-time amounts are never extrapolated. For an incomplete recurring stream, the
+seasonal estimate retains current-year actuals and fills uncovered dates from the preceding
+year's corresponding dates using an explicitly displayed 2% inflation assumption. It does not
+infer future costs from the ratio between current and prior utility usage because weather and
+usage can make that ratio unrepresentative. The estimate is unavailable unless the preceding year
+supplies a complete, resolved baseline. It remains separate from the factual total.
 
 Reason: factual spending must remain auditable and must not silently double-count estimates and
 later statements. Category-level overlap is too broad for utilities from multiple providers, while
-unqualified annualization produces invalid results for annual charges such as property tax.
+straight-line annualization is misleading for seasonal utilities and invalid for annual charges
+such as property tax.
 Projection assumptions can use a reviewed factual baseline without rewriting the underlying
 evidence.

@@ -54,9 +54,9 @@ class SyntheticDocumentIntegrationTests(unittest.TestCase):
         result = detected.importer(self.connection, account_id, path.name, content)
         return detected, account_id, result
 
-    def test_fixture_matrix_contains_nine_pdfs_and_three_csvs(self):
+    def test_fixture_matrix_contains_eleven_pdfs_and_three_csvs(self):
         suffixes = [path.suffix for path in self.fixtures.values()]
-        self.assertEqual(suffixes.count(".pdf"), 10)
+        self.assertEqual(suffixes.count(".pdf"), 11)
         self.assertEqual(suffixes.count(".csv"), 3)
 
     def test_every_pdf_is_visibly_marked_synthetic(self):

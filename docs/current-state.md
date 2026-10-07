@@ -35,9 +35,12 @@ Factual household expenses are retained separately from scenario assumptions. Us
 required or discretionary categories, record dated manual evidence, associate it with the
 household, a person, an account, or real estate, and review annual summaries. Potentially
 overlapping evidence within the same stable expense identity must be resolved before an annual
-factual total is available. Irregular recurring statement periods retain their factual amounts and
-also provide a separately labelled annualized run-rate estimate. The persistence and service
-boundary retains import-batch provenance for future source-specific expense parsers.
+factual total is available. Irregular recurring statement periods retain their factual amounts.
+When a complete preceding year is available, a separately labelled seasonal estimate combines
+current actuals with the prior-year pattern for uncovered dates using a displayed 2% inflation
+assumption. A discoverable
+expense-source contract supports previewed and confirmed Hydro-Québec bill imports with
+import-batch and parser provenance.
 
 ## Intentional or known limitations
 
@@ -51,9 +54,8 @@ boundary retains import-batch provenance for future source-specific expense pars
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
 - Scenario comparison is not implemented even though scenarios can be saved and cloned.
-- Expense tracking remains high-level rather than transaction-level budgeting. No expense-statement
-  parser is implemented yet, so the current UI supports manual factual records while the import
-  contract is available for future source modules.
+- Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec is the
+  only implemented expense-statement source; Énergir and property-tax imports remain future work.
 - Account-type providers describe classification and presentation behavior but do not yet supply
   full projection, beneficiary, contribution-room, or withdrawal contracts. RESP beneficiary
   modeling is therefore absent.

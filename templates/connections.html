@@ -4,12 +4,12 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Connections</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>{{ t('pages_server.connections.title') }}</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
 <body><main>
-  <header><p class="eyebrow">ForeView</p><h1>Connections</h1><p class="lede">Link financial institutions and synchronize their data into the local model.</p></header>
+  <header><p class="eyebrow">{{ t('core.app.name') }}</p><h1>{{ t('pages_server.connections.title') }}</h1><p class="lede">{{ t('pages_server.connections.lede') }}</p></header>
   <div class="page-shell">{% set active_page = 'connections' %}{% include '_side_menu.html' %}<div class="page-content">
-    <section class="connection-toolbar"><div><h2>Linked institutions</h2><p>Synchronize balances, positions, and recent executions from connected institutions.</p></div><button id="sync-all" class="view-action" type="button">Sync all</button></section>
-    <section id="connection-list" class="connection-list"><p class="empty-panel">Loading connections...</p></section>
+    <section class="connection-toolbar"><div><h2>{{ t('pages_server.connections.linked') }}</h2><p>{{ t('pages_server.connections.sync_help') }}</p></div><button id="sync-all" class="view-action" type="button" data-default-text="{{ t('pages_server.connections.sync_all') }}" data-busy-text="{{ t('pages_server.connections.syncing_all') }}">{{ t('pages_server.connections.sync_all') }}</button></section>
+    <section id="connection-list" lang="en-CA" class="connection-list"><p class="empty-panel">{{ t('pages_server.connections.loading') }}</p></section>
   </div></div>
-</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script><script type="module" src="{{ url_for('static', filename='connections.mjs', v='20260928-2') }}"></script></body></html>
+</main><script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script><script type="module" src="{{ url_for('static', filename='connections.mjs', v='20261007-1') }}"></script></body></html>

@@ -4,82 +4,82 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="en">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Set up ForeView</title>
+  <title>{{ t('pages_server.setup.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <main>
     <header>
-      <p class="eyebrow">2026 baseline</p>
-      <h1>Set up the model</h1>
-      <p class="lede">Enter the people, accounts, current balances, and fixed-term deposits used by financial records and projections.</p>
-      <p><a class="setup-link" href="{{ url_for('index') }}">Back to summary</a></p>
+      <p class="eyebrow">{{ t('pages_server.setup.eyebrow') }}</p>
+      <h1>{{ t('pages_server.setup.heading') }}</h1>
+      <p class="lede">{{ t('pages_server.setup.lede') }}</p>
+      <p><a class="setup-link" href="{{ url_for('index') }}">{{ t('pages_server.setup.back') }}</a></p>
     </header>
-    <div id="setup-message" class="form-message" role="status"></div>
-    <nav class="setup-tabs" aria-label="Setup sections">
-      <button class="setup-tab active" data-tab="people-panel" type="button">People</button>
-      <button class="setup-tab" data-tab="accounts-panel" type="button">Accounts</button>
-      <button class="setup-tab" data-tab="balances-panel" type="button">Balances and GICs</button>
-      <button class="setup-tab" data-tab="scenario-panel" type="button">Scenario</button>
+    <div id="setup-message" lang="en-CA" class="form-message" role="status"></div>
+    <nav class="setup-tabs" aria-label="{{ t('pages_server.setup.sections') }}">
+      <button class="setup-tab active" data-tab="people-panel" type="button">{{ t('pages_server.setup.people') }}</button>
+      <button class="setup-tab" data-tab="accounts-panel" type="button">{{ t('pages_server.common.accounts') }}</button>
+      <button class="setup-tab" data-tab="balances-panel" type="button">{{ t('pages_server.setup.balances_gics') }}</button>
+      <button class="setup-tab" data-tab="scenario-panel" type="button">{{ t('pages_server.setup.scenario') }}</button>
     </nav>
     <section class="setup-grid">
       <article class="setup-panel active" id="people-panel">
-        <p class="eyebrow">1. People</p>
-        <h2>People</h2>
+        <p class="eyebrow">{{ t('pages_server.setup.step_people') }}</p>
+        <h2>{{ t('pages_server.setup.people') }}</h2>
         <form id="person-form" class="setup-form">
-          <label>Name<input name="name" required placeholder="Alex Example"></label>
-          <label>Birth date<input name="birth_date" type="date" required></label>
-          <button type="submit">Add person</button>
+          <label>{{ t('pages_server.common.name') }}<input name="name" required placeholder="Alex Example"></label>
+          <label>{{ t('pages_server.setup.birth_date') }}<input name="birth_date" type="date" required></label>
+          <button type="submit">{{ t('pages_server.setup.add_person') }}</button>
         </form>
-        <ul id="people-list" class="record-list"></ul>
+        <ul id="people-list" lang="en-CA" class="record-list"></ul>
       </article>
       <article class="setup-panel" id="accounts-panel">
-        <p class="eyebrow">2. Accounts</p>
-        <h2>Accounts</h2>
+        <p class="eyebrow">{{ t('pages_server.setup.step_accounts') }}</p>
+        <h2>{{ t('pages_server.common.accounts') }}</h2>
         <form id="account-form" class="setup-form">
-          <label>Institution<input name="institution" required placeholder="Questrade or EQ"></label>
-          <label>Account name<input name="name" placeholder="Optional description"></label>
-          <label>Account number<input name="account_number" required placeholder="Required bank or broker number"></label>
-          <label>Category<select name="category"><option value="non_registered">Non-registered savings</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option><option value="resp">RESP</option></select></label>
-          <fieldset><legend>Ownership</legend><div id="owner-fields"></div></fieldset>
-          <button type="submit">Add account</button>
+          <label>{{ t('pages_server.common.institution') }}<input name="institution" required placeholder="{{ t('pages_server.setup.institution_example') }}"></label>
+          <label>{{ t('pages_server.setup.account_name') }}<input name="name" placeholder="{{ t('pages_server.common.optional_description') }}"></label>
+          <label>{{ t('pages_server.setup.account_number') }}<input name="account_number" required placeholder="{{ t('pages_server.setup.account_number_placeholder') }}"></label>
+          <label>{{ t('pages_server.common.category') }}<select name="category"><option value="non_registered">{{ t('pages_server.setup.non_registered') }}</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option><option value="resp">RESP</option></select></label>
+          <fieldset><legend>{{ t('pages_server.common.ownership') }}</legend><div id="owner-fields" lang="en-CA"></div></fieldset>
+          <button type="submit">{{ t('pages_server.assets.add_account') }}</button>
         </form>
-        <div id="accounts-list" class="record-list"></div>
+        <div id="accounts-list" lang="en-CA" class="record-list"></div>
       </article>
       <article class="setup-panel" id="balances-panel">
-        <p class="eyebrow">3. Baseline values</p>
-        <h2>Balances and GICs</h2>
+        <p class="eyebrow">{{ t('pages_server.setup.step_values') }}</p>
+        <h2>{{ t('pages_server.setup.balances_gics') }}</h2>
         <form id="balance-form" class="setup-form">
-          <label>Account<select name="account_id" id="balance-account" required></select></label>
-          <label>Date<input name="date" type="date" value="2026-01-01" required></label>
-          <label>Total balance<input name="amount" type="number" min="0" step="0.01" required></label>
-          <label>Current annual rate (%), optional<input name="interest_rate" type="number" min="0" step="0.01" placeholder="2.75"><small>Enter the rate as a percentage.</small></label>
-          <button type="submit">Save balance</button>
+          <label>{{ t('pages_server.common.account') }}<select name="account_id" id="balance-account" required></select></label>
+          <label>{{ t('pages_server.common.date') }}<input name="date" type="date" value="2026-01-01" required></label>
+          <label>{{ t('pages_server.setup.total_balance') }}<input name="amount" type="number" min="0" step="0.01" required></label>
+          <label>{{ t('pages_server.setup.annual_rate') }}<input name="interest_rate" type="number" min="0" step="0.01" placeholder="2.75"><small>{{ t('pages_server.setup.annual_rate_help') }}</small></label>
+          <button type="submit">{{ t('pages_server.setup.save_balance') }}</button>
         </form>
         <form id="gic-form" class="setup-form subform">
-          <label>GIC account<select name="account_id" id="gic-account" required></select></label>
-          <label>Name<input name="name" required placeholder="RBC GIC 1"></label>
-          <label>Principal<input name="principal" type="number" min="0" step="0.01" required></label>
-          <label>Interest rate<input name="interest_rate" type="number" min="0" step="0.0001" required placeholder="0.0565"></label>
-          <label>Start date<input name="start_date" type="date" required></label>
-          <label>Maturity date<input name="maturity_date" type="date" required></label>
-          <label class="checkbox"><input name="redeemable" type="checkbox"> Redeemable before maturity</label>
-          <button type="submit">Add GIC</button>
+          <label>{{ t('pages_server.setup.gic_account') }}<select name="account_id" id="gic-account" required></select></label>
+          <label>{{ t('pages_server.common.name') }}<input name="name" required placeholder="RBC GIC 1"></label>
+          <label>{{ t('pages_server.setup.principal') }}<input name="principal" type="number" min="0" step="0.01" required></label>
+          <label>{{ t('pages_server.setup.interest_rate') }}<input name="interest_rate" type="number" min="0" step="0.0001" required placeholder="0.0565"></label>
+          <label>{{ t('pages_server.setup.start_date') }}<input name="start_date" type="date" required></label>
+          <label>{{ t('pages_server.setup.maturity_date') }}<input name="maturity_date" type="date" required></label>
+          <label class="checkbox"><input name="redeemable" type="checkbox"> {{ t('pages_server.setup.redeemable') }}</label>
+          <button type="submit">{{ t('pages_server.setup.add_gic') }}</button>
         </form>
       </article>
       <article class="setup-panel" id="scenario-panel">
-        <p class="eyebrow">4. Scenario</p>
-        <h2>Baseline scenario</h2>
+        <p class="eyebrow">{{ t('pages_server.setup.step_scenario') }}</p>
+        <h2>{{ t('pages_server.setup.baseline_scenario') }}</h2>
         <form id="scenario-form" class="setup-form">
-          <label>Name<input name="name" value="Baseline 2026" required></label>
-          <label>Baseline date<input name="baseline_date" type="date" value="2026-01-01" required></label>
-          <label>General annual growth<input name="growth_rate" type="number" value="0.04" step="0.001" required></label>
-          <button type="submit">Create scenario</button>
+          <label>{{ t('pages_server.common.name') }}<input name="name" value="{{ t('pages_server.setup.baseline_name') }}" required></label>
+          <label>{{ t('pages_server.setup.baseline_date') }}<input name="baseline_date" type="date" value="2026-01-01" required></label>
+          <label>{{ t('pages_server.setup.annual_growth') }}<input name="growth_rate" type="number" value="0.04" step="0.001" required></label>
+          <button type="submit">{{ t('pages_server.setup.create_scenario') }}</button>
         </form>
       </article>
     </section>

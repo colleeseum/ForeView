@@ -11,7 +11,7 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
     <button id="expense-add"></button><button id="expense-categories"></button>
     <div id="expense-dialog-backdrop" hidden><section><button id="expense-dialog-close" class="dialog-close"></button><button id="expense-dialog-cancel"></button><button id="expense-open-categories"></button></section></div>
     <div id="category-dialog-backdrop" hidden><section><button id="category-dialog-close" class="dialog-close"></button><button id="category-add"></button><button data-category-edit data-action="/expenses/categories/7" data-name="Utilities" data-classification="required" data-active="true"></button></section></div>
-    <div id="category-editor-backdrop" hidden><section><button id="category-editor-close" class="dialog-close"></button><h2 id="category-editor-title"></h2><form id="category-editor-form" action="/expenses/categories" data-create-action="/expenses/categories"><input name="name"><select name="classification"><option value="required">Required</option><option value="discretionary">Discretionary</option></select><label id="category-status-field" hidden><select name="active"><option value="true">Active</option><option value="false">Archived</option></select></label><button id="category-editor-cancel" type="button"></button><button id="category-editor-save" type="submit"></button></form></section></div>
+    <div id="category-editor-backdrop" hidden><section><button id="category-editor-close" class="dialog-close"></button><h2 id="category-editor-title" data-add-text="Ajouter une catégorie" data-edit-text="Modifier la catégorie"></h2><form id="category-editor-form" action="/expenses/categories" data-create-action="/expenses/categories"><input name="name"><select name="classification"><option value="required">Required</option><option value="discretionary">Discretionary</option></select><label id="category-status-field" hidden><select name="active"><option value="true">Active</option><option value="false">Archived</option></select></label><button id="category-editor-cancel" type="button"></button><button id="category-editor-save" type="submit" data-create-text="Créer une catégorie" data-save-text="Enregistrer la catégorie"></button></form></section></div>
   </body>`, {url: 'http://localhost/expenses'});
   Object.assign(globalThis, {window: dom.window, document: dom.window.document});
 
@@ -46,7 +46,8 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
   document.querySelector('#category-add').click();
   assert.equal(categoryDialog.hidden, true);
   assert.equal(categoryEditor.hidden, false);
-  assert.equal(document.querySelector('#category-editor-title').textContent, 'Add category');
+  assert.equal(document.querySelector('#category-editor-title').textContent, 'Ajouter une catégorie');
+  assert.equal(document.querySelector('#category-editor-save').textContent, 'Créer une catégorie');
   assert.equal(document.querySelector('#category-status-field').hidden, true);
   document.querySelector('#category-editor-cancel').click();
   assert.equal(categoryDialog.hidden, false);
@@ -55,7 +56,8 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
   document.querySelector('[data-category-edit]').click();
   assert.equal(document.querySelector('#category-editor-form').action.endsWith('/expenses/categories/7'), true);
   assert.equal(document.querySelector('#category-editor-form').elements.name.value, 'Utilities');
-  assert.equal(document.querySelector('#category-editor-title').textContent, 'Edit category');
+  assert.equal(document.querySelector('#category-editor-title').textContent, 'Modifier la catégorie');
+  assert.equal(document.querySelector('#category-editor-save').textContent, 'Enregistrer la catégorie');
   assert.equal(document.querySelector('#category-status-field').hidden, false);
   document.querySelector('#category-editor-close').click();
   assert.equal(categoryDialog.hidden, false);

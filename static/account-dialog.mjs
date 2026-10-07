@@ -33,7 +33,7 @@ function updateSaveButton() {
 export function openAccountDialog(accountId = null, category = 'non_registered') {
   editingId = accountId;
   const account = assetState.accounts.find((item) => item.id === accountId);
-  title.textContent = account ? 'Edit account' : 'Add account';
+  title.textContent = account ? title.dataset.editText : title.dataset.addText;
   message.textContent = '';
   message.classList.remove('error');
   form.reset();

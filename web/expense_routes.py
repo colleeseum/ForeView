@@ -7,10 +7,11 @@ import sqlite3
 from datetime import date
 from typing import Any
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 
 from domain.expense import ExpenseRecord
 from expense_sources import expense_source_registry
+from localization import LocalizationService
 from repositories.account_repository import AccountRepository
 from repositories.expense_repository import ExpenseRepository
 from repositories.person_repository import PersonRepository
@@ -136,6 +137,12 @@ def _redirect(
     )
 
 
+def _localized_message(key: str) -> str:
+    localization: LocalizationService = current_app.extensions["localization"]
+    locale = localization.selected_locale()
+    return localization.translate(locale, f"pages_server.expenses.{key}")
+
+
 @blueprint.get("/expenses")
 def expenses_page():
     try:
@@ -203,7 +210,7 @@ def create_category_form():
     try:
         year = _year(payload)
         _create_category(payload)
-        return _redirect(year, message="Expense category created.", dialog="categories")
+        return _redirect(year, message=_localized_message("category_created"), dialog="categories")
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect(year, error=str(error), dialog="categories")
 
@@ -241,7 +248,7 @@ def update_category_form(category_id: int):
     try:
         year = _year(payload)
         _update_category(category_id, payload)
-        return _redirect(year, message="Expense category updated.", dialog="categories")
+        return _redirect(year, message=_localized_message("category_updated"), dialog="categories")
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect(year, error=str(error), dialog="categories")
 
@@ -276,7 +283,7 @@ def create_manual_expense_form():
     try:
         year = _year(payload)
         _create_manual(payload)
-        return _redirect(year, message="Factual expense saved.")
+        return _redirect(year, message=_localized_message("factual_saved"))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect(year, error=str(error))
 
@@ -327,7 +334,7 @@ def resolve_overlap_form(expense_id: int):
     try:
         year = _year(payload)
         _resolve_overlap(expense_id, payload)
-        return _redirect(year, message="Overlap decision saved.")
+        return _redirect(year, message=_localized_message("overlap_saved"))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect(year, error=str(error))
 

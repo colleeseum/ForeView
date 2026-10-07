@@ -13,7 +13,7 @@ function installDom() {
     <button class="view-tab" data-view="real_estate">Real estate</button>
     <button id="reload-assets"></button>
     <section id="accounts-table" class="view-panel"><div id="accounts-table-content"></div></section>
-    <div id="account-dialog" hidden><button id="close-account-dialog"></button><h2 id="account-dialog-title"></h2><p id="account-dialog-message"></p>
+    <div id="account-dialog" hidden><button id="close-account-dialog"></button><h2 id="account-dialog-title" data-add-text="Ajouter un compte" data-edit-text="Modifier le compte"></h2><p id="account-dialog-message"></p>
       <form id="account-dialog-form">
         <input name="account_number"><input name="institution"><input name="name">
         <select name="category"><option value="non_registered">Non-registered</option><option value="tfsa">TFSA</option><option value="rrsp">RRSP</option></select>
@@ -21,7 +21,7 @@ function installDom() {
         <div id="dialog-owner-fields"></div><button type="submit">Save</button>
       </form>
     </div>
-    <div id="subaccount-dialog" hidden><button id="close-subaccount-dialog"></button><h2 id="subaccount-dialog-title"></h2><p id="subaccount-dialog-message"></p>
+    <div id="subaccount-dialog" hidden><button id="close-subaccount-dialog"></button><h2 id="subaccount-dialog-title" data-add-text="Ajouter un CPG" data-edit-text="Modifier le CPG"></h2><p id="subaccount-dialog-message"></p>
       <form id="subaccount-dialog-form">
         <select id="subaccount-parent" name="parent_account_id"></select><input name="account_number"><input name="name">
         <input name="start_date"><input name="maturity_date"><input name="principal"><input name="maturity_value">
@@ -29,11 +29,11 @@ function installDom() {
         <button type="submit">Save</button>
       </form>
     </div>
-    <div id="real-estate-dialog" hidden><button id="close-real-estate-dialog"></button><h2 id="real-estate-dialog-title"></h2><p id="real-estate-dialog-message"></p>
+    <div id="real-estate-dialog" hidden><button id="close-real-estate-dialog"></button><h2 id="real-estate-dialog-title" data-add-text="Ajouter un bien immobilier" data-edit-text="Modifier le bien immobilier"></h2><p id="real-estate-dialog-message"></p>
       <form id="real-estate-dialog-form">
         <input name="name"><input name="property_type"><input name="estimated_value"><input name="valuation_date">
         <input name="acb"><input name="principal_residence" type="checkbox"><div id="real-estate-owner-fields"></div>
-        <p id="real-estate-owner-total"></p><button type="submit">Save</button>
+        <p id="real-estate-owner-total" data-total-text="Propriété sélectionnée : {percentage} %" data-invalid-text="doit totaliser 100 %"></p><button type="submit">Save</button>
       </form>
     </div>
   `, {url: 'http://localhost/accounts?tab=non_registered'});
@@ -93,7 +93,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
 
   content.querySelector('[data-edit-account="1"]').click();
   const accountForm = document.querySelector('#account-dialog-form');
-  assert.equal(document.querySelector('#account-dialog-title').textContent, 'Edit account');
+  assert.equal(document.querySelector('#account-dialog-title').textContent, 'Modifier le compte');
   accountForm.elements.name.value = 'Updated';
   accountForm.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
   assert.equal(accountForm.querySelector('button[type="submit"]').disabled, false);
@@ -103,13 +103,14 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
 
   content.querySelector('[data-edit-account="2"]').click();
   const gicForm = document.querySelector('#subaccount-dialog-form');
+  assert.equal(document.querySelector('#subaccount-dialog-title').textContent, 'Modifier le CPG');
   assert.equal(gicForm.elements.account_number.value, 'G1');
   gicForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(writes.some(({url, options}) => url === '/api/model/accounts/2' && options.method === 'PUT'), true);
 
   content.querySelector('[data-add-account-type="non_registered"]').click();
-  assert.equal(document.querySelector('#account-dialog-title').textContent, 'Add account');
+  assert.equal(document.querySelector('#account-dialog-title').textContent, 'Ajouter un compte');
   document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
   assert.equal(document.querySelector('#account-dialog').hidden, true);
   content.querySelector('[data-add-account-type="non_registered"]').click();
@@ -125,7 +126,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.match(document.querySelector('#account-dialog-message').textContent, /Save failed/);
 
   content.querySelector('[data-add-subaccount="1"]').click();
-  assert.equal(document.querySelector('#subaccount-dialog-title').textContent, 'Add GIC');
+  assert.equal(document.querySelector('#subaccount-dialog-title').textContent, 'Ajouter un CPG');
   failNextWrite = true;
   gicForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -138,6 +139,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
 
   content.querySelector('[data-edit-real-estate="9"]').click();
   assert.equal(document.querySelector('#real-estate-dialog').hidden, false);
+  assert.equal(document.querySelector('#real-estate-dialog-title').textContent, 'Modifier le bien immobilier');
   assert.equal(document.querySelector('#real-estate-dialog-form').elements.name.value, attack);
   const realEstateForm = document.querySelector('#real-estate-dialog-form');
   realEstateForm.elements.estimated_value.value = '51000';
@@ -147,7 +149,8 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.equal(writes.some(({url, options}) => url === '/api/model/real-estate/9' && options.method === 'PUT'), true);
 
   content.querySelector('[data-add-real-estate]').click();
-  assert.equal(document.querySelector('#real-estate-dialog-title').textContent, 'Add real-estate asset');
+  assert.equal(document.querySelector('#real-estate-dialog-title').textContent, 'Ajouter un bien immobilier');
+  assert.equal(document.querySelector('#real-estate-owner-total').textContent, 'Propriété sélectionnée : 0.00 % · doit totaliser 100 %');
 
   const ownerChecks = [...document.querySelectorAll('#real-estate-owner-fields [data-owner-id]')];
   ownerChecks[0].click();
@@ -156,6 +159,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.equal(document.querySelector('#real-estate-owner-fields [data-owner-share="2"]').value, '50');
   ownerChecks[1].click();
   assert.equal(document.querySelector('#real-estate-owner-fields [data-owner-share="1"]').value, '100');
+  assert.equal(document.querySelector('#real-estate-owner-total').textContent, 'Propriété sélectionnée : 100.00 %');
   failNextWrite = true;
   realEstateForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));

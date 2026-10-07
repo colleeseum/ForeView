@@ -10,7 +10,7 @@ function waitForTasks() {
 }
 
 test('connections uses the clicked sync controls and restores failures', async () => {
-  const dom = new JSDOM('<!doctype html><body><button id="sync-all">Sync all</button><div id="connection-list"></div></body>', {url: 'http://localhost/connections'});
+  const dom = new JSDOM('<!doctype html><body><button id="sync-all" data-default-text="Tout synchroniser" data-busy-text="Synchronisation...">Tout synchroniser</button><div id="connection-list"></div></body>', {url: 'http://localhost/connections'});
   Object.assign(globalThis, {window: dom.window, document: dom.window.document});
   const syncPayloads = [];
   let failSync = false;
@@ -49,13 +49,18 @@ test('connections uses the clicked sync controls and restores failures', async (
   assert.match(syncButton.textContent, /Sync Broker Primary/);
   assert.match(document.body.textContent, /Network failed/);
 
-  document.querySelector('#sync-all').click();
+  const syncAllButton = document.querySelector('#sync-all');
+  syncAllButton.click();
+  assert.equal(syncAllButton.textContent, 'Synchronisation...');
   await waitForTasks();
-  assert.equal(document.querySelector('#sync-all').disabled, false);
+  assert.equal(syncAllButton.disabled, false);
+  assert.equal(syncAllButton.textContent, 'Tout synchroniser');
   failSync = false;
-  document.querySelector('#sync-all').click();
+  syncAllButton.click();
+  assert.equal(syncAllButton.textContent, 'Synchronisation...');
   await waitForTasks();
   await waitForTasks();
+  assert.equal(syncAllButton.textContent, 'Tout synchroniser');
   assert.match(document.body.textContent, /Synchronization complete/);
   dom.window.close();
 });

@@ -31,15 +31,17 @@ function signature() {
 
 function updateSaveButton() {
   const total = ownershipTotal(ownerFields);
-  ownerTotal.textContent = `Selected ownership: ${total.toFixed(2)}%${Math.abs(total - 100) < 0.01 ? '' : ' · must equal 100%'}`;
-  ownerTotal.classList.toggle('error', Math.abs(total - 100) >= 0.01);
-  saveButton.disabled = signature() === baseline || Math.abs(total - 100) >= 0.01;
+  const invalid = Math.abs(total - 100) >= 0.01;
+  const totalText = ownerTotal.dataset.totalText.replace('{percentage}', total.toFixed(2));
+  ownerTotal.textContent = `${totalText}${invalid ? ` · ${ownerTotal.dataset.invalidText}` : ''}`;
+  ownerTotal.classList.toggle('error', invalid);
+  saveButton.disabled = signature() === baseline || invalid;
 }
 
 function openRealEstateDialog(assetId = null) {
   editingId = assetId;
   const asset = assetState.realEstateAssets.find((item) => item.id === assetId);
-  title.textContent = asset ? 'Edit real-estate asset' : 'Add real-estate asset';
+  title.textContent = asset ? title.dataset.editText : title.dataset.addText;
   message.textContent = '';
   message.classList.remove('error');
   form.reset();

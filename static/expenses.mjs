@@ -36,13 +36,13 @@ function openCategoryEditor(button = null) {
     categoryForm.elements.name.value = button.dataset.name;
     categoryForm.elements.classification.value = button.dataset.classification;
     categoryForm.elements.active.value = button.dataset.active;
-    categoryTitle.textContent = 'Edit category';
-    categorySave.textContent = 'Save category';
+    categoryTitle.textContent = categoryTitle.dataset.editText || 'Edit category';
+    categorySave.textContent = categorySave.dataset.saveText || 'Save category';
     categoryStatus.hidden = false;
   } else {
     categoryForm.action = categoryForm.dataset.createAction;
-    categoryTitle.textContent = 'Add category';
-    categorySave.textContent = 'Create category';
+    categoryTitle.textContent = categoryTitle.dataset.addText || 'Add category';
+    categorySave.textContent = categorySave.dataset.createText || 'Create category';
     categoryStatus.hidden = true;
   }
   closeDialog(categoryDialog);
@@ -134,7 +134,7 @@ function initializeExpenseImport() {
     message.hidden = true;
   }
 
-  function setBusy(busy, label = 'Analysing PDF…') {
+  function setBusy(busy, label = progressText?.dataset.analysingText || 'Analysing PDF…') {
     if (progress) progress.hidden = !busy;
     if (progressText) progressText.textContent = label;
     if (previewButton) previewButton.disabled = busy || !currentFile();
@@ -248,7 +248,7 @@ function initializeExpenseImport() {
     if (!file || !name || !category || !providerKey) return;
     if (!name.reportValidity() || !category.reportValidity()) return;
     clearError();
-    setBusy(true, 'Saving expense…');
+    setBusy(true, progressText?.dataset.savingText || 'Saving expense…');
     try {
       const payload = new FormData();
       payload.append('file', file, file.name);

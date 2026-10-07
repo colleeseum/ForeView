@@ -4,24 +4,24 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="en">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>{{ title }}</title>
+  <title lang="en-CA">{{ title }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
   <header>
-    <p class="eyebrow">Application</p>
-    <h1>{{ title }}</h1>
-    <p class="lede">Important limitations on financial calculations and projections.</p>
+    <p class="eyebrow">{{ t('pages_server.disclaimer.eyebrow') }}</p>
+    <h1 lang="en-CA">{{ title }}</h1>
+    <p class="lede">{{ t('pages_server.disclaimer.lede') }}</p>
   </header>
   <div class="page-shell">
     {% set active_page = 'about' %}{% include '_side_menu.html' %}
     <div class="page-content">
-      <article class="dashboard-panel legal-document">
+      <article class="dashboard-panel legal-document" lang="en-CA" dir="ltr">
         {% for paragraph in paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
       </article>
     </div>

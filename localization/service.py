@@ -27,6 +27,7 @@ class LocalizationService:
         self.preference_path = data_dir / "locale.json"
         self.default_locale = default_locale
         self._locales = self._load_registry()
+        self._catalog_cache: dict[tuple[str, str], dict[str, Any]] = {}
 
     def _load_registry(self) -> dict[str, LocaleDefinition]:
         raw = json.loads((self.root / "registry.json").read_text(encoding="utf-8"))
@@ -78,14 +79,21 @@ class LocalizationService:
                 temporary_path.unlink(missing_ok=True)
 
     def _catalog(self, code: str, namespace: str) -> dict[str, Any]:
+        cache_key = (code, namespace)
+        if cache_key in self._catalog_cache:
+            return self._catalog_cache[cache_key]
         path = self.root / code / f"{namespace}.json"
         if not path.exists():
-            return {}
-        try:
-            value = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            return {}
-        return value if isinstance(value, dict) else {}
+            catalog: dict[str, Any] = {}
+        else:
+            try:
+                value = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                catalog = {}
+            else:
+                catalog = value if isinstance(value, dict) else {}
+        self._catalog_cache[cache_key] = catalog
+        return catalog
 
     @staticmethod
     def _lookup(catalog: dict[str, Any], key: str) -> str | None:

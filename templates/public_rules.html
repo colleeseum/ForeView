@@ -4,32 +4,32 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="en">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Tax rules</title>
+  <title>{{ t('pages_server.tax_rules.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
   <header>
-    <p class="eyebrow">Administration</p>
-    <h1>Tax rules</h1>
-    <p class="lede">Review and approve the public tax and payroll rules used by projections.</p>
+    <p class="eyebrow">{{ t('pages_server.common.administration') }}</p>
+    <h1>{{ t('pages_server.tax_rules.heading') }}</h1>
+    <p class="lede">{{ t('pages_server.tax_rules.lede') }}</p>
   </header>
   <div class="page-shell">
     {% set active_page = 'tax_rules' %}{% include '_side_menu.html' %}
     <div class="page-content">
       <section class="connection-toolbar">
         <div>
-          <h2>Public rules</h2>
-          <p>Review government rules stored with the application and approve their exact content hash for this runtime.</p>
+          <h2>{{ t('pages_server.tax_rules.public_rules') }}</h2>
+          <p>{{ t('pages_server.tax_rules.review_help') }}</p>
         </div>
       </section>
 
       {% if jurisdictions %}
-      <nav class="view-tabs public-rule-tabs" aria-label="Rule jurisdiction" role="tablist">
+      <nav class="view-tabs public-rule-tabs" aria-label="{{ t('pages_server.tax_rules.jurisdiction') }}" role="tablist">
         {% for jurisdiction in jurisdictions %}
         <a class="view-tab{% if jurisdiction.code == selected_jurisdiction %} active{% endif %}"
            role="tab"
@@ -40,22 +40,22 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
       <form class="public-rule-year-filter" method="get" action="{{ url_for('public_rules.settings') }}">
         <input type="hidden" name="jurisdiction" value="{{ selected_jurisdiction }}">
-        <label for="public-rule-year">Tax year</label>
+        <label for="public-rule-year">{{ t('pages_server.tax_rules.tax_year') }}</label>
         <select id="public-rule-year" name="year" onchange="this.form.submit()">
           {% for year in years %}<option value="{{ year }}"{% if year == selected_year %} selected{% endif %}>{{ year }}</option>{% endfor %}
         </select>
-        <button class="view-action" type="submit">View</button>
+        <button class="view-action" type="submit">{{ t('pages_server.common.view') }}</button>
       </form>
       {% endif %}
 
       {% if combined_rates %}
       <section class="public-rule-card">
-        <p class="eyebrow">Federal + {{ selected_jurisdiction }}</p>
-        <h2>Effective combined marginal tax</h2>
-        <p class="connection-status">Ordinary taxable income using the basic personal amount. Includes the federal BPA phaseout and applicable jurisdiction rules such as the Quebec abatement, Manitoba BPA phaseout, and Ontario surtaxes. Excludes the Ontario Health Premium and income-specific treatment for capital gains and dividends.</p>
+        <p class="eyebrow">{{ t('pages_server.tax_rules.federal_prefix') }} {{ selected_jurisdiction }}</p>
+        <h2>{{ t('pages_server.tax_rules.effective') }}</h2>
+        <p class="connection-status">{{ t('pages_server.tax_rules.effective_help') }}</p>
         <table class="rule-table">
-          <thead><tr><th>Taxable income up to</th><th>Marginal rate</th></tr></thead>
-          <tbody>{% for bracket in combined_rates %}<tr><td>{{ bracket.upper_bound or 'No limit' }}</td><td>{{ bracket.rate }}</td></tr>{% endfor %}</tbody>
+          <thead><tr><th>{{ t('pages_server.tax_rules.taxable_up_to') }}</th><th>{{ t('pages_server.tax_rules.marginal_rate') }}</th></tr></thead>
+          <tbody>{% for bracket in combined_rates %}<tr><td>{{ bracket.upper_bound if bracket.upper_bound is not none else t('pages_server.tax_rules.no_limit') }}</td><td>{{ bracket.rate }}</td></tr>{% endfor %}</tbody>
         </table>
       </section>
       {% endif %}
@@ -67,45 +67,45 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
             <div>
               <p class="eyebrow">{{ rules.jurisdiction }} · {{ rules.tax_year }}</p>
               <h2>{{ rules.rule_set_id }}</h2>
-              <p class="connection-status">Hash <code>{{ package.content_hash }}</code></p>
+              <p class="connection-status">{{ t('pages_server.tax_rules.hash') }} <code>{{ package.content_hash }}</code></p>
             </div>
             {% if row.approval %}
             <div class="public-rule-approval-actions">
-              <span class="approval-badge approved">Approved {{ row.approval.approved_at }}</span>
-              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
+              <span class="approval-badge approved">{{ t('pages_server.tax_rules.approved') }} {{ row.approval.approved_at }}</span>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> {{ t('pages_server.tax_rules.approval_help') }}</button>
             </div>
             {% else %}
             <div class="public-rule-approval-actions">
               <form method="post" action="{{ url_for('public_rules.approve_public_rule', rule_set_id=rules.rule_set_id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="content_hash" value="{{ package.content_hash }}">
-                <button class="view-action" type="submit">Approve exact hash</button>
+                <button class="view-action" type="submit">{{ t('pages_server.tax_rules.approve_hash') }}</button>
               </form>
-              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> Approval help</button>
+              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> {{ t('pages_server.tax_rules.approval_help') }}</button>
             </div>
             {% endif %}
           </div>
           {% for schedule in rules.tax_brackets %}
           <h3>{{ schedule.code|replace('_', ' ')|title }}</h3>
           <table class="rule-table">
-            <thead><tr><th>Upper bound</th><th>Rate</th></tr></thead>
-            <tbody>{% for bracket in schedule.brackets %}<tr><td>{% if bracket.upper_bound is none %}No limit{% else %}${{ bracket.upper_bound }}{% endif %}</td><td>{{ bracket.rate * 100 }}%</td></tr>{% endfor %}</tbody>
+            <thead><tr><th>{{ t('pages_server.tax_rules.upper_bound') }}</th><th>{{ t('pages_server.tax_rules.rate') }}</th></tr></thead>
+            <tbody>{% for bracket in schedule.brackets %}<tr><td>{% if bracket.upper_bound is none %}{{ t('pages_server.tax_rules.no_limit') }}{% else %}${{ bracket.upper_bound }}{% endif %}</td><td>{{ bracket.rate * 100 }}%</td></tr>{% endfor %}</tbody>
           </table>
           {% endfor %}
           {% set parameters = rules.payroll_parameters + rules.contribution_limits + rules.credits + rules.other_parameters %}
           {% if parameters %}
-          <h3>Parameters</h3>
+          <h3>{{ t('pages_server.tax_rules.parameters') }}</h3>
           <table class="rule-table">
-            <thead><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr></thead>
+            <thead><tr><th>{{ t('pages_server.tax_rules.parameter') }}</th><th>{{ t('pages_server.tax_rules.value') }}</th><th>{{ t('pages_server.tax_rules.unit') }}</th></tr></thead>
             <tbody>{% for parameter in parameters %}<tr><td>{{ parameter.code|replace('_', ' ') }}</td><td>{{ parameter.value }}</td><td>{{ parameter.unit }}</td></tr>{% endfor %}</tbody>
           </table>
           {% endif %}
           <details>
-            <summary>{{ rules.sources|length }} official sources</summary>
-            <ul>{% for source in rules.sources %}<li><a href="{{ source.url }}" rel="noreferrer">{{ source.publisher }}: {{ source.title }}</a> · accessed {{ source.accessed_on }}</li>{% endfor %}</ul>
+            <summary>{{ rules.sources|length }} {{ t('pages_server.tax_rules.official_sources') }}</summary>
+            <ul>{% for source in rules.sources %}<li><a href="{{ source.url }}" rel="noreferrer">{{ source.publisher }}: {{ source.title }}</a> · {{ t('pages_server.tax_rules.accessed') }} {{ source.accessed_on }}</li>{% endfor %}</ul>
           </details>
         </section>
-        {% else %}<p class="empty-panel">No version-controlled public-rule packages were found.</p>{% endfor %}
+        {% else %}<p class="empty-panel">{{ t('pages_server.tax_rules.none') }}</p>{% endfor %}
       </div>
     </div>
   </div>

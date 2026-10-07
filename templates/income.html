@@ -4,210 +4,210 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="en">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Income</title>
+  <title>{{ t('pages_server.income.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body><main>
   <header>
-    <p class="eyebrow">Financial records</p>
-    <h1>Income and tax records</h1>
-    <p class="lede">Factual annual income, deductions, taxes, and contribution limits retained by person and tax year.</p>
+    <p class="eyebrow">{{ t('pages_server.common.financial_records') }}</p>
+    <h1>{{ t('pages_server.income.heading') }}</h1>
+    <p class="lede">{{ t('pages_server.income.lede') }}</p>
   </header>
   <div class="page-shell">
     {% set active_page = 'income' %}{% include '_side_menu.html' %}
     <div class="page-content">
       <section class="dashboard-panel income-records-panel">
         <div class="income-toolbar">
-          <div id="income-tabs" class="view-tabs" role="tablist"></div>
-          <button id="income-add" class="view-action" type="button">+ Add annual record</button>
-          <button id="income-import" class="view-action" type="button">Load tax or pension PDF</button>
+          <div id="income-tabs" lang="en-CA" class="view-tabs" role="tablist"></div>
+          <button id="income-add" class="view-action" type="button">{{ t('pages_server.income.add_record') }}</button>
+          <button id="income-import" class="view-action" type="button">{{ t('pages_server.income.load_pdf') }}</button>
         </div>
-        <div id="income-summary"></div>
-        <p id="income-message" class="field-note" aria-live="polite"></p>
+        <div id="income-summary" lang="en-CA"></div>
+        <p id="income-message" lang="en-CA" class="field-note" aria-live="polite"></p>
         <details class="income-source-details">
-          <summary><span class="details-closed-label">Show source details</span><span class="details-open-label">Hide source details</span></summary>
+          <summary><span class="details-closed-label">{{ t('pages_server.income.show_details') }}</span><span class="details-open-label">{{ t('pages_server.income.hide_details') }}</span></summary>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Annual records</h2>
-            <div id="income-history"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.annual_records') }}</h2>
+            <div id="income-history" lang="en-CA"></div>
           </section>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Filed tax returns</h2>
-            <div id="income-tax-returns"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.filed_returns') }}</h2>
+            <div id="income-tax-returns" lang="en-CA"></div>
           </section>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Assessments</h2>
-            <div id="income-assessments"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.assessments') }}</h2>
+            <div id="income-assessments" lang="en-CA"></div>
           </section>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Registered-plan room</h2>
-            <div id="income-rooms"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.registered_room') }}</h2>
+            <div id="income-rooms" lang="en-CA"></div>
           </section>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Public pension</h2>
-            <div id="income-pension"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.public_pension') }}</h2>
+            <div id="income-pension" lang="en-CA"></div>
           </section>
           <section class="income-record-section">
-            <h2 class="income-section-heading">Normalized concepts</h2>
-            <div id="income-normalized"></div>
+            <h2 class="income-section-heading">{{ t('pages_server.income.normalized') }}</h2>
+            <div id="income-normalized" lang="en-CA"></div>
           </section>
         </details>
       </section>
       <section class="dashboard-panel income-future-panel">
-        <p class="eyebrow">Future record types</p>
-        <h2>Other income</h2>
-        <p>Projection rules for rental, pension, business, dividend, capital-gain, and other factual income can be added independently while their tax-document values remain available here.</p>
+        <p class="eyebrow">{{ t('pages_server.income.future_types') }}</p>
+        <h2>{{ t('pages_server.income.other_income') }}</h2>
+        <p>{{ t('pages_server.income.future_help') }}</p>
       </section>
     </div>
   </div>
 </main>
 <div id="income-dialog-backdrop" class="dialog-backdrop" hidden>
   <section class="dialog income-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="income-dialog-title">
-    <button id="income-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
-    <p class="eyebrow">Financial record</p>
-    <h2 id="income-dialog-title">Annual income and tax record</h2>
-    <p id="income-editor-person" class="field-note"></p>
+    <button id="income-dialog-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.common.close') }}">×</button>
+    <p class="eyebrow">{{ t('pages_server.income.financial_record') }}</p>
+    <h2 id="income-dialog-title">{{ t('pages_server.income.annual_record') }}</h2>
+    <p id="income-editor-person" lang="en-CA" class="field-note"></p>
     <form id="income-form" class="income-actual-form">
-      <label>Tax year
-        <span class="field-note">Calendar year</span>
+      <label>{{ t('pages_server.income.tax_year') }}
+        <span class="field-note">{{ t('pages_server.income.calendar_year') }}</span>
         <input name="tax_year" type="number" min="1900" value="{{ latest_tax_year }}" required>
       </label>
-      <label>Province of residence
-        <span class="field-note">Tax jurisdiction for the year</span>
+      <label>{{ t('pages_server.income.province') }}
+        <span class="field-note">{{ t('pages_server.income.tax_jurisdiction') }}</span>
         <select name="province_of_residence" required>
-          <option value="">Select province or territory</option>
-          <option value="AB">Alberta</option><option value="BC">British Columbia</option>
-          <option value="MB">Manitoba</option><option value="NB">New Brunswick</option>
-          <option value="NL">Newfoundland and Labrador</option><option value="NS">Nova Scotia</option>
-          <option value="NT">Northwest Territories</option><option value="NU">Nunavut</option>
-          <option value="ON">Ontario</option><option value="PE">Prince Edward Island</option>
-          <option value="QC">Quebec</option><option value="SK">Saskatchewan</option>
-          <option value="YT">Yukon</option>
+          <option value="">{{ t('pages_server.income.select_province') }}</option>
+          <option value="AB">{{ t('pages_server.provinces.AB') }}</option><option value="BC">{{ t('pages_server.provinces.BC') }}</option>
+          <option value="MB">{{ t('pages_server.provinces.MB') }}</option><option value="NB">{{ t('pages_server.provinces.NB') }}</option>
+          <option value="NL">{{ t('pages_server.provinces.NL') }}</option><option value="NS">{{ t('pages_server.provinces.NS') }}</option>
+          <option value="NT">{{ t('pages_server.provinces.NT') }}</option><option value="NU">{{ t('pages_server.provinces.NU') }}</option>
+          <option value="ON">{{ t('pages_server.provinces.ON') }}</option><option value="PE">{{ t('pages_server.provinces.PE') }}</option>
+          <option value="QC">{{ t('pages_server.provinces.QC') }}</option><option value="SK">{{ t('pages_server.provinces.SK') }}</option>
+          <option value="YT">{{ t('pages_server.provinces.YT') }}</option>
         </select>
       </label>
       <input name="payroll_plan" type="hidden">
-      <label><span>Employment income <button class="tooltip-help-button" type="button" data-help-tooltip="employment-income" aria-label="Employment income quick help">?</button></span>
-        <span class="field-note">T1 line 10100</span>
+      <label><span>{{ t('pages_server.income.employment_income') }} <button class="tooltip-help-button" type="button" data-help-tooltip="employment-income" aria-label="{{ t('pages_server.income.employment_help') }}">?</button></span>
+        <span class="field-note">{{ t('pages_server.income.t1_line_10100') }}</span>
         <input name="employment_income" type="number" min="0" step="0.01" required>
       </label>
-      <label>Bonus included above
-        <span class="field-note">Entered manually</span>
+      <label>{{ t('pages_server.income.bonus') }}
+        <span class="field-note">{{ t('pages_server.income.manual') }}</span>
         <input name="bonus" type="number" min="0" step="0.01" value="0">
       </label>
-      <label><span>Salary rate <button class="tooltip-help-button" type="button" data-help-tooltip="salary-rate" aria-label="Salary rate quick help">?</button></span>
-        <span class="field-note">Employment income minus bonus</span>
+      <label><span>{{ t('pages_server.income.salary_rate') }} <button class="tooltip-help-button" type="button" data-help-tooltip="salary-rate" aria-label="{{ t('pages_server.income.salary_help') }}">?</button></span>
+        <span class="field-note">{{ t('pages_server.income.salary_note') }}</span>
         <output id="income-salary-rate">$0.00</output>
       </label>
-      <label>Other income
-        <span class="field-note">Other annual employment income</span>
+      <label>{{ t('pages_server.income.other_income') }}
+        <span class="field-note">{{ t('pages_server.income.other_annual') }}</span>
         <input name="other_income" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>Interest and investment income
-        <span class="field-note">T1 line 12100</span>
+      <label>{{ t('pages_server.income.investment_income') }}
+        <span class="field-note">{{ t('pages_server.income.t1_line_12100') }}</span>
         <input name="interest_income" type="number" step="0.01" value="0">
       </label>
-      <label>CPP or QPP
-        <span class="field-note">Employee contributions</span>
+      <label>{{ t('pages_server.income.cpp_qpp') }}
+        <span class="field-note">{{ t('pages_server.income.employee_contributions') }}</span>
         <input name="cpp_qpp" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>EI
-        <span class="field-note">Employment Insurance premiums</span>
+      <label>{{ t('pages_server.income.ei') }}
+        <span class="field-note">{{ t('pages_server.income.ei_premiums') }}</span>
         <input name="ei" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>QPIP
-        <span class="field-note">Quebec parental insurance premiums</span>
+      <label>{{ t('pages_server.income.qpip') }}
+        <span class="field-note">{{ t('pages_server.income.qpip_premiums') }}</span>
         <input name="qpip" type="number" min="0" step="0.01" value="0">
       </label>
-      <label><span>RRSP contribution <button class="tooltip-help-button" type="button" data-help-tooltip="rrsp-contribution" aria-label="RRSP contribution quick help">?</button></span>
-        <span class="field-note">Cash deposited during the year, not contribution room</span>
+      <label><span>{{ t('pages_server.income.rrsp_contribution') }} <button class="tooltip-help-button" type="button" data-help-tooltip="rrsp-contribution" aria-label="{{ t('pages_server.income.rrsp_help') }}">?</button></span>
+        <span class="field-note">{{ t('pages_server.income.rrsp_note') }}</span>
         <input name="rrsp_contribution" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>RRSP deduction
-        <span class="field-note">Amount claimed on T1 line 20800</span>
+      <label>{{ t('pages_server.income.rrsp_deduction') }}
+        <span class="field-note">{{ t('pages_server.income.rrsp_deduction_note') }}</span>
         <input name="rrsp_deduction" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>Net federal tax
-        <span class="field-note">T1 line 42000</span>
+      <label>{{ t('pages_server.income.federal_tax') }}
+        <span class="field-note">{{ t('pages_server.income.federal_tax_note') }}</span>
         <input name="federal_tax" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>Net provincial tax
-        <span class="field-note">Quebec line 432 when applicable</span>
+      <label>{{ t('pages_server.income.provincial_tax') }}
+        <span class="field-note">{{ t('pages_server.income.provincial_tax_note') }}</span>
         <input name="provincial_tax" type="number" min="0" step="0.01" value="0">
       </label>
-      <label>Source
-        <span class="field-note">Where these values came from</span>
-        <select name="source"><option value="T1">T1 filed return</option><option value="UFile T1">UFile T1 PDF</option><option value="Manual">Manual entry</option></select>
+      <label>{{ t('pages_server.common.source') }}
+        <span class="field-note">{{ t('pages_server.income.where_values') }}</span>
+        <select name="source"><option value="T1">{{ t('pages_server.income.source_t1') }}</option><option value="UFile T1">{{ t('pages_server.income.source_ufile') }}</option><option value="Manual">{{ t('pages_server.income.source_manual') }}</option></select>
       </label>
-      <button class="primary-action income-save" type="submit">Save annual record</button>
+      <button class="primary-action income-save" type="submit">{{ t('pages_server.income.save_record') }}</button>
     </form>
   </section>
 </div>
 <div id="income-correction-backdrop" class="dialog-backdrop" hidden>
   <section class="dialog income-correction-dialog" role="dialog" aria-modal="true" aria-labelledby="income-correction-title">
-    <button id="income-correction-close" class="dialog-close" type="button" aria-label="Close factual correction">×</button>
-    <p class="eyebrow">Factual correction</p>
-    <h2 id="income-correction-title">Correct factual value</h2>
-    <p id="income-correction-context" class="field-note"></p>
-    <button class="context-help-button" type="button" data-help-article="factual-corrections"><span>?</span> When to correct a factual value</button>
-    <div id="income-correction-status" class="income-correction-status" hidden></div>
+    <button id="income-correction-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.common.close') }}">×</button>
+    <p class="eyebrow">{{ t('pages_server.income.factual_correction') }}</p>
+    <h2 id="income-correction-title">{{ t('pages_server.income.correct_value') }}</h2>
+    <p id="income-correction-context" lang="en-CA" class="field-note"></p>
+    <button class="context-help-button" type="button" data-help-article="factual-corrections"><span>?</span> {{ t('pages_server.income.when_correct') }}</button>
+    <div id="income-correction-status" lang="en-CA" class="income-correction-status" hidden></div>
     <div class="income-correction-comparison">
       <section>
-        <span>Source when reviewed</span>
+        <span>{{ t('pages_server.income.source_reviewed') }}</span>
         <strong id="income-correction-source-amount">—</strong>
         <small id="income-correction-source-note">—</small>
       </section>
       <section>
-        <span>Current underlying value</span>
+        <span>{{ t('pages_server.income.current_value') }}</span>
         <strong id="income-correction-current-amount">—</strong>
         <small id="income-correction-current-note">—</small>
       </section>
     </div>
     <form id="income-correction-form" class="setup-form">
-      <label>Corrected value
-        <span class="field-note">This overrides the application value. It does not change the official document.</span>
+      <label>{{ t('pages_server.income.corrected_value') }}
+        <span class="field-note">{{ t('pages_server.income.corrected_help') }}</span>
         <input name="correct_amount" type="number" min="0" step="0.01" required>
       </label>
-      <label>Reason
-        <span class="field-note">Explain why the application should use a different factual value.</span>
+      <label>{{ t('pages_server.income.reason') }}
+        <span class="field-note">{{ t('pages_server.income.reason_help') }}</span>
         <textarea name="reason" rows="3" required></textarea>
       </label>
       <div class="dialog-actions income-correction-actions">
-        <button id="income-correction-remove" class="secondary-button" type="button" hidden>Remove correction</button>
-        <button id="income-correction-confirm" class="secondary-button" type="button" hidden>Confirm against current source</button>
-        <button id="income-correction-save" type="submit" disabled>Save correction</button>
+        <button id="income-correction-remove" class="secondary-button" type="button" hidden>{{ t('pages_server.income.remove_correction') }}</button>
+        <button id="income-correction-confirm" class="secondary-button" type="button" hidden>{{ t('pages_server.income.confirm_source') }}</button>
+        <button id="income-correction-save" type="submit" disabled>{{ t('pages_server.income.save_correction') }}</button>
       </div>
     </form>
     <p id="income-correction-message" class="form-message" aria-live="polite"></p>
     <details id="income-correction-history-panel" class="income-correction-history">
-      <summary>Revision history</summary>
-      <div id="income-correction-history"></div>
+      <summary>{{ t('pages_server.income.revision_history') }}</summary>
+      <div id="income-correction-history" lang="en-CA"></div>
     </details>
   </section>
 </div>
 <div id="ufile-dialog-backdrop" class="dialog-backdrop" hidden>
   <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="ufile-dialog-title">
-    <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
-    <p class="eyebrow">Financial records</p>
-    <h2 id="ufile-dialog-title">Load tax or public-pension document</h2>
+    <button id="ufile-dialog-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.common.close') }}">×</button>
+    <p class="eyebrow">{{ t('pages_server.common.financial_records') }}</p>
+    <h2 id="ufile-dialog-title">{{ t('pages_server.income.load_document') }}</h2>
     <form id="ufile-form" class="income-import-form">
-      <label>PDF <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
-      <p class="field-note">The document type is detected automatically. The PDF is analysed for preview and is not stored. Verify the taxpayer before saving.</p>
+      <label>{{ t('pages_server.income.pdf') }} <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
+      <p class="field-note">{{ t('pages_server.income.pdf_help') }}</p>
       <div class="income-source-help-links">
-        {% for source in income_sources %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> How to get {{ source.display_name }}</button>{% endfor %}
+        {% for source in income_sources %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> {{ t('pages_server.income.how_get') }} {{ source.display_name }}</button>{% endfor %}
         {% for source in tax_notice_sources %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
         {% for source in public_pension_sources %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
       </div>
       <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
-        <progress aria-label="Analysing PDF"></progress>
-        <span>Analysing PDF…</span>
+        <progress aria-label="{{ t('pages_server.income.analysing') }}"></progress>
+        <span>{{ t('pages_server.income.analysing') }}</span>
       </div>
-      <div id="income-import-review" hidden></div>
-      <button id="income-import-preview" class="primary-action" type="submit" disabled>Analyse document</button>
-      <button id="income-import-confirm" class="primary-action" type="button" hidden>Save imported record</button>
+      <div id="income-import-review" lang="en-CA" hidden></div>
+      <button id="income-import-preview" class="primary-action" type="submit" disabled>{{ t('pages_server.income.analyse_document') }}</button>
+      <button id="income-import-confirm" class="primary-action" type="button" hidden>{{ t('pages_server.income.save_imported') }}</button>
     </form>
   </section>
 </div>

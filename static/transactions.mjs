@@ -82,8 +82,6 @@ function openImportDialog() {
   importForm.reset();
   importResult.textContent = '';
   importResult.classList.remove('error');
-  importTitle.textContent = 'Import PDF or CSV';
-  importSubmit.textContent = 'Import transactions';
   importDescription.textContent = importDescription.dataset.defaultText;
   if (accountFilter.value) document.querySelector('#transaction-account').value = accountFilter.value;
   updateImportButton();

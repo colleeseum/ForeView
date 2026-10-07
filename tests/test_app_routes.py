@@ -10,6 +10,7 @@ import urllib.error
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from html import unescape
 from pathlib import Path
 from unittest.mock import patch
 
@@ -251,7 +252,10 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b"2.00% inflation", page.data)
         self.assertIn(b"Unavailable", page.data)
         self.assertIn(b'data-help-article="expense-seasonal-estimate"', page.data)
-        self.assertIn(b"preceding year's corresponding uncovered periods", page.data)
+        self.assertIn(
+            "preceding year's corresponding uncovered periods",
+            unescape(page.get_data(as_text=True)),
+        )
         estimate_help = next(
             article
             for article in self.client.get("/api/help").get_json()["articles"]

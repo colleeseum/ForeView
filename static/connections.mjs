@@ -6,6 +6,8 @@ import {escapeHtml} from './html.mjs';
 
 const connectionList = document.querySelector('#connection-list');
 const syncAllButton = document.querySelector('#sync-all');
+const syncAllDefaultText = syncAllButton.dataset.defaultText;
+const syncAllBusyText = syncAllButton.dataset.busyText;
 let connectedInstitutions = [];
 
 async function loadConnections() {
@@ -71,7 +73,7 @@ async function sync(provider, connection = null, reload = true, fetchFrom = null
 syncAllButton?.addEventListener('click', async () => {
   try {
     syncAllButton.disabled = true;
-    syncAllButton.textContent = 'Syncing...';
+    syncAllButton.textContent = syncAllBusyText;
     const summaries = await Promise.all(connectedInstitutions.map((item) => sync(item.key, null, false)));
     await loadConnections();
     connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice" role="status">Synchronization complete: ${escapeHtml(summaries.filter(Boolean).join(' · '))}</p>`);
@@ -79,7 +81,7 @@ syncAllButton?.addEventListener('click', async () => {
     connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice error" role="alert">${escapeHtml(error.message)}</p>`);
   } finally {
     syncAllButton.disabled = false;
-    syncAllButton.textContent = 'Sync all';
+    syncAllButton.textContent = syncAllDefaultText;
   }
 });
 function showError(error) {

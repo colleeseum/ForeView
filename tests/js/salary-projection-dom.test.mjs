@@ -56,7 +56,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
       <input name="discretionary_annual_amount"><input name="discretionary_annual_growth">
       <button id="salary-expense-save" type="submit"></button><span id="salary-expense-status"></span>
     </form></section>
-    <span id="salary-change-status"></span><div id="salary-table"></div>
+    <span id="salary-change-status" data-saved-text="Enregistré" data-assumptions-text="hypothèses de projection" data-annual-change-text="{count} modification annuelle" data-annual-changes-text="{count} modifications annuelles" data-spending-text="dépenses du ménage" data-and-text="et" data-not-saved-text="{changes} non enregistrées."></span><div id="salary-table"></div>
     <div id="salary-save-as-backdrop" hidden><button id="salary-save-as-close"></button>
       <form id="salary-save-as-form"><input name="name"><button type="submit"></button></form>
       <p id="salary-save-as-message"></p>
@@ -111,7 +111,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   salaryInput.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
   assert.equal(document.querySelector('#salary-save').disabled, false);
   assert.equal(document.querySelector('#salary-discard').disabled, false);
-  assert.match(document.querySelector('#salary-change-status').textContent, /1 annual change/);
+  assert.match(document.querySelector('#salary-change-status').textContent, /1 modification annuelle/);
   assert.equal(calls.some((item) => item.url.endsWith('/draft')), false);
   document.querySelector('#salary-save').click();
   await tick(); await tick();

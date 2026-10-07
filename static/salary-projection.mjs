@@ -127,14 +127,26 @@ function updateSaveState() {
   if (elements.expenseSave) elements.expenseSave.disabled = !expenseDirty();
   if (elements.changeStatus) {
     const changes = [];
-    if (assumptionsDirty) changes.push('projection assumptions');
-    if (pendingAnnualChanges.size) {
-      changes.push(`${pendingAnnualChanges.size} annual change${pendingAnnualChanges.size === 1 ? '' : 's'}`);
+    if (assumptionsDirty) {
+      changes.push(elements.changeStatus.dataset.assumptionsText || 'projection assumptions');
     }
-    if (expenseDirty()) changes.push('household spending');
+    if (pendingAnnualChanges.size) {
+      const template = pendingAnnualChanges.size === 1
+        ? elements.changeStatus.dataset.annualChangeText || '{count} annual change'
+        : elements.changeStatus.dataset.annualChangesText || '{count} annual changes';
+      changes.push(template.replace('{count}', String(pendingAnnualChanges.size)));
+    }
+    if (expenseDirty()) {
+      changes.push(elements.changeStatus.dataset.spendingText || 'household spending');
+    }
+    const conjunction = ` ${elements.changeStatus.dataset.andText || 'and'} `;
+    const changeSummary = changes.length > 1
+      ? `${changes.slice(0, -1).join(', ')}${conjunction}${changes.at(-1)}`
+      : changes[0] || '';
+    const notSaved = elements.changeStatus.dataset.notSavedText || '{changes} not saved.';
     elements.changeStatus.textContent = dirty
-      ? `${changes.join(' and ')} not saved.`
-      : 'Changes are saved to the selected scenario. Use Save As to compare alternatives.';
+      ? notSaved.replace('{changes}', changeSummary)
+      : elements.changeStatus.dataset.savedText || 'Changes are saved to the selected scenario. Use Save As to compare alternatives.';
   }
   for (const control of [elements.scenario, elements.startYear, elements.endYear, elements.view]) {
     if (control) control.disabled = dirty;

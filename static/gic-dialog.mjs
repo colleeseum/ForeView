@@ -23,7 +23,7 @@ function loadParents(selectedId) {
 
 export function openGicDialog(accountId = null, parentId = null) {
   const account = assetState.accounts.find((item) => item.id === accountId);
-  title.textContent = account ? 'Edit GIC' : 'Add GIC';
+  title.textContent = account ? title.dataset.editText : title.dataset.addText;
   message.textContent = '';
   message.classList.remove('error');
   form.querySelector('button[type="submit"]').disabled = false;

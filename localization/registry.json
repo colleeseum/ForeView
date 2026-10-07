@@ -1,0 +1,6 @@
+{
+  "locales": [
+    {"code": "en-CA", "native_name": "English", "direction": "ltr"},
+    {"code": "fr-CA", "native_name": "Français", "direction": "ltr", "fallback": "en-CA"}
+  ]
+}

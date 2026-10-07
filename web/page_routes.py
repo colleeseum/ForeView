@@ -4,7 +4,7 @@
 from datetime import date
 from pathlib import Path
 
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
 from expense_sources import expense_source_registry
 from income_sources import income_source_registry
@@ -39,6 +39,16 @@ def setup():
 @blueprint.get("/application-settings")
 def application_settings():
     return render_template("application_settings.html")
+
+
+@blueprint.post("/application-settings/language")
+def set_application_language():
+    localization = current_app.extensions["localization"]
+    try:
+        localization.select(request.form.get("locale", ""))
+    except ValueError:
+        return "Unsupported locale", 400
+    return redirect(url_for("pages.application_settings"))
 
 
 @blueprint.get("/accounts")

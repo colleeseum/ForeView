@@ -2,13 +2,25 @@
 SPDX-FileCopyrightText: 2026 Mindstep Corporation
 SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
-
 <!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Settings</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('pages.settings.heading') }}</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
 <body><main>
-  <header><p class="eyebrow">Administration</p><h1>Settings</h1><p class="lede">Application-wide settings will be managed here.</p></header>
+  <header><p class="eyebrow">{{ t('pages.settings.eyebrow') }}</p><h1>{{ t('pages.settings.heading') }}</h1><p class="lede">{{ t('pages.settings.lede') }}</p></header>
   <div class="page-shell">{% set active_page = 'settings' %}{% include '_side_menu.html' %}<div class="page-content">
-    <section class="empty-panel"><h2>Application settings</h2><p>Runtime, backup, and application preferences will be added here. Tax-rule review is available under Tax rules.</p></section>
+    <section class="empty-panel">
+      <h2>{{ t('pages.settings.section') }}</h2>
+      <form method="post" action="{{ url_for('pages.set_application_language') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="locale">{{ t('core.language.label') }}</label>
+        <select id="locale" name="locale">
+          {% for locale in supported_locales %}
+          <option value="{{ locale.code }}" lang="{{ locale.code }}" dir="{{ locale.direction }}"{% if locale.code == current_locale %} selected{% endif %}>{{ locale.native_name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">{{ t('core.language.save') }}</button>
+      </form>
+      <p>{{ t('pages.settings.language_help') }}</p>
+    </section>
   </div></div>
 </main></body></html>

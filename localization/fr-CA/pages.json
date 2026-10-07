@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "title": "Sommaire financier", "heading": "Sommaire",
+    "lede": "Une vue consolidée du portefeuille avant impôt.",
+    "loading": "Chargement du tableau de bord..."
+  },
+  "settings": {
+    "eyebrow": "Administration", "heading": "Paramètres",
+    "lede": "Les préférences générales de l’application sont gérées ici.",
+    "section": "Paramètres de l’application",
+    "language_help": "Choisissez la langue du texte d’interface propre à ForeView. Les données probantes importées demeurent inchangées."
+  }
+}

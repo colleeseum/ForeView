@@ -16,6 +16,7 @@ from pathlib import Path
 from infrastructure.runtime_config import CONFIG_FILENAME, DATABASE_FILENAME, RuntimeConfig
 
 MANIFEST_FILENAME = "manifest.json"
+LOCALE_FILENAME = "locale.json"
 
 
 class RuntimeBackupService:
@@ -39,6 +40,11 @@ class RuntimeBackupService:
                 config_copy = destination / CONFIG_FILENAME
                 shutil.copy2(runtime.config_path, config_copy)
                 files[CONFIG_FILENAME] = self._sha256(config_copy)
+            locale_path = runtime.data_dir / LOCALE_FILENAME
+            if locale_path.is_file():
+                locale_copy = destination / LOCALE_FILENAME
+                shutil.copy2(locale_path, locale_copy)
+                files[LOCALE_FILENAME] = self._sha256(locale_copy)
             manifest = {
                 "format_version": 1,
                 "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -88,6 +94,14 @@ class RuntimeBackupService:
                 os.replace(temporary_config, runtime.config_path)
             elif runtime.config_path.exists():
                 runtime.config_path.unlink()
+
+            locale_path = runtime.data_dir / LOCALE_FILENAME
+            if LOCALE_FILENAME in files:
+                temporary_locale = runtime.data_dir / f".{LOCALE_FILENAME}.{uuid.uuid4().hex}.tmp"
+                shutil.copy2(backup / LOCALE_FILENAME, temporary_locale)
+                os.replace(temporary_locale, locale_path)
+            elif locale_path.exists():
+                locale_path.unlink()
         finally:
             temporary_database.unlink(missing_ok=True)
         return safety_backup
@@ -105,7 +119,7 @@ class RuntimeBackupService:
         if DATABASE_FILENAME not in expected_files:
             raise RuntimeError("Backup manifest does not contain a database")
         for name, expected_hash in expected_files.items():
-            if name not in {DATABASE_FILENAME, CONFIG_FILENAME}:
+            if name not in {DATABASE_FILENAME, CONFIG_FILENAME, LOCALE_FILENAME}:
                 raise RuntimeError(f"Unexpected file in backup manifest: {name}")
             path = backup / name
             if not path.is_file() or self._sha256(path) != expected_hash:

@@ -2,27 +2,23 @@
 SPDX-FileCopyrightText: 2026 Mindstep Corporation
 SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
-
 <!doctype html>
-<html lang="en">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>ForeView | Financial summary</title>
+  <title>{{ t('core.app.name') }} | {{ t('pages.summary.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <main>
-    <header><p class="eyebrow">ForeView</p><h1>Summary</h1><p class="lede">A consolidated view of the portfolio before tax.</p></header>
-    <div class="page-shell">{% set active_page = 'summary' %}{% include '_side_menu.html' %}<div class="page-content">
-      <section id="dashboard-metrics" class="summary-pill-grid"><p class="empty-panel">Loading dashboard...</p></section>
-      <p class="dashboard-note">RRSP uninvested value is shown separately because withdrawals are taxable and restricted by the retirement plan.</p>
-      <section class="dashboard-grid"><article class="dashboard-panel"><h2>By account category</h2><div id="dashboard-categories">Loading...</div></article><article class="dashboard-panel"><h2>Liquidity detail</h2><div id="dashboard-liquidity">Loading...</div></article><article class="dashboard-panel"><h2>Upcoming maturities</h2><div id="dashboard-maturities">Loading...</div></article></section>
-      <section class="dashboard-panel"><h2>Recent transactions</h2><div id="dashboard-transactions">Loading...</div></section>
-    </div></div>
-  </main>
-  <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-  <script type="module" src="{{ url_for('static', filename='dashboard.mjs', v='20260928-1') }}"></script>
-</body>
-</html>
+<body><main>
+  <header><p class="eyebrow">{{ t('core.app.name') }}</p><h1>{{ t('pages.summary.heading') }}</h1><p class="lede">{{ t('pages.summary.lede') }}</p></header>
+  <div class="page-shell">{% set active_page = 'summary' %}{% include '_side_menu.html' %}<div class="page-content" lang="en-CA" dir="ltr">
+    <section id="dashboard-metrics" class="summary-pill-grid"><p class="empty-panel" lang="{{ current_locale }}" dir="{{ locale_direction }}">{{ t('pages.summary.loading') }}</p></section>
+    <p class="dashboard-note">RRSP uninvested value is shown separately because withdrawals are taxable and restricted by the retirement plan.</p>
+    <section class="dashboard-grid"><article class="dashboard-panel"><h2>By account category</h2><div id="dashboard-categories">Loading...</div></article><article class="dashboard-panel"><h2>Liquidity detail</h2><div id="dashboard-liquidity">Loading...</div></article><article class="dashboard-panel"><h2>Upcoming maturities</h2><div id="dashboard-maturities">Loading...</div></article></section>
+    <section class="dashboard-panel"><h2>Recent transactions</h2><div id="dashboard-transactions">Loading transactions...</div></section>
+  </div></div>
+</main>
+<script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard.mjs', v='20260928-1') }}"></script>
+</body></html>

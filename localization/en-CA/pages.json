@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "title": "Financial summary", "heading": "Summary",
+    "lede": "A consolidated view of the portfolio before tax.",
+    "loading": "Loading dashboard..."
+  },
+  "settings": {
+    "eyebrow": "Administration", "heading": "Settings",
+    "lede": "Application-wide preferences are managed here.",
+    "section": "Application settings",
+    "language_help": "Choose the language used by ForeView-owned interface text. Imported evidence remains unchanged."
+  }
+}

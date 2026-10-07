@@ -2,28 +2,27 @@
 SPDX-FileCopyrightText: 2026 Mindstep Corporation
 SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
-
-<aside class="side-menu">
-  <div class="side-menu-brand">Financial model</div>
-  <section class="side-menu-group" aria-label="Financial records">
-    <p class="side-menu-heading">Financial records</p>
-    <a{% if active_page == 'summary' %} class="active"{% endif %} href="{{ url_for('index') }}">Summary</a>
-    <a{% if active_page == 'assets' %} class="active"{% elif active_page == 'transactions' %} class="section-active"{% endif %} href="{{ url_for('accounts_page') }}">Assets</a>
-    <a class="side-menu-sub{% if active_page == 'transactions' %} active{% endif %}" href="{{ url_for('transactions_page') }}">Transactions</a>
-    <a{% if active_page == 'income' %} class="active"{% endif %} href="{{ url_for('income_page') }}">Income</a>
-    <a{% if active_page == 'expenses' %} class="active"{% endif %} href="{{ url_for('expenses.expenses_page') }}">Expenses</a>
+<aside class="side-menu" lang="{{ current_locale }}" dir="{{ locale_direction }}">
+  <div class="side-menu-brand">{{ t('core.app.name') }}</div>
+  <section class="side-menu-group" aria-label="{{ t('core.nav.financial_records') }}">
+    <p class="side-menu-heading">{{ t('core.nav.financial_records') }}</p>
+    <a{% if active_page == 'summary' %} class="active"{% endif %} href="{{ url_for('index') }}">{{ t('core.nav.summary') }}</a>
+    <a{% if active_page == 'assets' %} class="active"{% elif active_page == 'transactions' %} class="section-active"{% endif %} href="{{ url_for('accounts_page') }}">{{ t('core.nav.assets') }}</a>
+    <a class="side-menu-sub{% if active_page == 'transactions' %} active{% endif %}" href="{{ url_for('transactions_page') }}">{{ t('core.nav.transactions') }}</a>
+    <a{% if active_page == 'income' %} class="active"{% endif %} href="{{ url_for('income_page') }}">{{ t('core.nav.income') }}</a>
+    <a{% if active_page == 'expenses' %} class="active"{% endif %} href="{{ url_for('expenses.expenses_page') }}">{{ t('core.nav.expenses') }}</a>
   </section>
-  <section class="side-menu-group" aria-label="Projection">
-    <p class="side-menu-heading">Projection</p>
-    <a{% if active_page == 'employment_projection' %} class="active"{% endif %} href="{{ url_for('salary_projection.salary_projection_page') }}">Employment</a>
+  <section class="side-menu-group" aria-label="{{ t('core.nav.projection') }}">
+    <p class="side-menu-heading">{{ t('core.nav.projection') }}</p>
+    <a{% if active_page == 'employment_projection' %} class="active"{% endif %} href="{{ url_for('salary_projection.salary_projection_page') }}">{{ t('core.nav.employment') }}</a>
   </section>
-  <section class="side-menu-group" aria-label="Administration">
-    <p class="side-menu-heading">Administration</p>
-    <a{% if active_page == 'people' %} class="active"{% endif %} href="{{ url_for('pages.setup') }}">People</a>
-    <a{% if active_page == 'connections' %} class="active"{% endif %} href="{{ url_for('connections_page') }}">Connections</a>
-    <a{% if active_page == 'tax_rules' %} class="active"{% endif %} href="{{ url_for('public_rules.settings') }}">Tax rules</a>
-    <a{% if active_page == 'settings' %} class="active"{% endif %} href="{{ url_for('pages.application_settings') }}">Settings</a>
-    <a{% if active_page == 'about' %} class="active"{% endif %} href="{{ url_for('pages.about_page') }}">About</a>
+  <section class="side-menu-group" aria-label="{{ t('core.nav.administration') }}">
+    <p class="side-menu-heading">{{ t('core.nav.administration') }}</p>
+    <a{% if active_page == 'people' %} class="active"{% endif %} href="{{ url_for('pages.setup') }}">{{ t('core.nav.people') }}</a>
+    <a{% if active_page == 'connections' %} class="active"{% endif %} href="{{ url_for('connections_page') }}">{{ t('core.nav.connections') }}</a>
+    <a{% if active_page == 'tax_rules' %} class="active"{% endif %} href="{{ url_for('public_rules.settings') }}">{{ t('core.nav.tax_rules') }}</a>
+    <a{% if active_page == 'settings' %} class="active"{% endif %} href="{{ url_for('pages.application_settings') }}">{{ t('core.nav.settings') }}</a>
+    <a{% if active_page == 'about' %} class="active"{% endif %} href="{{ url_for('pages.about_page') }}">{{ t('core.nav.about') }}</a>
   </section>
 </aside>
 <script type="module" src="{{ url_for('static', filename='help.mjs', v='20261006-1') }}"></script>

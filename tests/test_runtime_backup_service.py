@@ -22,6 +22,9 @@ class RuntimeBackupServiceTests(unittest.TestCase):
         self.runtime.data_dir.mkdir()
         self.runtime.config_path.write_text(json.dumps({"RUNTIME_ENVIRONMENT": "synthetic"}))
         application.initialize(self.runtime)
+        (self.runtime.data_dir / "locale.json").write_text(
+            json.dumps({"locale": "fr-CA"}), encoding="utf-8"
+        )
         with self.runtime.connect() as connection:
             connection.execute("INSERT INTO people(name) VALUES ('Original Person')")
         self.service = RuntimeBackupService()
@@ -31,6 +34,9 @@ class RuntimeBackupServiceTests(unittest.TestCase):
         with self.runtime.connect() as connection:
             connection.execute("INSERT INTO people(name) VALUES ('Later Person')")
         self.runtime.config_path.write_text(json.dumps({"changed": True}))
+        (self.runtime.data_dir / "locale.json").write_text(
+            json.dumps({"locale": "en-CA"}), encoding="utf-8"
+        )
 
         with self.assertRaisesRegex(RuntimeError, "--replace"):
             self.service.restore(backup, self.runtime)
@@ -44,6 +50,10 @@ class RuntimeBackupServiceTests(unittest.TestCase):
         self.assertEqual(
             json.loads(self.runtime.config_path.read_text()),
             {"RUNTIME_ENVIRONMENT": "synthetic"},
+        )
+        self.assertEqual(
+            json.loads((self.runtime.data_dir / "locale.json").read_text()),
+            {"locale": "fr-CA"},
         )
 
     def test_restore_rejects_a_backup_whose_checksum_changed(self):

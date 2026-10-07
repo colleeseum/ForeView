@@ -171,7 +171,7 @@ The `retirement-finance` runtime directory, `RETIREMENT_*` configuration names, 
 `retirement-model-browser` package identifier predate the ForeView product name. They remain
 unchanged for backward compatibility.
 
-A runtime directory contains `finance.sqlite3` and `finance.config.json`. Start the private runtime
+A runtime directory contains `finance.sqlite3`, `finance.config.json`, and may contain `locale.json` for the persisted interface-language preference. Start the private runtime
 with:
 
 ```sh

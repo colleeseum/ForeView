@@ -15,6 +15,7 @@ from flask import Flask, abort, request, session
 from infrastructure.runtime_config import RuntimeConfig
 from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
+from localization import LocalizationService
 from services.database_initialization import ensure_domain_schema as ensure_domain_schema
 from services.database_initialization import initialize_database
 from web.correction_routes import blueprint as correction_blueprint
@@ -76,6 +77,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
     app.secret_key = runtime.setting("RETIREMENT_APP_SECRET") or secrets.token_hex(32)
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
     app.extensions["finance_runtime"] = runtime
+    app.extensions["localization"] = LocalizationService(ROOT / "localization", runtime.data_dir)
 
     def csrf_token() -> str:
         token = session.get("csrf_token")
@@ -98,6 +100,18 @@ def create_app(runtime: RuntimeConfig) -> Flask:
             abort(403, description="Missing or invalid CSRF token.")
 
     app.jinja_env.globals["csrf_token"] = csrf_token
+
+    @app.context_processor
+    def localization_context() -> dict[str, object]:
+        localization: LocalizationService = app.extensions["localization"]
+        locale = localization.selected_locale()
+        definition = localization.definition(locale)
+        return {
+            "t": lambda key, **values: localization.translate(locale, key, **values),
+            "current_locale": locale,
+            "locale_direction": definition.direction,
+            "supported_locales": localization.locales,
+        }
 
     def current_runtime() -> RuntimeConfig:
         return app.extensions["finance_runtime"]

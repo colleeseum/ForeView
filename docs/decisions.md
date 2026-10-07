@@ -21,8 +21,9 @@ unnecessary migrations.
 
 ## Local-first, runtime-isolated storage
 
-The application stores private data in a configurable runtime directory with one SQLite database
-and one optional JSON configuration file. Synthetic development and private production runtimes
+The application stores private data in a configurable runtime directory with one SQLite database,
+an optional JSON configuration file, and optional persisted application-preference files such as
+`locale.json`. Synthetic development and private production runtimes
 are separate. Source code, public rules, and synthetic fixtures may be committed; private runtime
 data and credentials may not.
 

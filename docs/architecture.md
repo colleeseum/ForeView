@@ -90,6 +90,12 @@ projection.
 with reusable modules for API calls, rendering, form state, dialogs, ownership, and help. Browser
 tests use Node's test runner and jsdom.
 
+`localization/` provides a registry-backed presentation service with JSON message catalogs,
+deterministic locale fallback, and a per-runtime language preference. Flask exposes the selected
+locale, text direction, supported locales, and translation function to templates. Localization is
+currently applied to the shared side menu and selected server-rendered pages; it does not yet
+translate the complete application or browser-generated text.
+
 ### Institution and ingestion adapters
 
 `institution_support/` defines institution identity, document importer, CSV parser, help,

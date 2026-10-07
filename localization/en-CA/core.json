@@ -1,0 +1,11 @@
+{
+  "app": {"name": "ForeView"},
+  "nav": {
+    "financial_records": "Financial records", "summary": "Summary", "assets": "Assets",
+    "transactions": "Transactions", "income": "Income", "expenses": "Expenses",
+    "projection": "Projection", "employment": "Employment", "administration": "Administration",
+    "people": "People", "connections": "Connections", "tax_rules": "Tax rules",
+    "settings": "Settings", "about": "About"
+  },
+  "language": {"label": "Language", "save": "Apply language"}
+}

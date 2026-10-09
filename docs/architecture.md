@@ -91,10 +91,12 @@ with reusable modules for API calls, rendering, form state, dialogs, ownership, 
 tests use Node's test runner and jsdom.
 
 `localization/` provides a registry-backed presentation service with JSON message catalogs,
-deterministic locale fallback, and a per-runtime language preference. Flask exposes the selected
-locale, text direction, supported locales, and translation function to templates. Localization is
-currently applied to the shared side menu and selected server-rendered pages; it does not yet
-translate the complete application or browser-generated text.
+deterministic locale fallback chains, and a per-runtime language preference. Flask exposes the
+selected locale, text direction, supported locales, translation function, and every browser
+catalog required by the selected locale's fallback chain to templates. Framework-free browser
+modules use the shared `static/i18n.mjs` contract for lookup, interpolation, deterministic
+fallback, and visible missing-key markers. The browser catalogs cover the primary dynamic
+workflows; help content and some server-rendered pages remain separate localization work.
 
 ### Institution and ingestion adapters
 

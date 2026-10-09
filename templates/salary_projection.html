@@ -36,12 +36,11 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <button id="salary-save-as" class="view-action" type="button">{{ t('pages_server.salary.save_as') }}</button>
         </div>
       </section>
-      <p id="salary-message" lang="en-CA" class="connection-status" role="status"></p>
-      {# Browser-generated tab labels remain English until UX-02C. #}
-      <nav id="salary-tabs" lang="en-CA" class="view-tabs" aria-label="Projection person" role="tablist"></nav>
+      <p id="salary-message" lang="{{ current_locale }}" class="connection-status" role="status"></p>
+      <nav id="salary-tabs" lang="{{ current_locale }}" class="view-tabs" aria-label="{{ t('pages_server.salary.person_tabs') }}" role="tablist"></nav>
       <section id="salary-setup" class="public-rule-card" hidden>
         <h2>{{ t('pages_server.salary.employment_inputs') }}</h2>
-        <p id="salary-source-note" lang="en-CA" class="dashboard-note"></p>
+        <p id="salary-source-note" lang="{{ current_locale }}" class="dashboard-note"></p>
         <form id="salary-settings-form" class="salary-settings-grid">
           <div class="salary-readonly-field"><span>{{ t('pages_server.salary.current_salary') }}</span><output id="salary-current-rate">—</output></div>
           <div class="salary-readonly-field"><span>{{ t('pages_server.salary.latest_income_year') }}</span><output id="salary-current-year">—</output></div>
@@ -63,7 +62,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <label>{{ t('pages_server.salary.required_growth') }} <input name="required_annual_growth" type="number" step="0.001" required></label>
           <label>{{ t('pages_server.salary.discretionary_fund') }} <input name="discretionary_annual_amount" type="number" min="0" step="0.01" required></label>
           <label>{{ t('pages_server.salary.discretionary_growth') }} <input name="discretionary_annual_growth" type="number" step="0.001" required></label>
-          <div class="salary-expense-actions"><button id="salary-expense-save" class="view-action" type="submit" disabled>{{ t('pages_server.salary.save_spending') }}</button><span id="salary-expense-status" lang="en-CA" class="field-note">{{ t('pages_server.salary.no_spending') }}</span></div>
+          <div class="salary-expense-actions"><button id="salary-expense-save" class="view-action" type="submit" disabled>{{ t('pages_server.salary.save_spending') }}</button><span id="salary-expense-status" lang="{{ current_locale }}" class="field-note">{{ t('pages_server.salary.no_spending') }}</span></div>
         </form>
       </section>
       <p class="dashboard-note">{{ t('pages_server.salary.method_note') }}</p>
@@ -80,7 +79,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
               class="field-note">{{ t('pages_server.salary.saved_status') }}</span>
       </div>
       <section class="dashboard-panel salary-table-panel">
-        <div id="salary-table" lang="en-CA"><p class="empty-panel">{{ t('pages_server.salary.loading') }}</p></div>
+        <div id="salary-table" lang="{{ current_locale }}"><p class="empty-panel">{{ t('pages_server.salary.loading') }}</p></div>
       </section>
     </div>
   </div>
@@ -95,7 +94,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
       <label>{{ t('pages_server.salary.scenario_name') }}<input name="name" required autocomplete="off"></label>
       <button type="submit">{{ t('pages_server.salary.save_new') }}</button>
     </form>
-    <p id="salary-save-as-message" lang="en-CA" class="form-message" role="status"></p>
+    <p id="salary-save-as-message" lang="{{ current_locale }}" class="form-message" role="status"></p>
   </section>
 </div>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>

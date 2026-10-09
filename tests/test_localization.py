@@ -2,12 +2,89 @@
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import json
+import re
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from localization import LocalizationService
+
+
+def catalog_keys(value, prefix=""):
+    keys = set()
+    for key, item in value.items():
+        path = f"{prefix}.{key}" if prefix else key
+        if isinstance(item, dict):
+            keys.update(catalog_keys(item, path))
+        else:
+            keys.add(path)
+    return keys
+
+
+def catalog_messages(value, prefix=""):
+    messages = {}
+    for key, item in value.items():
+        path = f"{prefix}.{key}" if prefix else key
+        if isinstance(item, dict):
+            messages.update(catalog_messages(item, path))
+        elif isinstance(item, str):
+            messages[path] = item
+    return messages
+
+
+def test_browser_catalogs_have_matching_message_keys():
+    root = Path(__file__).parents[1] / "localization"
+    english = json.loads((root / "en-CA" / "browser.json").read_text(encoding="utf-8"))
+    french = json.loads((root / "fr-CA" / "browser.json").read_text(encoding="utf-8"))
+
+    assert catalog_keys(french) == catalog_keys(english)
+
+
+def test_literal_translation_references_exist_in_english_catalogs():
+    root = Path(__file__).parents[1]
+    localization_root = root / "localization" / "en-CA"
+    catalogs = {
+        path.stem: catalog_keys(json.loads(path.read_text(encoding="utf-8")))
+        for path in localization_root.glob("*.json")
+    }
+    literal_call = re.compile(r"\bt\(\s*(['\"])([^'\"]+)\1\s*(?=[,)])")
+
+    browser_references = {
+        match.group(2)
+        for path in (root / "static").rglob("*.mjs")
+        for match in literal_call.finditer(path.read_text(encoding="utf-8"))
+    }
+    missing_browser = sorted(browser_references - catalogs["browser"])
+
+    template_references = {
+        match.group(2)
+        for path in (root / "templates").rglob("*.html")
+        for match in literal_call.finditer(path.read_text(encoding="utf-8"))
+    }
+    missing_templates = []
+    for reference in sorted(template_references):
+        namespace, separator, key = reference.partition(".")
+        if not separator or key not in catalogs.get(namespace, set()):
+            missing_templates.append(reference)
+
+    assert missing_browser == []
+    assert missing_templates == []
+
+
+def test_browser_catalogs_use_only_simple_placeholders():
+    root = Path(__file__).parents[1] / "localization"
+    simple_placeholder = re.compile(r"\{[A-Za-z_][A-Za-z0-9_]*\}")
+    invalid_messages = []
+    for path in sorted(root.glob("*/browser.json")):
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+        for key, message in catalog_messages(catalog).items():
+            text_without_placeholders = simple_placeholder.sub("", message)
+            if "{" in text_without_placeholders or "}" in text_without_placeholders:
+                invalid_messages.append(f"{path.parent.name}:{key}")
+
+    assert invalid_messages == []
 
 
 def write_locale(root, code, messages):
@@ -25,10 +102,15 @@ def test_registry_supports_third_locale_without_feature_branches(tmp_path):
                 "locales": [
                     {"code": "en-CA", "native_name": "English"},
                     {
+                        "code": "fr-CA",
+                        "native_name": "Français",
+                        "fallback": "en-CA",
+                    },
+                    {
                         "code": "xx-TEST",
                         "native_name": "Test",
                         "direction": "rtl",
-                        "fallback": "en-CA",
+                        "fallback": "fr-CA",
                     },
                 ]
             }
@@ -36,11 +118,14 @@ def test_registry_supports_third_locale_without_feature_branches(tmp_path):
         encoding="utf-8",
     )
     write_locale(root, "en-CA", {"hello": "Hello", "fallback": "Fallback"})
+    write_locale(root, "fr-CA", {"middle": "Intermédiaire"})
     write_locale(root, "xx-TEST", {"hello": "Test hello"})
     service = LocalizationService(root, tmp_path / "runtime")
 
     assert service.translate("xx-TEST", "core.hello") == "Test hello"
+    assert service.translate("xx-TEST", "core.middle") == "Intermédiaire"
     assert service.translate("xx-TEST", "core.fallback") == "Fallback"
+    assert service.fallback_chain("xx-TEST") == ("xx-TEST", "fr-CA", "en-CA")
     assert service.definition("xx-TEST").direction == "rtl"
 
 
@@ -456,6 +541,42 @@ def test_representative_server_pages_render_in_french(tmp_path, path, expected):
     assert expected in page
 
 
+@pytest.mark.parametrize("path", ["/setup", "/accounts", "/transactions"])
+def test_static_account_type_controls_render_in_french(tmp_path, path):
+    import app as application
+    from infrastructure.runtime_config import RuntimeConfig
+
+    runtime = RuntimeConfig(tmp_path / "runtime")
+    flask_app = application.create_app(runtime)
+    flask_app.config.update(TESTING=True)
+    flask_app.extensions["localization"].select("fr-CA")
+
+    page = flask_app.test_client().get(path).get_data(as_text=True)
+
+    assert "CELI" in page
+    assert "REER" in page
+    assert "REEE" in page
+    assert ">TFSA<" not in page
+    assert ">RRSP<" not in page
+    assert ">RESP<" not in page
+
+
+def test_salary_person_tabs_accessible_label_renders_in_french(tmp_path):
+    import app as application
+    from infrastructure.runtime_config import RuntimeConfig
+
+    runtime = RuntimeConfig(tmp_path / "runtime")
+    flask_app = application.create_app(runtime)
+    flask_app.config.update(TESTING=True)
+    flask_app.extensions["localization"].select("fr-CA")
+
+    page = flask_app.test_client().get("/salary-projection").get_data(as_text=True)
+
+    assert 'id="salary-tabs" lang="fr-CA"' in page
+    assert 'aria-label="Personne de la projection"' in page
+    assert 'aria-label="Projection person"' not in page
+
+
 def test_tax_rules_template_compiles_and_localized_labels_exist(tmp_path):
     import app as application
     from infrastructure.runtime_config import RuntimeConfig
@@ -476,7 +597,7 @@ def test_tax_rules_template_compiles_and_localized_labels_exist(tmp_path):
         assert service.translate("fr-CA", "pages_server.expenses.property") == "Propriété"
 
 
-def test_dashboard_js_owned_regions_keep_english_language_metadata(tmp_path):
+def test_dashboard_js_owned_regions_use_selected_language_metadata(tmp_path):
     import app as application
     from infrastructure.runtime_config import RuntimeConfig
 
@@ -493,7 +614,7 @@ def test_dashboard_js_owned_regions_keep_english_language_metadata(tmp_path):
         "dashboard-maturities",
         "dashboard-transactions",
     ):
-        assert f'id="{element_id}" lang="en-CA"' in page
+        assert f'id="{element_id}" lang="fr-CA"' in page
 
 
 def test_french_expense_association_selector_is_localized(tmp_path):
@@ -589,6 +710,42 @@ def test_french_expense_form_status_is_localized(tmp_path):
     ) in response.get_data(as_text=True)
 
 
+def test_untranslated_expense_errors_keep_an_english_language_boundary(tmp_path):
+    import app as application
+    from infrastructure.runtime_config import RuntimeConfig
+
+    runtime = RuntimeConfig(tmp_path / "runtime")
+    flask_app = application.create_app(runtime)
+    flask_app.config.update(TESTING=True)
+    application.initialize(runtime)
+    flask_app.extensions["localization"].select("fr-CA")
+    client = flask_app.test_client()
+    with client.session_transaction() as session:
+        session["csrf_token"] = "test-csrf-token"
+
+    response = client.get("/expenses?imported=-1")
+    page = response.get_data(as_text=True)
+    assert response.status_code == 400
+    assert (
+        '<p class="connection-notice error" lang="en-CA" role="alert">'
+        "Imported statement count cannot be negative</p>"
+    ) in page
+
+    response = client.post(
+        "/expenses/categories",
+        data={
+            "csrf_token": "test-csrf-token",
+            "year": "2026",
+            "name": "Services publics",
+            "classification": "invalid",
+        },
+        follow_redirects=True,
+    )
+    page = response.get_data(as_text=True)
+    assert 'id="category-dialog-backdrop" class="dialog-backdrop"' in page
+    assert '<p class="connection-notice error" lang="en-CA" role="alert">' in page
+
+
 def test_french_disclaimer_marks_canonical_english_title(tmp_path):
     import app as application
     from infrastructure.runtime_config import RuntimeConfig
@@ -619,7 +776,7 @@ def test_reviewed_server_locale_boundaries_and_labels(tmp_path):
     income = client.get("/income").get_data(as_text=True)
     assert 'data-default-text="Tout synchroniser"' in connections
     assert 'data-busy-text="Synchronisation..."' in connections
-    assert 'id="connection-list" lang="en-CA"' in connections
+    assert 'id="connection-list" lang="fr-CA"' in connections
     assert 'data-add-text="Ajouter un compte"' in assets
     assert 'data-edit-text="Modifier le compte"' in assets
     assert 'data-add-text="Ajouter un CPG"' in assets
@@ -635,7 +792,8 @@ def test_reviewed_server_locale_boundaries_and_labels(tmp_path):
     assert "Autres revenus" in income
     assert "Déclaration T1 produite" in income
     assert "Saisie manuelle" in income
-    assert "Other income" not in income
+    visible_income = income.split('<script id="browser-localization"', maxsplit=1)[0]
+    assert "Other income" not in visible_income
     service = flask_app.extensions["localization"]
     assert service.translate("fr-CA", "pages_server.expenses.unavailable") == "Indisponible"
     assert "inflation" in service.translate(
@@ -662,13 +820,87 @@ def test_js_owned_regions_and_status_messages_are_language_safe(tmp_path):
         assert response.status_code == 200
         html = response.get_data(as_text=True)
         for element_id in element_ids:
-            assert f'id="{element_id}" lang="en-CA"' in html
+            assert f'id="{element_id}" lang="fr-CA"' in html
 
     transactions = client.get("/transactions").get_data(as_text=True)
     assert 'id="import-dialog-title"' in transactions
     assert "Importer des transactions" in transactions or "Importer" in transactions
+    assert 'id="import-dialog-description" lang="en-CA"' in transactions
+    assert "Supported formats include" in transactions
 
     salary = client.get("/salary-projection").get_data(as_text=True)
     assert 'data-saved-text="' in salary
     assert 'data-dirty-text="' in salary
-    assert "Changes are saved to the selected scenario." not in salary
+    assert 'data-saved-text="Les modifications sont enregistrées' in salary
+
+
+def test_browser_catalog_contract_french_dashboard(tmp_path):
+    import app as application
+    from infrastructure.runtime_config import RuntimeConfig
+
+    flask_app = application.create_app(RuntimeConfig(tmp_path / "runtime"))
+    flask_app.config.update(TESTING=True)
+    flask_app.extensions["localization"].select("fr-CA")
+    response = flask_app.test_client().get("/")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    match = re.search(
+        r'<script id="browser-localization" type="application/json">(.*?)</script>',
+        page,
+        re.S,
+    )
+    assert match is not None
+    state = json.loads(match.group(1))
+    assert state["locale"] == "fr-CA"
+    assert state["fallbacks"] == ["en-CA"]
+    assert state["catalogs"]["fr-CA"]["dashboard"]["gross"] == "Actif brut"
+    assert state["catalogs"]["en-CA"]["dashboard"]["gross"] == "Gross assets"
+    assert 'id="dashboard-metrics" lang="fr-CA"' in page
+
+
+def test_browser_catalog_contract_serializes_declared_fallback_chain(tmp_path):
+    import app as application
+    from infrastructure.runtime_config import RuntimeConfig
+
+    root = tmp_path / "localization"
+    root.mkdir()
+    (root / "registry.json").write_text(
+        json.dumps(
+            {
+                "locales": [
+                    {"code": "en-CA", "native_name": "English"},
+                    {"code": "fr-CA", "native_name": "Français", "fallback": "en-CA"},
+                    {"code": "fr-FR", "native_name": "Français (France)", "fallback": "fr-CA"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    for code, message in (
+        ("en-CA", "English"),
+        ("fr-CA", "Français canadien"),
+        ("fr-FR", "Français"),
+    ):
+        folder = root / code
+        folder.mkdir()
+        (folder / "browser.json").write_text(
+            json.dumps({"sample": {"message": message}}), encoding="utf-8"
+        )
+
+    localization = LocalizationService(root, tmp_path / "locale-runtime")
+    localization.select("fr-FR")
+    flask_app = application.create_app(RuntimeConfig(tmp_path / "app-runtime"))
+    flask_app.config.update(TESTING=True)
+    flask_app.extensions["localization"] = localization
+
+    page = flask_app.test_client().get("/").get_data(as_text=True)
+    match = re.search(
+        r'<script id="browser-localization" type="application/json">(.*?)</script>',
+        page,
+        re.S,
+    )
+    assert match is not None
+    state = json.loads(match.group(1))
+    assert state["locale"] == "fr-FR"
+    assert state["fallbacks"] == ["fr-CA", "en-CA"]
+    assert set(state["catalogs"]) == {"fr-FR", "fr-CA", "en-CA"}

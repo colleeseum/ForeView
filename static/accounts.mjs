@@ -55,5 +55,7 @@ Promise.all([loadPeople(), loadAssetData()])
     render();
   })
   .catch((error) => {
-    document.querySelector('#accounts-table-content').textContent = error.message;
+    const content = document.querySelector('#accounts-table-content');
+    content.textContent = error.message;
+    content.lang = error.language || 'en-CA';
   });

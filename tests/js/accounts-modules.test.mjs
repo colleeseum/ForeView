@@ -3,15 +3,27 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {escapeHtml} from '../../static/html.mjs';
+import {
+  escapeHtml,
+  htmlWithLanguageSpans,
+  languageSpan,
+  sourceTextSpan,
+} from '../../static/html.mjs';
 import {createLatestRequestGate} from '../../static/latest-request.mjs';
 
 import {isSecurityAccount, money, ownerDetails} from '../../static/accounts-format.mjs';
 import {formSignature, showError} from '../../static/form-state.mjs';
 import {editableAccountValues} from '../../static/setup-values.mjs';
 import {runButtonAction} from '../../static/button-action.mjs';
-import {importHistoryHtml, transactionsTableHtml} from '../../static/transactions-render.mjs';
+import {
+  cashFlowCategoryLabel,
+  importHistoryHtml,
+  transactionsTableHtml,
+} from '../../static/transactions-render.mjs';
 import {importMessage} from '../../static/transaction-import-message.mjs';
+import {configureTestLocalization} from './localization-fixture.mjs';
+
+configureTestLocalization();
 
 test('security accounts are classified without coupling the renderer', () => {
   assert.equal(isSecurityAccount({asset_kind: 'account', institution: ' Sun Life '}), true);
@@ -54,6 +66,16 @@ test('form signatures include checkbox state and additional components', () => {
 });
 test('escapeHtml makes imported and user-entered text inert', () => {
   assert.equal(escapeHtml(`<img src=x onerror="alert('x')">`), '&lt;img src=x onerror=&quot;alert(&#39;x&#39;)&quot;&gt;');
+  assert.equal(languageSpan('<unsafe>'), '<span lang="en-CA">&lt;unsafe&gt;</span>');
+  assert.equal(sourceTextSpan('<source>'), '<span lang="">&lt;source&gt;</span>');
+  assert.equal(sourceTextSpan('Description', 'fr-CA'), '<span lang="fr-CA">Description</span>');
+  assert.equal(
+    htmlWithLanguageSpans(
+      ({message}) => `<img src=x onerror="bad"> Error: ${message}`,
+      {message: '<unsafe>'},
+    ),
+    '&lt;img src=x onerror=&quot;bad&quot;&gt; Error: <span lang="en-CA">&lt;unsafe&gt;</span>',
+  );
 });
 
 test('latest request gate rejects an older response', () => {
@@ -132,7 +154,48 @@ test('transaction renderer covers empty, GIC, opening, and filtered rows', () =>
   assert.match(html, /Unclassified/);
   assert.match(html, /opening-balance-row/);
   assert.equal(html.includes('Combined balance'), false);
-  assert.match(importHistoryHtml([{imported_at: '', filename: '', account_number: '', row_count: 0, reconciliation_status: 'reconciled'}]), /Reconciliation: reconciled/);
+  assert.match(importHistoryHtml([{imported_at: '', filename: '', account_number: '', row_count: 0, reconciliation_status: 'reconciled'}]), /Reconciliation: Reconciled/);
+});
+
+test('transaction renderer localizes normalized cash-flow categories with a raw fallback', () => {
+  configureTestLocalization('fr-CA');
+  assert.match(money(1234.5), /1.*234,50/);
+  assert.equal(cashFlowCategoryLabel('Interest'), 'Intérêt');
+  assert.equal(cashFlowCategoryLabel(' withdrawal '), 'Retrait');
+  assert.equal(cashFlowCategoryLabel('grant'), 'Subvention');
+  assert.equal(cashFlowCategoryLabel('Provider-specific'), 'Provider-specific');
+  const html = transactionsTableHtml([{
+    transaction_date: '2026-01-02',
+    description: 'Interest payment',
+    amount: 10,
+    category: 'Interest',
+  }], [], true);
+  assert.match(html, /Intérêt/);
+  assert.doesNotMatch(html, />Interest<\/td>/);
+  assert.equal(html.includes('<span lang="">Interest payment</span>'), true);
+  assert.match(
+    importMessage({results: [{reconciliation_status: 'difference', difference: 4.5}]}),
+    /4,50/,
+  );
+  configureTestLocalization();
+});
+
+test('reconciliation history statuses follow the browser locale', () => {
+  configureTestLocalization('fr-CA');
+  assert.match(
+    importHistoryHtml([{imported_at: '', filename: '', account_number: '', row_count: 0, reconciliation_status: 'needs_review'}]),
+    /Rapprochement : À vérifier/,
+  );
+  const accounts = transactionsTableHtml([{
+    transaction_date: '2026-01-02', asset_kind: 'gic', parent_institution: 'Banque',
+    parent_account_number: 'A1', account_name: 'Terme', description: 'Intérêt', amount: 1,
+  }, {
+    transaction_date: '2026-01-01', institution: 'Banque', account_number: 'A2',
+    description: 'Dépôt', amount: 1,
+  }], [], false);
+  assert.match(accounts, /CPG · Banque/);
+  assert.match(accounts, /Encaisse · Banque/);
+  configureTestLocalization();
 });
 
 test('setup values normalize missing optional fields', () => {
@@ -140,6 +203,7 @@ test('setup values normalize missing optional fields', () => {
 });
 
 test('transaction import summaries cover reconciliation and statement outcomes', () => {
+  assert.match(importMessage({results: [{reconciliation_status: 'reconciled', csv_transaction_count: '1'}]}), /1 CSV transaction matched/);
   assert.match(importMessage({results: [{reconciliation_status: 'reconciled', csv_transaction_count: 2}]}), /2 CSV transactions/);
   assert.match(importMessage({results: [{reconciliation_status: 'no_matching_transactions'}]}), /no CSV transactions/);
   assert.match(importMessage({results: [{reconciliation_status: 'difference', difference: 4.5}]}), /\$4.50/);

@@ -1,9 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import {t, locale} from './i18n.mjs';
+
 async function jsonResponse(response) {
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+  if (!response.ok) {
+    const error = new Error(data.error || t('accounts.request_failed', {status: response.status}));
+    error.language = data.error ? 'en-CA' : locale;
+    throw error;
+  }
   return data;
 }
 

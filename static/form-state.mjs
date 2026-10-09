@@ -11,4 +11,5 @@ export function formSignature(form, additionalParts = []) {
 export function showError(target, error) {
   target.textContent = error instanceof Error ? error.message : String(error);
   target.classList.add('error');
+  target.lang = error?.language || 'en-CA';
 }

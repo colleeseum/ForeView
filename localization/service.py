@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -95,6 +96,22 @@ class LocalizationService:
         self._catalog_cache[cache_key] = catalog
         return catalog
 
+    def catalog(self, code: str, namespace: str) -> dict[str, Any]:
+        """Return a caller-safe copy of a locale catalog namespace."""
+        return deepcopy(self._catalog(code, namespace))
+
+    def fallback_chain(self, code: str) -> tuple[str, ...]:
+        """Return the locale and its declared fallbacks in lookup order."""
+        chain: list[str] = []
+        candidate: str | None = code
+        while candidate and candidate not in chain:
+            chain.append(candidate)
+            definition = self._locales.get(candidate)
+            candidate = definition.fallback if definition else None
+        if self.default_locale not in chain:
+            chain.append(self.default_locale)
+        return tuple(chain)
+
     @staticmethod
     def _lookup(catalog: dict[str, Any], key: str) -> str | None:
         value: Any = catalog
@@ -115,18 +132,8 @@ class LocalizationService:
         namespace, _, local_key = key.partition(".")
         if not local_key:
             return f"⟦{key}⟧"
-        seen: set[str] = set()
-        candidate: str | None = code
-        while candidate and candidate not in seen:
-            seen.add(candidate)
+        for candidate in self.fallback_chain(code):
             message = self._lookup(self._catalog(candidate, namespace), local_key)
-            if message is not None:
-                rendered = self._render(message, values)
-                if rendered is not None:
-                    return rendered
-            candidate = self.definition(candidate).fallback
-        if self.default_locale not in seen:
-            message = self._lookup(self._catalog(self.default_locale, namespace), local_key)
             if message is not None:
                 rendered = self._render(message, values)
                 if rendered is not None:

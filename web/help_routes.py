@@ -237,4 +237,4 @@ def help_catalog():
         for provider in institution_registry().providers
         for topic in provider.help_topics
     )
-    return jsonify({"tooltips": list(_TOOLTIPS), "articles": articles})
+    return jsonify({"language": "en-CA", "tooltips": list(_TOOLTIPS), "articles": articles})

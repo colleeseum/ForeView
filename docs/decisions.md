@@ -39,6 +39,18 @@ state is not held in module-level database globals.
 Reason: this permits isolated dev, prod, and test applications and prevents one runtime from
 silently contaminating another.
 
+## Server and browser localization share one locale policy
+
+The selected locale and its declared fallback chain are resolved by the server. Templates receive
+the server-rendered translation function and a safely serialized browser state containing every
+catalog in that chain. Browser modules use one shared translator with the same selected locale,
+ordered fallbacks, interpolation, and visible missing-key behavior. Feature modules use message
+keys rather than language-specific branches. Test fixtures load the tracked catalogs rather than
+duplicating message text.
+
+Reason: server-rendered and dynamically generated interface text must not diverge in language or
+fallback behavior, and additional locales should not require feature-specific code changes.
+
 ## Explicit boundaries with SQL confined to persistence
 
 Domain values, repositories, services, HTTP routes, and adapter modules have separate

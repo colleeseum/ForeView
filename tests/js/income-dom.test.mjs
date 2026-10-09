@@ -5,10 +5,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 function installDom() {
+  configureTestLocalization();
   const fields = [
     'employment_income', 'bonus', 'other_income', 'interest_income', 'cpp_qpp', 'ei', 'qpip',
     'rrsp_contribution', 'rrsp_deduction', 'federal_tax', 'provincial_tax',
@@ -86,6 +88,20 @@ function factualCorrection(overrides = {}) {
     ...overrides,
   };
 }
+
+test('income concept labels follow the browser locale and retain an unknown fallback', async () => {
+  const {incomeConceptLabel} = await import('../../static/income-corrections.mjs');
+  configureTestLocalization('fr-CA');
+  assert.equal(
+    incomeConceptLabel({concept: 'employment_income', label: 'Employment income'}),
+    'Revenu d’emploi',
+  );
+  assert.equal(
+    incomeConceptLabel({concept: 'future_concept', label: 'Future API label'}),
+    'Future API label',
+  );
+  configureTestLocalization();
+});
 
 test('income screen previews a UFile return and saves only after review', async () => {
   const dom = installDom();
@@ -191,6 +207,7 @@ test('income screen creates a correction and can select a historical snapshot', 
   const dom = installDom();
   const calls = [];
   let created = false;
+  let failCorrection = false;
   globalThis.fetch = async (url, options = {}) => {
     const address = String(url);
     calls.push({url: address, options});
@@ -201,6 +218,9 @@ test('income screen creates a correction and can select a historical snapshot', 
       return {ok: true, json: async () => ({corrections: []})};
     }
     if (address === '/api/income/corrections' && options.method === 'POST') {
+      if (failCorrection) {
+        return {ok: false, status: 409, json: async () => ({error: 'Correction revision is stale'})};
+      }
       created = true;
       return {ok: true, json: async () => factualCorrection({revision_number: 1, revision_kind: 'create', correct_amount: '102000.00'})};
     }
@@ -261,6 +281,20 @@ test('income screen creates a correction and can select a historical snapshot', 
   assert.ok(calls.some(({url}) => url === '/api/income?person_id=1&year=2024'));
   assert.match(document.querySelector('#income-summary').textContent, /Historical consolidated snapshot/);
   assert.match(document.querySelector('#income-summary').textContent, /90,000/);
+
+  failCorrection = true;
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+  document.querySelector('#income-correction-form [name="correct_amount"]').value = '91000';
+  const failedReason = document.querySelector('#income-correction-form [name="reason"]');
+  failedReason.value = 'Updated evidence.';
+  failedReason.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#income-correction-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await tick();
+  assert.match(document.querySelector('#income-correction-message').textContent, /revision is stale/);
+  assert.equal(document.querySelector('#income-correction-message').lang, 'en-CA');
   dom.window.close();
 });
 
@@ -383,6 +417,54 @@ test('income screen reviews, edits, confirms, and removes a correction', async (
   dom.window.close();
 });
 
+test('correction provenance localizes known document kinds and preserves unknown kinds', async () => {
+  const dom = installDom();
+  configureTestLocalization('fr-CA');
+  const manualSource = {
+    amount: '101500.00', document_kind: 'return', jurisdiction: 'CA',
+    source: 'Manual',
+  };
+  globalThis.fetch = async (url) => {
+    if (url === '/api/model/people') {
+      return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
+    }
+    if (String(url).startsWith('/api/income?')) {
+      return {ok: true, json: async () => ({
+        records: [], assessments: [], registered_rooms: [], tax_values: [],
+        snapshot: latestSnapshot(),
+        corrections: [factualCorrection({
+          source_at_correction: manualSource,
+          current_underlying: {
+            amount: '101500.00', document_kind: 'future_kind', jurisdiction: 'CA',
+            source: 'Future source',
+          },
+        })],
+      })};
+    }
+    if (String(url).includes('/api/income/corrections/person/1/year/2025/')) {
+      return {ok: true, json: async () => ({
+        corrections: [factualCorrection({source_at_correction: manualSource})],
+      })};
+    }
+    throw new Error(`Unexpected URL ${url}`);
+  };
+
+  await import(`../../static/income.mjs?localized-correction-provenance=${Date.now()}`);
+  await tick(); await tick();
+  document.querySelector('[data-correct-concept="employment_income"]').click();
+  await tick();
+
+  assert.match(document.querySelector('#income-correction-source-note').textContent, /Déclaration produite/);
+  assert.match(document.querySelector('#income-correction-source-note').textContent, /Saisie manuelle/);
+  assert.doesNotMatch(document.querySelector('#income-correction-source-note').textContent, /\breturn\b/);
+  assert.doesNotMatch(document.querySelector('#income-correction-source-note').textContent, /\bManual\b/);
+  assert.match(document.querySelector('#income-correction-current-note').textContent, /future_kind/);
+  assert.match(document.querySelector('#income-correction-history').textContent, /Saisie manuelle/);
+  assert.doesNotMatch(document.querySelector('#income-correction-history').textContent, /\bManual\b/);
+  configureTestLocalization();
+  dom.window.close();
+});
+
 test('income screen rejects a document for a person who is not configured', async () => {
   const dom = installDom();
   globalThis.fetch = async (url) => {
@@ -429,7 +511,16 @@ test('income screen selects the person identified by the PDF', async () => {
 
 test('income screen reviews and saves an assessment with registered room', async () => {
   const dom = installDom();
+  configureTestLocalization('fr-CA');
   const calls = [];
+  const snapshot = latestSnapshot();
+  snapshot.values[0] = {
+    ...snapshot.values[0], source: 'Manual', document_kind: 'annual_record',
+  };
+  snapshot.values.push({
+    concept: 'future_tax_concept', label: 'Future tax concept', amount: '10.00',
+    source: 'Future source', document_kind: 'assessment', jurisdiction: 'CA', line_code: null,
+  });
   const assessment = {
     kind: 'tax_assessment', tax_year: 2025, jurisdiction: 'CA', issued_on: '2026-05-11',
     taxpayer_name: 'Alex', total_income: '223074.00', net_income: '214510.00',
@@ -439,39 +530,97 @@ test('income screen reviews and saves an assessment with registered room', async
     rrsp_new_room: '33810.00', rrsp_unused_contributions: '0.00',
     rrsp_available_room: '58810.00', source: 'CRA NOA', source_name: 'CRA notice',
     source_version: '2026.09.29', document_hash: 'abc',
+    tax_values: [{concept: 'canada_training_credit_limit'}],
   };
   globalThis.fetch = async (url, options = {}) => {
-    calls.push({url: String(url), options});
+    const address = String(url);
+    calls.push({url: address, options});
     if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
-    if (String(url).startsWith('/api/income?')) return {ok: true, json: async () => ({
-      records: [annualRecord()], assessments: [assessment], tax_values: [{tax_year: 2025, document_kind: 'assessment', jurisdiction: 'CA', effective_year: 2026, line_code: null, description: 'Canada training credit limit', reported_amount: null, determined_amount: '250.00', source: 'CRA NOA'}],
+    if (address.startsWith('/api/income?')) return {ok: true, json: async () => ({
+      records: [annualRecord({source: 'Manual'})], assessments: [assessment], tax_values: [
+        {tax_year: 2025, document_kind: 'assessment', jurisdiction: 'CA', effective_year: 2026, line_code: null, concept: 'canada_training_credit_limit', description: 'Canada training credit limit', reported_amount: null, determined_amount: '250.00', source: 'CRA NOA'},
+        {tax_year: 2025, document_kind: 'return', jurisdiction: 'CA', effective_year: 2025, line_code: '12100', concept: 'interest_investment_income', description: 'Interest income', reported_amount: '250.00', determined_amount: null, source: 'UFile T1'},
+      ],
       registered_rooms: [
         {plan_type: 'RRSP', effective_year: 2026, available_room: '58810.00', deduction_limit: '58810.00', unused_contributions: '0.00', as_of_date: '2026-05-11', source: 'CRA NOA'},
         {plan_type: 'RRSP', effective_year: 2025, available_room: '50000.00', deduction_limit: '50000.00', unused_contributions: '0.00', as_of_date: '2025-05-11', source: 'CRA NOA'},
       ],
       public_pension: {provider: 'QPP', issued_on: '2026-06-15', excludes_second_enhancement: true, estimates: [{contribution_assumption: 'stop', activation_age: 65, monthly_amount: '1012.00'}], earnings: [{year: 2025, qpp_earnings: '0.00', cpp_earnings: '81200.00', status: 'A'}]},
-      snapshot: latestSnapshot(),
+      snapshot,
     })};
-    if (url === '/api/income/import/preview') return {ok: true, json: async () => assessment};
-    if (url === '/api/income/people/1/assessments') return {ok: true, json: async () => assessment};
+    if (address.includes('/api/income/corrections/person/1/year/2025/')) {
+      return {ok: true, json: async () => ({corrections: []})};
+    }
+    if (address === '/api/income/corrections' && options.method === 'POST') {
+      return {ok: true, json: async () => factualCorrection({concept: 'future_tax_concept'})};
+    }
+    if (address === '/api/income/import/preview') return {ok: true, json: async () => assessment};
+    if (address === '/api/income/people/1/assessments') return {ok: true, json: async () => assessment};
     throw new Error(`Unexpected URL ${url}`);
   };
 
   await import(`../../static/income.mjs?assessment=${Date.now()}`);
   await tick(); await tick();
-  assert.match(document.querySelector('#income-rooms').textContent, /58,810/);
-  assert.match(document.querySelector('#income-pension').textContent, /1,012/);
-  assert.match(document.querySelector('#income-summary').textContent, /RRSP available room/);
-  assert.match(document.querySelector('#income-summary').textContent, /58,810/);
-  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /50,000/);
+  assert.match(document.querySelector('#income-rooms').textContent, /58.?810/);
+  assert.match(document.querySelector('#income-pension').textContent, /1.?012/);
+  assert.match(document.querySelector('#income-pension').textContent, /Cesser de cotiser/);
+  assert.doesNotMatch(document.querySelector('#income-pension').textContent, /\bstop\b/i);
+  const pensionEarningsHeadings = document.querySelector('.income-pension-earnings-table thead').textContent;
+  assert.match(pensionEarningsHeadings, /RRQ/);
+  assert.match(pensionEarningsHeadings, /RPC/);
+  assert.doesNotMatch(pensionEarningsHeadings, /QPP|CPP/);
+  assert.match(document.querySelector('#income-history').textContent, /RPC\/RRQ/);
+  assert.match(document.querySelector('#income-history').textContent, /Saisie manuelle/);
+  assert.doesNotMatch(document.querySelector('#income-history').textContent, /\bManual\b/);
+  assert.match(document.querySelector('#income-history').textContent, /AE/);
+  assert.match(document.querySelector('#income-history').textContent, /RQAP/);
+  assert.match(document.querySelector('#income-summary').textContent, /Droits REER disponibles/);
+  assert.match(document.querySelector('#income-summary').textContent, /Saisie manuelle/);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /\bManual\b/);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /Droits RRSP/);
+  assert.match(document.querySelector('#income-summary').textContent, /58.?810/);
+  assert.doesNotMatch(document.querySelector('#income-summary').textContent, /50.?000/);
+  assert.equal(
+    document.querySelector('#income-summary [lang="en-CA"]').textContent,
+    'Future tax concept',
+  );
+  assert.match(document.querySelector('#income-rooms').textContent, /REER/);
+  assert.doesNotMatch(document.querySelector('#income-rooms').textContent, /RRSP/);
+  assert.match(document.querySelector('#income-tax-returns').textContent, /Déclaration produite/);
+  assert.doesNotMatch(document.querySelector('#income-tax-returns').textContent, /\breturn\b/i);
+  assert.match(document.querySelector('#income-tax-returns').textContent, /Revenus d’intérêts et de placements/);
+  assert.doesNotMatch(document.querySelector('#income-tax-returns').textContent, /Interest income/);
+  assert.match(document.querySelector('#income-normalized').textContent, /Avis de cotisation/);
+  assert.doesNotMatch(document.querySelector('#income-normalized').textContent, /\bassessment\b/i);
+  const rawDescription = document.querySelector('#income-normalized [lang="en-CA"]');
+  assert.equal(rawDescription.textContent, 'Canada training credit limit');
+  document.querySelector('[data-correct-concept="future_tax_concept"]').click();
+  await tick();
+  assert.equal(
+    document.querySelector('#income-correction-title [lang="en-CA"]').textContent,
+    'Future tax concept',
+  );
+  const correctionReason = document.querySelector('#income-correction-form [name="reason"]');
+  correctionReason.value = 'Supporting statement.';
+  correctionReason.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#income-correction-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await tick(); await tick();
+  assert.equal(document.querySelector('#income-message [lang="en-CA"]').textContent, 'Future tax concept');
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
-  assert.match(document.querySelector('#income-import-review').textContent, /RRSP room/);
+  assert.match(document.querySelector('#income-import-review').textContent, /Droits REER/);
+  assert.match(document.querySelector('#income-import-review').textContent, /1 concept fiscal détaillé/);
+  assert.equal(document.querySelector('#income-import-review h3 [lang="en-CA"]').textContent, 'CRA notice');
+  assert.equal(document.querySelector('#income-message [lang="en-CA"]').textContent, 'CRA notice');
   assert.equal(document.querySelector('#income-import-preview').hidden, true);
   document.querySelector('#income-import-confirm').click();
   await tick(); await tick();
   assert.ok(calls.some(({url, options}) => url === '/api/income/people/1/assessments' && options.method === 'POST'));
+  assert.equal(document.querySelector('#income-message [lang="en-CA"]').textContent, 'CRA notice');
+  configureTestLocalization();
   dom.window.close();
 });
 
@@ -499,7 +648,12 @@ test('income screen reviews and saves a public pension statement', async () => {
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await tick(); await tick();
-  assert.match(document.querySelector('#income-import-review').textContent, /1 years/);
+  assert.match(document.querySelector('#income-import-review').textContent, /1 year of pensionable earnings and 1 estimate/);
+  assert.doesNotMatch(document.querySelector('#income-import-review').textContent, /1 years|1 estimates/);
+  assert.equal(
+    document.querySelector('#income-import-review h3 [lang="en-CA"]').textContent,
+    'Retraite Quebec statement',
+  );
   document.querySelector('#income-import-confirm').click();
   await tick(); await tick();
   assert.ok(calls.some(({url, options}) => url === '/api/income/people/1/public-pension-statements' && options.method === 'POST'));
@@ -523,5 +677,6 @@ test('income screen handles missing people and request errors', async () => {
   await tick();
   assert.match(document.querySelector('#income-message').textContent, /Broken import/);
   assert.equal(document.querySelector('#income-message').classList.contains('error'), true);
+  assert.equal(document.querySelector('#income-message').lang, 'en-CA');
   dom.window.close();
 });

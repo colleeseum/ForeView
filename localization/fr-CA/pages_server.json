@@ -24,7 +24,12 @@
     "version": "Version",
     "optional": "Facultatif",
     "optional_description": "Description facultative",
-    "breadcrumb": "Fil d’Ariane"
+    "breadcrumb": "Fil d’Ariane",
+    "account_types": {
+      "tfsa": "CELI",
+      "rrsp": "REER",
+      "resp": "REEE"
+    }
   },
   "summary": {
     "rrsp_note": "La valeur non investie d’un REER est affichée séparément, car les retraits sont imposables et assujettis aux règles du régime de retraite.",
@@ -355,6 +360,7 @@
     "disclaimer": "Les projections sont des estimations aux fins de planification seulement; elles ne constituent pas des conseils financiers, fiscaux, en placement, comptables ou juridiques. Les résultats importants devraient être vérifiés indépendamment.",
     "full_disclaimer": "Avis complet",
     "scenario": "Scénario",
+    "person_tabs": "Personne de la projection",
     "from": "De",
     "to": "À",
     "discard": "Annuler les changements",

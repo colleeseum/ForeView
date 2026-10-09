@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {escapeHtml} from './html.mjs';
+import {t, locale} from './i18n.mjs';
 import {formSignature} from './form-state.mjs';
+import {incomeSourceLabel} from './income-source-label.mjs';
 
 const elements = {
   scenario: document.querySelector('#salary-scenario'),
@@ -45,11 +47,11 @@ const pendingAnnualResets = new Set();
 
 export function money(value) {
   const amount = Number(value || 0);
-  return amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD', maximumFractionDigits: 0});
+  return amount.toLocaleString(locale, {style: 'currency', currency: 'CAD', maximumFractionDigits: 0});
 }
 
 export function projectionTable(rows, {editable = false, overrides = [], household = false} = {}) {
-  if (!rows.length) return '<p class="empty-panel">No projection is available.</p>';
+  if (!rows.length) return `<p class="empty-panel">${t('salary.no_projection')}</p>`;
   const overrideByYear = new Map(overrides.map((item) => [item.year, item]));
   const input = (row, field, value, suffix = '') => {
     if (!editable) return escapeHtml(value == null ? '—' : suffix ? `${value}${suffix}` : money(value));
@@ -59,12 +61,12 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
       ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
       : Number(value || 0).toFixed(2);
     const reset = hasOverride
-      ? `<button class="salary-use-default" data-year="${row.year}" data-field="${field}" type="button" title="Reset to the calculated default" aria-label="Reset to the calculated default">×</button>`
+      ? `<button class="salary-use-default" data-year="${row.year}" data-field="${field}" type="button" title="${t('salary.reset')}" aria-label="${t('salary.reset')}">×</button>`
       : '';
     return `<span class="salary-input-cell"><input class="salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
   };
   const rowMarkup = (row) => `<tr class="${row.actual ? 'historical-row' : ''}">
-    <th>${escapeHtml(String(row.year))}${row.actual ? ' Actual' : ''}</th>
+    <th>${escapeHtml(String(row.year))}${row.actual ? ` ${t('salary.actual')}` : ''}</th>
     <td>${row.age ?? '—'}</td>
     <td>${row.actual ? '—' : input(row, 'raise_rate', row.raise_rate, '%')}</td>
     <td>${row.actual ? money(row.annual_salary_rate) : input(row, 'salary', row.annual_salary_rate)}</td>
@@ -76,7 +78,7 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
     <td>${money(row.federal_tax)}</td><td>${money(row.quebec_tax)}</td>
     <td>${money(row.net_income_after_tax)}</td><td><strong>${money(row.disposable_income)}</strong></td>
     ${household ? `<td>${row.planned_expenses == null ? '—' : money(row.planned_expenses)}</td><td><strong>${row.surplus_deficit == null ? '—' : money(row.surplus_deficit)}</strong></td>` : ''}
-    <td>${row.actual ? escapeHtml(row.source || 'Recorded') : `${row.rule_year}${row.rules_held_constant ? ' held' : ''}`}</td>
+    <td>${row.actual ? escapeHtml(incomeSourceLabel(row.source) || t('salary.recorded')) : `${row.rule_year}${row.rules_held_constant ? ` ${t('salary.held')}` : ''}`}</td>
   </tr>`;
   const actualRows = rows.filter((row) => row.actual);
   const projectedRows = rows.filter((row) => !row.actual);
@@ -84,13 +86,13 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
     ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="${household ? 18 : 16}">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
     : '';
   return `<div class="table-wrap"><table class="salary-projection-table"><thead><tr>
-    <th>Year</th><th>Age</th><th>Raise</th><th>Annual salary</th>
-    <th>Other income</th><th>Gross</th>
-    <th>RRSP cash</th><th>RRSP deduction</th><th>CPP/QPP</th>
-    <th>EI</th><th>QPIP</th><th>Federal tax</th><th>Quebec tax</th><th>Net after tax</th>
-    <th>Disposable</th>${household ? '<th>Expenses</th><th>Surplus / deficit</th>' : ''}<th>Rule/source</th></tr></thead>
-    ${section('Historical actuals', actualRows, 'salary-history-body')}
-    ${section('Projected values', projectedRows, 'salary-projection-body')}
+    <th>${t('salary.year')}</th><th>${t('salary.age')}</th><th>${t('salary.raise')}</th><th>${t('salary.annual_salary')}</th>
+    <th>${t('salary.other_income')}</th><th>${t('salary.gross')}</th>
+    <th>${t('salary.rrsp_cash')}</th><th>${t('salary.rrsp_deduction')}</th><th>${t('financial.cpp_qpp')}</th>
+    <th>${t('financial.ei')}</th><th>${t('financial.qpip')}</th><th>${t('salary.federal_tax')}</th><th>${t('salary.quebec_tax')}</th><th>${t('salary.net_after_tax')}</th>
+    <th>${t('salary.disposable')}</th>${household ? `<th>${t('salary.expenses')}</th><th>${t('salary.surplus_deficit')}</th>` : ''}<th>${t('salary.rule_source')}</th></tr></thead>
+    ${section(t('salary.historical'), actualRows, 'salary-history-body')}
+    ${section(t('salary.projected'), projectedRows, 'salary-projection-body')}
   </table></div>`;
 }
 
@@ -98,9 +100,14 @@ export function householdRows(rows) {
   return rows.map((row) => ({...row, age: null, rule_year: '—', rules_held_constant: false}));
 }
 
-function showMessage(value, error = false) {
+function showMessage(value, error = false, language = locale) {
   elements.message.textContent = value;
   elements.message.classList.toggle('error', error);
+  elements.message.lang = language;
+}
+
+function showError(error) {
+  showMessage(error.message, true, error.language || 'en-CA');
 }
 
 function selectedPerson() {
@@ -128,25 +135,25 @@ function updateSaveState() {
   if (elements.changeStatus) {
     const changes = [];
     if (assumptionsDirty) {
-      changes.push(elements.changeStatus.dataset.assumptionsText || 'projection assumptions');
+      changes.push(elements.changeStatus.dataset.assumptionsText || t('salary.projection_assumptions'));
     }
     if (pendingAnnualChanges.size) {
       const template = pendingAnnualChanges.size === 1
-        ? elements.changeStatus.dataset.annualChangeText || '{count} annual change'
-        : elements.changeStatus.dataset.annualChangesText || '{count} annual changes';
+        ? elements.changeStatus.dataset.annualChangeText || t('salary.annual_change', {count: '{count}'})
+        : elements.changeStatus.dataset.annualChangesText || t('salary.annual_changes', {count: '{count}'});
       changes.push(template.replace('{count}', String(pendingAnnualChanges.size)));
     }
     if (expenseDirty()) {
-      changes.push(elements.changeStatus.dataset.spendingText || 'household spending');
+      changes.push(elements.changeStatus.dataset.spendingText || t('salary.household_spending'));
     }
-    const conjunction = ` ${elements.changeStatus.dataset.andText || 'and'} `;
+    const conjunction = ` ${elements.changeStatus.dataset.andText || t('salary.and')} `;
     const changeSummary = changes.length > 1
       ? `${changes.slice(0, -1).join(', ')}${conjunction}${changes.at(-1)}`
       : changes[0] || '';
-    const notSaved = elements.changeStatus.dataset.notSavedText || '{changes} not saved.';
+    const notSaved = elements.changeStatus.dataset.notSavedText || t('salary.not_saved', {changes: '{changes}'});
     elements.changeStatus.textContent = dirty
       ? notSaved.replace('{changes}', changeSummary)
-      : elements.changeStatus.dataset.savedText || 'Changes are saved to the selected scenario. Use Save As to compare alternatives.';
+      : elements.changeStatus.dataset.savedText || t('salary.changes_saved');
   }
   for (const control of [elements.scenario, elements.startYear, elements.endYear, elements.view]) {
     if (control) control.disabled = dirty;
@@ -158,7 +165,7 @@ function renderControls() {
   elements.scenario.innerHTML = model.scenarios.map((item) => `<option value="${item.id}"${item.id === model.selected_scenario_id ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('');
   elements.startYear.value = model.start_year;
   elements.endYear.value = model.end_year;
-  elements.tabs.innerHTML = [...model.people.map((person) => ({key: String(person.id), label: person.name})), {key: 'household', label: 'Household'}]
+  elements.tabs.innerHTML = [...model.people.map((person) => ({key: String(person.id), label: person.name})), {key: 'household', label: t('salary.household')}]
     .map((item) => `<button class="view-tab${item.key === selectedKey ? ' active' : ''}" role="tab" aria-selected="${item.key === selectedKey}" data-person-key="${item.key}" type="button">${escapeHtml(item.label)}</button>`).join('');
 }
 
@@ -182,8 +189,8 @@ function fillForm(person) {
   if (elements.currentOtherIncome) elements.currentOtherIncome.textContent = anchor ? money(anchor.other_income) : '—';
   if (elements.sourceNote) {
     elements.sourceNote.innerHTML = person.salary_anchor
-      ? `Salary starts from the latest factual Income record: <strong>${escapeHtml(String(person.salary_anchor.year))}</strong>, ${money(person.salary_anchor.annual_salary_rate)} after subtracting the recorded bonus. <a href="/income">View income history</a>.`
-      : 'No factual Income record exists. Add one on the <a href="/income">Income</a> screen before projecting employment.';
+      ? `<span>${escapeHtml(t('salary.source_note', {year: person.salary_anchor.year, amount: money(person.salary_anchor.annual_salary_rate)}))}</span> <a href="/income">${escapeHtml(t('salary.view_income'))}</a>.`
+      : `<span>${escapeHtml(t('salary.no_source'))}</span> <a href="/income">${escapeHtml(t('salary.go_to_income'))}</a>.`;
   }
 }
 
@@ -201,7 +208,7 @@ function fillExpenseForm() {
   };
   Object.entries(values).forEach(([name, value]) => { elements.expenseForm.elements[name].value = value; });
   savedExpenseSignature = formSignature(elements.expenseForm);
-  if (elements.expenseStatus) elements.expenseStatus.textContent = plan ? 'Changes are saved to the selected scenario.' : 'No spending assumptions saved.';
+  if (elements.expenseStatus) elements.expenseStatus.textContent = plan ? t('salary.saved') : t('salary.no_spending');
 }
 
 function render() {
@@ -210,7 +217,7 @@ function render() {
   if (!model.scenarios.length) {
     elements.tabs.innerHTML = '';
     elements.setup.hidden = true;
-    elements.table.innerHTML = '<p class="empty-panel">Create a scenario in <a href="/setup">Setup</a> before projecting salary.</p>';
+    elements.table.innerHTML = `<p class="empty-panel"><span>${escapeHtml(t('salary.no_scenario'))}</span> <a href="/setup">${escapeHtml(t('salary.go_to_setup'))}</a>.</p>`;
     updateSaveState();
     return;
   }
@@ -220,10 +227,10 @@ function render() {
   fillForm(person);
   fillExpenseForm();
   if (person) {
-    if (person.error) showMessage(person.error, true); else showMessage('');
+    if (person.error) showMessage(person.error, true, 'en-CA'); else showMessage('');
     elements.table.innerHTML = projectionTable([...person.actuals, ...person.projection], {editable: true, overrides: person.overrides});
   } else {
-    showMessage('Household values are the sum of individual projections. Tax remains calculated per person.');
+    showMessage(t('salary.household_note'));
     elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true});
   }
   updateSaveState();
@@ -232,7 +239,11 @@ function render() {
 async function api(url, options) {
   const response = await fetch(url, {headers: {'Content-Type': 'application/json'}, ...options});
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Request failed');
+  if (!response.ok) {
+    const error = new Error(result.error || t('salary.request_failed'));
+    error.language = result.error ? 'en-CA' : locale;
+    throw error;
+  }
   return result;
 }
 
@@ -253,8 +264,8 @@ elements.tabs?.addEventListener('click', (event) => {
   render();
 });
 
-elements.view?.addEventListener('click', () => loadProjection().catch((error) => showMessage(error.message, true)));
-elements.scenario?.addEventListener('change', () => loadProjection().catch((error) => showMessage(error.message, true)));
+elements.view?.addEventListener('click', () => loadProjection().catch(showError));
+elements.scenario?.addEventListener('change', () => loadProjection().catch(showError));
 elements.form?.addEventListener('input', updateSaveState);
 elements.form?.addEventListener('change', updateSaveState);
 elements.expenseForm?.addEventListener('input', updateSaveState);
@@ -297,8 +308,8 @@ async function saveCurrentScenario() {
       method: 'PUT', body: JSON.stringify(draftPayload(person)),
     });
     await loadProjection();
-    showMessage('Scenario saved.');
-  } catch (error) { showMessage(error.message, true); }
+    showMessage(t('salary.scenario_saved'));
+  } catch (error) { showError(error); }
 }
 
 elements.form?.addEventListener('submit', (event) => {
@@ -321,8 +332,8 @@ async function saveExpenses(event) {
       }),
     });
     await loadProjection();
-    showMessage('Household spending assumptions saved.');
-  } catch (error) { showMessage(error.message, true); }
+    showMessage(t('salary.spending_saved'));
+  } catch (error) { showError(error); }
 }
 
 elements.expenseForm?.addEventListener('submit', saveExpenses);
@@ -374,8 +385,11 @@ elements.discard?.addEventListener('click', () => render());
 function openSaveAs() {
   if (!elements.saveAsBackdrop || !elements.saveAsForm || !model?.selected_scenario_id) return;
   const current = model.scenarios.find((item) => item.id === model.selected_scenario_id);
-  elements.saveAsForm.elements.name.value = `${current?.name || 'Scenario'} copy`;
-  if (elements.saveAsMessage) elements.saveAsMessage.textContent = '';
+  elements.saveAsForm.elements.name.value = t('salary.scenario_copy', {name: current?.name || t('salary.scenario')});
+  if (elements.saveAsMessage) {
+    elements.saveAsMessage.textContent = '';
+    elements.saveAsMessage.lang = locale;
+  }
   elements.saveAsBackdrop.hidden = false;
   elements.saveAsForm.elements.name.focus();
   elements.saveAsForm.elements.name.select();
@@ -394,10 +408,13 @@ elements.saveAsForm?.addEventListener('submit', async (event) => {
     });
     elements.saveAsBackdrop.hidden = true;
     await loadProjection(result.id);
-    showMessage(`Scenario "${result.name}" created.`);
+    showMessage(t('salary.scenario_created', {name: result.name}));
   } catch (error) {
-    if (elements.saveAsMessage) elements.saveAsMessage.textContent = error.message;
+    if (elements.saveAsMessage) {
+      elements.saveAsMessage.textContent = error.message;
+      elements.saveAsMessage.lang = error.language || 'en-CA';
+    }
   }
 });
 
-if (elements.table) loadProjection().catch((error) => showMessage(error.message, true));
+if (elements.table) loadProjection().catch(showError);

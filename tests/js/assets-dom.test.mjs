@@ -4,8 +4,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 function installDom() {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <button class="view-tab" data-view="non_registered">Non-registered</button>
     <button class="view-tab" data-view="tfsa">TFSA</button>
@@ -88,6 +90,8 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.equal(content.innerHTML.includes(attack), false);
   content.querySelector('[data-toggle-portfolio="1"]').click();
   assert.equal(content.querySelector('#portfolio-1').hidden, false);
+  assert.equal(content.querySelector('#portfolio-1 tbody td:first-child span').lang, '');
+  assert.equal(content.querySelector('#portfolio-1 tbody td:nth-child(2) span').lang, '');
   content.querySelector('[data-toggle-portfolio="1"]').click();
   assert.equal(content.querySelector('#portfolio-1').hidden, true);
 
@@ -124,6 +128,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   accountForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(document.querySelector('#account-dialog-message').textContent, /Save failed/);
+  assert.equal(document.querySelector('#account-dialog-message').lang, 'en-CA');
 
   content.querySelector('[data-add-subaccount="1"]').click();
   assert.equal(document.querySelector('#subaccount-dialog-title').textContent, 'Ajouter un CPG');
@@ -131,10 +136,13 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   gicForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(document.querySelector('#subaccount-dialog-message').textContent, /Save failed/);
+  assert.equal(document.querySelector('#subaccount-dialog-message').lang, 'en-CA');
   assert.equal(gicForm.querySelector('button[type="submit"]').disabled, false);
 
   document.querySelector('[data-view="real_estate"]').click();
   assert.match(content.textContent, /Land/);
+  assert.match(content.textContent, /1 asset/);
+  assert.doesNotMatch(content.textContent, /1 assets/);
   assert.equal(content.innerHTML.includes(attack), false);
 
   content.querySelector('[data-edit-real-estate="9"]').click();
@@ -164,6 +172,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   realEstateForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(document.querySelector('#real-estate-dialog-message').textContent, /Save failed/);
+  assert.equal(document.querySelector('#real-estate-dialog-message').lang, 'en-CA');
   assert.equal(realEstateForm.querySelector('button[type="submit"]').disabled, false);
 
   const {renderAssets} = await import('../../static/accounts-render.mjs');
@@ -172,6 +181,21 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assetState.accounts = [];
   renderAssets({openAccount: () => {}, openGic: () => {}});
   assert.match(content.textContent, /No accounts yet/);
+
+  configureTestLocalization('fr-CA');
+  assetState.view = 'real_estate';
+  renderAssets({openAccount: () => {}, openGic: () => {}});
+  assert.match(content.textContent, /1 bien/);
+  assert.doesNotMatch(content.textContent, /1 biens/);
+  assert.match(content.querySelector('.real-estate-table thead').textContent, /PBR/);
+  assert.doesNotMatch(content.querySelector('.real-estate-table thead').textContent, /ACB/);
+
+  assetState.view = 'non_registered';
+  assetState.accounts = [{id: 4, asset_kind: 'account', account_type: 'non_registered', institution: 'Banque', account_number: 'A4', name: '', latest_amount: 10, rollup_amount: 10}];
+  assetState.categoryTotals = [{type: 'non_registered', count: 1, gic_count: 0, total: 10}];
+  renderAssets({openAccount: () => {}, openGic: () => {}});
+  assert.equal(content.querySelector('.section-heading h2').textContent, 'Non enregistré');
+  configureTestLocalization();
 
   assetState.accounts = [{id: 3, asset_kind: 'account', account_type: 'tfsa', institution: 'Bank', account_number: '', name: '', latest_amount: null, rollup_amount: null}];
   assetState.categoryTotals = [];

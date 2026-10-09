@@ -149,11 +149,11 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     {% if categories|selectattr('is_active')|list %}
     <form id="expense-import-form" class="setup-form">
       <div id="import-step-file"><label>{{ t('pages_server.expenses.choose_pdfs') }} <input id="expense-import-file" type="file" accept=".pdf,application/pdf" multiple required></label><button id="import-preview-btn" class="secondary-button" type="button" disabled>{{ t('pages_server.expenses.preview') }}</button></div>
-      <p id="expense-import-queue-status" lang="en-CA" class="field-note" role="status" aria-live="polite" hidden></p>
+      <p id="expense-import-queue-status" lang="{{ current_locale }}" class="field-note" role="status" aria-live="polite" hidden></p>
       <div id="expense-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
         <progress aria-label="{{ t('pages_server.expenses.analysing') }}"></progress><span data-analysing-text="{{ t('pages_server.expenses.analysing') }}" data-saving-text="{{ t('pages_server.expenses.saving_expense') }}">{{ t('pages_server.expenses.analysing') }}</span>
       </div>
-      <p id="expense-import-message" lang="en-CA" class="connection-notice error" role="alert" hidden></p>
+      <p id="expense-import-message" lang="{{ current_locale }}" class="connection-notice error" role="alert" hidden></p>
       <div id="import-step-preview" hidden>
         <p class="connection-notice"><strong>{{ t('pages_server.expenses.detected_source') }}</strong> <span id="import-provider"></span></p>
         <p><strong>{{ t('pages_server.expenses.amount') }}:</strong> $<span id="import-amount"></span></p>

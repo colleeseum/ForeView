@@ -4,8 +4,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 function installDom() {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <button class="view-tab" data-type="non_registered"></button><button class="view-tab" data-type="tfsa"></button><button class="view-tab" data-type="rrsp"></button>
     <select id="transaction-account-filter"><option value="">All</option></select>
@@ -37,13 +39,18 @@ test('transactions module loads filters and reconciles the selected account', as
   const attack = '<svg onload=alert(1)>';
   const calls = [];
   let importMode = 'success';
+  let reconcileError = false;
   globalThis.fetch = async (url, options = {}) => {
     calls.push([String(url), options]);
     if (url === '/api/model/accounts') return jsonResponse({accounts: [{id: 1, account_type: 'non_registered', asset_kind: 'account', account_number: 'A1', institution: 'Bank', name: 'Daily'}]});
     if (String(url).startsWith('/api/model/transactions?')) return jsonResponse({transactions: [{transaction_date: '2026-09-01', institution: 'Bank', account_number: 'A1', description: attack, amount: 25, category: attack, balance_after: 125, combined_balance_after: 125}], opening_balances: []});
     if (String(url).startsWith('/api/model/import-history?')) return jsonResponse({imports: [{imported_at: '2026-09-02', filename: attack, account_number: 'A1', row_count: 1}]});
     if (url === '/api/model/accounts/1/reconciliation') return jsonResponse({reconciled_through: '2026-09-01', checkpoints: []});
-    if (url === '/api/model/accounts/1/reconcile') return jsonResponse({difference: 0, reconciled_through: '2026-09-01'});
+    if (url === '/api/model/accounts/1/reconcile') {
+      return reconcileError
+        ? jsonResponse({error: 'Balance is invalid'}, false, 400)
+        : jsonResponse({difference: 0, reconciled_through: '2026-09-01'});
+    }
     if (url === '/api/model/transactions/import') {
       if (importMode === 'conflict') return jsonResponse({confirm_reconciled: true, error: 'Reconciled period'}, false, 409);
       if (importMode === 'error') return jsonResponse({error: 'Unknown document', help_url: '/help'}, false, 400);
@@ -76,6 +83,14 @@ test('transactions module loads filters and reconciles the selected account', as
   assert.equal(document.querySelector('#reconcile-dialog').hidden, true);
   assert.equal(calls.some(([url, options]) => url === '/api/model/accounts/1/reconcile' && options.method === 'POST'), true);
 
+  document.querySelector('#open-reconcile-button').click();
+  reconcileError = true;
+  document.querySelector('#reconcile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+  await wait();
+  assert.match(document.querySelector('#reconcile-result').textContent, /Balance is invalid/);
+  assert.equal(document.querySelector('#reconcile-result').lang, 'en-CA');
+  document.querySelector('#close-reconcile-dialog').click();
+
   document.querySelector('#open-import-button').click();
   assert.equal(document.querySelector('#import-dialog').hidden, false);
   const fileInput = document.querySelector('#transaction-import-form input[type="file"]');
@@ -90,15 +105,23 @@ test('transactions module loads filters and reconciles the selected account', as
 
   document.querySelector('#open-import-button').click();
   importMode = 'conflict';
-  dom.window.confirm = () => false;
+  let confirmationMessage = '';
+  dom.window.confirm = (message) => {
+    confirmationMessage = message;
+    return false;
+  };
   document.querySelector('#transaction-import-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await wait();
+  assert.match(confirmationMessage, /Import anyway/);
+  assert.doesNotMatch(confirmationMessage, /Reconciled period/);
   assert.match(document.querySelector('#import-result').textContent, /Import cancelled/);
+  assert.equal(document.querySelector('#import-result').lang, 'en-CA');
 
   importMode = 'error';
   document.querySelector('#transaction-import-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await wait();
   assert.match(document.querySelector('#import-result').textContent, /Unknown document/);
+  assert.equal(document.querySelector('#import-result').lang, 'en-CA');
   assert.match(document.querySelector('#import-result a').textContent, /Open help/);
   document.querySelector('#close-import-dialog').click();
   assert.equal(document.querySelector('#import-dialog').hidden, true);

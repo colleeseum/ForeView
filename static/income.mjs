@@ -1,10 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {escapeHtml} from './html.mjs';
+import {escapeHtml, htmlWithLanguageSpans, languageSpan} from './html.mjs';
+import {t, locale} from './i18n.mjs';
+import {incomeSourceLabel} from './income-source-label.mjs';
 import {
   configureIncomeCorrections,
   correctionPresentation,
+  incomeConceptHasLocalizedLabel,
+  incomeConceptLabel,
   initializeIncomeCorrections,
   openIncomeCorrection,
 } from './income-corrections.mjs';
@@ -46,14 +50,20 @@ let pendingTaxReturn = null;
 const defaultTaxYear = elements.form.elements.tax_year.value;
 
 function money(value) {
-  return Number(value || 0).toLocaleString('en-CA', {
+  return Number(value || 0).toLocaleString(locale, {
     style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
   });
 }
 
-function showMessage(message, error = false) {
-  elements.message.textContent = message;
+function showMessage(message, error = false, language = locale, html = false) {
+  if (html) elements.message.innerHTML = message;
+  else elements.message.textContent = message;
   elements.message.classList.toggle('error', error);
+  elements.message.lang = language;
+}
+
+function showError(error) {
+  showMessage(error.message, true, error.language || 'en-CA');
 }
 
 function selectedPerson() {
@@ -87,11 +97,41 @@ function normalizedName(value) {
   return String(value || '').toLocaleLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 }
 
+const pensionContributionAssumptions = new Set(['continue', 'stop']);
+const registeredPlanTypes = new Set(['RRSP', 'TFSA', 'FHSA', 'RESP']);
+const taxDocumentKinds = new Set(['return', 'assessment', 'annual_record', 'correction']);
+
+function pensionContributionAssumptionLabel(assumption) {
+  return pensionContributionAssumptions.has(assumption)
+    ? t(`income.pension_assumptions.${assumption}`)
+    : assumption || '';
+}
+
+function registeredPlanLabel(planType) {
+  return registeredPlanTypes.has(planType)
+    ? t(`income.registered_plans.${planType.toLowerCase()}`)
+    : planType || '';
+}
+
+function taxDocumentKindLabel(documentKind) {
+  return taxDocumentKinds.has(documentKind)
+    ? t(`income.document_kinds.${documentKind}`)
+    : documentKind || '';
+}
+
+function taxConceptDescriptionHtml(value) {
+  const sourceLabel = value.description ?? value.label ?? '';
+  return incomeConceptHasLocalizedLabel(value.concept)
+    ? escapeHtml(incomeConceptLabel({concept: value.concept, label: sourceLabel}))
+    : languageSpan(sourceLabel);
+}
+
 async function json(response) {
   const result = await response.json();
   if (!response.ok) {
-    const error = new Error(result.error || 'Request failed');
+    const error = new Error(result.error || t('income.request_failed'));
     error.status = response.status;
+    error.language = result.error ? 'en-CA' : locale;
     throw error;
   }
   return result;
@@ -105,11 +145,11 @@ function renderTabs() {
 
 function renderHistory() {
   if (!records.length) {
-    elements.history.innerHTML = '<p class="empty-panel">No filed return or manual annual record has been saved.</p>';
+    elements.history.innerHTML = `<p class="empty-panel">${t('income.no_history')}</p>`;
     return;
   }
   const body = records.map((record, index) => `<tr>
-    <th>${record.year}${index === 0 ? ' <span class="latest-record">Latest</span>' : ''}</th>
+    <th>${record.year}${index === 0 ? ` <span class="latest-record">${t('income.latest')}</span>` : ''}</th>
     <td>${escapeHtml(record.province_of_residence || '—')}</td>
     <td>${money(record.employment_income)}</td><td>${money(record.bonus)}</td>
     <td><strong>${money(record.salary_rate)}</strong></td><td>${money(record.other_income)}</td>
@@ -119,30 +159,30 @@ function renderHistory() {
     <td>${money(record.rrsp_contribution)}</td><td>${money(record.rrsp_deduction)}</td>
     <td>${money(record.federal_tax)}</td><td>${money(record.provincial_tax)}</td>
     <td><strong>${money(record.disposable_income)}</strong></td>
-    <td>${escapeHtml(record.source)}</td>
-    <td><button class="table-action" type="button" data-edit-year="${record.year}">Edit</button></td>
+    <td>${escapeHtml(incomeSourceLabel(record.source))}</td>
+    <td><button class="table-action" type="button" data-edit-year="${record.year}">${t('income.edit')}</button></td>
   </tr>`).join('');
   elements.history.innerHTML = `<div class="table-wrap"><table class="income-history-table">
-    <thead><tr><th>Year</th><th>Residence</th><th>Employment income</th><th>Bonus</th><th>Salary rate</th>
-    <th>Other employment income</th><th>Interest and investment income</th><th>Employment gross</th><th>CPP/QPP</th><th>EI</th><th>QPIP</th>
-    <th>RRSP contribution</th><th>RRSP deduction</th><th>Federal tax</th>
-    <th>Provincial tax</th><th>Disposable</th><th>Source</th><th></th></tr></thead>
+    <thead><tr><th>${t('income.year')}</th><th>${t('income.residence')}</th><th>${t('income.employment')}</th><th>${t('income.bonus')}</th><th>${t('income.salary_rate')}</th>
+    <th>${t('income.other_employment')}</th><th>${t('income.interest')}</th><th>${t('income.employment_gross')}</th><th>${t('financial.cpp_qpp')}</th><th>${t('financial.ei')}</th><th>${t('financial.qpip')}</th>
+    <th>${t('income.rrsp_contribution')}</th><th>${t('income.rrsp_deduction')}</th><th>${t('income.federal_tax')}</th>
+    <th>${t('income.provincial_tax')}</th><th>${t('income.disposable')}</th><th>${t('income.source')}</th><th></th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
 }
 
 function sourceNote(value) {
   const details = [
-    value.source,
-    value.document_kind === 'assessment' ? 'assessed' : value.document_kind === 'return' ? 'filed return' : 'annual record',
+    incomeSourceLabel(value.source),
+    value.document_kind === 'assessment' ? t('income.assessed') : value.document_kind === 'return' ? t('income.filed_return') : t('income.annual_record'),
     value.jurisdiction,
-    value.line_code ? `line ${value.line_code}` : null,
+    value.line_code ? t('income.line', {code: value.line_code}) : null,
   ].filter(Boolean);
   return details.map(escapeHtml).join(' · ');
 }
 
 function renderSummary(snapshot, rooms) {
   if (!snapshot) {
-    elements.summary.innerHTML = '<section class="income-summary-panel"><h2 class="income-summary-heading">Latest consolidated snapshot</h2><p class="empty-panel">No annual tax or income facts are available.</p></section>';
+    elements.summary.innerHTML = `<section class="income-summary-panel"><h2 class="income-summary-heading">${t('income.snapshot')}</h2><p class="empty-panel">${t('income.no_facts')}</p></section>`;
     return;
   }
   const optionalIncome = new Set([
@@ -158,14 +198,14 @@ function renderSummary(snapshot, rooms) {
       const correction = presentation?.correction;
       const underlying = correction?.current_underlying;
       const note = correction
-        ? `User correction · Underlying: ${sourceNote(underlying)}`
+        ? `${t('income.user_correction')} · ${t('income.underlying')}: ${sourceNote(underlying)}`
         : sourceNote(value);
       return `<div class="income-summary-value${presentation ? ' corrected' : ''}${presentation?.reviewRequired ? ' review-required' : ''}">
-      <span class="income-summary-label">${escapeHtml(value.label)}</span>
+      <span class="income-summary-label">${taxConceptDescriptionHtml(value)}</span>
       <strong class="income-summary-amount">${money(value.amount)}</strong>
       ${presentation ? `<span class="income-correction-badge">${escapeHtml(presentation.badge)}</span>` : ''}
       <small class="income-summary-note">${note}</small>
-      <button class="income-correction-action" type="button" data-correct-concept="${escapeHtml(value.concept)}">${presentation ? escapeHtml(presentation.action) : 'Correct'}</button>
+      <button class="income-correction-action" type="button" data-correct-concept="${escapeHtml(value.concept)}">${presentation ? escapeHtml(presentation.action) : t('income.correct')}</button>
     </div>`;
     });
   const latestRooms = new Map();
@@ -174,7 +214,7 @@ function renderSummary(snapshot, rooms) {
   }
   for (const room of latestRooms.values()) {
     cards.push(`<div class="income-summary-value income-summary-room">
-      <span class="income-summary-label">${escapeHtml(room.plan_type)} available room</span>
+      <span class="income-summary-label">${escapeHtml(t('income.available_room', {plan: registeredPlanLabel(room.plan_type)}))}</span>
       <strong class="income-summary-amount">${money(room.available_room)}</strong>
       <small class="income-summary-note">${room.effective_year} · ${escapeHtml(room.source)}</small>
     </div>`);
@@ -182,11 +222,11 @@ function renderSummary(snapshot, rooms) {
   elements.summary.innerHTML = `<section class="income-summary-panel">
     <div class="income-summary-heading">
       <div>
-        <p class="eyebrow">${selectedSnapshotYear ? 'Historical' : 'Latest'} consolidated snapshot</p>
-        <h2 class="income-summary-title">Tax year ${snapshot.tax_year}</h2>
+        <p class="eyebrow">${t(selectedSnapshotYear ? 'income.historical_snapshot' : 'income.latest_snapshot')}</p>
+        <h2 class="income-summary-title">${t('income.tax_year', {year: snapshot.tax_year})}</h2>
       </div>
-      <label class="income-year-filter">View tax year<select data-income-snapshot-year>${yearOptions}</select></label>
-      <p class="income-summary-note">Assessed values take precedence over the filed return for the same year. Each value retains its source.</p>
+      <label class="income-year-filter">${t('income.view_tax_year')}<select data-income-snapshot-year>${yearOptions}</select></label>
+      <p class="income-summary-note">${t('income.precedence_note')}</p>
     </div>
     <div class="income-summary-grid">${cards.join('')}</div>
   </section>`;
@@ -194,13 +234,13 @@ function renderSummary(snapshot, rooms) {
 
 function renderSupplementary(assessments, rooms, pension, taxValues) {
   const roomRows = rooms.map((item) => `<tr>
-    <td>${escapeHtml(item.plan_type)}</td><td>${item.effective_year}</td><td>${money(item.available_room)}</td>
+    <td>${escapeHtml(registeredPlanLabel(item.plan_type))}</td><td>${item.effective_year}</td><td>${money(item.available_room)}</td>
     <td>${money(item.deduction_limit)}</td><td>${money(item.unused_contributions)}</td>
     <td>${escapeHtml(item.as_of_date)}</td><td>${escapeHtml(item.source)}</td>
   </tr>`).join('');
 
   const pensionEstimates = pension?.estimates?.map((item) => `<tr>
-    <td>${escapeHtml(item.contribution_assumption)}</td><td>${item.activation_age}</td>
+    <td>${escapeHtml(pensionContributionAssumptionLabel(item.contribution_assumption))}</td><td>${item.activation_age}</td>
     <td>${money(item.monthly_amount)}</td>
   </tr>`).join('') || '';
 
@@ -212,9 +252,9 @@ function renderSupplementary(assessments, rooms, pension, taxValues) {
   const taxHistoryRows = taxValues
     .filter((value) => value.document_kind === 'return')
     .map((item) => `<tr class="tax-history-row">
-      <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
+      <td>${item.tax_year}</td><td>${escapeHtml(taxDocumentKindLabel(item.document_kind))}</td>
       <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
-      <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
+      <td>${escapeHtml(item.line_code || '—')}</td><td>${taxConceptDescriptionHtml(item)}</td>
       <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
       <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
       <td>${escapeHtml(item.source)}</td>
@@ -230,9 +270,9 @@ function renderSupplementary(assessments, rooms, pension, taxValues) {
   const normalizedRows = taxValues
     .filter((value) => value.document_kind !== 'return')
     .map((item) => `<tr class="normalized-row">
-      <td>${item.tax_year}</td><td>${escapeHtml(item.document_kind)}</td>
+      <td>${item.tax_year}</td><td>${escapeHtml(taxDocumentKindLabel(item.document_kind))}</td>
       <td>${escapeHtml(item.jurisdiction)}</td><td>${item.effective_year}</td>
-      <td>${escapeHtml(item.line_code || '—')}</td><td>${escapeHtml(item.description)}</td>
+      <td>${escapeHtml(item.line_code || '—')}</td><td>${taxConceptDescriptionHtml(item)}</td>
       <td>${item.reported_amount === null ? '—' : money(item.reported_amount)}</td>
       <td>${item.determined_amount === null ? '—' : money(item.determined_amount)}</td>
       <td>${escapeHtml(item.source)}</td>
@@ -240,40 +280,47 @@ function renderSupplementary(assessments, rooms, pension, taxValues) {
 
   elements.taxReturns.innerHTML = taxHistoryRows
     ? `<div class="table-wrap"><table class="income-history-table">
-      <thead><tr><th>Year</th><th>Doc</th><th>Jurisdiction</th><th>Eff. Year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead>
+      <thead><tr>${taxValueHeadings()}</tr></thead>
       <tbody>${taxHistoryRows}</tbody></table></div>`
-    : '<p class="empty-panel">No tax returns or manual records available.</p>';
+    : `<p class="empty-panel">${t('income.no_tax_returns')}</p>`;
 
   elements.assessments.innerHTML = assessmentRowsFull
     ? `<div class="table-wrap"><table class="income-assessments-table">
-      <thead><tr><th>Year</th><th>Jurisdiction</th><th>Issued</th><th>Total</th><th>Net</th><th>Taxable</th><th>Net Tax</th><th>Other</th><th>Withheld</th><th>Balance</th><th>Source</th></tr></thead>
+      <thead><tr><th>${t('income.year')}</th><th>${t('income.jurisdiction')}</th><th>${t('income.issued')}</th><th>${t('income.total')}</th><th>${t('income.net')}</th><th>${t('income.taxable')}</th><th>${t('income.net_tax')}</th><th>${t('income.other')}</th><th>${t('income.withheld')}</th><th>${t('income.balance')}</th><th>${t('income.source')}</th></tr></thead>
       <tbody>${assessmentRowsFull}</tbody></table></div>`
-    : '<p class="empty-panel">No assessment records loaded.</p>';
+    : `<p class="empty-panel">${t('income.no_assessments')}</p>`;
 
   elements.rooms.innerHTML = roomRows
     ? `<div class="table-wrap"><table class="income-rooms-table">
-      <thead><tr><th>Plan</th><th>Eff. Year</th><th>Available</th><th>Limit</th><th>Unused</th><th>As of</th><th>Source</th></tr></thead>
+      <thead><tr><th>${t('income.plan')}</th><th>${t('income.effective_year')}</th><th>${t('income.available')}</th><th>${t('income.limit')}</th><th>${t('income.unused')}</th><th>${t('income.as_of')}</th><th>${t('income.source')}</th></tr></thead>
       <tbody>${roomRows}</tbody></table></div>`
-    : '<p class="empty-panel">No room records loaded.</p>';
+    : `<p class="empty-panel">${t('income.no_rooms')}</p>`;
 
   elements.pension.innerHTML = pension
     ? `<div class="pension-details">
          <div class="table-wrap"><table class="income-pension-table">
-           <thead><tr><th>Assumption</th><th>Age</th><th>Monthly</th></tr></thead>
+           <thead><tr><th>${t('income.assumption')}</th><th>${t('income.age')}</th><th>${t('income.monthly')}</th></tr></thead>
            <tbody>${pensionEstimates}</tbody>
          </table></div>
          <div class="table-wrap"><table class="income-pension-earnings-table">
-           <thead><tr><th>Year</th><th>QPP</th><th>CPP</th><th>Status</th></tr></thead>
+           <thead><tr><th>${t('income.year')}</th><th>${t('financial.qpp')}</th><th>${t('financial.cpp')}</th><th>${t('income.status')}</th></tr></thead>
            <tbody>${pensionEarnings}</tbody>
          </table></div>
        </div>`
-    : '<p class="empty-panel">No pension data loaded.</p>';
+    : `<p class="empty-panel">${t('income.no_pension')}</p>`;
 
   elements.normalized.innerHTML = normalizedRows
     ? `<div class="table-wrap"><table class="income-normalized-table">
-      <thead><tr><th>Year</th><th>Doc</th><th>Jurisdiction</th><th>Eff. Year</th><th>Line</th><th>Concept</th><th>Reported</th><th>Determined</th><th>Source</th></tr></thead>
+      <thead><tr>${taxValueHeadings()}</tr></thead>
       <tbody>${normalizedRows}</tbody></table></div>`
-    : '<p class="empty-panel">No normalized concept values loaded.</p>';
+    : `<p class="empty-panel">${t('income.no_normalized')}</p>`;
+}
+
+function taxValueHeadings() {
+  return [
+    'year', 'document_short', 'jurisdiction', 'effective_year', 'line_heading',
+    'concept', 'reported', 'determined', 'source',
+  ].map((key) => `<th>${t(`income.${key}`)}</th>`).join('');
 }
 
 function updateSalaryRate() {
@@ -300,7 +347,7 @@ function openEditor(record = {}) {
   fillForm(record);
   if (elements.editorPerson) {
     const personName = record.taxpayer_name || selectedPerson()?.name;
-    elements.editorPerson.textContent = personName ? `Person: ${personName}` : '';
+    elements.editorPerson.textContent = personName ? t('income.person', {name: personName}) : '';
   }
   elements.editor.hidden = false;
 }
@@ -313,7 +360,7 @@ async function load() {
   }
   renderTabs();
   if (!selectedPersonId) {
-    showMessage('Add a person in Setup before recording income.', true);
+    showMessage(t('income.add_person_first'), true);
     elements.add.disabled = true;
     elements.importButton.disabled = true;
     records = [];
@@ -341,8 +388,8 @@ async function load() {
     result.tax_values || [],
   );
   showMessage(records.length
-    ? `${records.length} annual record${records.length === 1 ? '' : 's'}, newest first.`
-    : 'No annual employment records have been saved.');
+    ? t(records.length === 1 ? 'income.record_count' : 'income.record_count_plural', {count: records.length})
+    : t('income.no_employment_records'));
 }
 
 elements.tabs.addEventListener('click', (event) => {
@@ -350,14 +397,14 @@ elements.tabs.addEventListener('click', (event) => {
   if (!tab) return;
   selectedPersonId = Number(tab.dataset.personId);
   selectedSnapshotYear = null;
-  load().catch((error) => showMessage(error.message, true));
+  load().catch(showError);
 });
 elements.summary.addEventListener('change', (event) => {
   const filter = event.target.closest('[data-income-snapshot-year]');
   if (!filter) return;
   const year = Number(filter.value);
   selectedSnapshotYear = year === latestSnapshotYear ? null : year;
-  load().catch((error) => showMessage(error.message, true));
+  load().catch(showError);
 });
 elements.summary.addEventListener('click', (event) => {
   const button = event.target.closest('[data-correct-concept]');
@@ -398,7 +445,9 @@ elements.importForm.addEventListener('submit', async (event) => {
         (person) => normalizedName(person.name) === normalizedName(preview.taxpayer_name),
       );
       if (!taxpayer) {
-        throw new Error(`This PDF is for ${preview.taxpayer_name}, but that person is not configured. Nothing was loaded.`);
+        const error = new Error(t('income.person_not_configured', {name: preview.taxpayer_name}));
+        error.language = locale;
+        throw error;
       }
       selectedPersonId = taxpayer.id;
       renderTabs();
@@ -415,22 +464,29 @@ elements.importForm.addEventListener('submit', async (event) => {
       elements.importConfirm.hidden = false;
       elements.importPreview.hidden = true;
       if (preview.kind === 'tax_assessment') {
-        elements.importReview.innerHTML = `<h3>${escapeHtml(preview.source_name)}</h3>
-          <p>${preview.tax_year}, issued ${escapeHtml(preview.issued_on)}. Net tax ${money(preview.net_tax)}; balance ${money(preview.balance)}.</p>
-          ${preview.rrsp_effective_year ? `<p>RRSP room for ${preview.rrsp_effective_year}: <strong>${money(preview.rrsp_available_room)}</strong>.</p>` : ''}
-          <p>${preview.tax_values?.length || 0} detailed tax concepts will be retained.</p>`;
+        const conceptCount = preview.tax_values?.length || 0;
+        elements.importReview.innerHTML = `<h3>${languageSpan(preview.source_name)}</h3>
+          <p>${escapeHtml(t('income.assessment_preview', {year: preview.tax_year, issued: preview.issued_on, tax: money(preview.net_tax), balance: money(preview.balance)}))}</p>
+          ${preview.rrsp_effective_year ? `<p>${escapeHtml(t('income.rrsp_room_preview', {year: preview.rrsp_effective_year, amount: money(preview.rrsp_available_room)}))}</p>` : ''}
+          <p>${escapeHtml(t(conceptCount === 1 ? 'income.concept_retained' : 'income.concepts_retained', {count: conceptCount}))}</p>`;
       } else {
-        elements.importReview.innerHTML = `<h3>${escapeHtml(preview.source_name)}</h3>
-          <p>Issued ${escapeHtml(preview.issued_on)} with ${preview.earnings.length} years of pensionable earnings and ${preview.estimates.length} estimates.</p>
-          ${preview.excludes_second_enhancement ? '<p><strong>The official estimates exclude the second enhancement component.</strong></p>' : ''}`;
+        const years = t(preview.earnings.length === 1 ? 'income.pension_year' : 'income.pension_years', {count: preview.earnings.length});
+        const estimates = t(preview.estimates.length === 1 ? 'income.pension_estimate' : 'income.pension_estimates', {count: preview.estimates.length});
+        elements.importReview.innerHTML = `<h3>${languageSpan(preview.source_name)}</h3>
+          <p>${escapeHtml(t('income.pension_preview', {issued: preview.issued_on, years, estimates}))}</p>
+          ${preview.excludes_second_enhancement ? `<p><strong>${t('income.enhancement_excluded')}</strong></p>` : ''}`;
       }
     }
     const identity = preview.taxpayer_name
-      ? `PDF taxpayer: ${preview.taxpayer_name}. `
-      : 'The PDF did not expose a taxpayer name. Verify the document before saving. ';
-    showMessage(`${identity}${preview.source_name || 'T1'} values loaded for review. Enter any bonus, verify the values, then save.`);
+      ? t('income.pdf_taxpayer', {name: preview.taxpayer_name})
+      : t('income.no_pdf_taxpayer');
+    const loaded = htmlWithLanguageSpans(
+      ({source}) => t('income.loaded_for_review', {source}),
+      {source: preview.source_name || 'T1'},
+    );
+    showMessage(`${escapeHtml(identity)} ${loaded}`, false, locale, true);
   } catch (error) {
-    showMessage(error.message, true);
+    showError(error);
   } finally {
     setImportBusy(false);
   }
@@ -449,9 +505,14 @@ elements.importConfirm.addEventListener('click', async () => {
     elements.importDialog.hidden = true;
     elements.importForm.reset();
     updateImportAction();
-    showMessage(`${sourceName} saved.`);
     await load();
-  } catch (error) { showMessage(error.message, true); }
+    showMessage(
+      htmlWithLanguageSpans(({source}) => t('income.source_saved', {source}), {source: sourceName}),
+      false,
+      locale,
+      true,
+    );
+  } catch (error) { showError(error); }
 });
 elements.form.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -469,9 +530,9 @@ elements.form.addEventListener('submit', async (event) => {
     ).then(json);
     elements.editor.hidden = true;
     pendingTaxReturn = null;
-    showMessage(`${year} annual employment record saved.`);
+    showMessage(t('income.annual_saved', {year}));
     await load();
-  } catch (error) { showMessage(error.message, true); }
+  } catch (error) { showError(error); }
 });
 
 initializeIncomeCorrections({
@@ -480,4 +541,4 @@ initializeIncomeCorrections({
   notify: showMessage,
   money,
 });
-load().catch((error) => showMessage(error.message, true));
+load().catch(showError);

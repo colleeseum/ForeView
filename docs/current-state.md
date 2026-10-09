@@ -43,9 +43,10 @@ expense-source contract supports previewed and confirmed Hydro-Québec bill impo
 import-batch and parser provenance.
 
 A registry-backed localization foundation supports English and French Canadian message catalogs,
-locale fallback, text direction, and a language preference stored with each runtime. The shared
-side menu and selected server-rendered pages use it; application-wide template and browser-text
-localization remains in progress.
+declared locale fallback chains, text direction, and a language preference stored with each
+runtime. The shared side menu, selected server-rendered pages, and primary browser-generated
+workflows use it through a shared browser catalog contract. Remaining localization work includes
+help organization, broader server-rendered coverage, and a unified locale-aware formatting layer.
 
 ## Intentional or known limitations
 
@@ -70,8 +71,8 @@ localization remains in progress.
   removed, or structurally changed government concepts.
 - The application has no authentication or tenant isolation and is suitable only for a trusted
   local environment.
-- Localization is not yet application-wide. Many templates and browser-generated messages remain
-  English-only, and locale-aware number, currency, and date formatting is not implemented.
+- Localization is not yet application-wide. Some templates and help content remain English-only,
+  and locale-aware number, currency, and date formatting is not implemented consistently.
 - The project is source-available under PolyForm Noncommercial 1.0.0. Commercial use requires a
   separate written license from Mindstep Corporation.
 

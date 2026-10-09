@@ -13,10 +13,10 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 <body><main>
   <header><p class="eyebrow">{{ t('core.app.name') }}</p><h1>{{ t('pages.summary.heading') }}</h1><p class="lede">{{ t('pages.summary.lede') }}</p></header>
   <div class="page-shell">{% set active_page = 'summary' %}{% include '_side_menu.html' %}<div class="page-content">
-    <section id="dashboard-metrics" lang="en-CA" class="summary-pill-grid"><p class="empty-panel" lang="{{ current_locale }}" dir="{{ locale_direction }}">{{ t('pages.summary.loading') }}</p></section>
+    <section id="dashboard-metrics" lang="{{ current_locale }}" class="summary-pill-grid"><p class="empty-panel" lang="{{ current_locale }}" dir="{{ locale_direction }}">{{ t('pages.summary.loading') }}</p></section>
     <p class="dashboard-note">{{ t('pages_server.summary.rrsp_note') }}</p>
-    <section class="dashboard-grid"><article class="dashboard-panel"><h2>{{ t('pages_server.summary.by_category') }}</h2><div id="dashboard-categories" lang="en-CA">{{ t('pages_server.common.loading') }}</div></article><article class="dashboard-panel"><h2>{{ t('pages_server.summary.liquidity') }}</h2><div id="dashboard-liquidity" lang="en-CA">{{ t('pages_server.common.loading') }}</div></article><article class="dashboard-panel"><h2>{{ t('pages_server.summary.maturities') }}</h2><div id="dashboard-maturities" lang="en-CA">{{ t('pages_server.common.loading') }}</div></article></section>
-    <section class="dashboard-panel"><h2>{{ t('pages_server.summary.recent_transactions') }}</h2><div id="dashboard-transactions" lang="en-CA">{{ t('pages_server.summary.loading_transactions') }}</div></section>
+    <section class="dashboard-grid"><article class="dashboard-panel"><h2>{{ t('pages_server.summary.by_category') }}</h2><div id="dashboard-categories" lang="{{ current_locale }}">{{ t('pages_server.common.loading') }}</div></article><article class="dashboard-panel"><h2>{{ t('pages_server.summary.liquidity') }}</h2><div id="dashboard-liquidity" lang="{{ current_locale }}">{{ t('pages_server.common.loading') }}</div></article><article class="dashboard-panel"><h2>{{ t('pages_server.summary.maturities') }}</h2><div id="dashboard-maturities" lang="{{ current_locale }}">{{ t('pages_server.common.loading') }}</div></article></section>
+    <section class="dashboard-panel"><h2>{{ t('pages_server.summary.recent_transactions') }}</h2><div id="dashboard-transactions" lang="{{ current_locale }}">{{ t('pages_server.summary.loading_transactions') }}</div></section>
   </div></div>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import {t, locale} from './i18n.mjs';
+
 const expenseDialog = document.querySelector('#expense-dialog-backdrop');
 const categoryDialog = document.querySelector('#category-dialog-backdrop');
 const categoryEditor = document.querySelector('#category-editor-backdrop');
@@ -36,13 +38,13 @@ function openCategoryEditor(button = null) {
     categoryForm.elements.name.value = button.dataset.name;
     categoryForm.elements.classification.value = button.dataset.classification;
     categoryForm.elements.active.value = button.dataset.active;
-    categoryTitle.textContent = categoryTitle.dataset.editText || 'Edit category';
-    categorySave.textContent = categorySave.dataset.saveText || 'Save category';
+    categoryTitle.textContent = categoryTitle.dataset.editText || t('expenses.edit_category');
+    categorySave.textContent = categorySave.dataset.saveText || t('expenses.save_category');
     categoryStatus.hidden = false;
   } else {
     categoryForm.action = categoryForm.dataset.createAction;
-    categoryTitle.textContent = categoryTitle.dataset.addText || 'Add category';
-    categorySave.textContent = categorySave.dataset.createText || 'Create category';
+    categoryTitle.textContent = categoryTitle.dataset.addText || t('expenses.add_category');
+    categorySave.textContent = categorySave.dataset.createText || t('expenses.create_category');
     categoryStatus.hidden = true;
   }
   closeDialog(categoryDialog);
@@ -118,23 +120,25 @@ function initializeExpenseImport() {
     const file = currentFile();
     queueStatus.hidden = pendingFiles.length < 2 || !file;
     queueStatus.textContent = file
-      ? `${savedCount ? `${savedCount} saved. ` : ''}Statement ${currentFileIndex + 1} of ${pendingFiles.length}: ${file.name}`
+      ? `${savedCount ? `${t('expenses.saved_count', {count: savedCount})} ` : ''}${t('expenses.statement_progress', {current: currentFileIndex + 1, total: pendingFiles.length, name: file.name})}`
       : '';
   }
 
   function showError(error) {
     if (!message) return;
     message.textContent = error instanceof Error ? error.message : String(error);
+    message.lang = error?.language || 'en-CA';
     message.hidden = false;
   }
 
   function clearError() {
     if (!message) return;
     message.textContent = '';
+    message.lang = locale;
     message.hidden = true;
   }
 
-  function setBusy(busy, label = progressText?.dataset.analysingText || 'Analysing PDF…') {
+  function setBusy(busy, label = progressText?.dataset.analysingText || t('expenses.analysing')) {
     if (progress) progress.hidden = !busy;
     if (progressText) progressText.textContent = label;
     if (previewButton) previewButton.disabled = busy || !currentFile();
@@ -166,9 +170,17 @@ function initializeExpenseImport() {
     try {
       result = await response.json();
     } catch {
-      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+      if (!response.ok) {
+        const error = new Error(t('expenses.request_failed_status', {status: response.status}));
+        error.language = locale;
+        throw error;
+      }
     }
-    if (!response.ok) throw new Error(result.error || `Request failed (${response.status})`);
+    if (!response.ok) {
+      const error = new Error(result.error || t('expenses.request_failed_status', {status: response.status}));
+      error.language = result.error ? 'en-CA' : locale;
+      throw error;
+    }
     return result;
   }
 
@@ -248,7 +260,7 @@ function initializeExpenseImport() {
     if (!file || !name || !category || !providerKey) return;
     if (!name.reportValidity() || !category.reportValidity()) return;
     clearError();
-    setBusy(true, progressText?.dataset.savingText || 'Saving expense…');
+    setBusy(true, progressText?.dataset.savingText || t('expenses.saving'));
     try {
       const payload = new FormData();
       payload.append('file', file, file.name);

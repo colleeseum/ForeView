@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {formSignature} from './form-state.mjs';
-import {escapeHtml} from './html.mjs';
+import {escapeHtml, htmlWithLanguageSpans} from './html.mjs';
+import {t, locale} from './i18n.mjs';
+import {incomeSourceLabel} from './income-source-label.mjs';
 
 let elements = null;
 
@@ -19,14 +21,53 @@ let reload = null;
 let notify = null;
 let formatMoney = null;
 
+const LOCALIZED_CONCEPTS = new Set([
+  'employment_income',
+  'oas_income',
+  'cpp_qpp_benefits',
+  'other_pension_income',
+  'interest_investment_income',
+  'total_income',
+  'taxable_income',
+  'rrsp_deduction',
+  'net_federal_tax',
+  'provincial_income_tax',
+]);
+
+const LOCALIZED_DOCUMENT_KINDS = new Set([
+  'return',
+  'assessment',
+  'annual_record',
+  'correction',
+]);
+
+export function incomeConceptLabel(value) {
+  return incomeConceptHasLocalizedLabel(value.concept)
+    ? t(`income.concepts.${value.concept}`)
+    : value.label;
+}
+
+export function incomeConceptHasLocalizedLabel(concept) {
+  return LOCALIZED_CONCEPTS.has(concept);
+}
+
+function conceptMessage(key, value) {
+  const label = incomeConceptLabel(value);
+  return incomeConceptHasLocalizedLabel(value.concept)
+    ? escapeHtml(t(key, {label}))
+    : htmlWithLanguageSpans(({label: token}) => t(key, {label: token}), {label});
+}
+
 function sourceDetails(source) {
   return [
-    source?.source,
-    source?.document_kind,
+    incomeSourceLabel(source?.source),
+    LOCALIZED_DOCUMENT_KINDS.has(source?.document_kind)
+      ? t(`income.document_kinds.${source.document_kind}`)
+      : source?.document_kind,
     source?.jurisdiction,
-    source?.line_code ? `line ${source.line_code}` : null,
-    source?.source_version ? `version ${source.source_version}` : null,
-    source?.document_hash ? `document ${source.document_hash}` : null,
+    source?.line_code ? t('income_corrections.line', {code: source.line_code}) : null,
+    source?.source_version ? t('income_corrections.version', {version: source.source_version}) : null,
+    source?.document_hash ? t('income_corrections.document', {hash: source.document_hash}) : null,
   ].filter(Boolean).join(' · ');
 }
 
@@ -43,8 +84,8 @@ function valueSource(value) {
 }
 
 function showSource(amountElement, noteElement, source) {
-  amountElement.textContent = source?.amount == null ? 'No current value' : formatMoney(source.amount);
-  noteElement.textContent = sourceDetails(source) || 'No source provenance is available.';
+  amountElement.textContent = source?.amount == null ? t('income_corrections.no_value') : formatMoney(source.amount);
+  noteElement.textContent = sourceDetails(source) || t('income_corrections.no_provenance');
 }
 
 function signature() {
@@ -64,28 +105,30 @@ function setBusy(busy) {
   if (!busy) updateSaveButton();
 }
 
-function showDialogMessage(message, error = false) {
+function showDialogMessage(message, error = false, language = locale) {
   elements.message.textContent = message;
   elements.message.classList.toggle('error', error);
+  elements.message.lang = language;
 }
 
 function revisionLabel(kind) {
-  return {
-    create: 'Created', edit: 'Edited', confirm: 'Source review confirmed', remove: 'Removed',
-  }[kind] || kind;
+  return t(`income_corrections.revision_${kind}`);
 }
 
 function renderHistory(revisions) {
   if (!revisions.length) {
-    elements.history.innerHTML = '<p class="field-note">No correction revisions exist.</p>';
+    elements.history.innerHTML = `<p class="field-note">${t('income_corrections.no_revisions')}</p>`;
     elements.historyPanel.open = false;
     return;
   }
   elements.history.innerHTML = revisions.slice().reverse().map((revision) => `
     <article class="income-correction-revision">
-      <div><strong>Revision ${revision.revision_number}</strong><span>${escapeHtml(revisionLabel(revision.revision_kind))}</span><time>${escapeHtml(revision.created_at)}</time></div>
-      <p>${revision.correct_amount == null ? 'No effective correction' : formatMoney(revision.correct_amount)} · ${escapeHtml(revision.reason)}</p>
-      <small>Source reviewed: ${revision.source_at_correction.amount == null ? 'none' : formatMoney(revision.source_at_correction.amount)} · ${escapeHtml(sourceDetails(revision.source_at_correction) || 'no provenance')}</small>
+      <div><strong>${t('income_corrections.revision', {number: revision.revision_number})}</strong><span>${escapeHtml(revisionLabel(revision.revision_kind))}</span><time>${escapeHtml(revision.created_at)}</time></div>
+      <p>${revision.correct_amount == null ? t('income_corrections.no_effective') : formatMoney(revision.correct_amount)} · ${escapeHtml(revision.reason)}</p>
+      <small>${escapeHtml(t('income_corrections.source_reviewed', {
+        amount: revision.source_at_correction.amount == null ? t('income_corrections.none') : formatMoney(revision.source_at_correction.amount),
+        provenance: sourceDetails(revision.source_at_correction) || t('income_corrections.no_provenance_short'),
+      }))}</small>
     </article>`).join('');
 }
 
@@ -113,8 +156,8 @@ export function correctionPresentation(concept) {
   return {
     corrected: true,
     reviewRequired: correction.review_required,
-    badge: correction.review_required ? 'Review required' : 'Corrected',
-    action: correction.review_required ? 'Review' : 'Details',
+    badge: correction.review_required ? t('income_corrections.review_required_badge') : t('income_corrections.corrected'),
+    action: correction.review_required ? t('income_corrections.review') : t('income_corrections.details'),
     correction,
   };
 }
@@ -134,13 +177,14 @@ export async function openIncomeCorrection(concept) {
   const sourceAtCorrection = activeCorrection?.source_at_correction || valueSource(activeValue);
   const currentUnderlying = activeCorrection?.current_underlying || valueSource(activeValue);
 
-  elements.title.textContent = activeCorrection
-    ? `${activeValue.label} correction`
-    : `Correct ${activeValue.label.toLocaleLowerCase()}`;
-  elements.context.textContent = `${personName} · Tax year ${snapshot.tax_year}`;
+  elements.title.innerHTML = conceptMessage(
+    activeCorrection ? 'income_corrections.correction_title' : 'income_corrections.correct_title',
+    activeValue,
+  );
+  elements.context.textContent = `${personName} · ${t('income_corrections.tax_year', {year: snapshot.tax_year})}`;
   elements.status.hidden = !activeCorrection?.review_required;
   elements.status.textContent = activeCorrection?.review_required
-    ? 'Review required: the current underlying value or provenance has changed.'
+    ? t('income_corrections.review_required')
     : '';
   elements.status.classList.toggle('review-required', Boolean(activeCorrection?.review_required));
   showSource(elements.sourceAmount, elements.sourceNote, sourceAtCorrection);
@@ -150,14 +194,14 @@ export async function openIncomeCorrection(concept) {
   elements.remove.hidden = !activeCorrection;
   elements.confirm.hidden = !activeCorrection?.review_required;
   showDialogMessage('');
-  elements.history.innerHTML = '<p class="field-note">Loading revision history…</p>';
+  elements.history.innerHTML = `<p class="field-note">${t('income_corrections.loading_history')}</p>`;
   elements.dialog.hidden = false;
   baseline = signature();
   updateSaveButton();
   try {
     await loadHistory();
   } catch (error) {
-    showDialogMessage(error.message, true);
+    showDialogMessage(error.message, true, error.language || 'en-CA');
   }
 }
 
@@ -171,9 +215,9 @@ async function mutation(url, method, payload, successMessage) {
     });
     closeDialog();
     await reload();
-    notify(successMessage);
+    notify(successMessage, false, locale, true);
   } catch (error) {
-    showDialogMessage(error.message, true);
+    showDialogMessage(error.message, true, error.language || 'en-CA');
   } finally {
     setBusy(false);
   }
@@ -216,7 +260,7 @@ export function initializeIncomeCorrections(options) {
         `/api/income/corrections/${activeCorrection.id}`,
         'PUT',
         {...values, expected_revision: activeCorrection.revision_number},
-        `${activeValue.label} correction saved.`,
+        conceptMessage('income_corrections.saved', activeValue),
       );
       return;
     }
@@ -230,7 +274,7 @@ export function initializeIncomeCorrections(options) {
         ...values,
         expected_revision: streamRevision,
       },
-      `${activeValue.label} correction saved.`,
+      conceptMessage('income_corrections.saved', activeValue),
     );
   });
   elements.confirm.addEventListener('click', async () => {
@@ -239,7 +283,7 @@ export function initializeIncomeCorrections(options) {
       `/api/income/corrections/${activeCorrection.id}/confirm`,
       'POST',
       {expected_revision: activeCorrection.revision_number},
-      `${activeValue.label} correction confirmed against the current source.`,
+      conceptMessage('income_corrections.confirmed', activeValue),
     );
   });
   elements.remove.addEventListener('click', async () => {
@@ -248,7 +292,7 @@ export function initializeIncomeCorrections(options) {
       `/api/income/corrections/${activeCorrection.id}`,
       'DELETE',
       {expected_revision: activeCorrection.revision_number},
-      `${activeValue.label} correction removed. Source precedence restored.`,
+      conceptMessage('income_corrections.removed', activeValue),
     );
   });
 }

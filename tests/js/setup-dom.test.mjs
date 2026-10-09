@@ -5,6 +5,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 
+import {configureTestLocalization} from './localization-fixture.mjs';
+
 function form(id, fields) {
   return `<form id="${id}">${fields}<button type="submit" disabled>Save</button></form>`;
 }
@@ -36,9 +38,11 @@ function installDom() {
 const wait = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 test('setup renders safely and submits each configuration form', async () => {
+  configureTestLocalization('fr-CA');
   const dom = installDom();
   const attack = '<img src=x onerror=alert(1)>';
   const requests = [];
+  let rejectAccount = false;
   const people = [{id: 1, name: attack, birth_date: '1970-01-01'}];
   const accounts = [
     {id: 1, asset_kind: 'account', account_type: 'tfsa', institution: 'Bank', account_number: 'A1', name: 'Savings', owners: attack},
@@ -48,6 +52,12 @@ test('setup renders safely and submits each configuration form', async () => {
     requests.push({url, options});
     if (url === '/api/model/people' && !options.method) return {ok: true, json: async () => ({people})};
     if (url === '/api/model/accounts' && !options.method) return {ok: true, json: async () => ({accounts})};
+    if (url === '/api/model/accounts' && options.method === 'POST' && rejectAccount) {
+      return {
+        ok: false,
+        json: async () => ({error: 'At least one account owner is required'}),
+      };
+    }
     return {ok: true, json: async () => ({})};
   };
 
@@ -56,6 +66,10 @@ test('setup renders safely and submits each configuration form', async () => {
   await wait();
 
   assert.equal(document.body.innerHTML.includes(attack), false);
+  assert.match(document.querySelector('#accounts-list').textContent, /CELI/);
+  assert.doesNotMatch(document.querySelector('#accounts-list').textContent, /tfsa/i);
+  assert.match(document.querySelector('#balance-account').textContent, /CELI/);
+  assert.match(document.querySelector('#gic-account').textContent, /CELI/);
   const gicReference = document.querySelector('[data-account-id="2"][data-account-field="account_number"]');
   assert.equal(gicReference.value, 'REF-"2"');
   gicReference.value = 'REF-3';
@@ -84,6 +98,26 @@ test('setup renders safely and submits each configuration form', async () => {
     assert.equal(requests.some(({url, options}) => url === expectedUrl && options.method === 'POST'), true, formId);
   }
 
-  assert.match(document.querySelector('#setup-message').textContent, /created|added|saved/i);
+  assert.match(document.querySelector('#setup-message').textContent, /créé|ajouté|enregistré/i);
+  assert.equal(document.querySelector('#setup-message').lang, 'fr-CA');
+
+  rejectAccount = true;
+  document.querySelector('#account-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await wait();
+  assert.equal(
+    document.querySelector('#setup-message').textContent,
+    'At least one account owner is required',
+  );
+  assert.equal(document.querySelector('#setup-message').lang, 'en-CA');
+
+  rejectAccount = false;
+  document.querySelector('#scenario-form').dispatchEvent(
+    new dom.window.Event('submit', {bubbles: true, cancelable: true}),
+  );
+  await wait();
+  assert.equal(document.querySelector('#setup-message').lang, 'fr-CA');
+  configureTestLocalization();
   dom.window.close();
 });

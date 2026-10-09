@@ -5,10 +5,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const catalog = {
+  language: 'en-CA',
   tooltips: [
     {key: 'salary-rate', title: 'Salary rate', body: 'Income minus bonus.'},
   ],
@@ -20,7 +22,8 @@ const catalog = {
   ],
 };
 
-function installDom(url = 'http://localhost/income', pageArticle = null) {
+function installDom(url = 'http://localhost/income', pageArticle = null, locale = 'en-CA') {
+  configureTestLocalization(locale);
   const helpAttribute = pageArticle ? ` data-help-article="${pageArticle}"` : '';
   const dom = new JSDOM(`<!doctype html><body><main><header${helpAttribute}><h1>Income</h1></header></main>
     <button data-help-tooltip="salary-rate">?</button>
@@ -81,12 +84,36 @@ test('full help opens the Expenses article from the Expenses page', async () => 
 });
 
 test('full help reports a catalog loading failure', async () => {
-  const dom = installDom('http://localhost/about');
+  const dom = installDom('http://localhost/about', null, 'fr-CA');
   globalThis.fetch = async () => ({ok: false, json: async () => ({error: 'Unavailable'})});
   await import(`../../static/help.mjs?failure=${Date.now()}`);
   document.querySelector('.full-help-button').click();
   await tick();
-  assert.equal(document.querySelector('.help-article h2').textContent, 'Help unavailable');
+  assert.equal(document.querySelector('.help-article h2').textContent, 'Aide indisponible');
   assert.equal(document.querySelector('.help-article-body').textContent, 'Unavailable');
+  assert.equal(document.querySelector('.help-article-body').lang, 'en-CA');
+  configureTestLocalization();
+  dom.window.close();
+});
+
+test('full help localizes its browser-generated controls', async () => {
+  const dom = installDom('http://localhost/income', null, 'fr-CA');
+  globalThis.fetch = async () => ({ok: true, json: async () => catalog});
+  await import(`../../static/help.mjs?french=${Date.now()}`);
+
+  const fullHelp = document.querySelector('.full-help-button');
+  assert.equal(fullHelp.title, 'Aide complète');
+  fullHelp.click();
+  await tick();
+  assert.equal(document.querySelector('#full-help-title').textContent, 'Aide');
+  assert.equal(document.querySelector('#help-search').placeholder, 'Rechercher par mot-clé');
+  assert.equal(document.querySelector('.help-results').lang, 'en-CA');
+  assert.equal(document.querySelector('.help-article h2').lang, 'en-CA');
+  assert.equal(document.querySelector('.help-article-summary').lang, 'en-CA');
+  assert.equal(document.querySelector('.help-article-body').lang, 'en-CA');
+  document.querySelector('[data-help-tooltip="salary-rate"]').click();
+  await tick();
+  assert.equal(document.querySelector('.help-tooltip').lang, 'en-CA');
+  configureTestLocalization();
   dom.window.close();
 });

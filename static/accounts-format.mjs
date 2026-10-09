@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import {locale} from './i18n.mjs';
+
 const securityInstitutions = new Set(['questrade', 'sunlife', 'sun life', 'manulife']);
 
 export function money(value, blankForNull = false) {
   if (blankForNull && value == null) return '';
-  return Number(value || 0).toLocaleString(undefined, {
+  return Number(value || 0).toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

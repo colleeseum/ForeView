@@ -3,6 +3,7 @@
 
 import io
 import json
+import re
 import sqlite3
 import tempfile
 import unittest
@@ -58,6 +59,15 @@ class AppRouteTests(unittest.TestCase):
         response = self.client.get("/api/model/people")
         self.assertEqual(response.status_code, 200)
         return response.get_json()["people"]
+
+    @staticmethod
+    def _visible_html(response):
+        return re.sub(
+            rb'<script id="browser-localization"[^>]*>.*?</script>',
+            b"",
+            response.data,
+            flags=re.DOTALL,
+        )
 
     def test_account_api_exposes_registered_account_type_contract(self):
         response = self.client.get("/api/model/accounts")
@@ -137,7 +147,7 @@ class AppRouteTests(unittest.TestCase):
 
         page = self.client.get("/expenses?year=2028")
         self.assertEqual(page.status_code, 200)
-        self.assertIn(b"Review required", page.data)
+        self.assertIn(b"Review required", self._visible_html(page))
         self.assertIn(b"Hydro", page.data)
         self.assertIn(b'id="expense-add"', page.data)
         self.assertIn(b'id="expense-categories"', page.data)
@@ -165,7 +175,7 @@ class AppRouteTests(unittest.TestCase):
             b"do not imply that every expense has been recorded",
             resolved_page.data,
         )
-        self.assertNotIn(b"Review required", resolved_page.data)
+        self.assertNotIn(b"Review required", self._visible_html(resolved_page))
         self.assertIn(b'class="dashboard-panel expense-record-details">', resolved_page.data)
 
         invalid = self.client.post("/api/expenses/manual", json={})
@@ -242,7 +252,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(hydro.get_json()["overlap_status"], "clear")
         self.assertEqual(energir.get_json()["overlap_status"], "clear")
         page = self.client.get("/expenses?year=2027")
-        self.assertNotIn(b"Review required", page.data)
+        self.assertNotIn(b"Review required", self._visible_html(page))
         self.assertIn(b'<label>View year<select id="expense-year-select"', page.data)
         self.assertIn(b'<option value="2027" selected>2027</option>', page.data)
         self.assertIn(b"Recorded total", page.data)
@@ -302,7 +312,8 @@ class AppRouteTests(unittest.TestCase):
         ]
         self.assertEqual(hydro_statuses, ["potential", "potential"])
         self.assertEqual(energir_statuses, ["clear"])
-        self.assertIn(b"Review required", self.client.get("/expenses?year=2027").data)
+        review_page = self.client.get("/expenses?year=2027")
+        self.assertIn(b"Review required", self._visible_html(review_page))
 
         included = self.client.post(
             f"/api/expenses/{hydro.get_json()['id']}/overlap",
@@ -316,7 +327,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(excluded.status_code, 200)
 
         resolved = self.client.get("/expenses?year=2027")
-        self.assertNotIn(b"Review required", resolved.data)
+        self.assertNotIn(b"Review required", self._visible_html(resolved))
         self.assertIn(b"$4293.00", resolved.data)
         self.assertIn(b"Unavailable", resolved.data)
 
@@ -392,6 +403,17 @@ class AppRouteTests(unittest.TestCase):
                     self.assertIn("javascript", response.content_type)
                 finally:
                     response.close()
+
+    def test_setup_exposes_browser_localization_before_its_module(self):
+        self.app.extensions["localization"].select("fr-CA")
+        page = self.client.get("/setup")
+
+        self.assertEqual(page.status_code, 200)
+        localization_position = page.data.index(b'id="browser-localization"')
+        module_position = page.data.index(b"setup.mjs")
+        self.assertLess(localization_position, module_position)
+        self.assertIn(b'"locale": "fr-CA"', page.data)
+        self.assertIn(b'"birth_date": "Date de naissance"', page.data)
 
     def test_salary_projection_api_persists_inputs_and_calculates_household(self):
         person_id = self._people()[0]["id"]
@@ -957,6 +979,7 @@ class AppRouteTests(unittest.TestCase):
 
         help_response = self.client.get("/api/help")
         self.assertEqual(help_response.status_code, 200)
+        self.assertEqual(help_response.get_json()["language"], "en-CA")
         approval_help = next(
             article
             for article in help_response.get_json()["articles"]

@@ -24,7 +24,12 @@
     "version": "Version",
     "optional": "Optional",
     "optional_description": "Optional description",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "account_types": {
+      "tfsa": "TFSA",
+      "rrsp": "RRSP",
+      "resp": "RESP"
+    }
   },
   "summary": {
     "rrsp_note": "RRSP uninvested value is shown separately because withdrawals are taxable and restricted by the retirement plan.",
@@ -355,6 +360,7 @@
     "disclaimer": "Projections are estimates for planning purposes only, are not financial, tax, investment, accounting, or legal advice, and important results should be independently verified.",
     "full_disclaimer": "Full disclaimer",
     "scenario": "Scenario",
+    "person_tabs": "Projection person",
     "from": "From",
     "to": "To",
     "discard": "Discard",

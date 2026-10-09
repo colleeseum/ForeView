@@ -25,4 +25,5 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     <a{% if active_page == 'about' %} class="active"{% endif %} href="{{ url_for('pages.about_page') }}">{{ t('core.nav.about') }}</a>
   </section>
 </aside>
+{% include '_browser_localization.html' %}
 <script type="module" src="{{ url_for('static', filename='help.mjs', v='20261006-1') }}"></script>

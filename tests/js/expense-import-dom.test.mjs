@@ -5,10 +5,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 test('expense import reviews parser evidence and displays confirmation errors', async () => {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <button id="expense-add"></button><button id="expense-categories"></button>
     <div id="expense-dialog-backdrop" hidden><section><button id="expense-dialog-close" class="dialog-close"></button><button id="expense-dialog-cancel"></button><button id="expense-open-categories"></button></section></div>
@@ -119,6 +121,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.equal(document.querySelector('#import-step-preview').hidden, true);
   assert.equal(document.querySelector('#import-confirm').hidden, true);
   assert.match(document.querySelector('#expense-import-message').textContent, /could not be analysed/);
+  assert.equal(document.querySelector('#expense-import-message').lang, 'en-CA');
 
   Object.defineProperty(fileInput, 'files', {
     configurable: true,
@@ -151,6 +154,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   await tick();
   assert.equal(document.querySelector('#expense-import-message').hidden, false);
   assert.match(document.querySelector('#expense-import-message').textContent, /no longer active/);
+  assert.equal(document.querySelector('#expense-import-message').lang, 'en-CA');
 
   document.querySelector('#import-open-categories').click();
   assert.equal(document.querySelector('#expense-import-dialog-backdrop').hidden, true);

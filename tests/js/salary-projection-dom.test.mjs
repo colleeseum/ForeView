@@ -5,6 +5,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
+
+configureTestLocalization();
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -66,12 +69,16 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   globalThis.FormData = dom.window.FormData;
   globalThis.URLSearchParams = dom.window.URLSearchParams;
   const calls = [];
+  let projectionError = false;
   globalThis.fetch = async (url, options = {}) => {
     calls.push({url: String(url), options});
     if (String(url).endsWith('/clone')) {
       return {ok: true, json: async () => ({id: 4, name: 'Higher raise'})};
     }
     if (String(url).startsWith('/api/salary-projection?')) {
+      if (projectionError) {
+        return {ok: false, json: async () => ({error: 'Projection range is too long'})};
+      }
       const result = model();
       if (String(url).includes('scenario_id=4')) {
         result.scenarios.push({id: 4, name: 'Higher raise'});
@@ -159,6 +166,11 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   document.querySelector('#salary-view').click();
   await tick();
   assert.ok(calls.filter((item) => item.url.startsWith('/api/salary-projection?')).length >= 4);
+  projectionError = true;
+  document.querySelector('#salary-view').click();
+  await tick();
+  assert.match(document.querySelector('#salary-message').textContent, /Projection range is too long/);
+  assert.equal(document.querySelector('#salary-message').lang, 'en-CA');
 });
 
 test('salary projection helpers render actual and manual override states', async () => {
@@ -179,6 +191,23 @@ test('salary projection helpers render actual and manual override states', async
   assert.match(module.projectionTable([{...actual, source: null}]), /Recorded/);
   assert.match(module.projectionTable([{...projection(2026), annual_salary_rate: 0, raise_rate: 0}], {editable: true}), /value="0.00"/);
   assert.equal(module.householdRows([{year: 2026}])[0].age, null);
+
+  configureTestLocalization('fr-CA');
+  const french = module.projectionTable([projection(2026)]);
+  assert.match(french, />RPC\/RRQ</);
+  assert.match(french, />AE</);
+  assert.match(french, />RQAP</);
+  assert.doesNotMatch(french, />CPP\/QPP</);
+  assert.doesNotMatch(french, />EI</);
+  assert.doesNotMatch(french, />QPIP</);
+  const frenchSources = module.projectionTable([
+    {...actual, source: 'Manual'},
+    {...actual, year: 2024, source: 'Assessment'},
+  ]);
+  assert.match(frenchSources, /Saisie manuelle/);
+  assert.doesNotMatch(frenchSources, />Manual</);
+  assert.match(frenchSources, /Assessment/);
+  configureTestLocalization();
 });
 
 test('salary projection explains missing scenarios without mutating data', async () => {
@@ -194,13 +223,15 @@ test('salary projection explains missing scenarios without mutating data', async
   await import(`../../static/salary-projection.mjs?empty=${Date.now()}`);
   await tick();
   assert.match(document.querySelector('#salary-table').innerHTML, /Create a scenario/);
+  assert.equal(document.querySelector('#salary-table a').getAttribute('href'), '/setup');
+  assert.equal(document.querySelector('#salary-table a').textContent, 'Go to Setup');
   assert.equal(document.querySelector('#salary-setup').hidden, true);
 });
 
 test('salary projection shows defaults and a per-person calculation error', async () => {
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
-    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup"></section>
+    <p id="salary-message"></p><nav id="salary-tabs"></nav><section id="salary-setup"><p id="salary-source-note"></p></section>
     <form id="salary-settings-form"><input name="default_raise"><input name="retirement_date"><button id="salary-save" type="submit"></button></form>
     <div id="salary-table"></div></body>`, {url: 'http://localhost/salary-projection'});
   globalThis.window = dom.window;
@@ -217,5 +248,8 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   assert.equal(document.querySelector('[name="default_raise"]').value, '0');
   assert.match(document.querySelector('#salary-message').textContent, /factual Income record/);
   assert.equal(document.querySelector('#salary-message').classList.contains('error'), true);
+  assert.equal(document.querySelector('#salary-message').lang, 'en-CA');
+  assert.equal(document.querySelector('#salary-source-note a').getAttribute('href'), '/income');
+  assert.equal(document.querySelector('#salary-source-note a').textContent, 'Go to Income');
   document.querySelector('#salary-tabs').click();
 });

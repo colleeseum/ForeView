@@ -4,8 +4,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 test('dashboard renders escaped financial summaries', async () => {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <div id="dashboard-metrics"></div><div id="dashboard-categories"></div>
     <div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div>
@@ -39,10 +41,15 @@ test('dashboard renders escaped financial summaries', async () => {
   assert.match(document.querySelector('#dashboard-liquidity').textContent, /RRSP uninvested/);
   assert.equal(document.body.innerHTML.includes(attack), false);
   assert.match(document.body.innerHTML, /&lt;img/);
+  assert.equal(
+    document.querySelector('#dashboard-transactions td:nth-child(3) span').lang,
+    '',
+  );
   dom.window.close();
 });
 
 test('dashboard renders empty activity states', async () => {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <div id="dashboard-metrics"></div><div id="dashboard-categories"></div>
     <div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div>
@@ -63,5 +70,56 @@ test('dashboard renders empty activity states', async () => {
   assert.match(document.querySelector('#dashboard-categories').textContent, /2 accounts/);
   assert.match(document.querySelector('#dashboard-maturities').textContent, /No maturity dates/);
   assert.match(document.querySelector('#dashboard-transactions').textContent, /No transactions/);
+  dom.window.close();
+});
+
+test('dashboard renders browser-generated content in French', async () => {
+  configureTestLocalization('fr-CA');
+  const dom = new JSDOM(`<!doctype html><body>
+    <div id="dashboard-metrics"></div><div id="dashboard-categories"></div>
+    <div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div>
+    <div id="dashboard-transactions"></div>
+  </body>`, {url: 'http://localhost/'});
+  Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      gross_assets: 0, immovable_value: 0, invested_value: 0, gic_value: 0,
+      liquidity_value: 0, liquidity_by_type: {non_registered: 0, tfsa: 0, resp: 0}, rrsp_uninvested: 0,
+      uninvested_security_value: 0, savings_threshold: 0.025, low_rate_value: 0,
+      categories: [{type: 'tfsa', label: 'TFSA', count: 1, total: 0}], maturities: [], recent_transactions: [],
+    }),
+  });
+  await import('../../static/dashboard.mjs?french');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.match(document.querySelector('#dashboard-metrics').textContent, /Actif brut/);
+  assert.match(document.querySelector('#dashboard-categories').textContent, /CELI/);
+  assert.match(document.querySelector('#dashboard-liquidity').textContent, /CELI/);
+  assert.match(document.querySelector('#dashboard-liquidity').textContent, /REEE/);
+  assert.match(document.querySelector('#dashboard-maturities').textContent, /Aucune date d’échéance/);
+  configureTestLocalization();
+  dom.window.close();
+});
+
+test('dashboard preserves raw API error language inside a localized failure', async () => {
+  configureTestLocalization('fr-CA');
+  const dom = new JSDOM(`<!doctype html><body>
+    <div id="dashboard-metrics"></div><div id="dashboard-categories"></div>
+    <div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div>
+    <div id="dashboard-transactions"></div>
+  </body>`, {url: 'http://localhost/'});
+  Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+  globalThis.fetch = async () => ({
+    ok: false,
+    status: 503,
+    json: async () => ({error: 'Database unavailable'}),
+  });
+
+  await import(`../../static/dashboard.mjs?failure=${Date.now()}`);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const message = document.querySelector('#dashboard-metrics .form-message');
+  assert.match(message.textContent, /Impossible de charger le tableau de bord/);
+  assert.equal(message.querySelector('[lang="en-CA"]').textContent, 'Database unavailable');
+  configureTestLocalization();
   dom.window.close();
 });

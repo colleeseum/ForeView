@@ -106,11 +106,19 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         localization: LocalizationService = app.extensions["localization"]
         locale = localization.selected_locale()
         definition = localization.definition(locale)
+        browser_locale_chain = localization.fallback_chain(locale)
         return {
             "t": lambda key, **values: localization.translate(locale, key, **values),
             "current_locale": locale,
             "locale_direction": definition.direction,
             "supported_locales": localization.locales,
+            "browser_localization": {
+                "locale": locale,
+                "fallbacks": browser_locale_chain[1:],
+                "catalogs": {
+                    code: localization.catalog(code, "browser") for code in browser_locale_chain
+                },
+            },
         }
 
     def current_runtime() -> RuntimeConfig:

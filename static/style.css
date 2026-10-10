@@ -353,3 +353,12 @@ th { position: sticky; left: 0; z-index: 1; min-width: 44px; color: var(--muted)
 @media (max-width: 900px) { main { padding: 30px 16px; } .workspace, .tax-tool, .page-shell, .dashboard-grid { grid-template-columns: 1fr; } nav { display: flex; gap: 6px; overflow-x: auto; } .sheet-tab { min-width: max-content; border: 1px solid var(--line); } #tax-result { grid-column: auto; } .side-menu { position: static; display: flex; overflow-x: auto; } .side-menu-brand, .side-menu-heading { display: none; } .side-menu-group { display: contents; } .side-menu a { white-space: nowrap; } .side-menu a.side-menu-sub { margin-left: 0; border-left: 0; } .salary-toolbar { align-items: stretch; flex-direction: column; } .salary-toolbar-actions { margin-left: 0; flex-wrap: wrap; } .salary-settings-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .expense-heading { align-items: stretch; flex-direction: column; } .expense-year-form { margin-left: 0; } .expense-toolbar { justify-content: flex-start; } .expense-summary-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .asset-section .table-card table { width: 760px; min-width: 760px; } .summary-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* UX-01: hierarchy within the help navigation */
+.help-category { border-bottom: 1px solid var(--line); }
+.help-category > summary { cursor: pointer; padding: 10px 8px; font-weight: 700; color: var(--ink); }
+.help-category > summary:focus-visible,
+.help-results button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.help-category-children { margin-left: 12px; padding-left: 9px; border-left: 1px solid var(--line); }
+.help-category-children .help-category > summary { font-weight: 600; }
+.help-results button small { display: block; color: var(--muted); font-size: .72rem; margin-bottom: 4px; }

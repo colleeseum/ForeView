@@ -15,3 +15,7 @@ class HelpTopic:
     key: str
     title: str
     body: str
+    category: str = "imports"
+    parent_topic: str | None = None
+    order: int = 0
+    owning_page: str | None = None

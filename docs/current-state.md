@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-07
+Updated: 2026-10-09
 
 ## Development focus
 
@@ -73,6 +73,9 @@ help organization, broader server-rendered coverage, and a unified locale-aware 
   local environment.
 - Localization is not yet application-wide. Some templates and help content remain English-only,
   and locale-aware number, currency, and date formatting is not implemented consistently.
+- Canonical ISO date-only storage is the architectural rule, but some legacy repository write
+  paths still validate without normalizing dates or retain unchecked date strings. Changed paths
+  must normalize new values; repository-wide enforcement remains follow-up data-integrity work.
 - The project is source-available under PolyForm Noncommercial 1.0.0. Commercial use requires a
   separate written license from Mindstep Corporation.
 

@@ -51,6 +51,17 @@ duplicating message text.
 Reason: server-rendered and dynamically generated interface text must not diverge in language or
 fallback behavior, and additional locales should not require feature-specific code changes.
 
+## Persisted dates are locale and calendar independent
+
+Calendar dates stored in the database use the ISO 8601 date-only form `YYYY-MM-DD`, interpreted in
+the ISO/Gregorian calendar. Locale-specific ordering, translated month names, numbering systems,
+and non-Gregorian calendars are presentation concerns and are never persisted back over the
+canonical value. Domain values that require a time of day should use full ISO 8601 timestamps with
+an explicit timezone; date-only facts must not acquire a timezone.
+
+Reason: canonical lexical dates remain sortable and interoperable, while presentation can follow
+the user's locale or calendar without changing the underlying financial fact.
+
 ## Explicit boundaries with SQL confined to persistence
 
 Domain values, repositories, services, HTTP routes, and adapter modules have separate

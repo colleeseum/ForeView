@@ -5,6 +5,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
+import {transactionsTableHtml} from '../../static/transactions-render.mjs';
+
+test('transaction table keeps canonical openings and malformed evidence in semantic order', () => {
+  configureTestLocalization();
+  const rows = [
+    {id: 1, transaction_date: '2026-01-20', amount: 50, description: 'Later'},
+    {id: 2, transaction_date: 'not-a-date', amount: 5, description: 'Malformed'},
+    {id: 3, transaction_date: '2026-02-30', amount: 5, description: 'Invalid calendar'},
+    {id: 4, transaction_date: '2026-01-15', amount: 5, description: 'Same day'},
+    {id: 5, transaction_date: '2026-01-10', amount: 5, description: 'Earlier'},
+  ];
+  const openings = [
+    {id: 'opening-1', transaction_date: '2026-01-15', is_opening_balance: true, description: 'Opening'},
+  ];
+  const dom = new JSDOM(transactionsTableHtml(rows, openings, true));
+  assert.deepEqual(
+    [...dom.window.document.querySelectorAll('tbody tr')].map((row) => row.cells[2].textContent),
+    ['Later', 'Same day', 'Opening', 'Earlier', 'Malformed', 'Invalid calendar'],
+  );
+  dom.window.close();
+});
 
 function installDom() {
   configureTestLocalization();

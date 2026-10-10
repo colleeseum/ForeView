@@ -1176,6 +1176,85 @@ class AppRouteTests(unittest.TestCase):
             ).fetchone()
         self.assertEqual(stored, (10000000000000001,))
 
+    def test_new_canonical_balance_supersedes_legacy_snapshot_in_accounts_and_dashboard(self):
+        from repositories.account_repository import AccountRepository
+        from repositories.balance_snapshot_repository import BalanceSnapshotRepository
+
+        before_gross = self.client.get("/api/dashboard").get_json()["gross_assets"]
+        with self.runtime_config.connect() as connection:
+            account = AccountRepository(connection).create(
+                "Legacy dates", "non_registered", account_number="LEGACY-DATES"
+            )
+            BalanceSnapshotRepository(connection).add(account.id, "20260115", 1000)
+
+        response = self.client.post(
+            f"/api/model/accounts/{account.id}/balance",
+            json={"date": "20260131", "amount": 900},
+        )
+        self.assertEqual(response.status_code, 201)
+        accounts = self.client.get("/api/model/accounts").get_json()["accounts"]
+        updated = next(item for item in accounts if item["id"] == account.id)
+        self.assertEqual((updated["latest_date"], updated["latest_amount"]), ("2026-01-31", 900))
+        after_gross = self.client.get("/api/dashboard").get_json()["gross_assets"]
+        self.assertEqual(Decimal(str(after_gross)) - Decimal(str(before_gross)), Decimal("900"))
+
+    def test_account_routes_reject_invalid_calendar_dates(self):
+        owner_id = self._people()[0]["id"]
+        invalid_create = self.client.post(
+            "/api/model/accounts",
+            json={
+                "name": "Invalid date",
+                "category": "non_registered",
+                "account_number": "INVALID-DATE",
+                "start_date": "2026-02-30",
+                "owners": [{"person_id": owner_id, "share": 1}],
+            },
+        )
+        self.assertEqual(invalid_create.status_code, 400)
+
+        created = self.client.post(
+            "/api/model/accounts",
+            json={
+                "name": "Date boundary",
+                "category": "non_registered",
+                "account_number": "DATE-BOUNDARY",
+                "owners": [{"person_id": owner_id, "share": 1}],
+            },
+        )
+        self.assertEqual(created.status_code, 201)
+        account_id = created.get_json()["id"]
+
+        invalid_update = self.client.put(
+            f"/api/model/accounts/{account_id}",
+            json={
+                "name": "Date boundary",
+                "account_number": "DATE-BOUNDARY",
+                "asset_kind": "account",
+                "maturity_date": "2026-13-01",
+            },
+        )
+        self.assertEqual(invalid_update.status_code, 400)
+        self.assertEqual(
+            self.client.post(
+                f"/api/model/accounts/{account_id}/balance",
+                json={"date": "not-a-date", "amount": 100},
+            ).status_code,
+            400,
+        )
+        self.assertEqual(
+            self.client.post(
+                f"/api/model/accounts/{account_id}/gics",
+                json={
+                    "name": "Invalid GIC",
+                    "principal": 100,
+                    "interest_rate": 0.03,
+                    "start_date": "2026-01-01",
+                    "maturity_date": "2027-02-29",
+                },
+            ).status_code,
+            400,
+        )
+
     def test_invalid_money_inputs_return_clear_client_errors(self):
         account_id = self.client.get("/api/model/accounts").get_json()["accounts"][0]["id"]
         for amount in ("abc", "", "12,50", "inf"):

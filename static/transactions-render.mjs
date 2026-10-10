@@ -3,6 +3,7 @@
 
 import {escapeHtml, sourceTextSpan} from './html.mjs';
 import {t, locale} from './i18n.mjs';
+import {calendarDateSortKey} from './locale-format.mjs';
 
 const money = (value) => value == null ? '' : Number(value).toLocaleString(locale, {
   minimumFractionDigits: 2,
@@ -53,7 +54,10 @@ function transactionAccountLabel(item) {
 
 export function transactionsTableHtml(transactions, openingBalances, accountFiltered) {
   const rows = [...transactions, ...openingBalances].sort((left, right) => {
-    const dateOrder = String(right.transaction_date).localeCompare(String(left.transaction_date));
+    const leftKey = calendarDateSortKey(left.transaction_date);
+    const rightKey = calendarDateSortKey(right.transaction_date);
+    const dateOrder = rightKey[0] - leftKey[0]
+      || (rightKey[1] < leftKey[1] ? -1 : rightKey[1] > leftKey[1] ? 1 : 0);
     if (dateOrder) return dateOrder;
     return Number(Boolean(left.is_opening_balance)) - Number(Boolean(right.is_opening_balance));
   });

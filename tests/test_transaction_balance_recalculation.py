@@ -141,6 +141,38 @@ class TransactionBalanceRecalculationTests(unittest.TestCase):
             [transaction] = TransactionRepository(connection).list_for_account(account)
             self.assertIsNone(transaction.balance_after)
 
+    def test_correcting_reconciliation_clears_malformed_derived_balances(self):
+        for malformed_date in ("0000-01-01", "not-a-date"):
+            with self.subTest(malformed_date=malformed_date), self._connection() as connection:
+                account = self._account(connection)
+                ids = self._add_rows(
+                    connection,
+                    account,
+                    [
+                        (malformed_date, 10, 650, None),
+                        (malformed_date, 20, 700, {"source": "eq_pdf", "balance": 700}),
+                        ("2026-01-20", 100, 650, None),
+                    ],
+                )
+                BalanceSnapshotRepository(connection).add(
+                    account,
+                    "2026-01-31",
+                    650,
+                    source_sheet="Manual reconciliation",
+                    source_address="transactions",
+                )
+
+                service = TransactionService(connection)
+                service.reconcile(account, "2026-01-31", 600)
+
+                repository = TransactionRepository(connection)
+                balances = [repository.get(identifier).balance_after for identifier in ids]
+                self.assertEqual(balances, [None, 700.0, 600.0])
+                self.assertEqual(service.opening_balances(account_id=account), [])
+                self.assertEqual(service.recalculate_balances(account), 1)
+                self.assertIsNone(repository.get(ids[0]).balance_after)
+                self.assertEqual(repository.get(ids[1]).balance_after, 700.0)
+
     def test_rows_after_the_snapshot_disable_recalculation(self):
         with self._connection() as connection:
             account = self._account(connection)

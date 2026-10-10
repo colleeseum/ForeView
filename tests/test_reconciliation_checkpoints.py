@@ -13,8 +13,12 @@ from pathlib import Path
 from infrastructure.runtime_config import RuntimeConfig
 from ingestion.reconciled_period_change import ReconciledPeriodChange
 from institutions.questrade.sync import sync_questrade_connection
+from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
+from repositories.reconciliation_checkpoint_repository import ReconciliationCheckpointRepository
+from repositories.transaction_repository import TransactionRepository
 from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transaction_service import TransactionService
 from tests.support import (
     create_account,
     ensure_domain_schema,
@@ -53,9 +57,10 @@ class ReconciliationCheckpointTests(unittest.TestCase):
         return reconcile_account_balance(self.connection, self.account, "2026-01-31", 600.0)
 
     def test_matching_known_balance_creates_a_checkpoint(self):
-        result = self._reconcile_january()
+        result = reconcile_account_balance(self.connection, self.account, "20260131", 600.0)
 
         self.assertEqual(result["status"], "reconciled")
+        self.assertEqual(result["date"], "2026-01-31")
         self.assertEqual(result["reconciled_through"], "2026-01-31")
         [checkpoint] = self.checkpoints.active(self.account)
         self.assertEqual(
@@ -85,6 +90,27 @@ class ReconciliationCheckpointTests(unittest.TestCase):
         self.assertEqual(refused.exception.reconciled_through, "2026-01-31")
         self.assertEqual(refused.exception.transaction_count, 1)
         self.assertEqual((self._count(), self._count("import_batches")), (transactions, batches))
+
+    def test_legacy_iso_import_into_reconciled_period_is_refused(self):
+        self._reconcile_january()
+        self.connection.commit()
+        transactions, batches = self._count(), self._count("import_batches")
+
+        for transaction_date in ("20260125", "2026-W04-7"):
+            with self.subTest(transaction_date=transaction_date):
+                with self.assertRaises(ReconciledPeriodChange) as refused:
+                    import_csv_transactions(
+                        self.connection,
+                        self.account,
+                        f"late-{transaction_date}.csv",
+                        _csv(f"{transaction_date},Refund,50,650\n"),
+                    )
+
+                self.assertEqual(refused.exception.reconciled_through, "2026-01-31")
+                self.assertEqual(refused.exception.transaction_count, 1)
+                self.assertEqual(
+                    (self._count(), self._count("import_batches")), (transactions, batches)
+                )
 
     def test_duplicates_and_later_rows_pass_without_a_warning(self):
         self._reconcile_january()
@@ -122,6 +148,20 @@ class ReconciliationCheckpointTests(unittest.TestCase):
         [current] = self.checkpoints.active(self.account)
         self.assertEqual((current.status, current.net_change), ("reconciled", 650.0))
 
+    def test_confirmed_legacy_iso_import_flags_the_period(self):
+        self._reconcile_january()
+
+        import_csv_transactions(
+            self.connection,
+            self.account,
+            "late-compact.csv",
+            _csv("20260125,Refund,50,650\n"),
+            allow_reconciled=True,
+        )
+
+        [flagged] = self.checkpoints.active(self.account)
+        self.assertEqual((flagged.status, flagged.difference), ("needs_review", 50.0))
+
     def test_correcting_a_mistyped_reconciliation_replaces_it(self):
         account = create_account(
             self.connection, "Savings", "non_registered", account_number="SAV-9", institution="Test"
@@ -151,6 +191,120 @@ class ReconciliationCheckpointTests(unittest.TestCase):
             )
         ]
         self.assertEqual(balances, [1000.0, 600.0])
+
+    def test_correcting_reconciliation_retires_equivalent_legacy_date_keys(self):
+        for legacy_date in ("20260131", "2026-W05-6"):
+            with self.subTest(legacy_date=legacy_date):
+                account = create_account(
+                    self.connection,
+                    f"Legacy {legacy_date}",
+                    "non_registered",
+                    account_number=f"LEGACY-{legacy_date}",
+                    institution="Test",
+                )
+                import_csv_transactions(
+                    self.connection,
+                    account,
+                    f"{legacy_date}.csv",
+                    b"Date,Description,Amount\n2026-01-05,Pay,1000\n2026-01-20,Rent,-400\n",
+                )
+                BalanceSnapshotRepository(self.connection).add(
+                    account,
+                    legacy_date,
+                    650,
+                    source_sheet="Manual reconciliation",
+                    source_address="transactions",
+                )
+                TransactionService(self.connection).recalculate_balances(account)
+                ReconciliationCheckpointRepository(self.connection).create(
+                    account,
+                    period_start=None,
+                    reconciled_through=legacy_date,
+                    closing_balance=650,
+                    net_change=600,
+                    transaction_count=2,
+                    source="manual",
+                )
+
+                corrected = reconcile_account_balance(self.connection, account, "2026-01-31", 600)
+
+                self.assertEqual(
+                    (corrected["status"], corrected["difference"]), ("reconciled", None)
+                )
+                [active] = self.checkpoints.active(account)
+                self.assertEqual(active.reconciled_through, "2026-01-31")
+                manual_dates = [
+                    item.snapshot_date
+                    for item in BalanceSnapshotRepository(self.connection).list_for_account(account)
+                    if item.source_sheet == "Manual reconciliation"
+                ]
+                self.assertEqual(manual_dates, ["2026-01-31"])
+
+    def test_legacy_checkpoint_dates_use_calendar_order_for_later_periods(self):
+        ReconciliationCheckpointRepository(self.connection).create(
+            self.account,
+            period_start=None,
+            reconciled_through="20260131",
+            closing_balance=600,
+            net_change=600,
+            transaction_count=2,
+            source="manual",
+        )
+
+        later = self.checkpoints.record_known_balance(self.account, "20260228", 600)
+
+        self.assertEqual(later.period_start, "2026-02-01")
+        self.assertEqual(later.reconciled_through, "2026-02-28")
+        self.assertEqual(self.checkpoints.locked_through(self.account), "2026-02-28")
+
+    def test_legacy_non_manual_snapshot_is_used_for_reconciliation_comparison(self):
+        account = create_account(
+            self.connection,
+            "Legacy anchor",
+            "non_registered",
+            account_number="LEGACY-ANCHOR",
+            institution="Test",
+        )
+        BalanceSnapshotRepository(self.connection).add(account, "20260115", 1000)
+
+        result = reconcile_account_balance(self.connection, account, "20260131", 900)
+
+        self.assertEqual((result["status"], result["difference"]), ("adjusted", -100.0))
+        self.assertEqual(self.checkpoints.active(account), [])
+
+    def test_reconciliation_rebuild_uses_latest_snapshot_by_calendar_date(self):
+        account = create_account(
+            self.connection,
+            "Legacy rebuild",
+            "non_registered",
+            account_number="LEGACY-REBUILD",
+            institution="Test",
+        )
+        BalanceSnapshotRepository(self.connection).add(account, "20260115", 1000)
+        transaction = TransactionRepository(self.connection).create(account, "20260120", -100)
+
+        result = reconcile_account_balance(self.connection, account, "2026-01-31", 900)
+
+        self.assertEqual((result["status"], result["difference"]), ("adjusted", -100.0))
+        self.assertEqual(
+            TransactionRepository(self.connection).get(transaction.id).balance_after, 900
+        )
+
+    def test_checkpoint_totals_include_legacy_transaction_date_forms(self):
+        account = create_account(
+            self.connection,
+            "Legacy checkpoint",
+            "non_registered",
+            account_number="LEGACY-CHECKPOINT",
+            institution="Test",
+        )
+        TransactionRepository(self.connection).create(account, "20260120", 600, balance_after=600)
+
+        result = reconcile_account_balance(self.connection, account, "2026-01-31", 600)
+
+        self.assertEqual(result["status"], "reconciled")
+        [checkpoint] = self.checkpoints.active(account)
+        self.assertEqual((checkpoint.net_change, checkpoint.transaction_count), (600, 1))
 
     def test_consecutive_periods_are_separate_checkpoints(self):
         self._reconcile_january()

@@ -9,6 +9,8 @@ from contextlib import closing
 from dataclasses import FrozenInstanceError
 
 from repositories.account_repository import AccountRepository
+from repositories.balance_snapshot_repository import BalanceSnapshotRepository
+from repositories.transaction_repository import TransactionRepository
 from tests.support import create_account, ensure_domain_schema, update_account
 
 
@@ -53,6 +55,64 @@ class AccountRepositoryParityTests(unittest.TestCase):
             self.assertEqual(self._rows(new_connection), self._rows(legacy_connection))
             with self.assertRaises(FrozenInstanceError):
                 account.name = "Changed"  # type: ignore[misc]
+
+    def test_summary_canonicalizes_gic_dates_without_rewriting_evidence(self):
+        with self._connection() as connection:
+            repository = AccountRepository(connection)
+            parent = repository.create("Parent", "non_registered", account_number="P")
+            for index, (stored, expected) in enumerate(
+                [
+                    ("20261231", "2026-12-31"),
+                    ("2026-W53-4", "2026-12-31"),
+                    ("not-a-date", "not-a-date"),
+                ]
+            ):
+                account = repository.create(
+                    "GIC",
+                    "non_registered",
+                    account_number=f"G{index}",
+                    asset_kind="gic",
+                    parent_account_id=parent.id,
+                    start_date="20260101",
+                    maturity_date=stored,
+                    principal=1000,
+                )
+                row = next(row for row in repository.summary_rows() if row["id"] == account.id)
+                self.assertEqual(row["start_date"], "2026-01-01")
+                self.assertEqual(row["maturity_date"], expected)
+                self.assertEqual(repository.get(account.id).maturity_date, stored)
+
+    def test_summary_selects_balances_and_snapshot_metadata_by_calendar_date(self):
+        with self._connection() as connection:
+            repository = AccountRepository(connection)
+            account = repository.create("Legacy", "non_registered", account_number="LEGACY")
+            snapshots = BalanceSnapshotRepository(connection)
+            snapshots.add(account.id, "20260115", 1000, 0.01, source_sheet="Older")
+            snapshots.add(account.id, "2026-01-31", 900, 0.03, source_sheet="Newer")
+            snapshots.add(account.id, "not-a-date", 9999, 0.09, source_sheet="Malformed")
+            transactions = TransactionRepository(connection)
+            transactions.create(account.id, "20260120", -100, balance_after=800)
+            transactions.create(account.id, "not-a-date", 1, balance_after=9999)
+
+            [row] = repository.summary_rows()
+            self.assertEqual(
+                (
+                    row["latest_date"],
+                    row["latest_amount"],
+                    row["interest_rate"],
+                    row["source_sheet"],
+                ),
+                ("2026-01-31", 900, 0.03, "Newer"),
+            )
+            transactions.create(account.id, "2026-W06-1", 100, balance_after=1000)
+            [row] = repository.summary_rows()
+            self.assertEqual((row["latest_date"], row["latest_amount"]), ("2026-02-02", 1000))
+            snapshots.add(account.id, "20260202", 1200)
+            [row] = repository.summary_rows()
+            self.assertEqual((row["latest_date"], row["latest_amount"]), ("2026-02-02", 1000))
+            repository.set_current_interest_rate(account.id, 0)
+            [row] = repository.summary_rows()
+            self.assertEqual(row["interest_rate"], 0)
 
     def test_create_gic_and_fallback_identity_match_legacy(self):
         with self._connection() as legacy_connection, self._connection() as new_connection:

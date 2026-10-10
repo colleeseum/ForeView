@@ -28,17 +28,27 @@ class ReconciliationCheckpointService:
         self, account_id: int, period_start: str, period_end: str, closing_balance: MoneyInput
     ) -> ReconciliationCheckpoint:
         """A statement period whose ledger activity matched the statement."""
-        return self._record(account_id, period_start, period_end, closing_balance, "statement")
+        return self._record(
+            account_id,
+            self._canonical_date(period_start),
+            self._canonical_date(period_end),
+            closing_balance,
+            "statement",
+        )
 
     def record_known_balance(
         self, account_id: int, reconciled_through: str, balance: MoneyInput
     ) -> ReconciliationCheckpoint:
         """A known balance that matched the ledger; covers everything since the last period."""
-        previous = [
-            checkpoint.reconciled_through
-            for checkpoint in self._checkpoints.active_for_account(account_id)
-            if checkpoint.reconciled_through < reconciled_through
-        ]
+        reconciled_through = self._canonical_date(reconciled_through)
+        previous = []
+        for checkpoint in self._checkpoints.active_for_account(account_id):
+            try:
+                stored_date = self._canonical_date(checkpoint.reconciled_through)
+            except ValueError:
+                continue
+            if stored_date < reconciled_through:
+                previous.append(stored_date)
         period_start = (
             (date.fromisoformat(max(previous)) + timedelta(days=1)).isoformat()
             if previous
@@ -48,11 +58,13 @@ class ReconciliationCheckpointService:
 
     def withdraw_known_balance(self, account_id: int, reconciled_through: str) -> None:
         """Retire the manual reconciliation of a date that is being reconciled again."""
+        reconciled_through = self._canonical_date(reconciled_through)
         for checkpoint in self._checkpoints.active_for_account(account_id):
-            if (
-                checkpoint.source == "manual"
-                and checkpoint.reconciled_through == reconciled_through
-            ):
+            try:
+                stored_date = self._canonical_date(checkpoint.reconciled_through)
+            except ValueError:
+                continue
+            if checkpoint.source == "manual" and stored_date == reconciled_through:
                 self._checkpoints.set_status(
                     checkpoint.id, ReconciliationCheckpoint.SUPERSEDED, checkpoint.difference
                 )
@@ -60,7 +72,13 @@ class ReconciliationCheckpointService:
     def locked_through(self, account_id: int) -> str | None:
         """The latest date covered by a reconciled period, if any."""
         checkpoints = self._checkpoints.active_for_account(account_id)
-        return max((item.reconciled_through for item in checkpoints), default=None)
+        dates = []
+        for checkpoint in checkpoints:
+            try:
+                dates.append(self._canonical_date(checkpoint.reconciled_through))
+            except ValueError:
+                continue
+        return max(dates, default=None)
 
     def active(self, account_id: int) -> list[ReconciliationCheckpoint]:
         return self._checkpoints.active_for_account(account_id)
@@ -101,8 +119,12 @@ class ReconciliationCheckpointService:
     ) -> ReconciliationCheckpoint:
         # A new reconciliation replaces earlier ones for any part of the same period.
         for checkpoint in self._checkpoints.active_for_account(account_id):
-            overlaps = period_start is None or checkpoint.reconciled_through >= period_start
-            if checkpoint.reconciled_through <= period_end and overlaps:
+            try:
+                checkpoint_end = self._canonical_date(checkpoint.reconciled_through)
+            except ValueError:
+                continue
+            overlaps = period_start is None or checkpoint_end >= period_start
+            if checkpoint_end <= period_end and overlaps:
                 self._checkpoints.set_status(
                     checkpoint.id, ReconciliationCheckpoint.SUPERSEDED, checkpoint.difference
                 )
@@ -119,5 +141,21 @@ class ReconciliationCheckpointService:
 
     @staticmethod
     def _covers(checkpoint: ReconciliationCheckpoint, day: str) -> bool:
-        started = checkpoint.period_start is None or day >= checkpoint.period_start
-        return started and day <= checkpoint.reconciled_through
+        try:
+            normalized_day = ReconciliationCheckpointService._canonical_date(day)
+            period_start = (
+                None
+                if checkpoint.period_start is None
+                else ReconciliationCheckpointService._canonical_date(checkpoint.period_start)
+            )
+            period_end = ReconciliationCheckpointService._canonical_date(
+                checkpoint.reconciled_through
+            )
+        except ValueError:
+            return False
+        started = period_start is None or normalized_day >= period_start
+        return started and normalized_day <= period_end
+
+    @staticmethod
+    def _canonical_date(value: str) -> str:
+        return date.fromisoformat(value).isoformat()

@@ -20,7 +20,7 @@ from services.fixed_term_deposit_creation_service import FixedTermDepositCreatio
 from services.transaction_service import TransactionService
 from web.dependencies import dependency
 from web.model_blueprint import blueprint
-from web.route_values import payload_bool
+from web.route_values import payload_bool, payload_iso_date
 
 
 @blueprint.get("/api/model/accounts")
@@ -71,8 +71,12 @@ def add_account_route():
                 parent_account_id=int(payload["parent_account_id"])
                 if payload.get("parent_account_id") not in (None, "")
                 else None,
-                start_date=payload.get("start_date") or None,
-                maturity_date=payload.get("maturity_date") or None,
+                start_date=payload_iso_date(payload["start_date"])
+                if payload.get("start_date") not in (None, "")
+                else None,
+                maturity_date=payload_iso_date(payload["maturity_date"])
+                if payload.get("maturity_date") not in (None, "")
+                else None,
                 maturity_value=as_decimal(payload["maturity_value"])
                 if payload.get("maturity_value") not in (None, "")
                 else None,
@@ -88,7 +92,7 @@ def add_account_route():
             if payload.get("balance_amount") not in (None, ""):
                 BalanceSnapshotRepository(connection).add(
                     account.id,
-                    str(payload.get("balance_date") or date.today().isoformat()),
+                    payload_iso_date(payload.get("balance_date") or date.today().isoformat()),
                     as_decimal(payload["balance_amount"]),
                     current_rate,
                 )
@@ -116,8 +120,12 @@ def update_account_route(account_id: int):
                 parent_account_id=int(payload["parent_account_id"])
                 if payload.get("parent_account_id") not in (None, "")
                 else None,
-                start_date=payload.get("start_date") or None,
-                maturity_date=payload.get("maturity_date") or None,
+                start_date=payload_iso_date(payload["start_date"])
+                if payload.get("start_date") not in (None, "")
+                else None,
+                maturity_date=payload_iso_date(payload["maturity_date"])
+                if payload.get("maturity_date") not in (None, "")
+                else None,
                 maturity_value=as_decimal(payload["maturity_value"])
                 if payload.get("maturity_value") not in (None, "")
                 else None,
@@ -149,7 +157,7 @@ def update_account_route(account_id: int):
             if payload.get("balance_amount") not in (None, ""):
                 BalanceSnapshotRepository(connection).add(
                     account_id,
-                    str(payload.get("balance_date") or date.today().isoformat()),
+                    payload_iso_date(payload.get("balance_date") or date.today().isoformat()),
                     as_decimal(payload["balance_amount"]),
                     current_rate,
                 )
@@ -167,7 +175,7 @@ def add_balance_route(account_id: int):
             current_rate = _rate(payload)
             BalanceSnapshotRepository(connection).add(
                 account_id,
-                str(payload["date"]),
+                payload_iso_date(payload["date"]),
                 as_decimal(payload["amount"]),
                 current_rate,
             )
@@ -188,8 +196,8 @@ def add_gic_route(account_id: int):
                 str(payload["name"]),
                 as_decimal(payload["principal"]),
                 float(payload["interest_rate"]),
-                str(payload["start_date"]),
-                str(payload["maturity_date"]),
+                payload_iso_date(payload["start_date"]),
+                payload_iso_date(payload["maturity_date"]),
                 redeemable=bool(payload.get("redeemable", False)),
                 renewal_rule=str(payload.get("renewal_rule", "cash_at_maturity")),
             )

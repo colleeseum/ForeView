@@ -8,6 +8,7 @@ from typing import Any
 
 from account_types import account_type_registry
 from domain.account import Account
+from domain.calendar_date import calendar_date_sort_key, canonical_date_or_stored
 from domain.gic_terms import GicTerms
 from domain.money import (
     MoneyInput,
@@ -179,22 +180,6 @@ class AccountRepository:
         """Accounts with owners, parent, and latest known balance for the accounts screen."""
         rows = self._connection.execute(
             """
-            WITH latest_snapshot AS (
-                SELECT account_id, snapshot_date, amount_cents, interest_rate, source_sheet,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY account_id
-                           ORDER BY snapshot_date DESC, id DESC
-                       ) AS row_number
-                FROM balance_snapshots
-            ), latest_transaction AS (
-                SELECT account_id, transaction_date, balance_after_cents,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY account_id
-                           ORDER BY transaction_date DESC, id DESC
-                       ) AS row_number
-                FROM transactions
-                WHERE balance_after_cents IS NOT NULL
-            )
             SELECT a.id, GROUP_CONCAT(p.name || ' (' || CAST(ROUND(ao.ownership_share * 100, 2) AS TEXT) || '%)') AS owners,
                    GROUP_CONCAT(CAST(ao.person_id AS TEXT) || ':' || CAST(ao.ownership_share AS TEXT)) AS owner_details,
                    a.name, a.account_number, a.institution, a.account_type, a.tax_treatment,
@@ -204,30 +189,67 @@ class AccountRepository:
                    a.principal_cents / 100.0 AS principal,
                    a.redeemable, a.balance_includes_children,
                    parent.name AS parent_name, parent.balance_includes_children AS parent_balance_includes_children,
-                   CASE WHEN lt.transaction_date IS NOT NULL
-                             AND (s.snapshot_date IS NULL OR lt.transaction_date >= s.snapshot_date)
-                        THEN lt.transaction_date
-                        ELSE COALESCE(MAX(s.snapshot_date),
-                                      CASE WHEN a.asset_kind = 'gic' THEN a.start_date END)
-                   END AS latest_date,
-                   CASE WHEN lt.transaction_date IS NOT NULL
-                             AND (s.snapshot_date IS NULL OR lt.transaction_date >= s.snapshot_date)
-                        THEN lt.balance_after_cents
-                        ELSE COALESCE(s.amount_cents,
-                                      CASE WHEN a.asset_kind = 'gic' THEN a.principal_cents END)
-                   END / 100.0 AS latest_amount,
-                   COALESCE(a.current_interest_rate, s.interest_rate) AS interest_rate,
-                   s.source_sheet
+                   CASE WHEN a.asset_kind = 'gic' THEN a.start_date END AS latest_date,
+                   CASE WHEN a.asset_kind = 'gic' THEN a.principal_cents END / 100.0 AS latest_amount,
+                   a.current_interest_rate AS interest_rate, NULL AS source_sheet
             FROM accounts a
             LEFT JOIN account_owners ao ON ao.account_id = a.id
             LEFT JOIN people p ON p.id = ao.person_id
             LEFT JOIN accounts parent ON parent.id = a.parent_account_id
-            LEFT JOIN latest_snapshot s ON s.account_id = a.id AND s.row_number = 1
-            LEFT JOIN latest_transaction lt ON lt.account_id = a.id AND lt.row_number = 1
             GROUP BY a.id ORDER BY a.account_type, a.parent_account_id IS NOT NULL, a.name
             """
         ).fetchall()
-        return [dict(row) for row in rows]
+        snapshots = self._latest_dated_rows(
+            self._connection.execute(
+                """SELECT id, account_id, snapshot_date AS balance_date, amount_cents,
+                          interest_rate, source_sheet FROM balance_snapshots"""
+            ).fetchall()
+        )
+        transactions = self._latest_dated_rows(
+            self._connection.execute(
+                """SELECT id, account_id, transaction_date AS balance_date,
+                          balance_after_cents AS amount_cents FROM transactions
+                   WHERE balance_after_cents IS NOT NULL"""
+            ).fetchall()
+        )
+        result = []
+        for stored_row in rows:
+            row = dict(stored_row)
+            for field in ("start_date", "maturity_date"):
+                if row[field] is not None:
+                    row[field] = canonical_date_or_stored(row[field])
+            snapshot = snapshots.get(int(row["id"]))
+            transaction = transactions.get(int(row["id"]))
+            if snapshot is not None:
+                row["source_sheet"] = snapshot["source_sheet"]
+                if row["interest_rate"] is None:
+                    row["interest_rate"] = snapshot["interest_rate"]
+            latest = snapshot
+            if transaction is not None and (
+                snapshot is None
+                or calendar_date_sort_key(transaction["balance_date"], 0)
+                >= calendar_date_sort_key(snapshot["balance_date"], 0)
+            ):
+                latest = transaction
+            if latest is not None:
+                row["latest_date"] = canonical_date_or_stored(latest["balance_date"])
+                row["latest_amount"] = float(from_cents(latest["amount_cents"]))
+            elif row["latest_date"] is not None:
+                row["latest_date"] = canonical_date_or_stored(row["latest_date"])
+            result.append(row)
+        return result
+
+    @staticmethod
+    def _latest_dated_rows(rows: list[sqlite3.Row]) -> dict[int, sqlite3.Row]:
+        latest: dict[int, sqlite3.Row] = {}
+        for row in rows:
+            account_id = int(row["account_id"])
+            current = latest.get(account_id)
+            if current is None or calendar_date_sort_key(
+                row["balance_date"], int(row["id"])
+            ) > calendar_date_sort_key(current["balance_date"], int(current["id"])):
+                latest[account_id] = row
+        return latest
 
     def list_ids(self) -> list[int]:
         return [int(row[0]) for row in self._connection.execute("SELECT id FROM accounts")]

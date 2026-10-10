@@ -10,6 +10,12 @@ from decimal import Decimal
 from typing import Any, cast
 
 from domain.balance_recalculation_row import BalanceRecalculationRow
+from domain.calendar_date import (
+    BalanceEventSortKey,
+    balance_event_sort_key,
+    calendar_date_sort_key,
+    canonical_date_or_stored,
+)
 from domain.money import MoneyInput, as_decimal
 from ingestion.raw_sources import has_bank_reported_balance
 from institution_support.registry import institution_registry
@@ -58,8 +64,10 @@ class TransactionService:
             running -= as_decimal(row.amount)
         return updated
 
-    def _balance_rows(self, account_id: int) -> list[BalanceRecalculationRow]:
-        """An account's rows that take part in balance rebuilding, newest first."""
+    def _balance_rows(
+        self, account_id: int, *, include_malformed: bool = False
+    ) -> list[BalanceRecalculationRow]:
+        """Balance-policy rows, optionally including malformed dates for cleanup."""
         account = self._accounts.get(account_id)
         provider = (
             institution_registry().find(account.institution)
@@ -84,6 +92,7 @@ class TransactionService:
             account_id,
             excluded_sources,
             include_excluded=include_excluded,
+            include_malformed=include_malformed,
         )
 
     def _undo_manual_reconciliation(self, account_id: int, reconciliation_date: str) -> None:
@@ -93,12 +102,28 @@ class TransactionService:
         a new reconciliation of the date is compared with the ledger as it stood
         before the earlier one, not with the earlier reconciled amount.
         """
-        if not self._snapshots.remove_manual_reconciliation(account_id, reconciliation_date):
-            return
-        for row in self._balance_rows(account_id):
-            if not has_bank_reported_balance(row.raw_data, self._statement_sources):
-                self._transactions.clear_balance(row.id)
-        self.recalculate_balances(account_id)
+        equivalent_dates = {reconciliation_date}
+        for snapshot in self._snapshots.list_for_account(account_id):
+            if (
+                snapshot.source_sheet != "Manual reconciliation"
+                or snapshot.source_address != "transactions"
+            ):
+                continue
+            try:
+                if date.fromisoformat(snapshot.snapshot_date).isoformat() == reconciliation_date:
+                    equivalent_dates.add(snapshot.snapshot_date)
+            except ValueError:
+                continue
+        removed = False
+        for stored_date in equivalent_dates:
+            removed = (
+                self._snapshots.remove_manual_reconciliation(account_id, stored_date) or removed
+            )
+        if removed:
+            for row in self._balance_rows(account_id, include_malformed=True):
+                if not has_bank_reported_balance(row.raw_data, self._statement_sources):
+                    self._transactions.clear_balance(row.id)
+            self.recalculate_balances(account_id)
         ReconciliationCheckpointService(self._connection).withdraw_known_balance(
             account_id, reconciliation_date
         )
@@ -112,7 +137,7 @@ class TransactionService:
         result = self._transactions.summary_rows(account_id, account_type)
         if account_id is None:
             account_ids = self._transactions.scoped_account_ids(account_type)
-            events: dict[int, list[tuple[tuple[str, int], MoneyInput]]] = {
+            events: dict[int, list[tuple[BalanceEventSortKey, MoneyInput]]] = {
                 scoped_id: [] for scoped_id in account_ids
             }
             for (
@@ -122,13 +147,17 @@ class TransactionService:
                 amount,
             ) in self._transactions.balance_events():
                 if event_account in events:
-                    events[event_account].append(((value_date, identifier), amount))
+                    events[event_account].append(
+                        (balance_event_sort_key(value_date, identifier), amount)
+                    )
             for account_events in events.values():
                 account_events.sort(key=lambda event: event[0])
             pointers = {scoped_id: 0 for scoped_id in account_ids}
             balances: dict[int, Decimal] = {}
             for item in result:
-                row_key = (str(item["transaction_date"]), int(cast(Any, item["id"])))
+                row_key = balance_event_sort_key(
+                    item["transaction_date"], int(cast(Any, item["id"]))
+                )
                 for scoped_id in account_ids:
                     account_events = events[scoped_id]
                     while (
@@ -169,10 +198,9 @@ class TransactionService:
         for item in transactions:
             item_account_id = int(cast(Any, item["account_id"]))
             current = first_by_account.get(item_account_id)
-            item_key = (str(item["transaction_date"]), int(cast(Any, item["id"])))
-            if current is None or item_key < (
-                str(current["transaction_date"]),
-                int(cast(Any, current["id"])),
+            item_key = calendar_date_sort_key(item["transaction_date"], int(cast(Any, item["id"])))
+            if current is None or item_key < calendar_date_sort_key(
+                current["transaction_date"], int(cast(Any, current["id"]))
             ):
                 first_by_account[item_account_id] = item
 
@@ -217,10 +245,10 @@ class TransactionService:
             openings.append(
                 {
                     "id": f"opening-{row['account_id']}",
-                    "transaction_date": row["snapshot_date"],
+                    "transaction_date": canonical_date_or_stored(row["snapshot_date"]),
                     "amount": 0.0,
                     "description": "Opening balance",
-                    "balance_after": float(row["amount"]),
+                    "balance_after": float(cast(MoneyInput, row["amount"])),
                     "combined_balance_after": None,
                     "category": None,
                     "transaction_type": "opening_balance",
@@ -250,13 +278,13 @@ class TransactionService:
         if as_decimal(known_balance) < 0:
             raise ValueError("Reconciliation balance cannot be negative")
         try:
-            date.fromisoformat(reconciliation_date)
+            normalized_date = date.fromisoformat(reconciliation_date).isoformat()
         except ValueError as error:
             raise ValueError(f"Invalid reconciliation date: {reconciliation_date}") from error
         if not self._transactions.account_exists(account_id):
             raise ValueError("Account not found")
-        self._undo_manual_reconciliation(account_id, reconciliation_date)
-        previous = self._transactions.latest_known_balance(account_id, reconciliation_date)
+        self._undo_manual_reconciliation(account_id, normalized_date)
+        previous = self._transactions.latest_known_balance(account_id, normalized_date)
         previous_balance = previous[1] if previous else None
         difference = (
             float(as_decimal(known_balance) - as_decimal(previous_balance))
@@ -265,7 +293,7 @@ class TransactionService:
         )
         self._snapshots.add(
             account_id,
-            reconciliation_date,
+            normalized_date,
             known_balance,
             source_sheet="Manual reconciliation",
             source_address="transactions",
@@ -274,14 +302,14 @@ class TransactionService:
         status = "reconciled" if difference in (None, 0.0) else "adjusted"
         checkpoint = (
             ReconciliationCheckpointService(self._connection).record_known_balance(
-                account_id, reconciliation_date, known_balance
+                account_id, normalized_date, known_balance
             )
             if status == "reconciled"
             else None
         )
         return {
             "account_id": account_id,
-            "date": reconciliation_date,
+            "date": normalized_date,
             "known_balance": known_balance,
             "previous_balance": previous_balance,
             "difference": difference,

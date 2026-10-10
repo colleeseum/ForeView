@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sqlite3
 
+from domain.calendar_date import parse_calendar_date
 from domain.reconciliation_checkpoint import ReconciliationCheckpoint
 from ingestion.reconciled_period_change import ReconciledPeriodChange
 from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
@@ -32,8 +33,19 @@ class ReconciledPeriodGuard:
         if account_id not in self._locked_through:
             self._locked_through[account_id] = self._checkpoints.locked_through(account_id)
         locked_through = self._locked_through[account_id]
-        if locked_through is not None and transaction_date <= locked_through:
-            self._entering.setdefault(account_id, []).append(transaction_date)
+        if locked_through is None:
+            return
+        incoming_date = parse_calendar_date(transaction_date)
+        lock_date = parse_calendar_date(locked_through)
+        enters_locked_period = (
+            incoming_date <= lock_date
+            if incoming_date is not None and lock_date is not None
+            else transaction_date <= locked_through
+        )
+        if enters_locked_period:
+            self._entering.setdefault(account_id, []).append(
+                incoming_date.isoformat() if incoming_date is not None else transaction_date
+            )
 
     def finish(self) -> list[ReconciliationCheckpoint]:
         """Raise, or recheck affected periods; returns checkpoints now needing review."""

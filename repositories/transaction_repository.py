@@ -5,10 +5,17 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Collection, Mapping
+from datetime import date
 from typing import cast
 
 from domain.balance_anchor import BalanceAnchor
 from domain.balance_recalculation_row import BalanceRecalculationRow
+from domain.calendar_date import (
+    balance_event_sort_key,
+    calendar_date_sort_key,
+    canonical_date_or_stored,
+    parse_calendar_date,
+)
 from domain.money import from_cents, optional_cents, to_cents
 from domain.transaction import Transaction
 
@@ -140,22 +147,36 @@ class TransactionRepository:
 
         ``period_start`` is inclusive; None means from the first transaction.
         """
-        row = self._connection.execute(
-            """SELECT COALESCE(SUM(amount_cents), 0), COUNT(*) FROM transactions
-               WHERE account_id = ? AND (? IS NULL OR transaction_date >= ?)
-                 AND transaction_date <= ?""",
-            (account_id, period_start, period_start, period_end),
-        ).fetchone()
-        return float(from_cents(row[0])), int(row[1])
+        start = date.fromisoformat(period_start) if period_start is not None else None
+        end = date.fromisoformat(period_end)
+        rows = self._connection.execute(
+            "SELECT transaction_date, amount_cents FROM transactions WHERE account_id = ?",
+            (account_id,),
+        ).fetchall()
+        included = [
+            int(row[1])
+            for row in rows
+            if (transaction_date := parse_calendar_date(row[0])) is not None
+            and (start is None or transaction_date >= start)
+            and transaction_date <= end
+        ]
+        return float(from_cents(sum(included))), len(included)
 
     def amounts_between(self, account_id: int, start_date: str, end_date: str) -> list[float]:
+        start = date.fromisoformat(start_date)
+        end = date.fromisoformat(end_date)
         rows = self._connection.execute(
-            """SELECT amount_cents FROM transactions
-               WHERE account_id = ? AND transaction_date BETWEEN ? AND ?
-               ORDER BY transaction_date, id""",
-            (account_id, start_date, end_date),
+            "SELECT id, transaction_date, amount_cents FROM transactions WHERE account_id = ?",
+            (account_id,),
         ).fetchall()
-        return [float(from_cents(row[0])) for row in rows]
+        included = [
+            (transaction_date, int(row[0]), int(row[2]))
+            for row in rows
+            if (transaction_date := parse_calendar_date(row[1])) is not None
+            and start <= transaction_date <= end
+        ]
+        included.sort(key=lambda item: item[:2])
+        return [float(from_cents(item[2])) for item in included]
 
     def id_for_raw_transaction(self, raw_transaction_id: int) -> int | None:
         row = self._connection.execute(
@@ -248,33 +269,54 @@ class TransactionRepository:
         return str(row[0]) if row else None
 
     def latest_snapshot(self, account_id: int) -> BalanceAnchor | None:
-        row = self._connection.execute(
-            """SELECT snapshot_date, amount_cents
-               FROM balance_snapshots WHERE account_id = ?
-               ORDER BY snapshot_date DESC, id DESC LIMIT 1""",
+        rows = self._connection.execute(
+            """SELECT id, snapshot_date, amount_cents
+               FROM balance_snapshots WHERE account_id = ?""",
             (account_id,),
-        ).fetchone()
-        return BalanceAnchor(str(row[0]), float(from_cents(row[1]))) if row else None
+        ).fetchall()
+        candidates = [
+            (snapshot_date, int(row[0]), int(row[2]))
+            for row in rows
+            if (snapshot_date := parse_calendar_date(row[1])) is not None
+        ]
+        if not candidates:
+            return None
+        latest = max(candidates, key=lambda item: item[:2])
+        return BalanceAnchor(latest[0].isoformat(), float(from_cents(latest[2])))
 
     def latest_known_balance(self, account_id: int, balance_date: str) -> tuple[str, float] | None:
         """The latest transaction or snapshot balance on or before a date."""
-        transaction = self._connection.execute(
-            """SELECT transaction_date, balance_after_cents FROM transactions
-               WHERE account_id = ? AND transaction_date <= ? AND balance_after_cents IS NOT NULL
-               ORDER BY transaction_date DESC, id DESC LIMIT 1""",
-            (account_id, balance_date),
-        ).fetchone()
-        snapshot = self._connection.execute(
-            """SELECT snapshot_date, amount_cents FROM balance_snapshots
-               WHERE account_id = ? AND snapshot_date <= ?
-               ORDER BY snapshot_date DESC, id DESC LIMIT 1""",
-            (account_id, balance_date),
-        ).fetchone()
-        candidates = [row for row in (transaction, snapshot) if row]
+        target = date.fromisoformat(balance_date)
+        candidates: list[tuple[date, int, int, int]] = []
+        sources = (
+            (
+                1,
+                self._connection.execute(
+                    """SELECT id, transaction_date, balance_after_cents FROM transactions
+                       WHERE account_id = ? AND balance_after_cents IS NOT NULL""",
+                    (account_id,),
+                ).fetchall(),
+            ),
+            (
+                0,
+                self._connection.execute(
+                    """SELECT id, snapshot_date, amount_cents FROM balance_snapshots
+                       WHERE account_id = ?""",
+                    (account_id,),
+                ).fetchall(),
+            ),
+        )
+        for source_priority, rows in sources:
+            for row in rows:
+                candidate_date = parse_calendar_date(row[1])
+                if candidate_date is None:
+                    continue
+                if candidate_date <= target:
+                    candidates.append((candidate_date, source_priority, int(row[0]), int(row[2])))
         if not candidates:
             return None
-        latest = max(candidates, key=lambda row: row[0])
-        return str(latest[0]), float(from_cents(latest[1]))
+        latest = max(candidates, key=lambda item: item[:3])
+        return latest[0].isoformat(), float(from_cents(latest[3]))
 
     def has_snapshot_source(self, account_id: int, sources: Collection[str]) -> bool:
         """Whether an account has a snapshot from any caller-defined source."""
@@ -295,6 +337,7 @@ class TransactionRepository:
         excluded_sources: Collection[str] = (),
         *,
         include_excluded: bool = False,
+        include_malformed: bool = False,
     ) -> list[BalanceRecalculationRow]:
         source_names = tuple(excluded_sources)
         source_filter = ""
@@ -310,20 +353,26 @@ class TransactionRepository:
                FROM transactions t
                LEFT JOIN raw_transactions r ON r.id = t.raw_transaction_id
                WHERE t.account_id = ?
-                 {source_filter}
-               ORDER BY t.transaction_date DESC, t.id DESC""",  # noqa: S608  # nosec
+                 {source_filter}""",  # noqa: S608  # nosec
             parameters,
         ).fetchall()
-        return [
-            BalanceRecalculationRow(
-                id=int(row[0]),
-                transaction_date=str(row[1]),
-                amount=float(from_cents(row[2])),
-                balance_after=None if row[3] is None else float(from_cents(row[3])),
-                raw_data=row[4],
+        candidates = [
+            (
+                calendar_date_sort_key(row[1], int(row[0])),
+                int(row[0]),
+                BalanceRecalculationRow(
+                    id=int(row[0]),
+                    transaction_date=canonical_date_or_stored(row[1]),
+                    amount=float(from_cents(row[2])),
+                    balance_after=None if row[3] is None else float(from_cents(row[3])),
+                    raw_data=row[4],
+                ),
             )
             for row in rows
+            if include_malformed or parse_calendar_date(row[1]) is not None
         ]
+        candidates.sort(key=lambda item: item[:2], reverse=True)
+        return [item[2] for item in candidates]
 
     def set_balance(self, transaction_id: int, balance_after: float) -> None:
         self._connection.execute(
@@ -367,7 +416,14 @@ class TransactionRepository:
             filters += " a.account_type = ?"
             params.append(account_type)
         query = self._SUMMARY_SELECT.replace("__TRANSACTION_FILTER__", filters)
-        return [dict(row) for row in self._connection.execute(query, params).fetchall()]
+        result = [dict(row) for row in self._connection.execute(query, params).fetchall()]
+        for item in result:
+            if transaction_date := parse_calendar_date(item["transaction_date"]):
+                item["transaction_date"] = transaction_date.isoformat()
+        result.sort(
+            key=lambda item: calendar_date_sort_key(item["transaction_date"], int(item["id"]))
+        )
+        return result
 
     def scoped_account_ids(self, account_type: str | None) -> list[int]:
         rows = self._connection.execute(
@@ -381,47 +437,50 @@ class TransactionRepository:
         return [int(row[0]) for row in rows]
 
     def balance_events(self) -> list[tuple[int, int, str, float]]:
-        snapshots = [
-            (int(row[0]), int(row[1]), str(row[2]), float(from_cents(row[3])))
-            for row in self._connection.execute(
-                """SELECT id, account_id, snapshot_date, amount_cents
-                   FROM balance_snapshots ORDER BY snapshot_date, id"""
-            ).fetchall()
+        snapshot_rows = self._connection.execute(
+            "SELECT id, account_id, snapshot_date, amount_cents FROM balance_snapshots"
+        ).fetchall()
+        transaction_rows = self._connection.execute(
+            """SELECT id, account_id, transaction_date, balance_after_cents
+               FROM transactions WHERE balance_after_cents IS NOT NULL"""
+        ).fetchall()
+        events = [
+            (
+                -int(row[0]),
+                int(row[1]),
+                canonical_date_or_stored(row[2]),
+                float(from_cents(row[3])),
+            )
+            for row in snapshot_rows
+        ] + [
+            (
+                int(row[0]),
+                int(row[1]),
+                canonical_date_or_stored(row[2]),
+                float(from_cents(row[3])),
+            )
+            for row in transaction_rows
         ]
-        transactions = [
-            (int(row[0]), int(row[1]), str(row[2]), float(from_cents(row[3])))
-            for row in self._connection.execute(
-                """SELECT id, account_id, transaction_date, balance_after_cents
-                   FROM transactions WHERE balance_after_cents IS NOT NULL
-                   ORDER BY transaction_date, id"""
-            ).fetchall()
-        ]
-        return [
-            (-identifier, account, value_date, amount)
-            for identifier, account, value_date, amount in snapshots
-        ] + transactions
+        events.sort(key=lambda item: balance_event_sort_key(item[2], item[0]))
+        return events
 
     def first_snapshot_rows(
         self, account_id: int | None, account_type: str | None, include_children: bool
-    ) -> list[sqlite3.Row]:
-        return self._connection.execute(
+    ) -> list[dict[str, object]]:
+        rows = self._connection.execute(
             """SELECT a.id AS account_id, a.account_number, a.institution,
                       a.name AS account_name, a.asset_kind, a.parent_account_id,
                       parent.name AS parent_name,
                       parent.account_number AS parent_account_number,
                       parent.institution AS parent_institution,
                       parent.balance_includes_children AS parent_balance_includes_children,
-                      s.snapshot_date, s.amount_cents / 100.0 AS amount
+                      s.id AS snapshot_id, s.snapshot_date,
+                      s.amount_cents / 100.0 AS amount
                FROM accounts a
                LEFT JOIN accounts parent ON parent.id = a.parent_account_id
-               JOIN balance_snapshots s ON s.id = (
-                   SELECT first_snapshot.id FROM balance_snapshots first_snapshot
-                   WHERE first_snapshot.account_id = a.id
-                   ORDER BY first_snapshot.snapshot_date, first_snapshot.id LIMIT 1
-               )
+               JOIN balance_snapshots s ON s.account_id = a.id
                WHERE (? IS NULL OR a.id = ? OR (? = 1 AND a.parent_account_id = ?))
-                 AND (? IS NULL OR a.account_type = ?)
-               ORDER BY s.snapshot_date DESC, a.id""",
+                 AND (? IS NULL OR a.account_type = ?)""",
             (
                 account_id,
                 account_id,
@@ -431,6 +490,28 @@ class TransactionRepository:
                 account_type,
             ),
         ).fetchall()
+        first_by_account: dict[int, dict[str, object]] = {}
+        for stored_row in rows:
+            row = dict(stored_row)
+            row_account_id = int(cast(str | int, row["account_id"]))
+            current = first_by_account.get(row_account_id)
+            row_key = calendar_date_sort_key(
+                row["snapshot_date"], int(cast(str | int, row["snapshot_id"]))
+            )
+            if current is None or row_key < calendar_date_sort_key(
+                current["snapshot_date"], int(cast(str | int, current["snapshot_id"]))
+            ):
+                first_by_account[row_account_id] = row
+        result = list(first_by_account.values())
+        result.sort(
+            key=lambda row: calendar_date_sort_key(
+                row["snapshot_date"], int(cast(str | int, row["snapshot_id"]))
+            ),
+            reverse=True,
+        )
+        for row in result:
+            del row["snapshot_id"]
+        return result
 
     _SELECT = """SELECT id, account_id, raw_transaction_id, transaction_date,
                          amount_cents, description, balance_after_cents, category, transaction_type

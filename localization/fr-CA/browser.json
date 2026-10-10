@@ -32,7 +32,8 @@
     "description": "Description",
     "amount": "Montant",
     "no_transactions": "Aucune transaction importée.",
-    "load_error": "Impossible de charger le tableau de bord : {message}"
+    "load_error": "Impossible de charger le tableau de bord : {message}",
+    "money_precision_error": "Un montant ne peut pas être affiché avec une précision fiable au cent près. Les résultats du tableau de bord ne sont pas affichés."
   },
   "help": {
     "load_error": "Impossible de charger l’aide.",

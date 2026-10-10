@@ -32,7 +32,8 @@
     "description": "Description",
     "amount": "Amount",
     "no_transactions": "No transactions imported.",
-    "load_error": "Could not load dashboard: {message}"
+    "load_error": "Could not load dashboard: {message}",
+    "money_precision_error": "An amount cannot be displayed with reliable cent precision. Dashboard results have not been shown."
   },
   "help": {
     "load_error": "Help could not be loaded.",

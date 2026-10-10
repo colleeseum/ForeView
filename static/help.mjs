@@ -44,11 +44,16 @@ const articleTitle = backdrop.querySelector('.help-article h2');
 const articleSummary = backdrop.querySelector('.help-article-summary');
 const articleBody = backdrop.querySelector('.help-article-body');
 let selectedArticleKey = null;
+let lastFocus = null;
+
 
 function pageArticleKey() {
   const declaredKey = document.querySelector('main > header')?.dataset.helpArticle;
   if (declaredKey) return declaredKey;
   const mapping = {
+    '/': 'assets',
+    '/expenses': 'expenses',
+    '/connections': 'transaction-import',
     '/accounts': 'assets',
     '/income': 'income',
     '/transactions': 'transactions',
@@ -63,6 +68,7 @@ function closeTooltip() {
 
 function closeFullHelp() {
   backdrop.hidden = true;
+  lastFocus?.focus();
 }
 
 function showArticle(article, language = 'en-CA') {
@@ -96,16 +102,46 @@ function matchingArticles(articles, query) {
   ].join(' ').toLocaleLowerCase().includes(normalized));
 }
 
-function renderResults(articles, preferredKey = null, language = 'en-CA') {
+function categoryPath(categoryKey, categories) {
+  const byKey = new Map(categories.map((category) => [category.key, category]));
+  const path = [];
+  const visited = new Set();
+  let current = byKey.get(categoryKey);
+  while (current && !visited.has(current.key)) {
+    visited.add(current.key);
+    path.unshift(current);
+    current = byKey.get(current.parent);
+  }
+  return path;
+}
+
+function renderResults(articles, preferredKey = null, language = 'en-CA', categories = [], searching = false) {
   results.lang = language;
-  results.innerHTML = articles.map((article) =>
-    `<button type="button" data-help-result="${escapeHtml(article.key)}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`
-  ).join('');
   const selected = articles.find((article) => article.key === preferredKey) || articles[0];
+  if (searching) {
+    results.innerHTML = articles.map((article) => {
+      const path = categoryPath(article.category, categories).map((part) => part.title).join(' › ');
+      return `<button type="button" data-help-result="${escapeHtml(article.key)}"><small>${escapeHtml(path)}</small><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`;
+    }).join('');
+  } else {
+    const renderBranch = (parent = null) => categories.filter((category) => category.parent === parent)
+      .sort((a, b) => a.order - b.order).map((category) => {
+        const direct = articles.filter((article) => article.category === category.key);
+        const children = renderBranch(category.key);
+        if (!direct.length && !children) return '';
+        const activePath = selected && categoryPath(selected.category, categories).some((part) => part.key === category.key);
+        const buttons = direct.map((article) =>
+          `<button type="button" data-help-result="${escapeHtml(article.key)}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`
+        ).join('');
+        return `<details class="help-category" ${activePath ? 'open' : ''}><summary>${escapeHtml(category.title)}</summary><div class="help-category-children">${buttons}${children}</div></details>`;
+      }).join('');
+    results.innerHTML = renderBranch();
+  }
   showArticle(selected, language);
 }
 
 async function openFullHelp(key = null) {
+  lastFocus = document.activeElement;
   backdrop.hidden = false;
   search.value = '';
   articleTitle.textContent = t('help.loading');
@@ -116,7 +152,7 @@ async function openFullHelp(key = null) {
   articleBody.lang = locale;
   try {
     const catalog = await catalogPromise;
-    renderResults(catalog.articles, key || pageArticleKey(), catalog.language || 'en-CA');
+    renderResults(catalog.articles, key || pageArticleKey(), catalog.language || 'en-CA', catalog.categories || []);
     search.focus();
   } catch (error) {
     articleTitle.textContent = t('help.unavailable');
@@ -185,7 +221,7 @@ results.addEventListener('click', async (event) => {
 search.addEventListener('input', async () => {
   const catalog = await catalogPromise;
   const matches = matchingArticles(catalog.articles, search.value);
-  renderResults(matches, selectedArticleKey, catalog.language || 'en-CA');
+  renderResults(matches, selectedArticleKey, catalog.language || 'en-CA', catalog.categories || [], Boolean(search.value.trim()));
 });
 
 backdrop.querySelector('.help-drawer-close').addEventListener('click', closeFullHelp);
@@ -196,4 +232,16 @@ document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
   closeTooltip();
   closeFullHelp();
+});
+
+// Keep keyboard focus within the modal help drawer.
+drawer.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab') return;
+  const focusable = [...drawer.querySelectorAll('button:not([disabled]), input:not([disabled]), summary')]
+    .filter((element) => element.getClientRects().length);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 });

@@ -183,6 +183,66 @@ _ARTICLES = (
 )
 
 
+
+# Stable category IDs are shared by core and plugin-contributed articles.
+_CATEGORIES = (
+    ("financial", None, "Financial records"),
+    ("summary", "financial", "Summary"),
+    ("assets", "financial", "Assets"),
+    ("accounts", "assets", "Accounts"),
+    ("ownership", "assets", "Ownership"),
+    ("real-estate", "assets", "Real estate"),
+    ("income", "financial", "Income"),
+    ("annual-records", "income", "Annual records"),
+    ("tax-documents", "income", "Tax documents"),
+    ("factual-corrections", "income", "Factual corrections"),
+    ("expenses", "financial", "Expenses"),
+    ("expense-categories", "expenses", "Categories"),
+    ("expense-imports", "expenses", "Statement imports"),
+    ("overlap", "expenses", "Overlap resolution"),
+    ("seasonal", "expenses", "Seasonal estimates"),
+    ("transactions", "financial", "Transactions"),
+    ("imports", "transactions", "Imports"),
+    ("reconciliation", "transactions", "Reconciliation"),
+    ("planning", None, "Planning"),
+    ("salary-projection", "planning", "Salary projection"),
+    ("scenarios", "planning", "Scenarios"),
+    ("public-rules", "planning", "Public tax rules"),
+    ("application", None, "Application"),
+    ("connections", "application", "Connections"),
+    ("data-backups", "application", "Data and backups"),
+    ("license", "application", "License"),
+    ("disclaimer", "application", "Disclaimer"),
+)
+_CATEGORY_BY_ARTICLE = {
+    "income": "annual-records",
+    "factual-corrections": "factual-corrections",
+    "assets": "assets",
+    "transactions": "transactions",
+    "expenses": "expenses",
+    "expense-seasonal-estimate": "seasonal",
+    "transaction-import": "imports",
+    "transaction-reconcile": "reconciliation",
+    "public-rule-approval": "public-rules",
+}
+
+
+def _categorize(articles):
+    """Normalize every source through one shared category contract."""
+    known = {key for key, _, _ in _CATEGORIES}
+    categorized = []
+    for index, article in enumerate(articles):
+        item = dict(article)
+        category = item.get("category") or _CATEGORY_BY_ARTICLE.get(item["key"], "application")
+        if category not in known:
+            category = "application"
+        item["category"] = category
+        item["parent_topic"] = item.get("parent_topic")
+        item["order"] = item.get("order", index)
+        item["owning_page"] = item.get("owning_page")
+        categorized.append(item)
+    return categorized
+
 @blueprint.get("/api/help")
 def help_catalog():
     articles = list(_ARTICLES)
@@ -193,6 +253,7 @@ def help_catalog():
             "summary": f"How to obtain and load a {source.display_name} document.",
             "body": source.help_text,
             "keywords": ("T1", "PDF", "tax return", source.key, source.display_name),
+            "category": "tax-documents",
         }
         for source in income_source_registry.providers
     )
@@ -203,6 +264,7 @@ def help_catalog():
             "summary": "Import authoritative assessed tax values.",
             "body": source.help_text,
             "keywords": ("notice", "assessment", "tax", source.key, source.display_name),
+            "category": "tax-documents",
         }
         for source in tax_notice_registry.providers
     )
@@ -213,6 +275,7 @@ def help_catalog():
             "summary": "Import public-pension earnings and official estimates.",
             "body": source.help_text,
             "keywords": ("CPP", "QPP", "pension", "statement", source.key),
+            "category": "annual-records",
         }
         for source in public_pension_source_registry.providers
     )
@@ -223,6 +286,7 @@ def help_catalog():
             "summary": "Import household expense statement from a supported source.",
             "body": source.help_text,
             "keywords": ("expense", "statement", "PDF", source.key, source.display_name),
+            "category": "expense-imports",
         }
         for source in expense_source_registry.providers
     )
@@ -233,8 +297,12 @@ def help_catalog():
             "summary": f"Help supplied by the {provider.display_name} module.",
             "body": topic.body,
             "keywords": (provider.key, provider.display_name, topic.key, "institution"),
+            "category": getattr(topic, "category", None) or "connections",
         }
         for provider in institution_registry().providers
         for topic in provider.help_topics
     )
-    return jsonify({"language": "en-CA", "tooltips": list(_TOOLTIPS), "articles": articles})
+    return jsonify({"language": "en-CA", "tooltips": list(_TOOLTIPS), "categories": [
+        {"key": key, "parent": parent, "title": title, "order": index}
+        for index, (key, parent, title) in enumerate(_CATEGORIES)
+    ], "articles": _categorize(articles)})

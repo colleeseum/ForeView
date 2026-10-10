@@ -94,6 +94,8 @@ The shared help API combines core articles and provider contributions under stab
 The help drawer renders expandable category ancestry, preserves category paths in search, and
 expands the branch selected by page-level or contextual help. Provider hierarchy metadata is
 adapted in the help route; browser rendering does not contain institution-specific branches.
+When no valid contextual article is supplied, selection follows the first article in the rendered
+category hierarchy, not the lowest article order across unrelated categories.
 
 `localization/` provides a registry-backed presentation service with JSON message catalogs,
 deterministic locale fallback chains, and a per-runtime language preference. Flask exposes the

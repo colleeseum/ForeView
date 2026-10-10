@@ -124,7 +124,6 @@ function categoryPath(categoryKey, categories) {
 function renderResults(articles, preferredKey = null, language = 'en-CA', categories = [], searching = false) {
   articles = [...articles].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   results.lang = language;
-  const selected = articles.find((article) => article.key === preferredKey) || articles[0];
   if (searching) {
     results.innerHTML = articles.map((article) => {
       const path = categoryPath(article.category, categories).map((part) => part.title).join(' › ');
@@ -136,15 +135,22 @@ function renderResults(articles, preferredKey = null, language = 'en-CA', catego
         const direct = articles.filter((article) => article.category === category.key);
         const children = renderBranch(category.key);
         if (!direct.length && !children) return '';
-        const activePath = selected && categoryPath(selected.category, categories).some((part) => part.key === category.key);
         const buttons = direct.map((article) =>
           `<button type="button" data-help-result="${escapeHtml(article.key)}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`
         ).join('');
-        return `<details class="help-category" ${activePath ? 'open' : ''}><summary>${escapeHtml(category.title)}</summary><div class="help-category-children">${buttons}${children}</div></details>`;
+        return `<details class="help-category"><summary>${escapeHtml(category.title)}</summary><div class="help-category-children">${buttons}${children}</div></details>`;
       }).join('');
     results.innerHTML = renderBranch();
   }
-  showArticle(selected, language);
+  // The fallback must follow visible category traversal, not global article order.
+  const buttons = [...results.querySelectorAll('[data-help-result]')];
+  const selectedButton = buttons.find((button) => button.dataset.helpResult === preferredKey) || buttons[0];
+  let branch = selectedButton?.closest('.help-category');
+  while (branch) {
+    branch.open = true;
+    branch = branch.parentElement.closest('.help-category');
+  }
+  showArticle(articles.find((article) => article.key === selectedButton?.dataset.helpResult), language);
 }
 
 function showCatalogFailure(error) {

@@ -285,3 +285,47 @@ test('Connections page opens connection help rather than statement imports', asy
   assert.equal(document.querySelector('[data-help-result="connections"]').closest('details').open, true);
   dom.window.close();
 });
+
+test('unmapped pages select the first rendered financial topic, not the lowest global article order', async () => {
+  const hierarchyCatalog = {
+    ...catalog,
+    categories: [
+      {key: 'financial', parent: null, title: 'Financial records', order: 0},
+      {key: 'summary', parent: 'financial', title: 'Summary', order: 0},
+      {key: 'income', parent: 'financial', title: 'Income', order: 1},
+      {key: 'application', parent: null, title: 'Application', order: 1},
+      {key: 'connections', parent: 'application', title: 'Connections', order: 0},
+    ],
+    articles: [
+      {key: 'connections', category: 'connections', title: 'Institution connections', summary: '', body: '', order: 0},
+      {key: 'summary', category: 'summary', title: 'Financial summary', summary: '', body: '', order: 10},
+      {key: 'income', category: 'income', title: 'Income', summary: '', body: '', order: 1},
+    ],
+  };
+  for (const page of ['/salary-projection', '/setup', '/application-settings', '/about', '/disclaimer']) {
+    const dom = installDom(`http://localhost${page}`);
+    globalThis.fetch = async () => ({ok: true, json: async () => hierarchyCatalog});
+    await import(`../../static/help.mjs?unmapped=${page}`);
+    document.querySelector('.full-help-button').click();
+    await tick();
+    const first = document.querySelector('[data-help-result]');
+    assert.equal(first.dataset.helpResult, 'summary');
+    assert.equal(first.classList.contains('active'), true);
+    assert.equal(document.querySelector('.help-article h2').textContent, 'Financial summary');
+    assert.equal(first.closest('details').open, true);
+    assert.equal(first.closest('details').parentElement.closest('details').open, true);
+    assert.equal(document.querySelector('[data-help-result="connections"]').closest('details').open, false);
+    // Missing context keys and clearing an empty search use the same tree fallback.
+    await window.openContextHelp('missing-context');
+    assert.equal(document.querySelector('.help-article h2').textContent, 'Financial summary');
+    const search = document.querySelector('#help-search');
+    search.value = 'no-matches';
+    search.dispatchEvent(new dom.window.Event('input'));
+    await tick();
+    search.value = '';
+    search.dispatchEvent(new dom.window.Event('input'));
+    await tick();
+    assert.equal(document.querySelector('.help-article h2').textContent, 'Financial summary');
+    dom.window.close();
+  }
+});

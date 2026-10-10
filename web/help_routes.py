@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from flask import Blueprint, jsonify
 
 from expense_sources import expense_source_registry
@@ -34,6 +36,34 @@ _TOOLTIPS = (
 )
 
 _ARTICLES = (
+    {
+        "key": "connections",
+        "title": "Institution connections",
+        "summary": "Manage supported live connections separately from document imports.",
+        "body": (
+            "The Connections page manages authorizations and synchronization for institutions "
+            "that offer a live connection. Follow the institution's guide to connect an account. "
+            "Use document imports from the financial record pages for statements and bills; "
+            "they do not require a live connection."
+        ),
+        "keywords": ("connection", "authorization", "sync", "institution"),
+        "category": "connections",
+        "owning_page": "/connections",
+    },
+    {
+        "key": "summary",
+        "title": "Financial summary",
+        "summary": "Review the latest available household financial facts.",
+        "body": (
+            "The Summary page brings together account balances, investments, real estate, "
+            "liquidity, upcoming maturities, and recent transactions. Follow the financial "
+            "record pages to review or update their underlying evidence. Missing or outdated "
+            "records can affect the totals; the summary is not a financial projection."
+        ),
+        "keywords": ("summary", "dashboard", "household", "totals"),
+        "category": "summary",
+        "owning_page": "/",
+    },
     {
         "key": "income",
         "title": "Employment income records",
@@ -183,7 +213,6 @@ _ARTICLES = (
 )
 
 
-
 # Stable category IDs are shared by core and plugin-contributed articles.
 _CATEGORIES = (
     ("financial", None, "Financial records"),
@@ -227,7 +256,7 @@ _CATEGORY_BY_ARTICLE = {
 }
 
 
-def _categorize(articles):
+def _categorize(articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Normalize every source through one shared category contract."""
     known = {key for key, _, _ in _CATEGORIES}
     categorized = []
@@ -243,9 +272,10 @@ def _categorize(articles):
         categorized.append(item)
     return categorized
 
+
 @blueprint.get("/api/help")
 def help_catalog():
-    articles = list(_ARTICLES)
+    articles: list[dict[str, Any]] = list(_ARTICLES)
     articles.extend(
         {
             "key": f"income-source-{source.key}",
@@ -297,12 +327,22 @@ def help_catalog():
             "summary": f"Help supplied by the {provider.display_name} module.",
             "body": topic.body,
             "keywords": (provider.key, provider.display_name, topic.key, "institution"),
-            "category": getattr(topic, "category", None) or "connections",
+            "category": topic.category,
+            "parent_topic": topic.parent_topic,
+            "order": topic.order,
+            "owning_page": topic.owning_page,
         }
         for provider in institution_registry().providers
         for topic in provider.help_topics
     )
-    return jsonify({"language": "en-CA", "tooltips": list(_TOOLTIPS), "categories": [
-        {"key": key, "parent": parent, "title": title, "order": index}
-        for index, (key, parent, title) in enumerate(_CATEGORIES)
-    ], "articles": _categorize(articles)})
+    return jsonify(
+        {
+            "language": "en-CA",
+            "tooltips": list(_TOOLTIPS),
+            "categories": [
+                {"key": key, "parent": parent, "title": title, "order": index}
+                for index, (key, parent, title) in enumerate(_CATEGORIES)
+            ],
+            "articles": _categorize(articles),
+        }
+    )

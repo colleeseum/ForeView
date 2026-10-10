@@ -45,8 +45,10 @@ import-batch and parser provenance.
 A registry-backed localization foundation supports English and French Canadian message catalogs,
 declared locale fallback chains, text direction, and a language preference stored with each
 runtime. The shared side menu, selected server-rendered pages, and primary browser-generated
-workflows use it through a shared browser catalog contract. Remaining localization work includes
-help organization, broader server-rendered coverage, and a unified locale-aware formatting layer.
+workflows use it through a shared browser catalog contract. Help uses expandable categories with
+page and contextual branch selection, searchable category paths, and provider metadata. Remaining
+localization work includes help content, broader server-rendered coverage, and consistent adoption
+of locale-aware formatting across pages.
 
 ## Intentional or known limitations
 

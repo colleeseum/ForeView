@@ -13,6 +13,8 @@ const catalogPromise = fetch('/api/help').then(async (response) => {
   }
   return catalog;
 });
+// Help is fetched eagerly, but failures are presented when the user opens it.
+catalogPromise.catch(() => {});
 
 const tooltip = document.createElement('section');
 tooltip.className = 'help-tooltip';
@@ -45,15 +47,15 @@ const articleSummary = backdrop.querySelector('.help-article-summary');
 const articleBody = backdrop.querySelector('.help-article-body');
 let selectedArticleKey = null;
 let lastFocus = null;
-
+let renderVersion = 0;
 
 function pageArticleKey() {
   const declaredKey = document.querySelector('main > header')?.dataset.helpArticle;
   if (declaredKey) return declaredKey;
   const mapping = {
-    '/': 'assets',
+    '/': 'summary',
     '/expenses': 'expenses',
-    '/connections': 'transaction-import',
+    '/connections': 'connections',
     '/accounts': 'assets',
     '/income': 'income',
     '/transactions': 'transactions',
@@ -67,8 +69,11 @@ function closeTooltip() {
 }
 
 function closeFullHelp() {
+  if (backdrop.hidden) return;
+  renderVersion += 1;
   backdrop.hidden = true;
-  lastFocus?.focus();
+  if (lastFocus?.isConnected) lastFocus.focus();
+  lastFocus = null;
 }
 
 function showArticle(article, language = 'en-CA') {
@@ -94,11 +99,12 @@ function showArticle(article, language = 'en-CA') {
   });
 }
 
-function matchingArticles(articles, query) {
+function matchingArticles(articles, query, categories) {
   const normalized = query.trim().toLocaleLowerCase();
   if (!normalized) return articles;
   return articles.filter((article) => [
     article.title, article.summary, article.body, ...(article.keywords || []),
+    ...categoryPath(article.category, categories).map((category) => category.title),
   ].join(' ').toLocaleLowerCase().includes(normalized));
 }
 
@@ -116,6 +122,7 @@ function categoryPath(categoryKey, categories) {
 }
 
 function renderResults(articles, preferredKey = null, language = 'en-CA', categories = [], searching = false) {
+  articles = [...articles].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   results.lang = language;
   const selected = articles.find((article) => article.key === preferredKey) || articles[0];
   if (searching) {
@@ -140,9 +147,19 @@ function renderResults(articles, preferredKey = null, language = 'en-CA', catego
   showArticle(selected, language);
 }
 
+function showCatalogFailure(error) {
+  articleTitle.textContent = t('help.unavailable');
+  articleTitle.lang = locale;
+  articleBody.textContent = error.message;
+  articleBody.lang = error.language || 'en-CA';
+}
+
 async function openFullHelp(key = null) {
-  lastFocus = document.activeElement;
+  if (backdrop.hidden) lastFocus = document.activeElement;
+  const version = ++renderVersion;
+  closeTooltip();
   backdrop.hidden = false;
+  results.textContent = '';
   search.value = '';
   articleTitle.textContent = t('help.loading');
   articleTitle.lang = locale;
@@ -150,14 +167,14 @@ async function openFullHelp(key = null) {
   articleSummary.lang = locale;
   articleBody.textContent = '';
   articleBody.lang = locale;
+  search.focus();
   try {
     const catalog = await catalogPromise;
+    if (version !== renderVersion || backdrop.hidden) return;
     renderResults(catalog.articles, key || pageArticleKey(), catalog.language || 'en-CA', catalog.categories || []);
-    search.focus();
   } catch (error) {
-    articleTitle.textContent = t('help.unavailable');
-    articleBody.textContent = error.message;
-    articleBody.lang = error.language || 'en-CA';
+    if (version !== renderVersion || backdrop.hidden) return;
+    showCatalogFailure(error);
   }
 }
 
@@ -211,7 +228,9 @@ document.addEventListener('click', (event) => {
 results.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-help-result]');
   if (!button) return;
+  const version = renderVersion;
   const catalog = await catalogPromise;
+  if (version !== renderVersion || backdrop.hidden) return;
   showArticle(
     catalog.articles.find((article) => article.key === button.dataset.helpResult),
     catalog.language || 'en-CA',
@@ -219,9 +238,15 @@ results.addEventListener('click', async (event) => {
 });
 
 search.addEventListener('input', async () => {
-  const catalog = await catalogPromise;
-  const matches = matchingArticles(catalog.articles, search.value);
-  renderResults(matches, selectedArticleKey, catalog.language || 'en-CA', catalog.categories || [], Boolean(search.value.trim()));
+  const version = ++renderVersion;
+  try {
+    const catalog = await catalogPromise;
+    if (version !== renderVersion || backdrop.hidden) return;
+    const matches = matchingArticles(catalog.articles, search.value, catalog.categories || []);
+    renderResults(matches, selectedArticleKey, catalog.language || 'en-CA', catalog.categories || [], Boolean(search.value.trim()));
+  } catch (error) {
+    if (version === renderVersion && !backdrop.hidden) showCatalogFailure(error);
+  }
 });
 
 backdrop.querySelector('.help-drawer-close').addEventListener('click', closeFullHelp);
@@ -230,9 +255,13 @@ backdrop.addEventListener('click', (event) => {
 });
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
+  if (!backdrop.hidden) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
   closeTooltip();
   closeFullHelp();
-});
+}, true);
 
 // Keep keyboard focus within the modal help drawer.
 drawer.addEventListener('keydown', (event) => {

@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 from institution_support.connection_capability import ConnectionCapability
 from institution_support.csv_parser import CsvParser
@@ -33,6 +34,7 @@ class InstitutionProvider:
     balance_excluded_sources: tuple[str, ...] = ()
     balance_including_snapshot_sources: tuple[str, ...] = ()
     transaction_repair: TransactionRepair | None = None
+    translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
     def names(self) -> tuple[str, ...]:
         return (self.key, self.display_name, *self.aliases)

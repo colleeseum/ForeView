@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 
 from domain.parsed_annual_employment_actual import ParsedAnnualEmploymentActual
 
@@ -23,3 +23,4 @@ class IncomeSourceProvider:
     help_text: str
     version: str = "2026.09.29"
     detects: IncomeDetector | None = None
+    translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)

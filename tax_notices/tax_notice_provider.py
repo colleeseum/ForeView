@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 
 from domain.parsed_tax_assessment import ParsedTaxAssessment
 
@@ -23,3 +23,4 @@ class TaxNoticeProvider:
     detects: TaxNoticeDetector
     help_text: str
     version: str = "2026.09.29.1"
+    translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)

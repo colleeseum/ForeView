@@ -103,7 +103,10 @@ selected locale, text direction, supported locales, translation function, and ev
 catalog required by the selected locale's fallback chain to templates. Framework-free browser
 modules use the shared `static/i18n.mjs` contract for lookup, interpolation, deterministic
 fallback, and visible missing-key markers. The browser catalogs cover the primary dynamic
-workflows; help content and some server-rendered pages remain separate localization work.
+workflows; core help navigation, tooltips, and guidance use locale catalogs with per-field
+fallback and resolved-language metadata. Provider help uses optional per-provider locale
+dictionaries through the same resolver. Provider-owned workflow actions outside help still
+require migration to the same adapter.
 
 ### Institution and ingestion adapters
 

@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -19,3 +20,4 @@ class HelpTopic:
     parent_topic: str | None = None
     order: int = 0
     owning_page: str | None = None
+    translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)

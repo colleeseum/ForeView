@@ -329,3 +329,42 @@ test('unmapped pages select the first rendered financial topic, not the lowest g
     dom.window.close();
   }
 });
+
+test('mixed-language help attributes each field in the hierarchy, search, article and tooltip', async () => {
+  const dom = installDom('http://localhost/income', null, 'fr-CA');
+  const mixed = {
+    language: 'fr-CA',
+    categories: [{key: 'financial', parent: null, title: 'Dossiers financiers', language: 'fr-CA', order: 0}],
+    articles: [{key: 'income', category: 'financial', title: 'English guide', summary: 'Résumé français', body: 'English body',
+      language: 'en-CA', field_languages: {title: 'en-CA', summary: 'fr-CA', body: 'en-CA'}}],
+    tooltips: [{key: 'salary-rate', title: 'Taux salarial', body: 'English explanation', language: 'fr-CA',
+      field_languages: {title: 'fr-CA', body: 'en-CA'}}],
+  };
+  globalThis.fetch = async () => ({ok: true, json: async () => mixed});
+  await import('../../static/help.mjs?mixed-language-fields');
+  document.querySelector('.full-help-button').click();
+  await tick();
+  const assertLanguages = () => {
+    const button = document.querySelector('[data-help-result]');
+    assert.equal(button.querySelector('strong').lang, 'en-CA');
+    assert.equal(button.querySelector(':scope > span').lang, 'fr-CA');
+    assert.equal(document.querySelector('.help-article h2').lang, 'en-CA');
+    assert.equal(document.querySelector('.help-article-summary').lang, 'fr-CA');
+    assert.equal(document.querySelector('.help-article-body').lang, 'en-CA');
+  };
+  assertLanguages();
+  assert.equal(document.querySelector('.help-category > summary').lang, 'fr-CA');
+  const search = document.querySelector('#help-search');
+  search.value = 'guide';
+  search.dispatchEvent(new dom.window.Event('input'));
+  await tick();
+  assertLanguages();
+  assert.equal(document.querySelector('[data-help-result] small').lang, 'fr-CA');
+  assert.equal(document.querySelector('[data-help-result] small span').lang, 'fr-CA');
+  document.querySelector('[data-help-tooltip]').click();
+  await tick();
+  assert.equal(document.querySelector('.help-tooltip strong').lang, 'fr-CA');
+  assert.equal(document.querySelector('.help-tooltip p').lang, 'en-CA');
+  configureTestLocalization();
+  dom.window.close();
+});

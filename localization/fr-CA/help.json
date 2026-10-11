@@ -1,0 +1,113 @@
+{
+  "categories": {
+    "financial": "Dossiers financiers",
+    "summary": "Sommaire",
+    "assets": "Actifs",
+    "accounts": "Comptes",
+    "ownership": "Propriété",
+    "real-estate": "Immobilier",
+    "income": "Revenus",
+    "annual-records": "Données annuelles",
+    "tax-documents": "Documents fiscaux",
+    "factual-corrections": "Corrections factuelles",
+    "expenses": "Dépenses",
+    "expense-categories": "Catégories",
+    "expense-imports": "Importation de relevés",
+    "overlap": "Résolution des chevauchements",
+    "seasonal": "Estimations saisonnières",
+    "transactions": "Transactions",
+    "imports": "Importations",
+    "reconciliation": "Rapprochement",
+    "planning": "Planification",
+    "salary-projection": "Projection salariale",
+    "scenarios": "Scénarios",
+    "public-rules": "Règles fiscales publiques",
+    "application": "Application",
+    "connections": "Connexions",
+    "data-backups": "Données et sauvegardes",
+    "license": "Licence",
+    "disclaimer": "Avis de non-responsabilité"
+  },
+  "tooltips": {
+    "employment-income": {
+      "title": "Revenu d’emploi",
+      "body": "Revenu d’emploi déclaré à la ligne 10100 de la T1, avant la soustraction de la prime enregistrée."
+    },
+    "salary-rate": {
+      "title": "Taux salarial",
+      "body": "Revenu d’emploi moins la prime comprise dans ce revenu."
+    },
+    "rrsp-contribution": {
+      "title": "Cotisation REER",
+      "body": "Somme déposée dans un REER durant l’année. Il ne s’agit pas des droits de cotisation."
+    }
+  },
+  "articles": {
+    "connections": {
+      "title": "Connexions aux institutions",
+      "summary": "Gérer les connexions directes séparément des importations de documents.",
+      "body": "La page Connexions gère les autorisations et la synchronisation des institutions offrant une connexion directe. Suivez le guide de l’institution pour connecter un compte. Les relevés et factures s’importent depuis les pages de dossiers financiers, sans connexion directe."
+    },
+    "summary": {
+      "title": "Sommaire financier",
+      "summary": "Consulter les dernières données financières du ménage.",
+      "body": "Le sommaire rassemble les soldes des comptes, les placements, les biens immobiliers, les liquidités, les échéances à venir et les transactions récentes. Consultez les dossiers financiers pour vérifier les données sous-jacentes. Des données absentes ou périmées peuvent fausser les totaux; ce sommaire n’est pas une projection."
+    },
+    "income": {
+      "title": "Données de revenus d’emploi",
+      "summary": "Enregistrer les données annuelles factuelles d’emploi et de déclaration fiscale.",
+      "body": "Les données de revenus d’emploi conservent les valeurs factuelles par personne et année d’imposition. Vous pouvez saisir une donnée manuellement ou charger un PDF T1 pris en charge. Le PDF est analysé pour prévisualisation seulement et n’est pas conservé. Vérifiez chaque valeur avant l’enregistrement."
+    },
+    "factual-corrections": {
+      "title": "Corriger une donnée factuelle de revenu ou d’impôt",
+      "summary": "Corriger une valeur conservée sans modifier son document source.",
+      "body": "Utilisez une correction factuelle lorsque l’application doit retenir une valeur différente de celle d’un avis de cotisation, d’une déclaration ou d’une donnée annuelle conservée. Saisissez le montant corrigé et expliquez l’écart. La valeur initiale et sa provenance restent accessibles pour vérification, et la correction est clairement identifiée comme une modification effectuée par l’utilisateur. Si une nouvelle importation modifie la valeur sous-jacente ou sa source, la correction demeure active mais doit être révisée. Confirmez-la seulement après avoir comparé la source actuelle. Supprimez la correction pour rétablir la priorité normale des sources. Réimportez plutôt le document lorsque la source conservée elle-même est incomplète ou périmée."
+    },
+    "assets": {
+      "title": "Actifs et comptes",
+      "summary": "Comprendre les catégories de comptes, les soldes et la propriété.",
+      "body": "Les comptes sont séparés selon les règles fiscales et de retraite applicables. Les valeurs non enregistrées, CELI, REER, REEE et immobilières sont suivies distinctement."
+    },
+    "transactions": {
+      "title": "Transactions",
+      "summary": "Consulter les mouvements importés par catégorie de compte.",
+      "body": "Les onglets de transactions regroupent les opérations selon la catégorie du compte. Utilisez le filtre pour limiter l’affichage à un compte."
+    },
+    "expenses": {
+      "title": "Dépenses",
+      "summary": "Enregistrer et consulter les dépenses factuelles du ménage.",
+      "body": "Créez des catégories obligatoires ou facultatives, puis saisissez les dépenses ou importez des relevés pris en charge. Les totaux enregistrés proviennent de preuves factuelles et restent distincts des hypothèses de projection. Résolvez les chevauchements possibles avant d’utiliser le total annuel. Une estimation saisonnière distincte peut être disponible pour une année incomplète."
+    },
+    "expense-seasonal-estimate": {
+      "title": "Estimations saisonnières des dépenses",
+      "summary": "Estimer une année incomplète sans supposer une consommation linéaire.",
+      "body": "L’estimation conserve les relevés réels de l’année en cours et comble uniquement les dates non couvertes à partir du même flux de dépenses de l’année précédente, sans mélanger des fournisseurs distincts au sein d’une catégorie. Soit A(y,C) les montants réels pour les dates couvertes C, P(U) les montants de l’année précédente pour les dates non couvertes U et i l’inflation affichée : E(y) = A(y,C) + (1 + i) × P(U). L’hypothèse actuelle est de 2,00 %. Les montants des relevés sont répartis sur leurs dates réelles de service uniquement pour aligner les périodes de facturation. Les dépenses annuelles et ponctuelles ne sont jamais extrapolées. L’estimation est indisponible si l’année précédente ne couvre pas toute l’année civile ou si ses chevauchements ne sont pas résolus. Cette information de planification ne remplace jamais le total factuel enregistré. Elle conserve le profil saisonnier antérieur, mais ne prédit pas les changements inhabituels de météo, de consommation, de tarifs ou de situation du ménage."
+    },
+    "transaction-import": {
+      "title": "Importer des documents bancaires",
+      "summary": "Relevés, exportations, dédoublonnage et confirmation des comptes.",
+      "body": "Privilégiez le PDF ou le CSV natif de l’institution. L’application détecte les modules enregistrés, présente les nouveaux comptes pour confirmation et évite les importations en double. Les documents reconnus peuvent mettre à jour les transactions, soldes, placements, taux ou échéances. Recherchez le nom de l’institution pour les formats propres à son module."
+    },
+    "transaction-reconcile": {
+      "title": "Rapprocher un relevé",
+      "summary": "Comparer les opérations au solde connu d’un compte.",
+      "body": "Saisissez un solde connu ou importez un relevé pris en charge. Lorsque les opérations correspondent, le compte est rapproché jusqu’à cette date. Une importation ultérieure dans cette période demande confirmation et peut nécessiter une révision du rapprochement."
+    },
+    "public-rule-approval": {
+      "title": "Approuver les règles publiques",
+      "summary": "Ce que confirme l’approbation et ce qui doit encore être vérifié.",
+      "body": "L’approbation indique que vous avez examiné le contenu correspondant à cette empreinte exacte. Elle ne certifie ni l’exhaustivité ni l’exactitude de l’extraction. Comparez les valeurs aux sources officielles et vérifiez les concepts fiscaux, calculs, crédits, cotisations, seuils, réductions progressives, surtaxes et mécanismes d’indexation ajoutés, supprimés ou modifiés. Une modification structurelle des règles peut nécessiter une mise à jour du code de l’importateur."
+    }
+  },
+  "provider_templates": {
+    "income_title": "Charger une T1 depuis {name}",
+    "income_summary": "Comment obtenir et charger un document {name}.",
+    "notice_title": "Charger {name}",
+    "notice_summary": "Importer les montants fiscaux officiels cotisés.",
+    "pension_title": "Charger {name}",
+    "pension_summary": "Importer les gains de retraite publics et les estimations officielles.",
+    "expense_title": "Charger {name}",
+    "expense_summary": "Importer un relevé de dépenses du ménage.",
+    "institution_summary": "Aide fournie par le module {name}."
+  }
+}

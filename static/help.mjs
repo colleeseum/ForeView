@@ -89,11 +89,11 @@ function showArticle(article, language = 'en-CA') {
   }
   selectedArticleKey = article.key;
   articleTitle.textContent = article.title;
-  articleTitle.lang = language;
+  articleTitle.lang = article.field_languages?.title || article.language || language;
   articleSummary.textContent = article.summary;
-  articleSummary.lang = language;
+  articleSummary.lang = article.field_languages?.summary || article.language || language;
   articleBody.textContent = article.body;
-  articleBody.lang = language;
+  articleBody.lang = article.field_languages?.body || article.language || language;
   results.querySelectorAll('[data-help-result]').forEach((button) => {
     button.classList.toggle('active', button.dataset.helpResult === article.key);
   });
@@ -124,10 +124,13 @@ function categoryPath(categoryKey, categories) {
 function renderResults(articles, preferredKey = null, language = 'en-CA', categories = [], searching = false) {
   articles = [...articles].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   results.lang = language;
+  const articleButton = (article, path = '') =>
+    `<button type="button" data-help-result="${escapeHtml(article.key)}">${path}<strong lang="${escapeHtml(article.field_languages?.title || article.language || language)}">${escapeHtml(article.title)}</strong><span lang="${escapeHtml(article.field_languages?.summary || article.language || language)}">${escapeHtml(article.summary)}</span></button>`;
   if (searching) {
     results.innerHTML = articles.map((article) => {
-      const path = categoryPath(article.category, categories).map((part) => part.title).join(' › ');
-      return `<button type="button" data-help-result="${escapeHtml(article.key)}"><small>${escapeHtml(path)}</small><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`;
+      const path = categoryPath(article.category, categories).map((part) =>
+        `<span lang="${escapeHtml(part.language || language)}">${escapeHtml(part.title)}</span>`).join(' › ');
+      return articleButton(article, `<small lang="${escapeHtml(language)}">${path}</small>`);
     }).join('');
   } else {
     const renderBranch = (parent = null) => categories.filter((category) => category.parent === parent)
@@ -135,10 +138,8 @@ function renderResults(articles, preferredKey = null, language = 'en-CA', catego
         const direct = articles.filter((article) => article.category === category.key);
         const children = renderBranch(category.key);
         if (!direct.length && !children) return '';
-        const buttons = direct.map((article) =>
-          `<button type="button" data-help-result="${escapeHtml(article.key)}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.summary)}</span></button>`
-        ).join('');
-        return `<details class="help-category"><summary>${escapeHtml(category.title)}</summary><div class="help-category-children">${buttons}${children}</div></details>`;
+        const buttons = direct.map((article) => articleButton(article)).join('');
+        return `<details class="help-category"><summary lang="${escapeHtml(category.language || language)}">${escapeHtml(category.title)}</summary><div class="help-category-children">${buttons}${children}</div></details>`;
       }).join('');
     results.innerHTML = renderBranch();
   }
@@ -191,7 +192,9 @@ async function openTooltip(key, anchor) {
     if (!content) return;
     tooltip.querySelector('strong').textContent = content.title;
     tooltip.querySelector('p').textContent = content.body;
-    tooltip.lang = catalog.language || 'en-CA';
+    tooltip.querySelector('strong').lang = content.field_languages?.title || content.language || catalog.language || 'en-CA';
+    tooltip.querySelector('p').lang = content.field_languages?.body || content.language || catalog.language || 'en-CA';
+    tooltip.lang = content.language || catalog.language || 'en-CA';
     tooltip.hidden = false;
     const box = anchor.getBoundingClientRect();
     tooltip.style.top = `${Math.min(box.bottom + 8, window.innerHeight - 160)}px`;

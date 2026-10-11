@@ -41,6 +41,12 @@ def provider() -> InstitutionProvider:
                 "Authorize each Questrade login separately, then synchronize accounts, balances, positions, and activities.",
                 category="connections",
                 owning_page="/connections",
+                translations={
+                    "fr-CA": {
+                        "title": "Connexion Questrade",
+                        "body": "Autorisez chaque identifiant Questrade séparément, puis synchronisez les comptes, soldes, positions et opérations.",
+                    }
+                },
             ),
         ),
     )

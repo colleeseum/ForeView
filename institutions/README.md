@@ -60,3 +60,54 @@ goes through `repositories/`; an institution module must not run SQL itself.
 Generic Date/Amount CSV is an application import format rather than an institution.
 An institution-specific CSV parser belongs to that institution and may fall back to
 the generic parser when its own layout is not detected.
+
+## Localized provider presentation (UX-02D)
+
+Provider identity, parser detection, persisted source labels and original document
+text are **not translated**. Providers can optionally declare `translations`
+mapping registered locale codes to field dictionaries. The same optional
+contract exists on `InstitutionProvider`, `HelpTopic`,
+`IncomeSourceProvider`, `TaxNoticeProvider`,
+`PublicPensionSourceProvider` and `ExpenseSourceProvider`.
+The optional field is appended to each dataclass contract to preserve existing
+positional constructor calls.
+
+For help, the shared adapter resolves `title`, `summary` and `body`
+independently through `LocalizationService.fallback_chain`. A missing field
+falls back to a supported locale (normally `en-CA`), never to an empty
+control or a missing-key marker. The API returns `field_languages` so the
+browser can mark mixed-language text correctly. The app's core help
+navigation, tooltips and explanatory articles live in
+`localization/<locale>/help.json`; providers own their wording.
+Core articles, category titles and tooltips use the same per-field fallback
+chain. Empty or invalid fields do not suppress a usable fallback. Language
+metadata describes the resolved field, not merely the selected UI locale.
+
+Example:
+
+```python
+HelpTopic(
+    key="connection",
+    title="Connection guide",
+    body="Authorize this login, then synchronize.",
+    category="connections",
+    translations={
+        "fr-CA": {
+            "title": "Guide de connexion",
+            "body": "Autorisez cet identifiant, puis synchronisez.",
+        },
+    },
+)
+```
+
+To add a language, register it in `localization/registry.json` with an
+explicit supported fallback and supply the module's optional translations.
+The shared adapter does not require language- or provider-specific branches.
+The provider is expected to translate every user-facing label, action and
+import instruction it owns; incomplete locales are supported for staged
+adoption, but should be reported in provider QA. Document source strings,
+transaction descriptions and provenance remain in their original language.
+
+**Current scope:** The help API consumes this contract. Other provider-owned
+workflow labels and action surfaces must be migrated to the same resolver
+before claiming end-to-end localization for those workflows.

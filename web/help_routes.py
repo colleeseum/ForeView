@@ -5,13 +5,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 
 from expense_sources import expense_source_registry
 from income_sources import income_source_registry
 from institution_support import institution_registry
+from localization.provider_content import localized_fields
 from public_pension_sources import public_pension_source_registry
 from tax_notices import tax_notice_registry
 
@@ -275,6 +277,21 @@ def _categorize(articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 @blueprint.get("/api/help")
 def help_catalog():
+    localization = current_app.extensions["localization"]
+    locale = localization.selected_locale()
+    catalogs = {
+        candidate: localization.catalog(candidate, "help")
+        for candidate in localization.fallback_chain(locale)
+    }
+
+    def translated_section(section, key):
+        result = {}
+        for candidate, catalog in catalogs.items():
+            namespace = catalog.get(section, {})
+            value = namespace.get(key, {}) if isinstance(namespace, Mapping) else {}
+            result[candidate] = value if isinstance(value, Mapping) else {}
+        return result
+
     articles: list[dict[str, Any]] = list(_ARTICLES)
     articles.extend(
         {
@@ -284,6 +301,7 @@ def help_catalog():
             "body": source.help_text,
             "keywords": ("T1", "PDF", "tax return", source.key, source.display_name),
             "category": "tax-documents",
+            "_translations": source.translations,
         }
         for source in income_source_registry.providers
     )
@@ -295,6 +313,7 @@ def help_catalog():
             "body": source.help_text,
             "keywords": ("notice", "assessment", "tax", source.key, source.display_name),
             "category": "tax-documents",
+            "_translations": source.translations,
         }
         for source in tax_notice_registry.providers
     )
@@ -306,6 +325,7 @@ def help_catalog():
             "body": source.help_text,
             "keywords": ("CPP", "QPP", "pension", "statement", source.key),
             "category": "annual-records",
+            "_translations": source.translations,
         }
         for source in public_pension_source_registry.providers
     )
@@ -317,6 +337,7 @@ def help_catalog():
             "body": source.help_text,
             "keywords": ("expense", "statement", "PDF", source.key, source.display_name),
             "category": "expense-imports",
+            "_translations": source.translations,
         }
         for source in expense_source_registry.providers
     )
@@ -331,18 +352,103 @@ def help_catalog():
             "parent_topic": topic.parent_topic,
             "order": topic.order,
             "owning_page": topic.owning_page,
+            "_provider_name": provider.display_name,
+            "_translations": topic.translations,
         }
         for provider in institution_registry().providers
         for topic in provider.help_topics
     )
+    # Generic provider prompts are application-owned; provider-specific wording
+    # is supplied by the provider's optional locale catalog.
+    for article in articles:
+        key = article["key"]
+        if key.startswith("income-source-"):
+            prefix = "income"
+        elif key.startswith("tax-notice-"):
+            prefix = "notice"
+        elif key.startswith("public-pension-"):
+            prefix = "pension"
+        elif key.startswith("expense-source-"):
+            prefix = "expense"
+        elif key.startswith("institution-"):
+            prefix = "institution"
+        else:
+            continue
+        # The display name is a brand/source identifier, not translatable evidence.
+        name = article["title"].removeprefix("Loading a T1 from ").removeprefix("Loading ")
+        if prefix == "institution":
+            name = article.get("_provider_name", name)
+        original = article.get("_translations") or {}
+        merged = dict(original)
+        for candidate, catalog in catalogs.items():
+            templates = catalog.get("provider_templates", {})
+            defaults = {}
+            for field in ("title", "summary"):
+                template = (
+                    templates.get(f"{prefix}_{field}") if isinstance(templates, Mapping) else None
+                )
+                if isinstance(template, str) and template.strip():
+                    defaults[field] = template.replace("{name}", name)
+            overrides = original.get(candidate, {})
+            overrides = overrides if isinstance(overrides, Mapping) else {}
+            # Blank provider fields must not suppress a usable generic prompt.
+            merged[candidate] = {
+                **defaults,
+                **{
+                    key: value
+                    for key, value in overrides.items()
+                    if isinstance(value, str) and value.strip()
+                },
+            }
+        article["_translations"] = merged
+
+    # Core guidance belongs to ForeView catalogs; provider translations belong
+    # to each provider and use the same deterministic locale fallback chain.
+    localized_articles = []
+    for article in articles:
+        item = dict(article)
+        translations = item.pop("_translations", None)
+        item.pop("_provider_name", None)
+        fields, languages = localized_fields(
+            {field: item[field] for field in ("title", "summary", "body")},
+            translations
+            if translations is not None
+            else translated_section("articles", item["key"]),
+            locale,
+            localization,
+        )
+        item.update(fields)
+        item["field_languages"] = languages
+        item["language"] = languages["title"]
+        localized_articles.append(item)
+    tooltips = []
+    for tooltip in _TOOLTIPS:
+        fields, languages = localized_fields(
+            {field: tooltip[field] for field in ("title", "body")},
+            translated_section("tooltips", tooltip["key"]),
+            locale,
+            localization,
+        )
+        tooltips.append(
+            {**tooltip, **fields, "field_languages": languages, "language": languages["title"]}
+        )
+    categories = []
+    for index, (key, parent, title) in enumerate(_CATEGORIES):
+        translations = {}
+        for candidate, catalog in catalogs.items():
+            values = catalog.get("categories", {})
+            translations[candidate] = (
+                {"title": values.get(key)} if isinstance(values, Mapping) else {}
+            )
+        fields, languages = localized_fields({"title": title}, translations, locale, localization)
+        categories.append(
+            {"key": key, "parent": parent, **fields, "language": languages["title"], "order": index}
+        )
     return jsonify(
         {
-            "language": "en-CA",
-            "tooltips": list(_TOOLTIPS),
-            "categories": [
-                {"key": key, "parent": parent, "title": title, "order": index}
-                for index, (key, parent, title) in enumerate(_CATEGORIES)
-            ],
-            "articles": _categorize(articles),
+            "language": locale,
+            "tooltips": tooltips,
+            "categories": categories,
+            "articles": _categorize(localized_articles),
         }
     )

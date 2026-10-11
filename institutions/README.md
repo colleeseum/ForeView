@@ -22,6 +22,14 @@ A module must define `provider()` returning an `InstitutionProvider`
 | `balance_including_snapshot_sources` | Snapshot labels proving that excluded rows are included in the account balance. |
 | `transaction_repair` | Optional startup repair for rows written by a superseded institution parser. |
 
+Each `HelpTopic` declares a stable key, title, and body. Optional hierarchy metadata consists of
+`category` (defaults to `imports`), `parent_topic`, numeric `order`, and `owning_page`. Connection
+guides should declare `category="connections"`; statement guides belong to `imports`. The shared
+help adapter preserves this metadata, puts unknown categories under `application`, and combines
+provider articles with core and document-source help. The browser uses category ancestry for
+expansion and search paths, and `order` for article ordering. `parent_topic` is retained metadata,
+not a separate article-nesting UI.
+
 A `DocumentImporter` (`institution_support/document_importer.py`) declares:
 
 - `detects(content) -> bool`: recognizes the document from its raw bytes;

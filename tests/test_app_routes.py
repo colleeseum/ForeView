@@ -13,6 +13,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from html import unescape
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import app as application
@@ -21,6 +22,7 @@ from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_tax_value import ParsedTaxValue
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
 from infrastructure.runtime_config import RuntimeConfig
+from institution_support.help_topic import HelpTopic
 from institutions.questrade.client import QuestradeClient
 from institutions.questrade.connection import QuestradeConnectionProvider
 from institutions.questrade.settings import AUTHORIZE_URL, TOKEN_URL, QuestradeSettings
@@ -1046,6 +1048,49 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b"Income source modules", about.data)
         self.assertIn(b"Institution modules", about.data)
         self.assertIn(b"UFile T1 PDF", about.data)
+
+    def test_help_hierarchy_and_provider_metadata(self):
+        catalog = self.client.get("/api/help").get_json()
+        categories = {item["key"]: item for item in catalog["categories"]}
+        for key in ("summary", "assets", "income", "expenses", "transactions"):
+            self.assertEqual(categories[key]["parent"], "financial")
+        articles = {item["key"]: item for item in catalog["articles"]}
+        self.assertEqual(articles["summary"]["category"], "summary")
+        self.assertEqual(articles["summary"]["owning_page"], "/")
+        self.assertEqual(articles["connections"]["category"], "connections")
+        self.assertEqual(articles["institution-rbc-imports"]["category"], "imports")
+        self.assertEqual(articles["institution-questrade-connection"]["category"], "connections")
+        self.assertEqual(articles["income-source-ufile"]["category"], "tax-documents")
+        self.assertEqual(articles["expense-source-hydro-quebec"]["category"], "expense-imports")
+        provider = SimpleNamespace(
+            key="synthetic",
+            display_name="Synthetic",
+            help_topics=(
+                HelpTopic(
+                    "guide",
+                    "Guide",
+                    "Text",
+                    category="expenses",
+                    parent_topic="expenses",
+                    order=7,
+                    owning_page="/expenses",
+                ),
+                HelpTopic("unknown", "Unknown", "Text", category="unsupported"),
+            ),
+        )
+        with patch(
+            "web.help_routes.institution_registry",
+            return_value=SimpleNamespace(providers=(provider,)),
+        ):
+            contributed = {
+                item["key"]: item for item in self.client.get("/api/help").get_json()["articles"]
+            }
+        guide = contributed["institution-synthetic-guide"]
+        self.assertEqual(
+            (guide["category"], guide["parent_topic"], guide["order"], guide["owning_page"]),
+            ("expenses", "expenses", 7, "/expenses"),
+        )
+        self.assertEqual(contributed["institution-synthetic-unknown"]["category"], "application")
 
     def test_financial_disclaimer_is_accessible_from_projection_and_about(self):
         projection = self.client.get("/salary-projection")

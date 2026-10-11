@@ -39,6 +39,8 @@ def provider() -> InstitutionProvider:
                 "connection",
                 "Questrade connection",
                 "Authorize each Questrade login separately, then synchronize accounts, balances, positions, and activities.",
+                category="connections",
+                owning_page="/connections",
             ),
         ),
     )

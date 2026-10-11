@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {formatDate, formatNumber, formatMoneyCents, formatMoneyDollars, formatPercent, pluralCategory, plural} from '../../static/locale-format.mjs';
+import {formatDate, formatDisplayDate, formatNumber, formatMoneyCents, formatMoneyDollars, formatPercent, pluralCategory, plural} from '../../static/locale-format.mjs';
 
 test('Canadian dates use locale-specific ordering without timezone drift', () => {
+  assert.equal(formatDisplayDate('2026-01-09'), formatDate('2026-01-09'));
+  assert.equal(formatDisplayDate('malformed evidence'), 'malformed evidence');
+  assert.equal(formatDisplayDate(null), '');
+  assert.equal(formatDisplayDate(''), '');
   assert.match(formatDate('2026-01-09', {locale: 'en-CA'}), /2026/);
   assert.match(formatDate('2026-01-09', {locale: 'fr-CA'}), /2026/);
   assert.notEqual(formatDate('2026-01-09', {locale: 'en-CA'}), formatDate('2026-01-09', {locale: 'fr-CA'}));

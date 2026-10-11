@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import {formatNumber, formatPercent, formatDisplayDate} from './locale-format.mjs';
+
 import {saveJson} from './accounts-api.mjs';
 import {t} from './i18n.mjs';
 import {money} from './accounts-format.mjs';
@@ -33,7 +35,7 @@ function signature() {
 function updateSaveButton() {
   const total = ownershipTotal(ownerFields);
   const invalid = Math.abs(total - 100) >= 0.01;
-  const totalText = ownerTotal.dataset.totalText.replace('{percentage}', total.toFixed(2));
+  const totalText = ownerTotal.dataset.totalText.replace('{percentage}', formatNumber(total, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
   ownerTotal.textContent = `${totalText}${invalid ? ` · ${ownerTotal.dataset.invalidText}` : ''}`;
   ownerTotal.classList.toggle('error', invalid);
   saveButton.disabled = signature() === baseline || invalid;
@@ -65,9 +67,9 @@ export function renderRealEstate(target) {
   const assets = assetState.realEstateAssets;
   const rows = assets.map((asset) => {
     const owners = (asset.owners || []).length
-      ? asset.owners.map((owner) => `${escapeHtml(owner.name)} (${(Number(owner.share) * 100).toFixed(0)}%)`).join(', ')
+      ? asset.owners.map((owner) => `${escapeHtml(owner.name)} (${formatPercent(Number(owner.share), {maximumFractionDigits: 0})})`).join(', ')
       : t('real_estate.unassigned');
-    return `<tr class="real-estate-primary-row"><td>${escapeHtml(asset.name)}</td><td>${escapeHtml(asset.property_type)}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? t('real_estate.yes') : t('real_estate.no')}</td><td>${escapeHtml(asset.valuation_date)}</td><td><button class="table-action" type="button" data-edit-real-estate="${Number(asset.id)}">${t('real_estate.edit')}</button></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>${t('real_estate.owners')}</strong> ${owners}</td></tr>`;
+    return `<tr class="real-estate-primary-row"><td>${escapeHtml(asset.name)}</td><td>${escapeHtml(asset.property_type)}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? t('real_estate.yes') : t('real_estate.no')}</td><td>${escapeHtml(formatDisplayDate(asset.valuation_date))}</td><td><button class="table-action" type="button" data-edit-real-estate="${Number(asset.id)}">${t('real_estate.edit')}</button></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>${t('real_estate.owners')}</strong> ${owners}</td></tr>`;
   }).join('');
   const total = assets.reduce((sum, asset) => sum + Number(asset.estimated_value || 0), 0);
   const content = assets.length

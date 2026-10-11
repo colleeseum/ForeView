@@ -3,7 +3,7 @@
 
 import {escapeHtml} from './html.mjs';
 import {t, locale} from './i18n.mjs';
-import {formatMoneyDollars} from './locale-format.mjs';
+import {formatMoneyDollars, formatPercent} from './locale-format.mjs';
 import {formSignature} from './form-state.mjs';
 import {incomeSourceLabel} from './income-source-label.mjs';
 
@@ -54,7 +54,7 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
   if (!rows.length) return `<p class="empty-panel">${t('salary.no_projection')}</p>`;
   const overrideByYear = new Map(overrides.map((item) => [item.year, item]));
   const input = (row, field, value, suffix = '') => {
-    if (!editable) return escapeHtml(value == null ? '—' : suffix ? `${value}${suffix}` : money(value));
+    if (!editable) return escapeHtml(value == null ? '—' : suffix ? formatPercent(Number(value), {maximumFractionDigits: 3}) : money(value));
     const override = overrideByYear.get(row.year)?.[field];
     const hasOverride = override != null;
     const shown = field === 'raise_rate'

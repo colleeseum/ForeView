@@ -5,10 +5,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
-import {formatMoneyDollars} from '../../static/locale-format.mjs';
+import {formatMoneyDollars, formatDate, formatNumber, formatPercent} from '../../static/locale-format.mjs';
 
 function installDom() {
-  configureTestLocalization();
+configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <button class="view-tab" data-view="non_registered">Non-registered</button>
     <button class="view-tab" data-view="tfsa">TFSA</button>
@@ -227,4 +227,34 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.match(content.textContent, /No real-estate assets yet/);
 
   dom.window.close();
+});
+
+test('account dates, units and percentages follow the selected locale without modifying values', async () => {
+  const dom = new JSDOM('<div id="accounts-table-content"></div>');
+  globalThis.document = dom.window.document;
+  const {renderAssets} = await import('../../static/accounts-render.mjs');
+  const {assetState} = await import('../../static/accounts-state.mjs');
+  assetState.view = 'non_registered';
+  assetState.accounts = [
+    {id: 1, asset_kind: 'account', account_type: 'non_registered', institution: 'Questrade', name: 'Parent', rollup_amount: 2000, latest_amount: 1500, interest_rate: 0.025},
+    {id: 2, parent_account_id: 1, asset_kind: 'gic', account_type: 'non_registered', name: 'GIC', latest_amount: 500, maturity_date: '2026-01-09'},
+  ];
+  assetState.holdings = [{account_id: 1, units: 12.34567, unit_price: 100, market_value: 1234.56, allocation_pct: 82.5, valuation_date: '2026-01-09'}];
+  assetState.categoryTotals = [{type: 'non_registered', total: 2000, count: 1, gic_count: 1}];
+  const original = JSON.stringify(assetState);
+  try {
+    for (const locale of ['en-CA', 'fr-CA']) {
+      configureTestLocalization(locale);
+      renderAssets({openAccount() {}, openGic() {}});
+      const text = document.querySelector('#accounts-table-content').textContent;
+      assert.ok(text.includes(formatDate('2026-01-09')));
+      assert.ok(text.includes(formatPercent(0.025, {minimumFractionDigits: 2, maximumFractionDigits: 2})));
+      assert.ok(text.includes(formatPercent(0.825, {minimumFractionDigits: 1, maximumFractionDigits: 1})));
+      assert.ok(text.includes(formatNumber(12.34567, {minimumFractionDigits: 3, maximumFractionDigits: 5})));
+      assert.equal(JSON.stringify(assetState), original);
+    }
+  } finally {
+    configureTestLocalization();
+    dom.window.close();
+  }
 });

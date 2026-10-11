@@ -3,7 +3,7 @@
 
 import {escapeHtml, htmlWithLanguageSpans, languageSpan} from './html.mjs';
 import {t, locale} from './i18n.mjs';
-import {formatMoneyDollars} from './locale-format.mjs';
+import {formatMoneyDollars, formatDisplayDate} from './locale-format.mjs';
 import {incomeSourceLabel} from './income-source-label.mjs';
 import {
   configureIncomeCorrections,
@@ -235,7 +235,7 @@ function renderSupplementary(assessments, rooms, pension, taxValues) {
   const roomRows = rooms.map((item) => `<tr>
     <td>${escapeHtml(registeredPlanLabel(item.plan_type))}</td><td>${item.effective_year}</td><td>${money(item.available_room)}</td>
     <td>${money(item.deduction_limit)}</td><td>${money(item.unused_contributions)}</td>
-    <td>${escapeHtml(item.as_of_date)}</td><td>${escapeHtml(item.source)}</td>
+    <td>${escapeHtml(formatDisplayDate(item.as_of_date))}</td><td>${escapeHtml(item.source)}</td>
   </tr>`).join('');
 
   const pensionEstimates = pension?.estimates?.map((item) => `<tr>
@@ -260,7 +260,7 @@ function renderSupplementary(assessments, rooms, pension, taxValues) {
     </tr>`).join('');
 
   const assessmentRowsFull = assessments.map((item) => `<tr>
-    <td>${item.year}</td><td>${escapeHtml(item.jurisdiction)}</td><td>${escapeHtml(item.issued_on)}</td>
+    <td>${item.year}</td><td>${escapeHtml(item.jurisdiction)}</td><td>${escapeHtml(formatDisplayDate(item.issued_on))}</td>
     <td>${money(item.total_income)}</td><td>${money(item.net_income)}</td><td>${money(item.taxable_income)}</td>
     <td>${money(item.net_tax)}</td><td>${money(item.additional_contributions)}</td>
     <td>${money(item.tax_withheld)}</td><td>${money(item.balance)}</td><td>${escapeHtml(item.source)}</td>
@@ -465,14 +465,14 @@ elements.importForm.addEventListener('submit', async (event) => {
       if (preview.kind === 'tax_assessment') {
         const conceptCount = preview.tax_values?.length || 0;
         elements.importReview.innerHTML = `<h3>${languageSpan(preview.source_name)}</h3>
-          <p>${escapeHtml(t('income.assessment_preview', {year: preview.tax_year, issued: preview.issued_on, tax: money(preview.net_tax), balance: money(preview.balance)}))}</p>
+          <p>${escapeHtml(t('income.assessment_preview', {year: preview.tax_year, issued: formatDisplayDate(preview.issued_on), tax: money(preview.net_tax), balance: money(preview.balance)}))}</p>
           ${preview.rrsp_effective_year ? `<p>${escapeHtml(t('income.rrsp_room_preview', {year: preview.rrsp_effective_year, amount: money(preview.rrsp_available_room)}))}</p>` : ''}
           <p>${escapeHtml(t(conceptCount === 1 ? 'income.concept_retained' : 'income.concepts_retained', {count: conceptCount}))}</p>`;
       } else {
         const years = t(preview.earnings.length === 1 ? 'income.pension_year' : 'income.pension_years', {count: preview.earnings.length});
         const estimates = t(preview.estimates.length === 1 ? 'income.pension_estimate' : 'income.pension_estimates', {count: preview.estimates.length});
         elements.importReview.innerHTML = `<h3>${languageSpan(preview.source_name)}</h3>
-          <p>${escapeHtml(t('income.pension_preview', {issued: preview.issued_on, years, estimates}))}</p>
+          <p>${escapeHtml(t('income.pension_preview', {issued: formatDisplayDate(preview.issued_on), years, estimates}))}</p>
           ${preview.excludes_second_enhancement ? `<p><strong>${t('income.enhancement_excluded')}</strong></p>` : ''}`;
       }
     }

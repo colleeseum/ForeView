@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
+import {formatDate} from '../../static/locale-format.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -96,9 +97,9 @@ test('expense import reviews parser evidence and displays confirmation errors', 
 
   assert.equal(document.querySelector('#expense-import-progress').hidden, true);
   assert.equal(document.querySelector('#import-step-preview').hidden, false);
-  assert.equal(document.querySelector('#import-amount').textContent, '31.00');
+  assert.equal(document.querySelector('#import-amount').textContent, '$31.00');
   assert.equal(document.querySelector('#import-amount').tagName, 'SPAN');
-  assert.equal(document.querySelector('#import-period-start').textContent, '2026-01-01');
+  assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-01-01'));
   assert.equal(document.querySelector('#import-period-start').tagName, 'SPAN');
   assert.equal(document.querySelector('#import-confirm').hidden, false);
 
@@ -136,8 +137,8 @@ test('expense import reviews parser evidence and displays confirmation errors', 
 
   previewButton.click();
   await tick();
-  assert.equal(document.querySelector('#import-amount').textContent, '45.00');
-  assert.equal(document.querySelector('#import-period-start').textContent, '2026-02-01');
+  assert.equal(document.querySelector('#import-amount').textContent, '$45.00');
+  assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-02-01'));
   assert.equal(document.querySelector('#import-step-file').hidden, true);
   assert.equal(document.querySelector('#import-step-preview').hidden, false);
 
@@ -147,8 +148,8 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /3 of 3/);
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /2 saved/);
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /hydro-march/);
-  assert.equal(document.querySelector('#import-amount').textContent, '52.00');
-  assert.equal(document.querySelector('#import-period-start').textContent, '2026-03-01');
+  assert.equal(document.querySelector('#import-amount').textContent, '$52.00');
+  assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-03-01'));
 
   document.querySelector('#import-confirm').click();
   await tick();

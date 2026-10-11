@@ -116,6 +116,43 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/import", json={}).status_code, 404)
         self.assertEqual(self.client.get("/api/taxes/years").status_code, 404)
 
+    def test_financial_pages_localize_values_without_mutating_records(self):
+        category = self.client.post(
+            "/api/expenses/categories",
+            json={"name": "Locale utilities", "classification": "required"},
+        ).get_json()
+        created = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Locale bill",
+                "category_id": category["id"],
+                "amount": "1234.50",
+                "period_start": "2029-01-09",
+                "period_end": "2029-02-09",
+            },
+        )
+        self.assertEqual(created.status_code, 201)
+        api_before = self.client.get("/api/expenses?year=2029").get_json()
+        database_before = self.database.read_bytes()
+        localization = self.app.extensions["localization"]
+        for locale, amount, date, percent in (
+            ("en-CA", "$1,234.50", "Jan 9, 2029", "25.69%"),
+            ("fr-CA", "1\u00a0234,50\u00a0$", "9 janv. 2029", "25,69\u00a0%"),
+        ):
+            with self.subTest(locale=locale):
+                localization.select(locale)
+                expenses = self.client.get("/expenses?year=2029")
+                self.assertEqual(expenses.status_code, 200)
+                text = expenses.get_data(as_text=True)
+                self.assertIn(amount, text)
+                self.assertIn(date, text)
+                self.assertNotIn("$1234.50", text)
+                rules = self.client.get("/settings?jurisdiction=CA-QC&year=2026")
+                self.assertEqual(rules.status_code, 200)
+                self.assertIn(percent, rules.get_data(as_text=True))
+                self.assertEqual(self.client.get("/api/expenses?year=2029").get_json(), api_before)
+        self.assertEqual(self.database.read_bytes(), database_before)
+
     def test_factual_expense_workflow_validates_and_resolves_overlaps(self):
         category_response = self.client.post(
             "/api/expenses/categories",
@@ -170,7 +207,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(excluded.status_code, 200)
 
         resolved_page = self.client.get("/expenses?year=2028")
-        self.assertIn(b"$1200.00", resolved_page.data)
+        self.assertIn(b"$1,200.00", resolved_page.data)
         self.assertIn(b"Category totals", resolved_page.data)
         self.assertIn(b"Overlap utilities", resolved_page.data)
         self.assertIn(
@@ -258,7 +295,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b'<label>View year<select id="expense-year-select"', page.data)
         self.assertIn(b'<option value="2027" selected>2027</option>', page.data)
         self.assertIn(b"Recorded total", page.data)
-        self.assertIn(b"$4293.00", page.data)
+        self.assertIn(b"$4,293.00", page.data)
         self.assertIn(b'<header data-help-article="expenses">', page.data)
         self.assertIn(b"Seasonal estimate", page.data)
         self.assertIn(b"2.00% inflation", page.data)
@@ -330,7 +367,7 @@ class AppRouteTests(unittest.TestCase):
 
         resolved = self.client.get("/expenses?year=2027")
         self.assertNotIn(b"Review required", self._visible_html(resolved))
-        self.assertIn(b"$4293.00", resolved.data)
+        self.assertIn(b"$4,293.00", resolved.data)
         self.assertIn(b"Unavailable", resolved.data)
 
     def test_expense_page_supports_recurring_evidence_in_year_9999(self):

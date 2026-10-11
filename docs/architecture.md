@@ -107,6 +107,10 @@ workflows; core help navigation, tooltips, and guidance use locale catalogs with
 fallback and resolved-language metadata. Provider help uses optional per-provider locale
 dictionaries through the same resolver. Provider-owned workflow actions outside help still
 require migration to the same adapter.
+Financial browser displays use shared Intl-based value helpers. Server-rendered expenses and
+public tax rules use the Decimal-based `localization/value_formatter.py` adapter and offline
+Babel CLDR locale data exposed through the Flask template context. These presentation adapters
+do not change domain calculations, persisted values, input syntax, or raw source evidence.
 
 ### Institution and ingestion adapters
 

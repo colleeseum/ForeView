@@ -10,6 +10,9 @@ the selected locale from `i18n.mjs`, or an explicit locale for tests and special
   `dateStyle` or date-component options, but time-of-day options are rejected.
 - `formatNumber(number)`: finite presentation numbers only; never parse the output
   back into financial calculations.
+- `formatDisplayDate(value)`: format valid calendar read-model dates, preserve malformed
+  legacy evidence verbatim, and show absent dates as blank. Use the strict `formatDate`
+  when invalid input should be rejected rather than displayed as source evidence.
 - `calendarDateSortKey(canonicalDate)`: chronological key for canonical API dates;
   malformed legacy evidence sorts before valid dates, matching the server's policy.
 - `formatMoneyCents(integerCents)`: integer Canadian cents (or bigint), formatted as CAD.
@@ -40,9 +43,11 @@ and do not call external services.
 
 Localized formatting covers the dashboard, account monetary values, income monetary values,
 salary projection monetary values (now consistently shown with two decimal places), transaction
-dates and amounts, and reconciliation status dates and amounts. Inputs, calculations, stored
-values and source descriptions are unchanged. Other financial views, remaining account dates,
-units and percentages, and server-rendered output still need migration and auditing.
+dates and amounts, reconciliation status dates and amounts, expense summaries and previews,
+tax-rule tables, account maturity/valuation dates, units, allocations and interest rates,
+ownership labels, and income document dates. Inputs, calculations, stored values and source
+descriptions are unchanged. HTML date/number input values and CSS percentages deliberately
+retain machine-readable syntax; imported descriptions and provenance are not reformatted.
 Account summaries, balance rebuilding, reconciliation periods, and
 transaction history compare supported legacy ISO date forms by calendar date. Valid dates
 returned by account summaries (including GIC start and maturity dates) and transaction history
@@ -62,3 +67,18 @@ through the dashboard query and aggregation pipeline remains follow-up work; the
 itself accepts arbitrary-size integer cents without this compatibility limitation.
 Reconciliation checkpoint API dates are also canonicalized on read. Malformed legacy checkpoint
 text is retained and displayed without passing it to the strict date formatter.
+
+Server-rendered templates use `localization/value_formatter.py`, exposed as `format_money`,
+`format_number`, `format_percent` and `format_date`. Babel supplies offline CLDR locale data
+instead of bespoke English/French rules, supporting additional registered locales. Formatting
+uses the selected locale or its declared fallback if Babel cannot resolve it. Money uses
+`Decimal` with half-away-from-zero rounding, never float arithmetic. Percent inputs are ratios;
+tax parameter units distinguish `CAD`, `RATE` and ordinary numeric values. Dates are Gregorian
+calendar values formatted for presentation only. Browser formatting uses native Intl.
+
+Integration tests switch English/French locale and verify changed HTML while checking that
+expense API data and database bytes remain identical. Browser tests cover account dates,
+units and percentages without modifying their read models. Existing timestamp display on
+Connections already uses the selected locale and browser-local time; date-only helpers must
+not be applied to those timestamps. Exact integer-cent transport for legacy numeric APIs is
+a separate data-transport improvement, not required for the presentation acceptance criteria.

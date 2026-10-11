@@ -83,6 +83,11 @@ export function formatDate(value, {locale, ...options} = {}) {
 export function formatNumber(value, {locale, ...options} = {}) {
   return new Intl.NumberFormat(language(locale), options).format(finite(value));
 }
+// Financial read models may retain malformed legacy evidence. Never hide it.
+export function formatDisplayDate(value, options = {}) {
+  if (value == null || value === '') return '';
+  return calendarDateSortKey(value)[0] ? formatDate(value, options) : String(value);
+}
 // Amounts are authoritative integer cents. BigInt avoids precision loss in cent arithmetic.
 export function formatMoneyCents(cents, {locale, currency = 'CAD', ...options} = {}) {
   if (typeof cents !== 'bigint' && (!Number.isSafeInteger(cents))) throw new TypeError('Expected safe integer cents or bigint');

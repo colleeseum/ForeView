@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-09
+Updated: 2026-10-11
 
 ## Development focus
 
@@ -47,8 +47,10 @@ declared locale fallback chains, text direction, and a language preference store
 runtime. The shared side menu, selected server-rendered pages, and primary browser-generated
 workflows use it through a shared browser catalog contract. Help uses expandable categories with
 page and contextual branch selection, searchable category paths, and provider metadata. Remaining
-localization work includes help content, broader server-rendered coverage, and consistent adoption
-of locale-aware formatting across pages.
+localization work includes help content and broader message translation coverage. Shared browser
+and server value formatters cover financial dates, money, quantities and percentages, including
+expenses, public tax rules, account details and document dates, with locale-switching tests that
+verify unchanged factual values.
 
 ## Intentional or known limitations
 
@@ -73,8 +75,8 @@ of locale-aware formatting across pages.
   removed, or structurally changed government concepts.
 - The application has no authentication or tenant isolation and is suitable only for a trusted
   local environment.
-- Localization is not yet application-wide. Some templates and help content remain English-only,
-  and locale-aware number, currency, and date formatting is not implemented consistently.
+- Localization is not yet application-wide. Some messages and help content remain English-only;
+  provider-owned workflow labels outside help still need migration to the localization contract.
 - Canonical ISO date-only storage is the architectural rule, but some legacy repository write
   paths still validate without normalizing dates or retain unchecked date strings. Changed paths
   must normalize new values; repository-wide enforcement remains follow-up data-integrity work.

@@ -16,6 +16,7 @@ from infrastructure.runtime_config import RuntimeConfig
 from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
 from localization import LocalizationService
+from localization.value_formatter import ValueFormatter
 from services.database_initialization import ensure_domain_schema as ensure_domain_schema
 from services.database_initialization import initialize_database
 from web.correction_routes import blueprint as correction_blueprint
@@ -107,7 +108,12 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         locale = localization.selected_locale()
         definition = localization.definition(locale)
         browser_locale_chain = localization.fallback_chain(locale)
+        formatter = ValueFormatter(localization, locale)
         return {
+            "format_money": formatter.money,
+            "format_number": formatter.number,
+            "format_percent": formatter.percent,
+            "format_date": formatter.date,
             "t": lambda key, **values: localization.translate(locale, key, **values),
             "current_locale": locale,
             "locale_direction": definition.direction,

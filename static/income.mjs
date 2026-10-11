@@ -3,6 +3,7 @@
 
 import {escapeHtml, htmlWithLanguageSpans, languageSpan} from './html.mjs';
 import {t, locale} from './i18n.mjs';
+import {formatMoneyDollars} from './locale-format.mjs';
 import {incomeSourceLabel} from './income-source-label.mjs';
 import {
   configureIncomeCorrections,
@@ -50,9 +51,7 @@ let pendingTaxReturn = null;
 const defaultTaxYear = elements.form.elements.tax_year.value;
 
 function money(value) {
-  return Number(value || 0).toLocaleString(locale, {
-    style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
-  });
+  return formatMoneyDollars(value ?? 0);
 }
 
 function showMessage(message, error = false, language = locale, html = false) {

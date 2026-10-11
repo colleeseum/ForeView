@@ -109,6 +109,26 @@ export function formatMoneyCents(cents, {locale, currency = 'CAD', ...options} =
     maximumFractionDigits: 2,
   }).format(decimal);
 }
+// Presentation adapter for exact decimal-string APIs and bounded legacy numbers.
+// Round decimal digits half away from zero, never by multiplying a binary float.
+export function formatMoneyDollars(dollars, options = {}) {
+  if (typeof dollars === 'number') {
+    if (!Number.isFinite(dollars) || Math.abs(dollars) >= 2 ** 44) {
+      throw new RangeError('Dollar amount cannot be safely converted to cents');
+    }
+  } else if (typeof dollars !== 'string' || !/^-?\d+(?:\.\d+)?$/.test(dollars)) {
+    throw new RangeError('Dollar amount cannot be safely converted to cents');
+  }
+  // Number#toString can use scientific notation for very small finite values.
+  const [, sign, whole, fraction = '', exponent = '0'] = String(dollars).match(/^(-?)(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/);
+  const digits = BigInt(whole + fraction);
+  const scale = fraction.length - Number(exponent) - 2;
+  const divisor = 10n ** BigInt(Math.max(0, scale));
+  const cents = scale > 0
+    ? (digits + divisor / 2n) / divisor
+    : digits * 10n ** BigInt(-scale);
+  return formatMoneyCents(sign ? -cents : cents, options);
+}
 // Percentages take ratios (0.125 => 12.5%), not already-scaled percent points.
 export function formatPercent(ratio, {locale, style, ...options} = {}) {
   if (style !== undefined && style !== 'percent') {

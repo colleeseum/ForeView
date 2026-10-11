@@ -19,6 +19,11 @@ the selected locale from `i18n.mjs`, or an explicit locale for tests and special
   Only non-rounding presentation options for grouping, currency display, accounting
   signs, numbering system, and locale matching are accepted. Domain calculations
   and authoritative monetary values remain unchanged.
+- `formatMoneyDollars(decimalDollars)`: presentation compatibility for exact decimal strings
+  and finite legacy numbers below `2**44` dollars in absolute value. Decimal strings are parsed
+  directly to integer cents, including values beyond the safe-number range. Extra fractional
+  digits round half away from zero; no binary floating-point multiplication is used. Numeric
+  inputs use their decimal string representation. This adapter is not financial arithmetic.
 - `formatPercent(ratio)`: ratio inputs (e.g., 0.125 for 12.5%), not percent points.
   Callers may customize presentation and rounding options, but cannot replace the
   percentage style or hide negative signs. `signDisplay` is therefore limited to `auto`
@@ -33,8 +38,12 @@ Do not reformat raw imported evidence, source statement values, or provider text
 its original representation is part of provenance. Helpers are offline, browser-native,
 and do not call external services.
 
-Initial localized formatting is limited to the dashboard. Other pages can migrate in later,
-reviewable slices. Account summaries, balance rebuilding, reconciliation periods, and
+Localized formatting covers the dashboard, account monetary values, income monetary values,
+salary projection monetary values (now consistently shown with two decimal places), transaction
+dates and amounts, and reconciliation status dates and amounts. Inputs, calculations, stored
+values and source descriptions are unchanged. Other financial views, remaining account dates,
+units and percentages, and server-rendered output still need migration and auditing.
+Account summaries, balance rebuilding, reconciliation periods, and
 transaction history compare supported legacy ISO date forms by calendar date. Valid dates
 returned by account summaries (including GIC start and maturity dates) and transaction history
 (including opening rows) are canonical;
@@ -51,3 +60,5 @@ error remains below half a cent. Larger or invalid values cause a localized erro
 financial panel is rendered, rather than presenting changed cents. Exact integer-cent transport
 through the dashboard query and aggregation pipeline remains follow-up work; the formatter
 itself accepts arbitrary-size integer cents without this compatibility limitation.
+Reconciliation checkpoint API dates are also canonicalized on read. Malformed legacy checkpoint
+text is retained and displayed without passing it to the strict date formatter.

@@ -4,6 +4,7 @@
 import {accountTypeLabel} from './account-types.mjs';
 import {createLatestRequestGate} from './latest-request.mjs';
 import {t, locale} from './i18n.mjs';
+import {calendarDateSortKey, formatDate, formatMoneyDollars} from './locale-format.mjs';
 import {importMessage} from './transaction-import-message.mjs';
 import {importHistoryHtml, transactionsTableHtml} from './transactions-render.mjs';
 
@@ -16,7 +17,8 @@ const toast = document.querySelector('#toast');
 const fileInputs = importForm.querySelectorAll('input[type="file"]');
 const accountFilter = document.querySelector('#transaction-account-filter');
 const reconciliationStatus = document.querySelector('#reconciliation-status');
-const money = (value) => value == null ? '' : Number(value).toLocaleString(locale, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const money = (value) => value == null ? '' : formatMoneyDollars(value);
+const date = (value) => calendarDateSortKey(value)[0] ? formatDate(value) : value;
 const reconcileButton = document.querySelector('#open-reconcile-button');
 const reconcileDialog = document.querySelector('#reconcile-dialog');
 const reconcileForm = document.querySelector('#reconcile-form');
@@ -119,8 +121,8 @@ async function loadReconciliationStatus() {
   const review = data.checkpoints.filter((item) => item.status === 'needs_review');
   const latest = review[review.length - 1];
   reconciliationStatus.textContent = latest
-    ? t('transactions.needs_review', {date: latest.reconciled_through, amount: money(latest.difference || 0)})
-    : t('transactions.reconciled', {date: data.reconciled_through});
+    ? t('transactions.needs_review', {date: date(latest.reconciled_through), amount: money(latest.difference ?? 0)})
+    : t('transactions.reconciled', {date: date(data.reconciled_through)});
   reconciliationStatus.classList.toggle('error', Boolean(latest));
   reconciliationStatus.hidden = false;
 }
@@ -296,7 +298,7 @@ reconcileForm.addEventListener('submit', async (event) => {
     await loadTransactions();
     reconcileDialog.hidden = true;
     const difference = data.difference == null ? t('transactions.no_prior_balance') : t('transactions.balance_difference', {amount: money(data.difference)});
-    const locked = data.reconciled_through ? ` ${t('transactions.reconciled', {date: data.reconciled_through})}` : '';
+    const locked = data.reconciled_through ? ` ${t('transactions.reconciled', {date: date(data.reconciled_through)})}` : '';
     showToast(`${t('transactions.account_reconciled')} ${difference}${locked}`);
     await loadReconciliationStatus();
   } catch (error) {

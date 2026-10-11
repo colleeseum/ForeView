@@ -6,6 +6,7 @@ import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
 import {transactionsTableHtml} from '../../static/transactions-render.mjs';
+import {formatDate, formatMoneyDollars} from '../../static/locale-format.mjs';
 
 test('transaction table keeps canonical openings and malformed evidence in semantic order', () => {
   configureTestLocalization();
@@ -61,12 +62,13 @@ test('transactions module loads filters and reconciles the selected account', as
   const calls = [];
   let importMode = 'success';
   let reconcileError = false;
+  let checkpointDate = null;
   globalThis.fetch = async (url, options = {}) => {
     calls.push([String(url), options]);
     if (url === '/api/model/accounts') return jsonResponse({accounts: [{id: 1, account_type: 'non_registered', asset_kind: 'account', account_number: 'A1', institution: 'Bank', name: 'Daily'}]});
     if (String(url).startsWith('/api/model/transactions?')) return jsonResponse({transactions: [{transaction_date: '2026-09-01', institution: 'Bank', account_number: 'A1', description: attack, amount: 25, category: attack, balance_after: 125, combined_balance_after: 125}], opening_balances: []});
     if (String(url).startsWith('/api/model/import-history?')) return jsonResponse({imports: [{imported_at: '2026-09-02', filename: attack, account_number: 'A1', row_count: 1}]});
-    if (url === '/api/model/accounts/1/reconciliation') return jsonResponse({reconciled_through: '2026-09-01', checkpoints: []});
+    if (url === '/api/model/accounts/1/reconciliation') return jsonResponse({reconciled_through: '2026-09-01', checkpoints: checkpointDate ? [{status: 'needs_review', reconciled_through: checkpointDate, difference: -12.34}] : []});
     if (url === '/api/model/accounts/1/reconcile') {
       return reconcileError
         ? jsonResponse({error: 'Balance is invalid'}, false, 400)
@@ -85,7 +87,7 @@ test('transactions module loads filters and reconciles the selected account', as
   await wait();
 
   const table = document.querySelector('#transactions-table-content');
-  assert.match(table.textContent, /2026-09-01/);
+  assert.ok(table.textContent.includes(formatDate('2026-09-01')));
   assert.equal(table.innerHTML.includes(attack), false);
   assert.equal(document.querySelector('#import-history-content').innerHTML.includes(attack), false);
 
@@ -95,6 +97,24 @@ test('transactions module loads filters and reconciles the selected account', as
   await wait();
   assert.match(document.querySelector('#reconciliation-status').textContent, /Reconciled through/);
 
+  for (const locale of ['en-CA', 'fr-CA']) {
+    configureTestLocalization(locale);
+    for (const value of ['2026-01-31', 'malformed evidence']) {
+      checkpointDate = value;
+      filter.dispatchEvent(new dom.window.Event('change'));
+      await wait();
+      await wait();
+      const status = document.querySelector('#reconciliation-status');
+      assert.equal(status.hidden, false);
+      assert.ok(status.classList.contains('error'));
+      assert.ok(status.textContent.includes(value === '2026-01-31' ? formatDate(value) : value));
+      assert.ok(status.textContent.includes(formatMoneyDollars(-12.34)));
+      assert.equal((status.textContent.match(/\$/g) || []).length, 1);
+    }
+  }
+  checkpointDate = null;
+  configureTestLocalization();
+
   document.querySelector('#open-reconcile-button').click();
   document.querySelector('#reconcile-date').value = '2026-09-01';
   document.querySelector('#reconcile-amount').value = '125';
@@ -103,6 +123,17 @@ test('transactions module loads filters and reconciles the selected account', as
   await wait();
   assert.equal(document.querySelector('#reconcile-dialog').hidden, true);
   assert.equal(calls.some(([url, options]) => url === '/api/model/accounts/1/reconcile' && options.method === 'POST'), true);
+  for (const locale of ['en-CA', 'fr-CA']) {
+    configureTestLocalization(locale);
+    document.querySelector('#open-reconcile-button').click();
+    document.querySelector('#reconcile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
+    await wait();
+    await wait();
+    const toast = document.querySelector('#toast').textContent;
+    assert.ok(toast.includes(formatDate('2026-09-01')));
+    assert.ok(!toast.includes('2026-09-01'));
+  }
+  configureTestLocalization();
 
   document.querySelector('#open-reconcile-button').click();
   reconcileError = true;

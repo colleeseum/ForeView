@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {escapeHtml, sourceTextSpan} from './html.mjs';
-import {t, locale} from './i18n.mjs';
-import {calendarDateSortKey} from './locale-format.mjs';
+import {t} from './i18n.mjs';
+import {calendarDateSortKey, formatDate, formatMoneyDollars} from './locale-format.mjs';
 
-const money = (value) => value == null ? '' : Number(value).toLocaleString(locale, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+const money = (value) => value == null ? '' : formatMoneyDollars(value);
 
 const reconciliationStatuses = new Set([
   'reconciled',
@@ -78,7 +75,7 @@ export function transactionsTableHtml(transactions, openingBalances, accountFilt
       ? t('transactions_render.balance_anchor')
       : cashFlowCategoryLabel(item.category) || t('transactions_render.unclassified');
     const description = sourceTextSpan(item.description, item.description_language || '');
-    return `<tr${item.is_opening_balance ? ' class="opening-balance-row"' : ''}><td>${escapeHtml(item.transaction_date)}</td><td>${transactionAccountLabel(item)}</td><td>${description}</td><td>${amount}</td>${balances}<td>${escapeHtml(category)}</td></tr>`;
+    return `<tr${item.is_opening_balance ? ' class="opening-balance-row"' : ''}><td>${escapeHtml(calendarDateSortKey(item.transaction_date)[0] ? formatDate(item.transaction_date) : item.transaction_date)}</td><td>${transactionAccountLabel(item)}</td><td>${description}</td><td>${amount}</td>${balances}<td>${escapeHtml(category)}</td></tr>`;
   }).join('');
   return `<table><thead><tr><th>${t('transactions_render.date')}</th><th>${t('transactions_render.account')}</th><th>${t('transactions_render.description')}</th><th>${t('transactions_render.amount')}</th>${balanceHeaders}<th>${t('transactions_render.cash_flow')}</th></tr></thead><tbody>${body}</tbody></table>`;
 }

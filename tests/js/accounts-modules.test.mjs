@@ -22,8 +22,25 @@ import {
 } from '../../static/transactions-render.mjs';
 import {importMessage} from '../../static/transaction-import-message.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
+import {formatMoneyDollars} from '../../static/locale-format.mjs';
 
 configureTestLocalization();
+
+test('statement differences use locale currency formatting with a single symbol', () => {
+  try {
+    for (const locale of ['en-CA', 'fr-CA']) {
+      configureTestLocalization(locale);
+      for (const difference of [4.5, -4.5, '4.50', '-4.50', 0, null]) {
+        const message = importMessage({results: [{reconciliation_status: 'difference', difference}]});
+        assert.ok(message.includes(formatMoneyDollars(difference ?? 0)));
+        assert.equal((message.match(/\$/g) || []).length, 1);
+        assert.ok(!message.includes('$-'));
+      }
+    }
+  } finally {
+    configureTestLocalization();
+  }
+});
 
 test('security accounts are classified without coupling the renderer', () => {
   assert.equal(isSecurityAccount({asset_kind: 'account', institution: ' Sun Life '}), true);
@@ -41,7 +58,7 @@ test('owner details are converted from the API read model', () => {
 
 test('money and error formatting cover optional values', () => {
   assert.equal(money(null, true), '');
-  assert.equal(money(null), '0.00');
+  assert.equal(money(null), '$0.00');
   const classes = new Set();
   const target = {textContent: '', classList: {add: (value) => classes.add(value)}};
   showError(target, new Error('broken'));

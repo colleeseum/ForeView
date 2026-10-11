@@ -103,7 +103,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(document.querySelector('[name="required_annual_amount"]').value, '60000.00');
   assert.equal(document.querySelector('#salary-expense-save').disabled, true);
   assert.equal(document.querySelector('#salary-save').disabled, true);
-  assert.equal(module.money('12.50'), '$13');
+  assert.equal(module.money('12.50'), '$12.50');
   assert.match(module.projectionTable([]), /No projection/);
 
   document.querySelector('[data-person-key="household"]').click();

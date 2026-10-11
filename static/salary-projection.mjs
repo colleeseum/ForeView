@@ -3,6 +3,7 @@
 
 import {escapeHtml} from './html.mjs';
 import {t, locale} from './i18n.mjs';
+import {formatMoneyDollars} from './locale-format.mjs';
 import {formSignature} from './form-state.mjs';
 import {incomeSourceLabel} from './income-source-label.mjs';
 
@@ -46,8 +47,7 @@ const pendingAnnualChanges = new Map();
 const pendingAnnualResets = new Set();
 
 export function money(value) {
-  const amount = Number(value || 0);
-  return amount.toLocaleString(locale, {style: 'currency', currency: 'CAD', maximumFractionDigits: 0});
+  return formatMoneyDollars(value ?? 0);
 }
 
 export function projectionTable(rows, {editable = false, overrides = [], household = false} = {}) {

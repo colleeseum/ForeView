@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {t, locale} from './i18n.mjs';
+import {t} from './i18n.mjs';
+import {formatMoneyDollars} from './locale-format.mjs';
 
 export function importMessage(data) {
   const reconciliation = (data.results || []).find((item) => item.reconciliation_status);
@@ -17,10 +18,7 @@ export function importMessage(data) {
       return t('transaction_import.no_matches');
     }
     return t('transaction_import.difference', {
-      amount: Number(reconciliation.difference || 0).toLocaleString(locale, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      amount: formatMoneyDollars(reconciliation.difference ?? 0),
     });
   }
   const tfsa = (data.results || []).filter((item) => item.document_type === 'statement' || item.document_type === 'maturity_notice');

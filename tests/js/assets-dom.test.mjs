@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
+import {formatMoneyDollars} from '../../static/locale-format.mjs';
 
 function installDom() {
   configureTestLocalization();
@@ -195,6 +196,20 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assetState.categoryTotals = [{type: 'non_registered', count: 1, gic_count: 0, total: 10}];
   renderAssets({openAccount: () => {}, openGic: () => {}});
   assert.equal(content.querySelector('.section-heading h2').textContent, 'Non enregistré');
+  configureTestLocalization();
+
+  for (const locale of ['en-CA', 'fr-CA']) {
+    configureTestLocalization(locale);
+    assetState.accounts = [
+      {id: 4, asset_kind: 'account', account_type: 'non_registered', institution: 'Bank', name: 'Parent', rollup_amount: '1234.50', non_gic_amount: '234.50'},
+      {id: 5, parent_account_id: 4, asset_kind: 'gic', account_type: 'non_registered', name: 'GIC', latest_amount: '1000.00'},
+    ];
+    assetState.categoryTotals = [{type: 'non_registered', count: 1, gic_count: 1, total: 1234.50}];
+    renderAssets({openAccount: () => {}, openGic: () => {}});
+    assert.equal(content.querySelector('.parent-row td:nth-child(3)').textContent, formatMoneyDollars('1234.50'));
+    assert.equal(content.querySelector('.account-balance-row td:nth-child(2)').textContent, formatMoneyDollars('234.50'));
+    assert.equal(content.querySelector('.subaccount-row:not(.account-balance-row) td:nth-child(2)').textContent, formatMoneyDollars('1000.00'));
+  }
   configureTestLocalization();
 
   assetState.accounts = [{id: 3, asset_kind: 'account', account_type: 'tfsa', institution: 'Bank', account_number: '', name: '', latest_amount: null, rollup_amount: null}];

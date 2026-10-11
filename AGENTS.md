@@ -90,6 +90,10 @@ For substantial tasks, do not work silently for long periods.
 
 ## GitHub work tracking
 
+- A maintainer request to review a pull request includes independently verifying findings,
+  fixing confirmed defects, running relevant checks, and committing and pushing the scoped
+  fixes, unless the request explicitly limits the work to analysis. Merging still requires
+  an explicit request. Preserve unrelated work and report any blocker before publishing.
 - Start substantial feature and defect work from an issue in the authoritative GitHub Project.
 - Include the roadmap identifier in the branch name, for example
   `feature/inc-10-projection-input`.

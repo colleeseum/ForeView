@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {formatDate, formatNumber, formatMoneyCents, formatPercent, pluralCategory, plural} from '../../static/locale-format.mjs';
+import {formatDate, formatNumber, formatMoneyCents, formatMoneyDollars, formatPercent, pluralCategory, plural} from '../../static/locale-format.mjs';
 
 test('Canadian dates use locale-specific ordering without timezone drift', () => {
   assert.match(formatDate('2026-01-09', {locale: 'en-CA'}), /2026/);
@@ -77,4 +77,27 @@ test('plural rules support locale categories and other fallback', () => {
   assert.throws(() => plural(1, {one: 'one', other: 42}, {locale: 'en-CA'}), TypeError);
   assert.equal(plural(1, Object.assign(Object.create({one: 'inherited'}), {other: 'fallback'}), {locale: 'en-CA'}), 'fallback');
   assert.throws(() => plural(2, Object.create({other: '{count} inherited'}), {locale: 'en-CA'}), TypeError);
+});
+
+
+test('legacy dollar presentation uses the shared locale and rejects unsafe inputs', () => {
+  assert.equal(formatMoneyDollars(1234.56, {locale: 'en-CA'}), formatMoneyCents(123456, {locale: 'en-CA'}));
+  assert.equal(formatMoneyDollars(1234.56, {locale: 'fr-CA'}), formatMoneyCents(123456, {locale: 'fr-CA'}));
+  assert.equal(formatMoneyDollars(-0.01, {locale: 'fr-CA'}), formatMoneyCents(-1, {locale: 'fr-CA'}));
+  assert.throws(() => formatMoneyDollars(Number.NaN), RangeError);
+  assert.throws(() => formatMoneyDollars(2 ** 44), RangeError);
+  assert.equal(formatMoneyDollars('12.34'), formatMoneyCents(1234));
+});
+
+test('dollar presentation rounds decimal half cents symmetrically without float arithmetic', () => {
+  for (const locale of ['en-CA', 'fr-CA']) {
+    for (const [dollars, cents] of [[1.005, 101], [-1.005, -101], [10.075, 1008], [0.005, 1], [-0.005, -1], [1e-7, 0], [-1e-7, 0], [1.004, 100]]) {
+      assert.equal(formatMoneyDollars(dollars, {locale}), formatMoneyCents(cents, {locale}));
+      assert.equal(formatMoneyDollars(String(dollars.toFixed(7)), {locale}), formatMoneyCents(cents, {locale}));
+    }
+    assert.equal(formatMoneyDollars('9007199254740993.01', {locale}), formatMoneyCents(900719925474099301n, {locale}));
+  }
+  for (const invalid of ['', ' ', 'NaN', 'Infinity', '12 dollars', '1,234.56', '1e3', null, true, Infinity, -(2 ** 44)]) {
+    assert.throws(() => formatMoneyDollars(invalid), RangeError);
+  }
 });

@@ -10,6 +10,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from flask import Flask
+
 from infrastructure.runtime_config import RuntimeConfig
 from ingestion.reconciled_period_change import ReconciledPeriodChange
 from institutions.questrade.sync import sync_questrade_connection
@@ -25,6 +27,7 @@ from tests.support import (
     import_csv_transactions,
     reconcile_account_balance,
 )
+from web.transaction_routes import blueprint
 
 HEADER = "Date,Description,Amount,Balance\n"
 JANUARY = HEADER + "2026-01-05,Pay,1000,1000\n2026-01-20,Rent,-400,600\n"
@@ -67,6 +70,43 @@ class ReconciliationCheckpointTests(unittest.TestCase):
             (checkpoint.status, checkpoint.net_change, checkpoint.transaction_count),
             ("reconciled", 600.0, 2),
         )
+
+    def test_api_normalizes_legacy_checkpoint_dates_without_rewriting_evidence(self):
+        app = Flask(__name__)
+        app.extensions["finance_connect"] = lambda: self.connection
+        app.register_blueprint(blueprint)
+        repository = ReconciliationCheckpointRepository(self.connection)
+        for stored, expected in (
+            ("20260131", "2026-01-31"),
+            ("2026-W05-6", "2026-01-31"),
+            ("malformed evidence", "malformed evidence"),
+        ):
+            with self.subTest(stored=stored):
+                checkpoint = repository.create(
+                    self.account,
+                    period_start="20260101",
+                    reconciled_through=stored,
+                    closing_balance=600,
+                    net_change=600,
+                    transaction_count=2,
+                    source="manual",
+                )
+                repository.set_status(checkpoint.id, "needs_review", "12.34")
+                with app.test_client() as client:
+                    response = client.get(f"/api/model/accounts/{self.account}/reconciliation")
+                self.assertEqual(response.status_code, 200)
+                item = next(
+                    value
+                    for value in response.get_json()["checkpoints"]
+                    if value["id"] == checkpoint.id
+                )
+                self.assertEqual(item["period_start"], "2026-01-01")
+                self.assertEqual(item["reconciled_through"], expected)
+                self.assertEqual(item["status"], "needs_review")
+                self.assertEqual(item["difference"], 12.34)
+                retained = repository.get(checkpoint.id)
+                self.assertEqual(retained.reconciled_through, stored)
+                self.assertEqual(retained.period_start, "20260101")
 
     def test_mismatched_known_balance_creates_no_checkpoint(self):
         result = reconcile_account_balance(self.connection, self.account, "2026-01-31", 650.0)

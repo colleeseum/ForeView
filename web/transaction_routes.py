@@ -8,6 +8,7 @@ from pathlib import Path
 
 from flask import jsonify, request
 
+from domain.calendar_date import canonical_date_or_stored
 from domain.money import as_decimal
 from domain.reconciliation_checkpoint import ReconciliationCheckpoint
 from ingestion.reconciled_period_change import ReconciledPeriodChange
@@ -181,8 +182,10 @@ def model_transactions():
 def _checkpoint_json(checkpoint: ReconciliationCheckpoint) -> dict[str, object]:
     return {
         "id": checkpoint.id,
-        "period_start": checkpoint.period_start,
-        "reconciled_through": checkpoint.reconciled_through,
+        "period_start": (
+            canonical_date_or_stored(checkpoint.period_start) if checkpoint.period_start else None
+        ),
+        "reconciled_through": canonical_date_or_stored(checkpoint.reconciled_through),
         "closing_balance": checkpoint.closing_balance,
         "transaction_count": checkpoint.transaction_count,
         "source": checkpoint.source,

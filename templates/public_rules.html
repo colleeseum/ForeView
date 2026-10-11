@@ -55,7 +55,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         <p class="connection-status">{{ t('pages_server.tax_rules.effective_help') }}</p>
         <table class="rule-table">
           <thead><tr><th>{{ t('pages_server.tax_rules.taxable_up_to') }}</th><th>{{ t('pages_server.tax_rules.marginal_rate') }}</th></tr></thead>
-          <tbody>{% for bracket in combined_rates %}<tr><td>{{ bracket.upper_bound if bracket.upper_bound is not none else t('pages_server.tax_rules.no_limit') }}</td><td>{{ bracket.rate }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for bracket in combined_rates %}<tr><td>{{ format_money(bracket.upper_bound) if bracket.upper_bound is not none else t('pages_server.tax_rules.no_limit') }}</td><td>{{ format_percent(bracket.rate) }}</td></tr>{% endfor %}</tbody>
         </table>
       </section>
       {% endif %}
@@ -89,7 +89,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <h3>{{ schedule.code|replace('_', ' ')|title }}</h3>
           <table class="rule-table">
             <thead><tr><th>{{ t('pages_server.tax_rules.upper_bound') }}</th><th>{{ t('pages_server.tax_rules.rate') }}</th></tr></thead>
-            <tbody>{% for bracket in schedule.brackets %}<tr><td>{% if bracket.upper_bound is none %}{{ t('pages_server.tax_rules.no_limit') }}{% else %}${{ bracket.upper_bound }}{% endif %}</td><td>{{ bracket.rate * 100 }}%</td></tr>{% endfor %}</tbody>
+            <tbody>{% for bracket in schedule.brackets %}<tr><td>{% if bracket.upper_bound is none %}{{ t('pages_server.tax_rules.no_limit') }}{% else %}{{ format_money(bracket.upper_bound) }}{% endif %}</td><td>{{ format_percent(bracket.rate) }}</td></tr>{% endfor %}</tbody>
           </table>
           {% endfor %}
           {% set parameters = rules.payroll_parameters + rules.contribution_limits + rules.credits + rules.other_parameters %}
@@ -97,12 +97,12 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <h3>{{ t('pages_server.tax_rules.parameters') }}</h3>
           <table class="rule-table">
             <thead><tr><th>{{ t('pages_server.tax_rules.parameter') }}</th><th>{{ t('pages_server.tax_rules.value') }}</th><th>{{ t('pages_server.tax_rules.unit') }}</th></tr></thead>
-            <tbody>{% for parameter in parameters %}<tr><td>{{ parameter.code|replace('_', ' ') }}</td><td>{{ parameter.value }}</td><td>{{ parameter.unit }}</td></tr>{% endfor %}</tbody>
+            <tbody>{% for parameter in parameters %}<tr><td>{{ parameter.code|replace('_', ' ') }}</td><td>{{ format_money(parameter.value) if parameter.unit == 'CAD' else format_percent(parameter.value) if parameter.unit == 'RATE' else format_number(parameter.value) }}</td><td>{{ parameter.unit }}</td></tr>{% endfor %}</tbody>
           </table>
           {% endif %}
           <details>
             <summary>{{ rules.sources|length }} {{ t('pages_server.tax_rules.official_sources') }}</summary>
-            <ul>{% for source in rules.sources %}<li><a href="{{ source.url }}" rel="noreferrer">{{ source.publisher }}: {{ source.title }}</a> · {{ t('pages_server.tax_rules.accessed') }} {{ source.accessed_on }}</li>{% endfor %}</ul>
+            <ul>{% for source in rules.sources %}<li><a href="{{ source.url }}" rel="noreferrer">{{ source.publisher }}: {{ source.title }}</a> · {{ t('pages_server.tax_rules.accessed') }} {{ format_date(source.accessed_on) }}</li>{% endfor %}</ul>
           </details>
         </section>
         {% else %}<p class="empty-panel">{{ t('pages_server.tax_rules.none') }}</p>{% endfor %}

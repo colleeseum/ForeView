@@ -173,7 +173,7 @@ class RuntimeProfileTests(unittest.TestCase):
             self.assertIn(b"Hydro", expenses_response.data)
             self.assertIn(b"Energir", expenses_response.data)
             self.assertIn(b"Montreal property tax", expenses_response.data)
-            self.assertIn(b"$4293.00", expenses_response.data)
+            self.assertIn(b"$4,293.00", expenses_response.data)
             self.assertIn(b"Seasonal estimate", expenses_response.data)
             self.assertNotIn(b"Unavailable", expenses_response.data)
             accounts = accounts_response.get_json()["accounts"]

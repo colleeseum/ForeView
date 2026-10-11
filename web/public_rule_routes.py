@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-from decimal import ROUND_HALF_UP, Decimal
-
 from flask import Blueprint, abort, current_app, redirect, render_template, request, url_for
 
 from projection.tax import EffectiveMarginalRateService
@@ -105,10 +103,8 @@ def _combined_rates(packages, selected_packages, selected_year):
         return None
     return tuple(
         {
-            "upper_bound": None if item.upper_bound is None else f"${item.upper_bound:,.0f}",
-            "rate": (
-                f"{(item.rate * Decimal('100')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)}%"
-            ),
+            "upper_bound": item.upper_bound,
+            "rate": item.rate,
         }
         for item in schedule
     )

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import {formatMoneyDollars, formatDisplayDate} from './locale-format.mjs';
+
 import {t, locale} from './i18n.mjs';
 
 const expenseDialog = document.querySelector('#expense-dialog-backdrop');
@@ -231,9 +233,9 @@ function initializeExpenseImport() {
       const {preview} = await responseJson(response);
       provider.textContent = preview.provider_display_name;
       providerKey.value = preview.provider_key;
-      amount.textContent = preview.amount;
-      periodStart.textContent = preview.period_start;
-      periodEnd.textContent = preview.period_end;
+      amount.textContent = formatMoneyDollars(preview.amount);
+      periodStart.textContent = formatDisplayDate(preview.period_start);
+      periodEnd.textContent = formatDisplayDate(preview.period_end);
       name.value = preview.suggested_identity;
       association.value = 'household';
       fileStep.hidden = true;

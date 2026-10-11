@@ -647,7 +647,7 @@ def test_french_expense_association_selector_is_localized(tmp_path):
     assert response.status_code == 200
     assert "Personne: Synthetic Person" in page
     assert "Utilities · Obligatoire" in page
-    assert "2026-01-01 au 2026-01-31" in page
+    assert "1 janv. 2026 au 31 janv. 2026" in page
     assert "Période de relevé récurrente" in page
     assert f"Personne #{person_id}" in page
     assert "Manuelle" in page

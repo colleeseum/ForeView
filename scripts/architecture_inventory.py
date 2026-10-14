@@ -13,12 +13,11 @@ import json
 import re
 import subprocess
 from collections import Counter, defaultdict
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON_IMPORT = re.compile(r"^\\s*(?:from\\s+([\\w.]+)\\s+import|import\\s+([\\w.]+))", re.M)
-JS_IMPORT = re.compile(r"""(?:import|export)\\s+(?:[^'"]*?\\s+from\\s+)?['"]([^'"]+)['"]|import\\s*\\(\\s*['"]([^'"]+)['"]\\s*\\)""")
-TEMPLATE_ASSET = re.compile(r"""(?:src|href)\\s*=\\s*['"]([^'"]+\\.(?:mjs|js|css)(?:\\?[^'"]*)?)['"]""")
+JS_IMPORT = re.compile(r"""(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]\s*\)""")
+TEMPLATE_ASSET = re.compile(r"""(?:src|href)\s*=\s*['"]([^'"]+\.(?:mjs|js|css)(?:\?[^'"]*)?)['"]""")
 EXCLUDE = {".git", ".runtime", ".venv", "node_modules", "__pycache__"}
 
 
@@ -26,7 +25,7 @@ def tracked_paths() -> list[Path]:
     result = subprocess.run(
         ["git", "ls-files", "-z"], cwd=ROOT, check=True, capture_output=True
     )
-    return [Path(part.decode("utf-8")) for part in result.stdout.split(b"\\0") if part]
+    return [Path(part.decode("utf-8")) for part in result.stdout.split(b"\0") if part]
 
 
 def import_graph(paths: list[Path]) -> tuple[dict[str, set[str]], dict[str, int]]:

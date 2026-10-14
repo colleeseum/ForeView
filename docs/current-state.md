@@ -89,8 +89,13 @@ bilingual workflow tests verify rejected-request immutability and retained evide
   removed, or structurally changed government concepts.
 - The application has no authentication or tenant isolation and is suitable only for a trusted
   local environment.
-- Localization is not yet application-wide. Some messages and help content remain English-only;
-  provider-owned workflow labels outside help still need migration to the localization contract.
+- Localization is not yet application-wide. Some user-facing labels remain English-only,
+  including jurisdiction tabs in public-rule Settings. About institution module names also
+  bypass provider translation resolution.
+  Contributed provider translations may be incomplete and use explicit per-field fallback.
+  External diagnostics and authoritative legal/source text retain their original language.
+  Localization browser acceptance covers representative Chromium workflows, not certification of
+  every browser, assistive technology or contributed locale.
 - Canonical ISO date-only storage is the architectural rule, but some legacy repository write
   paths still validate without normalizing dates or retain unchecked date strings. Changed paths
   must normalize new values; repository-wide enforcement remains follow-up data-integrity work.
@@ -102,3 +107,7 @@ bilingual workflow tests verify rejected-request immutability and retained evide
 The authoritative priorities, execution order, and progress are maintained in the
 [GitHub Project](https://github.com/users/colleeseum/projects/3). This document records the current
 implementation state and intentional limitations without duplicating the changing roadmap.
+
+A dependency-based organization proposal for ARCH-01A (#69) is documented in
+[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). No code has moved; target paths and
+compatibility policy require maintainer agreement before implementation batches.

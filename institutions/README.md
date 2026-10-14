@@ -108,6 +108,9 @@ import instruction it owns; incomplete locales are supported for staged
 adoption, but should be reported in provider QA. Document source strings,
 transaction descriptions and provenance remain in their original language.
 
-**Current scope:** The help API consumes this contract. Other provider-owned
-workflow labels and action surfaces must be migrated to the same resolver
-before claiming end-to-end localization for those workflows.
+The help API, document import guidance, provider discovery presentation and About income,
+tax-notice, public-pension and expense module labels consume this contract through shared
+presentation adapters. About institution module labels still render the original `display_name`
+directly and do not yet resolve provider translations. Identity and original evidence remain
+separate from the localized display fields. Contributed translations can be incomplete and use
+the declared per-field fallback; external diagnostics are not translated by matching their text.

@@ -1,0 +1,605 @@
+path,bytes,text_lines,responsibility_directory,rights_evidence
+.gitattributes,38,1,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+.github/workflows/git-identity.yml,587,23,.github,Explicit Mindstep Corporation SPDX notice
+.gitignore,319,31,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+.pre-commit-config.yaml,1243,44,(root),Explicit Mindstep Corporation SPDX notice
+AGENTS.md,8582,132,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+CONTRIBUTING.md,18246,452,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+DISCLAIMER.md,1843,30,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+LICENSE,4563,73,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+LICENSING.md,3180,60,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+Makefile,2998,79,(root),Explicit Mindstep Corporation SPDX notice
+NOTICE,540,8,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+README.md,17293,358,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+account_types/__init__.py,233,8,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/account_type_provider.py,646,23,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/non_registered.py,300,8,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/registry.py,2497,64,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/resp.py,428,15,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/rrsp.py,331,10,account_types,Explicit Mindstep Corporation SPDX notice
+account_types/tfsa.py,274,8,account_types,Explicit Mindstep Corporation SPDX notice
+app.py,8464,213,(root),Explicit Mindstep Corporation SPDX notice
+docs/architecture.md,12884,220,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/current-state.md,7693,104,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/decisions.md,14677,254,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/locale-presentation.md,6510,84,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/localization.md,8744,111,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/requirements/inc-09-factual-corrections.md,17331,345,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/retirement-projection-concepts.md,4836,108,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+docs/tax-document-concepts.md,2637,38,docs,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+domain/__init__.py,327,10,domain,Explicit Mindstep Corporation SPDX notice
+domain/account.py,762,29,domain,Explicit Mindstep Corporation SPDX notice
+domain/account_ownership.py,352,15,domain,Explicit Mindstep Corporation SPDX notice
+domain/annual_employment_actual.py,1427,54,domain,Explicit Mindstep Corporation SPDX notice
+domain/annual_tax_assessment.py,686,28,domain,Explicit Mindstep Corporation SPDX notice
+domain/annual_tax_value.py,654,27,domain,Explicit Mindstep Corporation SPDX notice
+domain/balance_anchor.py,357,14,domain,Explicit Mindstep Corporation SPDX notice
+domain/balance_recalculation_row.py,429,17,domain,Explicit Mindstep Corporation SPDX notice
+domain/balance_snapshot.py,529,22,domain,Explicit Mindstep Corporation SPDX notice
+domain/calendar_date.py,1352,36,domain,Explicit Mindstep Corporation SPDX notice
+domain/calver.py,747,27,domain,Explicit Mindstep Corporation SPDX notice
+domain/consolidated_income_value.py,512,20,domain,Explicit Mindstep Corporation SPDX notice
+domain/employment_baseline.py,500,20,domain,Explicit Mindstep Corporation SPDX notice
+domain/employment_projection_override.py,613,21,domain,Explicit Mindstep Corporation SPDX notice
+domain/employment_projection_settings.py,566,20,domain,Explicit Mindstep Corporation SPDX notice
+domain/employment_year_plan.py,589,22,domain,Explicit Mindstep Corporation SPDX notice
+domain/expense.py,2427,77,domain,Explicit Mindstep Corporation SPDX notice
+domain/factual_correction_revision.py,1039,38,domain,Explicit Mindstep Corporation SPDX notice
+domain/fixed_term_deposit.py,540,23,domain,Explicit Mindstep Corporation SPDX notice
+domain/gic_terms.py,536,19,domain,Explicit Mindstep Corporation SPDX notice
+domain/household_expense_plan.py,1250,34,domain,Explicit Mindstep Corporation SPDX notice
+domain/import_batch.py,433,18,domain,Explicit Mindstep Corporation SPDX notice
+domain/income_tax_concept.py,1587,49,domain,Explicit Mindstep Corporation SPDX notice
+domain/income_tax_snapshot.py,496,17,domain,Explicit Mindstep Corporation SPDX notice
+domain/investment_holding.py,551,23,domain,Explicit Mindstep Corporation SPDX notice
+domain/money.py,2011,60,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_annual_employment_actual.py,833,29,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_expense_statement.py,1239,38,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_public_pension_statement.py,689,23,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_tax_assessment.py,1009,33,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_tax_value.py,537,19,domain,Explicit Mindstep Corporation SPDX notice
+domain/parsed_ufile_tax_return.py,278,8,domain,Explicit Mindstep Corporation SPDX notice
+domain/person.py,341,15,domain,Explicit Mindstep Corporation SPDX notice
+domain/projected_employment_year.py,844,32,domain,Explicit Mindstep Corporation SPDX notice
+domain/public_pension_earning.py,451,18,domain,Explicit Mindstep Corporation SPDX notice
+domain/public_pension_estimate.py,466,17,domain,Explicit Mindstep Corporation SPDX notice
+domain/public_pension_statement.py,471,19,domain,Explicit Mindstep Corporation SPDX notice
+domain/public_rule_approval.py,374,15,domain,Explicit Mindstep Corporation SPDX notice
+domain/public_rule_package.py,494,19,domain,Explicit Mindstep Corporation SPDX notice
+domain/questrade_authorization.py,1127,36,domain,Explicit Mindstep Corporation SPDX notice
+domain/rates.py,582,19,domain,Explicit Mindstep Corporation SPDX notice
+domain/raw_transaction.py,411,17,domain,Explicit Mindstep Corporation SPDX notice
+domain/real_estate_asset.py,587,24,domain,Explicit Mindstep Corporation SPDX notice
+domain/real_estate_ownership.py,372,15,domain,Explicit Mindstep Corporation SPDX notice
+domain/real_estate_projection.py,511,20,domain,Explicit Mindstep Corporation SPDX notice
+domain/reconciliation_checkpoint.py,844,31,domain,Explicit Mindstep Corporation SPDX notice
+domain/registered_plan_room.py,625,25,domain,Explicit Mindstep Corporation SPDX notice
+domain/resolved_income_source.py,1392,50,domain,Explicit Mindstep Corporation SPDX notice
+domain/scenario.py,367,16,domain,Explicit Mindstep Corporation SPDX notice
+domain/scenario_assumption.py,385,16,domain,Explicit Mindstep Corporation SPDX notice
+domain/statement_reconciliation.py,710,26,domain,Explicit Mindstep Corporation SPDX notice
+domain/transaction.py,506,21,domain,Explicit Mindstep Corporation SPDX notice
+domain/validation_error.py,396,11,domain,Explicit Mindstep Corporation SPDX notice
+domain/validation_lookup_error.py,403,11,domain,Explicit Mindstep Corporation SPDX notice
+expense_sources/__init__.py,274,8,expense_sources,Explicit Mindstep Corporation SPDX notice
+expense_sources/expense_source_provider.py,750,24,expense_sources,Explicit Mindstep Corporation SPDX notice
+expense_sources/help.md,419,5,expense_sources,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+expense_sources/hydro_qc/HELP.md,1307,19,expense_sources,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+expense_sources/hydro_qc/__init__.py,2372,45,expense_sources,Explicit Mindstep Corporation SPDX notice
+expense_sources/hydro_qc/parser.py,7980,209,expense_sources,Explicit Mindstep Corporation SPDX notice
+expense_sources/registry.py,3155,81,expense_sources,Explicit Mindstep Corporation SPDX notice
+finance.config.example.json,629,20,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+income_sources/__init__.py,206,6,income_sources,Explicit Mindstep Corporation SPDX notice
+income_sources/income_source_provider.py,812,26,income_sources,Explicit Mindstep Corporation SPDX notice
+income_sources/registry.py,4019,92,income_sources,Explicit Mindstep Corporation SPDX notice
+income_sources/ufile_help.md,911,13,income_sources,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+infrastructure/__init__.py,175,4,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/closing_connection.py,700,22,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/domain_schema.py,14415,365,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/migrations/__init__.py,53,1,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/annual_employment_province.py,999,27,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/annual_employment_province_backfill.py,824,23,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/annual_tax_values.py,1530,40,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/baseline_domain_schema.py,665,22,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/correction_revision_history.py,6085,113,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/corrections_table.py,2706,53,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/employment_income_records.py,482,17,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/employment_projection.py,3044,66,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/expense_identities.py,4473,96,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/migrations/expense_period_kind.py,809,22,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/migrations/factual_expense_schema_upgrade.py,3487,68,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/migrations/factual_expenses.py,3841,86,infrastructure,Explicit Mindstep Corporation SPDX notice
+infrastructure/migrations/household_expenses.py,1022,22,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/migration.py,260,13,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/migration_runner.py,1630,42,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/monetary_cents.py,3315,79,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/questrade_activity_identity.py,4264,95,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/questrade_sync_status.py,685,20,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/migrations/tax_and_public_pension_records.py,3873,85,infrastructure,Applied project migration; no notice added retrospectively
+infrastructure/runtime_config.py,3466,89,infrastructure,Explicit Mindstep Corporation SPDX notice
+ingestion/__init__.py,172,4,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/csv_format.py,4430,126,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/pdf_document.py,908,35,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/pdf_page.py,296,12,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/raw_sources.py,1154,32,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/reconciled_period_change.py,893,22,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/reconciled_period_guard.py,2742,62,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/recorded_transaction_matcher.py,2603,59,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/row_counts.py,495,17,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/statement_import.py,953,36,ingestion,Explicit Mindstep Corporation SPDX notice
+ingestion/statement_row_writer.py,4044,91,ingestion,Explicit Mindstep Corporation SPDX notice
+institution_support/__init__.py,250,8,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/connection_capability.py,1248,40,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/connection_provider.py,1085,34,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/csv_parser.py,371,12,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/document_detection.py,798,25,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/document_importer.py,1087,34,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/help_topic.py,624,23,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/institution_provider.py,1602,40,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/registry.py,5170,118,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/runtime_context.py,708,21,institution_support,Explicit Mindstep Corporation SPDX notice
+institution_support/transaction_repair.py,449,14,institution_support,Explicit Mindstep Corporation SPDX notice
+institutions/README.md,6193,113,institutions,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+institutions/__init__.py,156,4,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/achieva/__init__.py,1407,42,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/achieva/document_importers.py,910,31,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/achieva/import_service.py,4841,116,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/achieva/parser.py,3236,85,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/achieva/raw_sources.py,405,12,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/__init__.py,1212,35,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/document_importers.py,840,31,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/import_service.py,2957,77,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/parser.py,3048,71,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/raw_sources.py,373,12,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/eq/transaction_repair.py,1166,34,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/manulife/__init__.py,1666,48,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/manulife/document_importers.py,1081,35,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/manulife/import_service.py,5113,126,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/manulife/parser.py,7847,216,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/manulife/raw_sources.py,412,12,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/__init__.py,1997,52,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/client.py,6009,141,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/connection.py,5739,136,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/routes.py,4028,99,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/runtime.py,1232,31,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/settings.py,2637,67,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/sync.py,17175,348,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/questrade/unauthorized.py,323,10,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/__init__.py,3588,90,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/csv_parser.py,2171,54,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/deposit_import_service.py,5819,140,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/document_importers.py,4911,162,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/document_inspector.py,1959,49,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/gic_history_import_service.py,5806,137,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/parser.py,18190,434,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/raw_sources.py,503,18,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/tfsa_import_service.py,7442,177,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/rbc/transaction_repair.py,894,27,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/sunlife/__init__.py,2175,59,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/sunlife/document_importers.py,2403,83,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/sunlife/import_service.py,5511,128,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/sunlife/parser.py,7943,209,institutions,Explicit Mindstep Corporation SPDX notice
+institutions/sunlife/raw_sources.py,453,12,institutions,Explicit Mindstep Corporation SPDX notice
+localization/__init__.py,223,6,localization,Explicit Mindstep Corporation SPDX notice
+localization/en-CA/browser.json,18622,463,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/en-CA/core.json,502,11,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/en-CA/errors.json,13246,157,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/en-CA/pages.json,478,13,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/en-CA/pages_server.json,20851,449,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/browser.json,20568,463,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/core.json,524,11,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/errors.json,15033,157,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/help.json,8806,113,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/pages.json,552,13,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/fr-CA/pages_server.json,24098,449,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/provider_content.py,1512,39,localization,Explicit Mindstep Corporation SPDX notice
+localization/registry.json,183,6,localization,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+localization/service.py,5424,141,localization,Explicit Mindstep Corporation SPDX notice
+localization/value_formatter.py,2692,66,localization,Explicit Mindstep Corporation SPDX notice
+package-lock.json,62084,1720,(root),Generated third-party dependency metadata; licenses remain distinct
+package.json,582,19,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+projection/__init__.py,701,34,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/__init__.py,1276,40,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/decimals.py,1115,32,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/enums.py,715,35,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/indexing_metadata.py,1441,36,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/projection_assumption.py,501,19,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/public_rule_set.py,5151,129,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/rounding_metadata.py,457,19,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/rule_model.py,374,12,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/rule_parameter.py,1130,32,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/rule_source.py,821,27,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/tax_bracket.py,379,14,projection,Explicit Mindstep Corporation SPDX notice
+projection/public_rules/tax_bracket_schedule.py,1443,38,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/__init__.py,977,30,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/cra_jurisdiction_provider.py,12431,300,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/cra_payroll_csv.py,1617,41,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/cra_payroll_tables.py,6835,172,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/errors.py,467,14,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/federal_provider.py,8413,198,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/html_document.py,2679,75,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/http_retriever.py,3467,91,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/parsing.py,5300,138,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/provider_registry.py,1035,27,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/public_rule_provider.py,529,19,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/quebec_provider.py,11321,281,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/quebec_tax_guide.py,1446,35,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/retrieved_source.py,595,25,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/rule_update_result.py,492,19,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/source_metadata.py,501,18,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/source_retriever.py,521,22,projection,Explicit Mindstep Corporation SPDX notice
+projection/rule_update/update_service.py,5309,140,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/__init__.py,790,20,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/employment_income_projector.py,4344,110,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/employment_tax_estimate.py,934,32,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/payroll_contribution_calculator.py,2740,68,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/payroll_contributions.py,876,30,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/progressive_tax_calculator.py,1026,29,projection,Explicit Mindstep Corporation SPDX notice
+projection/salary/quebec_employment_tax_calculator.py,5261,127,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/__init__.py,389,9,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/effective_marginal_rate.py,397,15,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/effective_marginal_rate_service.py,1990,56,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/federal_marginal_rate_model.py,2009,50,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/manitoba_effective_marginal_rate_calculator.py,1887,47,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/ontario_effective_marginal_rate_calculator.py,3091,68,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/quebec_effective_marginal_rate_calculator.py,1354,37,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/rule_values.py,1043,30,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/schedule_builder.py,998,29,projection,Explicit Mindstep Corporation SPDX notice
+projection/tax/standard_effective_marginal_rate_calculator.py,1463,39,projection,Explicit Mindstep Corporation SPDX notice
+public_pension_sources/__init__.py,230,6,public_pension_sources,Explicit Mindstep Corporation SPDX notice
+public_pension_sources/public_pension_source_provider.py,818,25,public_pension_sources,Explicit Mindstep Corporation SPDX notice
+public_pension_sources/registry.py,2443,55,public_pension_sources,Explicit Mindstep Corporation SPDX notice
+public_pension_sources/retraite_quebec_help.md,356,1,public_pension_sources,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+public_rules/2025/ca-ab/ca-ab-2025-official.json,3448,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ab/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ab/sources/cra-ab-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ab/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-bc/ca-bc-2025-official.json,3514,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-bc/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-bc/sources/cra-bc-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-bc/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/ca-mb-2025-official.json,4910,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/manifest.json,2188,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/sources/cra-manitoba-bpa-phaseout.html,90410,2628,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/sources/cra-mb-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/sources/cra-payroll-tables-mb-2025.html,92961,2627,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-mb/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nb/ca-nb-2025-official.json,3385,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nb/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nb/sources/cra-nb-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nb/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nl/ca-nl-2025-official.json,3571,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nl/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nl/sources/cra-nl-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nl/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ns/ca-ns-2025-official.json,3423,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ns/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ns/sources/cra-ns-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-ns/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nt/ca-nt-2025-official.json,3404,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nt/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nt/sources/cra-nt-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nt/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nu/ca-nu-2025-official.json,3372,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nu/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nu/sources/cra-nu-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-nu/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/ca-on-2025-official.json,6248,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/manifest.json,2056,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/sources/cra-ei-rates-2025.csv,279,4,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/sources/cra-on-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/sources/cra-payroll-tables-on-2025.html,99773,2888,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-on/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-pe/ca-pe-2025-official.json,3441,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-pe/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-pe/sources/cra-pe-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-pe/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/ca-qc-2025-official.json,7541,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/manifest.json,2789,62,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/cra-ei-rates-2025.csv,279,4,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/cra-qpip-rates-2025.csv,295,3,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/finance-canada-quebec-abatement.html,22643,508,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/rq-income-tax-rates-2025.html,52253,1178,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/rq-qpp-pensionable-earnings-contributions.html,68365,1193,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-qc/sources/rq-tax-formulas-2025.pdf,582102,0,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-sk/ca-sk-2025-official.json,3345,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-sk/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-sk/sources/cra-sk-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-sk/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-yt/ca-yt-2025-official.json,3409,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-yt/manifest.json,1166,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-yt/sources/cra-yt-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca-yt/sources/esdc-cpp-figures-2025.html,36557,789,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/ca-2025-official.json,4253,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/manifest.json,2211,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/sources/cra-federal-brackets-2025.html,61456,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/sources/cra-payroll-tables-on-2025.html,99773,2888,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/sources/cra-registered-plan-limits.html,28344,854,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2025/ca/sources/cra-rrsp-deduction-limit-formula.html,29959,687,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ab/ca-ab-2026-official.json,3452,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ab/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ab/sources/cra-ab-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ab/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-bc/ca-bc-2026-official.json,3518,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-bc/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-bc/sources/cra-bc-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-bc/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/ca-mb-2026-official.json,4896,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/manifest.json,2173,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/sources/cra-manitoba-bpa-phaseout.html,90410,2628,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/sources/cra-mb-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/sources/cra-payroll-tables-mb-2026.html,89848,2606,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-mb/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nb/ca-nb-2026-official.json,3389,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nb/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nb/sources/cra-nb-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nb/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nl/ca-nl-2026-official.json,3575,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nl/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nl/sources/cra-nl-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nl/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ns/ca-ns-2026-official.json,3427,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ns/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ns/sources/cra-ns-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-ns/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nt/ca-nt-2026-official.json,3408,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nt/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nt/sources/cra-nt-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nt/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nu/ca-nu-2026-official.json,3376,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nu/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nu/sources/cra-nu-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-nu/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/ca-on-2026-official.json,6228,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/manifest.json,2035,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/sources/cra-ei-rates-2026.csv,336,5,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/sources/cra-on-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/sources/cra-payroll-tables-on-2026.html,98629,2847,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-on/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-pe/ca-pe-2026-official.json,3483,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-pe/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-pe/sources/cra-pe-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-pe/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/ca-qc-2026-official.json,7538,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/manifest.json,2789,62,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/cra-ei-rates-2026.csv,336,5,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/cra-qpip-rates-2026.csv,281,4,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/finance-canada-quebec-abatement.html,22643,508,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/rq-income-tax-rates-2026.html,52253,1178,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/rq-qpp-pensionable-earnings-contributions.html,68365,1193,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-qc/sources/rq-tax-formulas-2026.pdf,604086,0,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-sk/ca-sk-2026-official.json,3349,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-sk/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-sk/sources/cra-sk-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-sk/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-yt/ca-yt-2026-official.json,3413,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-yt/manifest.json,1169,30,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-yt/sources/cra-yt-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca-yt/sources/esdc-cpp-figures-2026.html,36172,772,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/ca-2026-official.json,4231,1,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/manifest.json,2190,46,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/sources/cra-federal-brackets-2026.html,63982,1252,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/sources/cra-payroll-tables-on-2026.html,98629,2847,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/sources/cra-registered-plan-limits.html,28344,854,public_rules,Public-source/generated mixed material; retain source provenance
+public_rules/2026/ca/sources/cra-rrsp-deduction-limit-formula.html,29959,687,public_rules,Public-source/generated mixed material; retain source provenance
+pyproject.toml,1430,52,(root),Explicit Mindstep Corporation SPDX notice
+repositories/__init__.py,443,10,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/account_ownership_repository.py,2663,67,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/account_repository.py,21298,496,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/activity_sync_state_repository.py,1054,27,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/annual_employment_actual_repository.py,7251,169,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/annual_tax_assessment_repository.py,5834,133,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/annual_tax_value_repository.py,9122,232,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/balance_snapshot_repository.py,6661,172,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/correction_repository.py,17751,421,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/employment_baseline_repository.py,4222,100,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/employment_projection_override_repository.py,5792,128,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/employment_projection_settings_repository.py,5012,110,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/expense_repository.py,34101,800,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/fixed_term_deposit_repository.py,8656,221,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/household_expense_plan_repository.py,4246,94,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/import_batch_repository.py,5161,136,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/investment_holding_repository.py,6171,155,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/person_repository.py,2657,70,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/public_pension_statement_repository.py,5988,144,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/public_rule_approval_repository.py,1530,43,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/questrade_authorization_repository.py,5211,135,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/raw_transaction_repository.py,3340,85,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/real_estate_asset_repository.py,7649,208,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/real_estate_ownership_repository.py,3212,83,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/real_estate_projection_repository.py,6013,159,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/reconciliation_checkpoint_repository.py,4143,109,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/registered_plan_room_repository.py,5082,117,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/scenario_assumption_repository.py,1983,58,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/scenario_repository.py,1970,57,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/statement_reconciliation_repository.py,6027,139,repositories,Explicit Mindstep Corporation SPDX notice
+repositories/transaction_repository.py,23130,556,repositories,Explicit Mindstep Corporation SPDX notice
+requirements-dev.txt,153,10,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+requirements.txt,104,6,(root),"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+runtime_backup.py,1842,46,(root),Explicit Mindstep Corporation SPDX notice
+scripts/check-git-identity.sh,1796,51,scripts,Explicit Mindstep Corporation SPDX notice
+scripts/check-license-headers.sh,997,31,scripts,Explicit Mindstep Corporation SPDX notice
+scripts/configure-git-identity.sh,365,11,scripts,Explicit Mindstep Corporation SPDX notice
+services/__init__.py,185,4,services,Explicit Mindstep Corporation SPDX notice
+services/account_aggregation_service.py,1385,37,services,Explicit Mindstep Corporation SPDX notice
+services/account_summary_query.py,2033,51,services,Explicit Mindstep Corporation SPDX notice
+services/cra_notice_parser.py,11703,291,services,Explicit Mindstep Corporation SPDX notice
+services/csv_import_service.py,4774,107,services,Explicit Mindstep Corporation SPDX notice
+services/dashboard.py,6332,161,services,Explicit Mindstep Corporation SPDX notice
+services/dashboard_query.py,1557,39,services,Explicit Mindstep Corporation SPDX notice
+services/database_initialization.py,3865,81,services,Explicit Mindstep Corporation SPDX notice
+services/document_import_account_resolver.py,2861,83,services,Explicit Mindstep Corporation SPDX notice
+services/expense_import_service.py,4817,132,services,Explicit Mindstep Corporation SPDX notice
+services/expense_service.py,4300,127,services,Explicit Mindstep Corporation SPDX notice
+services/factual_correction_validator.py,4466,117,services,Explicit Mindstep Corporation SPDX notice
+services/fixed_term_deposit_creation_service.py,2348,66,services,Explicit Mindstep Corporation SPDX notice
+services/imported_transaction_repair.py,895,27,services,Explicit Mindstep Corporation SPDX notice
+services/income_tax_snapshot_service.py,3506,79,services,Explicit Mindstep Corporation SPDX notice
+services/income_tax_source_resolver.py,6550,177,services,Explicit Mindstep Corporation SPDX notice
+services/legacy_fixed_deposit_migration.py,2151,54,services,Explicit Mindstep Corporation SPDX notice
+services/public_rule_catalog.py,4314,98,services,Explicit Mindstep Corporation SPDX notice
+services/real_estate_summary_query.py,3036,83,services,Explicit Mindstep Corporation SPDX notice
+services/reconciliation_checkpoint_service.py,6820,161,services,Explicit Mindstep Corporation SPDX notice
+services/reporting_query.py,1359,37,services,Explicit Mindstep Corporation SPDX notice
+services/retraite_quebec_statement_parser.py,4328,114,services,Explicit Mindstep Corporation SPDX notice
+services/revenu_quebec_notice_parser.py,8582,207,services,Explicit Mindstep Corporation SPDX notice
+services/runtime_backup_service.py,6586,146,services,Explicit Mindstep Corporation SPDX notice
+services/salary_projection_service.py,8387,182,services,Explicit Mindstep Corporation SPDX notice
+services/scenario_clone_service.py,4281,93,services,Explicit Mindstep Corporation SPDX notice
+services/transaction_service.py,13938,327,services,Explicit Mindstep Corporation SPDX notice
+services/ufile_tax_return_parser.py,12000,239,services,Explicit Mindstep Corporation SPDX notice
+static/account-dialog.mjs,3356,85,static,Explicit Mindstep Corporation SPDX notice
+static/account-types.mjs,381,10,static,Explicit Mindstep Corporation SPDX notice
+static/accounts-api.mjs,1239,40,static,Explicit Mindstep Corporation SPDX notice
+static/accounts-format.mjs,868,24,static,Explicit Mindstep Corporation SPDX notice
+static/accounts-real-estate.mjs,6187,115,static,Explicit Mindstep Corporation SPDX notice
+static/accounts-render.mjs,10317,104,static,Explicit Mindstep Corporation SPDX notice
+static/accounts-state.mjs,541,18,static,Explicit Mindstep Corporation SPDX notice
+static/accounts.mjs,2007,61,static,Explicit Mindstep Corporation SPDX notice
+static/button-action.mjs,406,14,static,Explicit Mindstep Corporation SPDX notice
+static/connections.mjs,9311,189,static,Explicit Mindstep Corporation SPDX notice
+static/csrf.js,901,20,static,Explicit Mindstep Corporation SPDX notice
+static/dashboard.mjs,5673,74,static,Explicit Mindstep Corporation SPDX notice
+static/expenses.mjs,11609,307,static,Explicit Mindstep Corporation SPDX notice
+static/form-state.mjs,595,15,static,Explicit Mindstep Corporation SPDX notice
+static/gic-dialog.mjs,3454,80,static,Explicit Mindstep Corporation SPDX notice
+static/help.mjs,11846,285,static,Explicit Mindstep Corporation SPDX notice
+static/html.mjs,1222,36,static,Explicit Mindstep Corporation SPDX notice
+static/i18n.mjs,1679,30,static,Explicit Mindstep Corporation SPDX notice
+static/income-corrections.mjs,11017,298,static,Explicit Mindstep Corporation SPDX notice
+static/income-source-label.mjs,367,11,static,Explicit Mindstep Corporation SPDX notice
+static/income.mjs,25088,543,static,Explicit Mindstep Corporation SPDX notice
+static/latest-request.mjs,336,13,static,Explicit Mindstep Corporation SPDX notice
+static/locale-format.mjs,6995,163,static,Explicit Mindstep Corporation SPDX notice
+static/ownership-fields.mjs,2414,56,static,Explicit Mindstep Corporation SPDX notice
+static/salary-projection.mjs,20938,420,static,Explicit Mindstep Corporation SPDX notice
+static/setup-values.mjs,302,10,static,Explicit Mindstep Corporation SPDX notice
+static/setup.mjs,9452,154,static,Explicit Mindstep Corporation SPDX notice
+static/style.css,36823,364,static,Explicit Mindstep Corporation SPDX notice
+static/transaction-import-message.mjs,1812,37,static,Explicit Mindstep Corporation SPDX notice
+static/transactions-render.mjs,4827,92,static,Explicit Mindstep Corporation SPDX notice
+static/transactions.mjs,14082,319,static,Explicit Mindstep Corporation SPDX notice
+synthetic_documents.py,10471,287,(root),Explicit Mindstep Corporation SPDX notice
+synthetic_expenses.py,5153,158,(root),Explicit Mindstep Corporation SPDX notice
+synthetic_questrade.py,5574,135,(root),Explicit Mindstep Corporation SPDX notice
+synthetic_runtime.py,18341,464,(root),Explicit Mindstep Corporation SPDX notice
+tax_notices/__init__.py,197,6,tax_notices,Explicit Mindstep Corporation SPDX notice
+tax_notices/cra_help.md,253,1,tax_notices,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+tax_notices/registry.py,3133,72,tax_notices,Explicit Mindstep Corporation SPDX notice
+tax_notices/revenu_quebec_help.md,267,1,tax_notices,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+tax_notices/tax_notice_provider.py,784,26,tax_notices,Explicit Mindstep Corporation SPDX notice
+templates/_browser_localization.html,213,5,templates,Explicit Mindstep Corporation SPDX notice
+templates/_side_menu.html,2572,29,templates,Explicit Mindstep Corporation SPDX notice
+templates/about.html,4662,73,templates,Explicit Mindstep Corporation SPDX notice
+templates/accounts.html,8640,19,templates,Explicit Mindstep Corporation SPDX notice
+templates/application_settings.html,1536,26,templates,Explicit Mindstep Corporation SPDX notice
+templates/connections.html,1588,16,templates,Explicit Mindstep Corporation SPDX notice
+templates/disclaimer.html,1026,30,templates,Explicit Mindstep Corporation SPDX notice
+templates/expenses.html,20256,181,templates,Explicit Mindstep Corporation SPDX notice
+templates/income.html,14958,217,templates,Explicit Mindstep Corporation SPDX notice
+templates/index.html,2178,24,templates,Explicit Mindstep Corporation SPDX notice
+templates/public_rules.html,6863,112,templates,Explicit Mindstep Corporation SPDX notice
+templates/salary_projection.html,8025,102,templates,Explicit Mindstep Corporation SPDX notice
+templates/setup.html,6925,92,templates,Explicit Mindstep Corporation SPDX notice
+templates/transactions.html,6267,21,templates,Explicit Mindstep Corporation SPDX notice
+tests/__init__.py,137,4,tests,Explicit Mindstep Corporation SPDX notice
+tests/browser/workflows.mjs,10843,183,tests,Explicit Mindstep Corporation SPDX notice
+tests/fixtures/questrade/sync_scenarios.json,5251,196,tests,"Project-maintained; consult LICENSING.md, no per-file attribution inferred"
+tests/js/accounts-modules.test.mjs,10169,246,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/assets-dom.test.mjs,16473,260,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/browser-localization.test.mjs,1630,41,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/connections-dom.test.mjs,7609,146,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/dashboard-dom.test.mjs,14403,275,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/development-requirements.test.mjs,1398,27,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/expense-import-dom.test.mjs,9818,170,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/expenses-dom.test.mjs,5518,83,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/help-dom.test.mjs,18847,370,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/income-dom.test.mjs,38787,682,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/locale-format.test.mjs,7177,107,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/localization-fixture.mjs,600,15,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/salary-projection-dom.test.mjs,15417,255,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/setup-dom.test.mjs,5842,123,tests,Explicit Mindstep Corporation SPDX notice
+tests/js/transactions-dom.test.mjs,10615,186,tests,Explicit Mindstep Corporation SPDX notice
+tests/support.py,14868,458,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_account_ownership_repository.py,7015,148,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_account_repository.py,13119,287,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_account_type_registry.py,868,23,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_app_routes.py,126414,2786,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_balance_snapshot_repository.py,8682,202,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_browser_workflows.py,3548,88,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_calver.py,676,22,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_corrections.py,18749,622,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_csv_import_service.py,8050,184,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_database_migrations.py,15905,368,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_effective_marginal_rates.py,8302,205,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_employment_income_projector.py,4131,124,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_employment_projection_repositories.py,6017,136,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_expense_import_routes.py,5814,136,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_expense_import_service.py,6864,163,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_expense_repository.py,15406,430,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_expense_source_registry.py,2487,72,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_factual_correction_validator.py,3680,107,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_financial_record_repositories.py,5674,161,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_fixed_term_deposit_repository.py,11150,272,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_hydro_qc_parser.py,5899,135,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_import_batch_repository.py,6099,131,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_import_idempotency.py,10104,273,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_income_tax_snapshot_service.py,5573,170,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_income_tax_source_resolver.py,4648,124,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_institution_registry.py,6905,162,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_investment_holding_repository.py,7282,181,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_localization.py,38352,1026,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_localized_help.py,11177,283,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_model.py,31580,803,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_model_edge_cases.py,25484,629,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_money.py,1177,33,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_person_repository.py,5820,120,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_public_rule_approval_repository.py,1802,44,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_public_rule_update.py,28353,620,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_public_rules.py,8560,235,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_questrade_activity_identity_migration.py,5770,145,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_questrade_incremental_sync.py,7359,180,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_real_estate_asset_repository.py,8808,210,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_real_estate_ownership_repository.py,7292,166,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_real_estate_projection_repository.py,8591,211,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_reconciliation_checkpoints.py,19196,462,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_retraite_quebec_statement_parser.py,1612,47,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_route_values.py,1390,38,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_runtime_backup_service.py,3875,90,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_runtime_config.py,4903,119,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_runtime_profiles.py,16056,312,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_salary_projection_service.py,4438,105,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_salary_tax_calculation.py,4920,125,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_scenario_assumption_repository.py,4985,109,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_scenario_repository.py,4659,106,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_statement_import.py,7591,183,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_statement_reconciliation_repository.py,6414,150,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_synthetic_documents.py,13217,337,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_tax_notice_parsers.py,4028,95,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_transaction_balance_recalculation.py,10308,261,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_transaction_repository.py,14916,321,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_ufile_tax_return_parser.py,5849,152,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_value_formatter.py,2722,63,tests,Explicit Mindstep Corporation SPDX notice
+tests/test_web_localization.py,4657,118,tests,Explicit Mindstep Corporation SPDX notice
+update_public_rules.py,5516,169,(root),Explicit Mindstep Corporation SPDX notice
+web/__init__.py,137,4,web,Explicit Mindstep Corporation SPDX notice
+web/account_routes.py,10550,224,web,Explicit Mindstep Corporation SPDX notice
+web/correction_routes.py,9928,233,web,Explicit Mindstep Corporation SPDX notice
+web/correction_serialization.py,2359,61,web,Explicit Mindstep Corporation SPDX notice
+web/dashboard_routes.py,451,15,web,Explicit Mindstep Corporation SPDX notice
+web/dependencies.py,451,14,web,Explicit Mindstep Corporation SPDX notice
+web/expense_routes.py,17073,451,web,Explicit Mindstep Corporation SPDX notice
+web/help_routes.py,20045,462,web,Explicit Mindstep Corporation SPDX notice
+web/income_routes.py,25526,585,web,Explicit Mindstep Corporation SPDX notice
+web/institution_routes.py,1998,53,web,Explicit Mindstep Corporation SPDX notice
+web/localization.py,2820,67,web,Explicit Mindstep Corporation SPDX notice
+web/model_blueprint.py,179,6,web,Explicit Mindstep Corporation SPDX notice
+web/model_routes.py,319,13,web,Explicit Mindstep Corporation SPDX notice
+web/page_routes.py,3840,114,web,Explicit Mindstep Corporation SPDX notice
+web/people_routes.py,1844,54,web,Explicit Mindstep Corporation SPDX notice
+web/public_rule_routes.py,4543,129,web,Explicit Mindstep Corporation SPDX notice
+web/real_estate_routes.py,5246,113,web,Explicit Mindstep Corporation SPDX notice
+web/reporting_routes.py,2204,59,web,Explicit Mindstep Corporation SPDX notice
+web/route_values.py,1387,43,web,Explicit Mindstep Corporation SPDX notice
+web/salary_projection_routes.py,23564,556,web,Explicit Mindstep Corporation SPDX notice
+web/transaction_routes.py,11665,256,web,Explicit Mindstep Corporation SPDX notice

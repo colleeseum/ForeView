@@ -130,7 +130,7 @@ async function json(response) {
   if (!response.ok) {
     const error = new Error(result.error || t('income.request_failed'));
     error.status = response.status;
-    error.language = result.error ? 'en-CA' : locale;
+    error.language = result.error ? (result.error_language || 'en-CA') : locale;
     throw error;
   }
   return result;

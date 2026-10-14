@@ -11,7 +11,9 @@ from repositories.scenario_assumption_repository import ScenarioAssumptionReposi
 from repositories.scenario_repository import ScenarioRepository
 from services.reporting_query import ReportingQuery
 from web.dependencies import dependency
+from web.localization import error_data
 from web.model_blueprint import blueprint
+from web.route_values import required_field
 
 
 @blueprint.get("/api/model/import-history")
@@ -38,7 +40,7 @@ def add_scenario_route():
     try:
         with dependency("connect")() as connection:
             scenario = ScenarioRepository(connection).create(
-                str(payload["name"]), str(payload["baseline_date"])
+                str(required_field(payload, "name")), str(required_field(payload, "baseline_date"))
             )
             ScenarioAssumptionRepository(connection).set(
                 scenario.id,
@@ -48,7 +50,7 @@ def add_scenario_route():
             )
         return jsonify({"id": scenario.id}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.get("/api/model/annual-summary")

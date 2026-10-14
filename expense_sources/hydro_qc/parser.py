@@ -13,6 +13,7 @@ from decimal import Decimal, InvalidOperation
 
 from domain.money import as_decimal
 from domain.parsed_expense_statement import ParsedExpenseStatement
+from domain.validation_error import ValidationError
 from ingestion.pdf_document import open_pdf, pdf_page_texts
 
 PdfTextReader = Callable[[bytes], list[str]]
@@ -38,7 +39,9 @@ def _read_pdf_text(content: bytes) -> list[str]:
     try:
         return pdf_page_texts(open_pdf, content)
     except Exception as error:
-        raise ValueError("The Hydro-Québec PDF could not be read") from error
+        raise ValidationError(
+            "input_the_hydro_quebec_pdf_could_not_be_read", "The Hydro-Québec PDF could not be read"
+        ) from error
 
 
 def _normalized(value: str) -> str:
@@ -64,10 +67,14 @@ class HydroQuebecParser:
     def parse(self, content: bytes) -> ParsedExpenseStatement:
         text = self._text(content)
         if not self._detects_text(text):
-            raise ValueError("The PDF is not a supported Hydro-Québec electricity bill")
+            raise ValidationError(
+                "input_the_pdf_is_not_a_supported_hydro_quebec_electricity_bill",
+                "The PDF is not a supported Hydro-Québec electricity bill",
+            )
         if self._is_epp_annual_review(text):
-            raise ValueError(
-                "Hydro-Québec Equalized Payments Plan annual-review bills are not supported"
+            raise ValidationError(
+                "input_hydro_quebec_equalized_payments_plan_annual_review_bills_are_not_supported",
+                "Hydro-Québec Equalized Payments Plan annual-review bills are not supported",
             )
         period_start, period_end = self._extract_period(text)
         return ParsedExpenseStatement(
@@ -80,11 +87,16 @@ class HydroQuebecParser:
 
     def _text(self, content: bytes) -> str:
         if not content:
-            raise ValueError("The Hydro-Québec PDF is empty")
+            raise ValidationError(
+                "input_the_hydro_quebec_pdf_is_empty", "The Hydro-Québec PDF is empty"
+            )
         pages = self._text_reader(content)
         text = "\n".join(page for page in pages if page.strip())
         if not text.strip():
-            raise ValueError("The Hydro-Québec PDF contains no readable text")
+            raise ValidationError(
+                "input_the_hydro_quebec_pdf_contains_no_readable_text",
+                "The Hydro-Québec PDF contains no readable text",
+            )
         return _normalized(text)
 
     @staticmethod
@@ -126,7 +138,10 @@ class HydroQuebecParser:
             flags=re.IGNORECASE,
         )
         if match is None:
-            raise ValueError("Cannot determine the amount of the current Hydro-Québec bill")
+            raise ValidationError(
+                "input_cannot_determine_the_amount_of_the_current_hydro_quebec_bill",
+                "Cannot determine the amount of the current Hydro-Québec bill",
+            )
         raw = re.sub(r"\s+", "", match.group(1))
         if "," in raw and "." in raw:
             decimal_separator = "," if raw.rfind(",") > raw.rfind(".") else "."
@@ -137,9 +152,15 @@ class HydroQuebecParser:
         try:
             amount = as_decimal(Decimal(raw))
         except (InvalidOperation, ValueError) as error:
-            raise ValueError("The Hydro-Québec bill amount is invalid") from error
+            raise ValidationError(
+                "input_the_hydro_quebec_bill_amount_is_invalid",
+                "The Hydro-Québec bill amount is invalid",
+            ) from error
         if amount < 0:
-            raise ValueError("The Hydro-Québec bill amount cannot be negative")
+            raise ValidationError(
+                "input_the_hydro_quebec_bill_amount_cannot_be_negative",
+                "The Hydro-Québec bill amount cannot be negative",
+            )
         return amount
 
     @staticmethod
@@ -155,16 +176,25 @@ class HydroQuebecParser:
             )
         )
         if not matches:
-            raise ValueError("Cannot determine the Hydro-Québec electricity-use period")
+            raise ValidationError(
+                "input_cannot_determine_the_hydro_quebec_electricity_use_period",
+                "Cannot determine the Hydro-Québec electricity-use period",
+            )
         if len(matches) > 1:
-            raise ValueError("Hydro-Québec bills with multiple service periods are not supported")
+            raise ValidationError(
+                "input_hydro_quebec_bills_with_multiple_service_periods_are_not_supported",
+                "Hydro-Québec bills with multiple service periods are not supported",
+            )
         match = matches[0]
 
         start = date(int(match.group(3)), _MONTHS[match.group(2).casefold()], int(match.group(1)))
         end = date(int(match.group(6)), _MONTHS[match.group(5).casefold()], int(match.group(4)))
         billed_days = int(match.group(7))
         if end <= start:
-            raise ValueError("The Hydro-Québec electricity-use period is invalid")
+            raise ValidationError(
+                "input_the_hydro_quebec_electricity_use_period_is_invalid",
+                "The Hydro-Québec electricity-use period is invalid",
+            )
 
         elapsed_days = (end - start).days
         if billed_days == elapsed_days:
@@ -172,5 +202,8 @@ class HydroQuebecParser:
             # billed calendar days begin on the following day.
             start += timedelta(days=1)
         elif billed_days != elapsed_days + 1:
-            raise ValueError("The Hydro-Québec billed-day count does not match its dates")
+            raise ValidationError(
+                "input_the_hydro_quebec_billed_day_count_does_not_match_its_dates",
+                "The Hydro-Québec billed-day count does not match its dates",
+            )
         return start, end

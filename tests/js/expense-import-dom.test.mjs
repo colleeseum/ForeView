@@ -62,7 +62,12 @@ test('expense import reviews parser evidence and displays confirmation errors', 
       };
     }
     if (options.body.get('file').name !== 'hydro-march.pdf') {
-      return {ok: true, status: 201, json: async () => ({id: 1})};
+      const second = options.body.get('file').name.includes('february');
+      return {ok: true, status: 201, json: async () => ({
+        id: 1,
+        period_start: second ? '2026-02-01' : '2026-01-01',
+        period_end: second ? '2026-02-28' : '2026-01-31',
+      })};
     }
     return {
       ok: false,

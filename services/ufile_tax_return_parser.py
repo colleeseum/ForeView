@@ -12,6 +12,7 @@ import pdfplumber
 
 from domain.parsed_tax_value import ParsedTaxValue
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
+from domain.validation_error import ValidationError
 
 
 class UFileTaxReturnParser:
@@ -100,7 +101,10 @@ class UFileTaxReturnParser:
             taxpayer_name = self._taxpayer_name(pages, summary_index, tax_year)
             quebec_page = pages[summary_index + 1] if summary_index + 1 < len(pages) else None
             if quebec_page is None or "Quebec return" not in (quebec_page.extract_text() or ""):
-                raise ValueError("The UFile Quebec summary page was not found")
+                raise ValidationError(
+                    "input_the_ufile_quebec_summary_page_was_not_found",
+                    "The UFile Quebec summary page was not found",
+                )
 
             employment_income = self._required_line(federal_page, "10100")
             other_employment_income = self._optional_line(federal_page, "10400")
@@ -150,7 +154,10 @@ class UFileTaxReturnParser:
             match = self._SUMMARY.search(text)
             if match and "Combined" not in text[:200]:
                 return index, int(match.group(1))
-        raise ValueError("This PDF does not contain an individual UFile tax return summary")
+        raise ValidationError(
+            "input_this_pdf_does_not_contain_an_individual_ufile_tax_return_summary",
+            "This PDF does not contain an individual UFile tax return summary",
+        )
 
     @staticmethod
     def _taxpayer_name(pages: list[Any], summary_index: int, tax_year: int) -> str | None:
@@ -182,7 +189,11 @@ class UFileTaxReturnParser:
     def _required_line(self, page: Any, line_number: str) -> Decimal:
         value = self._line_amount(page, line_number)
         if value is None:
-            raise ValueError(f"UFile line {line_number} was not found")
+            raise ValidationError(
+                "input_ufile_line_was_not_found",
+                f"UFile line {line_number} was not found",
+                detail0=line_number,
+            )
         return value
 
     def _optional_line(self, page: Any, line_number: str) -> Decimal:

@@ -8,6 +8,7 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 
+from domain.validation_error import ValidationError
 from institution_support.registry import InstitutionRegistry
 from repositories.account_repository import AccountRepository
 
@@ -52,11 +53,19 @@ class DocumentImportAccountResolver:
             None,
         )
         if match is None:
-            raise ValueError(f"Cannot auto-detect an account from {filename}")
+            raise ValidationError(
+                "input_cannot_auto_detect_an_account_from",
+                f"Cannot auto-detect an account from {filename}",
+                detail0=filename,
+            )
         provider, importer = match
         read_account_number, account_type = importer.account_number, importer.account_type
         if read_account_number is None or account_type is None:
-            raise ValueError(f"Cannot auto-detect an account from {filename}")
+            raise ValidationError(
+                "input_cannot_auto_detect_an_account_from",
+                f"Cannot auto-detect an account from {filename}",
+                detail0=filename,
+            )
         institution = provider.display_name
         account_number = read_account_number(content, filename)
         existing = self._accounts.find_by_institution_number(institution, account_number)

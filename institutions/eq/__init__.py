@@ -24,6 +24,12 @@ def provider() -> InstitutionProvider:
                 "imports",
                 "EQ Bank imports",
                 "EQ Bank monthly statements are supported when importing into an existing account.",
+                translations={
+                    "fr-CA": {
+                        "title": "Importations EQ Bank",
+                        "body": "Les relevés mensuels EQ Bank sont pris en charge pour l’importation dans un compte existant.",
+                    }
+                },
             ),
         ),
     )

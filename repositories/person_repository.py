@@ -6,6 +6,7 @@ from __future__ import annotations
 import sqlite3
 
 from domain.person import Person
+from domain.validation_error import ValidationError
 
 
 class PersonRepository:
@@ -17,7 +18,7 @@ class PersonRepository:
     def create(self, name: str, birth_date: str | None = None) -> Person:
         clean_name = name.strip()
         if not clean_name:
-            raise ValueError("Person name is required")
+            raise ValidationError("input_person_name_is_required", "Person name is required")
         self._connection.execute(
             "INSERT INTO people(name, birth_date) VALUES (?, ?)",
             (clean_name, birth_date or None),

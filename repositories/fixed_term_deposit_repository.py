@@ -15,6 +15,7 @@ from domain.money import (
     storage_decimal,
     to_cents,
 )
+from domain.validation_error import ValidationError
 
 
 class FixedTermDepositRepository:
@@ -174,11 +175,18 @@ class FixedTermDepositRepository:
         maturity_date: str,
     ) -> None:
         if as_decimal(principal) < 0:
-            raise ValueError("GIC principal cannot be negative")
+            raise ValidationError(
+                "input_gic_principal_cannot_be_negative", "GIC principal cannot be negative"
+            )
         if interest_rate < 0:
-            raise ValueError("GIC interest rate cannot be negative")
+            raise ValidationError(
+                "input_gic_interest_rate_cannot_be_negative", "GIC interest rate cannot be negative"
+            )
         if maturity_date < start_date:
-            raise ValueError("GIC maturity date cannot precede its start date")
+            raise ValidationError(
+                "input_gic_maturity_date_cannot_precede_its_start_date",
+                "GIC maturity date cannot precede its start date",
+            )
 
     @staticmethod
     def _from_row(row: sqlite3.Row | tuple[object, ...]) -> FixedTermDeposit:

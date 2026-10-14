@@ -18,6 +18,7 @@ from domain.calendar_date import (
 )
 from domain.money import from_cents, optional_cents, to_cents
 from domain.transaction import Transaction
+from domain.validation_error import ValidationError
 
 
 class TransactionRepository:
@@ -120,7 +121,11 @@ class TransactionRepository:
         """How many of an account's transactions have exactly these column values."""
         unknown = set(values) - self.MATCHABLE_COLUMNS
         if unknown or not values:
-            raise ValueError(f"Cannot match transactions on {sorted(unknown) or 'no columns'}")
+            raise ValidationError(
+                "input_cannot_match_transactions_on",
+                f"Cannot match transactions on {sorted(unknown) or 'no columns'}",
+                detail0=sorted(unknown) or "no columns",
+            )
         stored_values = {
             (f"{column}_cents" if column in {"amount", "balance_after"} else column): (
                 None

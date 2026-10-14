@@ -54,7 +54,7 @@ async function api(url, options = {}) {
   const data = await response.json();
   if (!response.ok) {
     const error = new Error(data.error || t('setup.request_failed'));
-    error.language = data.error ? 'en-CA' : locale;
+    error.language = data.error ? (data.error_language || 'en-CA') : locale;
     throw error;
   }
   return data;

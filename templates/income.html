@@ -197,9 +197,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
       <label>{{ t('pages_server.income.pdf') }} <input id="income-import-file" name="file" type="file" accept="application/pdf" required></label>
       <p class="field-note">{{ t('pages_server.income.pdf_help') }}</p>
       <div class="income-source-help-links">
-        {% for source in income_sources %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> {{ t('pages_server.income.how_get') }} {{ source.display_name }}</button>{% endfor %}
-        {% for source in tax_notice_sources %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
-        {% for source in public_pension_sources %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span>?</span> {{ source.display_name }}</button>{% endfor %}
+        {% for source in income_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> {{ t('pages_server.income.how_get') }} <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
+        {% for source in tax_notice_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span>?</span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
+        {% for source in public_pension_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span>?</span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
       </div>
       <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
         <progress aria-label="{{ t('pages_server.income.analysing') }}"></progress>

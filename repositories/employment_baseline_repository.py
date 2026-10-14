@@ -8,6 +8,7 @@ from datetime import date
 
 from domain.employment_baseline import EmploymentBaseline
 from domain.money import MoneyInput, from_cents, to_cents
+from domain.validation_error import ValidationError
 
 
 class EmploymentBaselineRepository:
@@ -29,12 +30,18 @@ class EmploymentBaselineRepository:
         province = province_of_employment.strip().upper()
         plan = payroll_plan.strip().upper()
         if not province:
-            raise ValueError("Province of employment is required")
+            raise ValidationError(
+                "input_province_of_employment_is_required", "Province of employment is required"
+            )
         if plan not in {"CPP", "QPP"}:
-            raise ValueError("Payroll plan must be CPP or QPP")
+            raise ValidationError(
+                "input_payroll_plan_must_be_cpp_or_qpp", "Payroll plan must be CPP or QPP"
+            )
         salary_cents = to_cents(annual_salary)
         if salary_cents < 0:
-            raise ValueError("Annual salary cannot be negative")
+            raise ValidationError(
+                "input_annual_salary_cannot_be_negative", "Annual salary cannot be negative"
+            )
         self._connection.execute(
             """INSERT INTO employment_baselines(
                    person_id, effective_date, annual_salary_cents,

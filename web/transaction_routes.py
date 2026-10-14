@@ -11,6 +11,7 @@ from flask import jsonify, request
 from domain.calendar_date import canonical_date_or_stored
 from domain.money import as_decimal
 from domain.reconciliation_checkpoint import ReconciliationCheckpoint
+from domain.validation_error import ValidationError
 from ingestion.reconciled_period_change import ReconciledPeriodChange
 from institution_support.document_detection import detect_importer
 from institution_support.registry import institution_registry
@@ -24,8 +25,18 @@ from services.document_import_account_resolver import (
 from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
 from services.transaction_service import TransactionService
 from web.dependencies import dependency
+from web.localization import error_data, localized_error_data
 from web.model_blueprint import blueprint
-from web.route_values import payload_bool
+from web.route_values import payload_bool, payload_integer, required_field
+
+
+class _ImportFileError(ValueError):
+    """Carry file context out of the transaction before presenting a failure."""
+
+    def __init__(self, filename: str | None, failure: Exception) -> None:
+        self.filename = filename
+        self.failure = failure
+        super().__init__(f"{filename}: {failure}")
 
 
 def _import_csv(
@@ -55,7 +66,7 @@ def import_transactions_route():
     if not account_id or not uploaded_files:
         return jsonify(
             {
-                "error": "Choose an account, Auto-detect, and at least one PDF or CSV file.",
+                **localized_error_data("input_choose_an_account_and_at_least_one_file"),
                 "help_url": "/transactions#transaction-import-help",
             }
         ), 400
@@ -74,14 +85,15 @@ def import_transactions_route():
                         selected_account = (
                             None
                             if auto_detect
-                            else AccountRepository(connection).get(int(account_id))
+                            else AccountRepository(connection).get(payload_integer(account_id))
                         )
                         detected = detect_importer(
                             content, selected_account.institution if selected_account else None
                         )
                         if auto_detect and not detected:
-                            raise ValueError(
-                                "Could not identify an account from this PDF. Choose an existing account."
+                            raise ValidationError(
+                                "input_could_not_identify_an_account_from_pdf",
+                                "Could not identify an account from this PDF. Choose an existing account.",
                             )
                         importer = detected.importer if detected else import_eq_statement_pdf
                         resolved_account_id = (
@@ -94,17 +106,21 @@ def import_transactions_route():
                                 allow_create=allow_account_creation,
                             )
                             if auto_detect and detected
-                            else (None if auto_detect else int(account_id))
+                            else (None if auto_detect else payload_integer(account_id))
                         )
                     else:
                         if auto_detect:
-                            raise ValueError(
-                                "Auto-detect is supported for PDFs. Choose an account for CSV files."
+                            raise ValidationError(
+                                "input_auto_detect_is_supported_for_pdfs",
+                                "Auto-detect is supported for PDFs. Choose an account for CSV files.",
                             )
                         importer = _import_csv
-                        resolved_account_id = int(account_id)
+                        resolved_account_id = payload_integer(account_id)
                     if resolved_account_id is None:
-                        raise ValueError("Could not resolve an account for this import.")
+                        raise ValidationError(
+                            "input_could_not_resolve_an_account_for_import",
+                            "Could not resolve an account for this import.",
+                        )
                     try:
                         result: dict[str, object] = dict(
                             importer(
@@ -118,7 +134,12 @@ def import_transactions_route():
                     except ReconciledPeriodChange as change:
                         return jsonify(
                             {
-                                "error": f"{filename}: {change}",
+                                **localized_error_data(
+                                    "transaction_reconciled_period",
+                                    date=change.reconciled_through,
+                                    count=change.transaction_count,
+                                ),
+                                "filename": filename,
                                 "confirm_reconciled": True,
                                 "account_id": change.account_id,
                                 "reconciled_through": change.reconciled_through,
@@ -138,7 +159,12 @@ def import_transactions_route():
                 except AccountCreationRequired as error:
                     return jsonify(
                         {
-                            "error": str(error),
+                            **localized_error_data(
+                                "transaction_new_account",
+                                institution=error.institution,
+                                account_number=error.account_number,
+                                account_type=error.account_type,
+                            ),
                             "confirm_account_creation": True,
                             "account": {
                                 "institution": error.institution,
@@ -149,19 +175,25 @@ def import_transactions_route():
                         }
                     ), 409
                 except (TypeError, ValueError, sqlite3.IntegrityError, UnicodeDecodeError) as error:
-                    raise ValueError(f"{item.filename}: {error}") from error
+                    raise _ImportFileError(item.filename, error) from error
         return jsonify(
             {
                 "files": len(results),
-                "imported": sum(int(str(item["imported"])) for item in results),
-                "duplicates": sum(int(str(item["duplicates"])) for item in results),
+                "imported": sum(
+                    payload_integer(str(required_field(item, "imported"))) for item in results
+                ),
+                "duplicates": sum(
+                    payload_integer(str(required_field(item, "duplicates"))) for item in results
+                ),
                 "results": results,
             }
         ), 201
     except (TypeError, ValueError, sqlite3.IntegrityError, UnicodeDecodeError) as error:
-        return jsonify(
-            {"error": str(error), "help_url": "/transactions#transaction-import-help"}
-        ), 400
+        failure = error_data(error.failure if isinstance(error, _ImportFileError) else error)
+        if isinstance(error, _ImportFileError):
+            failure["error"] = f"{error.filename}: {failure['error']}"
+            failure["filename"] = error.filename or ""
+        return jsonify({**failure, "help_url": "/transactions#transaction-import-help"}), 400
 
 
 @blueprint.get("/api/model/transactions")
@@ -215,8 +247,10 @@ def reconcile_account_route(account_id: int):
     try:
         with dependency("connect")() as connection:
             result = TransactionService(connection).reconcile(
-                account_id, str(payload["date"]), as_decimal(payload["amount"])
+                account_id,
+                str(required_field(payload, "date")),
+                as_decimal(required_field(payload, "amount")),
             )
         return jsonify(result), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400

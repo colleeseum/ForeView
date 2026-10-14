@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import date
-from typing import Any
+from typing import Any, TypedDict
 
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 
 from domain.expense import ExpenseRecord
+from domain.validation_error import ValidationError
+from domain.validation_lookup_error import ValidationLookupError
 from expense_sources import expense_source_registry
 from localization import LocalizationService
 from repositories.account_repository import AccountRepository
@@ -19,8 +21,50 @@ from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from services.expense_import_service import ExpenseImportService
 from services.expense_service import ExpenseService
 from web.dependencies import dependency
+from web.localization import localized_api_error, localized_error_data
 
 blueprint = Blueprint("expenses", __name__)
+
+
+class _PageError(TypedDict):
+    error: str
+    error_language: str
+
+
+def _expense_error_data(error: Exception) -> dict[str, str]:
+    if isinstance(error, (ValidationError, ValidationLookupError)):
+        return localized_error_data(error.code, **error.values)
+    return {"error": str(error), "error_language": "en-CA"}
+
+
+def _page_error(error: Exception) -> _PageError:
+    data = _expense_error_data(error)
+    return {"error": data["error"], "error_language": data["error_language"]}
+
+
+def _redirect_error(year: int, error: Exception, *, dialog: str | None = None):
+    return _redirect(year, **_page_error(error), dialog=dialog)
+
+
+def _integer(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValidationError("expense_integer", str(error), value=repr(value)) from error
+
+
+def _required(payload: dict[str, Any], field: str) -> Any:
+    try:
+        return payload[field]
+    except KeyError as error:
+        raise ValidationError("expense_field_required", str(error), field=field) from error
+
+
+def _calendar_date(value: object) -> date:
+    try:
+        return date.fromisoformat(str(value))
+    except (TypeError, ValueError) as error:
+        raise ValidationError("expense_date", str(error), value=repr(value)) from error
 
 
 def _record(record: ExpenseRecord) -> dict[str, object]:
@@ -58,12 +102,12 @@ def _association(payload: dict[str, Any]) -> tuple[str, int | None]:
     combined = str(payload.get("association", "")).strip()
     if combined:
         kind, separator, identifier = combined.partition(":")
-        return kind, int(identifier) if separator and identifier else None
+        return kind, _integer(identifier) if separator and identifier else None
     kind = str(payload.get("association_kind", "household"))
     raw_identifier = payload.get("association_id")
     if raw_identifier in (None, ""):
         return kind, None
-    return kind, int(str(raw_identifier))
+    return kind, _integer(str(raw_identifier))
 
 
 def _parse_boolean(value: object) -> bool:
@@ -74,14 +118,14 @@ def _parse_boolean(value: object) -> bool:
         return True
     if normalized in {"false", "0", "no", "exclude", "inactive"}:
         return False
-    raise ValueError("Expected a true or false value")
+    raise ValidationError("expense_boolean", "Expected a true or false value")
 
 
 def _year(payload: dict[str, Any] | None = None) -> int:
     raw = (payload or {}).get("year", request.args.get("year", date.today().year))
-    year = int(raw)
+    year = _integer(raw)
     if year < 1900 or year > 9999:
-        raise ValueError("Expense year must be between 1900 and 9999")
+        raise ValidationError("expense_year", "Expense year must be between 1900 and 9999")
     return year
 
 
@@ -89,6 +133,7 @@ def _page(
     year: int,
     *,
     error: str | None = None,
+    error_language: str = "en-CA",
     message: str | None = None,
     open_dialog: str | None = None,
     imported_count: int = 0,
@@ -112,6 +157,7 @@ def _page(
             real_estate=RealEstateAssetRepository(connection).list_all(),
             expense_sources=expense_source_registry.providers,
             error=error,
+            error_language=error_language,
             message=message,
             open_dialog=open_dialog,
             imported_count=imported_count,
@@ -123,6 +169,7 @@ def _redirect(
     year: int,
     *,
     error: str | None = None,
+    error_language: str | None = None,
     message: str | None = None,
     dialog: str | None = None,
 ):
@@ -131,6 +178,7 @@ def _redirect(
             "expenses.expenses_page",
             year=year,
             error=error,
+            error_language=error_language,
             message=message,
             dialog=dialog,
         )
@@ -146,26 +194,37 @@ def _localized_message(key: str) -> str:
 @blueprint.get("/expenses")
 def expenses_page():
     try:
-        imported_count = int(request.args.get("imported", "0"))
+        imported_count = _integer(request.args.get("imported", "0"))
         if imported_count < 0:
-            raise ValueError("Imported statement count cannot be negative")
+            raise ValidationError(
+                "expense_import_count", "Imported statement count cannot be negative"
+            )
         imported_years = tuple(
             sorted(
-                {int(value) for value in request.args.get("imported_years", "").split(",") if value}
+                {
+                    _integer(value)
+                    for value in request.args.get("imported_years", "").split(",")
+                    if value
+                }
             )
         )
         if any(year < 1900 or year > 9999 for year in imported_years):
-            raise ValueError("Imported expense years must be between 1900 and 9999")
+            raise ValidationError(
+                "expense_import_year", "Imported expense years must be between 1900 and 9999"
+            )
         return _page(
             _year(),
             error=request.args.get("error"),
+            error_language=current_app.extensions["localization"]
+            .definition(request.args.get("error_language", "en-CA"))
+            .code,
             message=request.args.get("message"),
             open_dialog=("categories" if request.args.get("dialog") == "categories" else None),
             imported_count=imported_count,
             imported_years=imported_years,
         )
     except (TypeError, ValueError) as error:
-        return _page(date.today().year, error=str(error)), 400
+        return _page(date.today().year, **_page_error(error)), 400
 
 
 @blueprint.get("/api/expenses")
@@ -176,7 +235,7 @@ def list_expenses():
             records = ExpenseRepository(connection).list_expenses(year=year)
         return jsonify([_record(record) for record in records])
     except (TypeError, ValueError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 def _create_category(payload: dict[str, Any]):
@@ -200,7 +259,7 @@ def create_category():
             }
         ), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.post("/expenses/categories")
@@ -212,7 +271,7 @@ def create_category_form():
         _create_category(payload)
         return _redirect(year, message=_localized_message("category_created"), dialog="categories")
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return _redirect(year, error=str(error), dialog="categories")
+        return _redirect_error(year, error, dialog="categories")
 
 
 def _update_category(category_id: int, payload: dict[str, Any]):
@@ -238,7 +297,7 @@ def update_category(category_id: int):
             }
         )
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.post("/expenses/categories/<int:category_id>")
@@ -250,7 +309,7 @@ def update_category_form(category_id: int):
         _update_category(category_id, payload)
         return _redirect(year, message=_localized_message("category_updated"), dialog="categories")
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return _redirect(year, error=str(error), dialog="categories")
+        return _redirect_error(year, error, dialog="categories")
 
 
 def _create_manual(payload: dict[str, Any]):
@@ -258,10 +317,10 @@ def _create_manual(payload: dict[str, Any]):
     with dependency("connect")() as connection:
         return ExpenseService(connection).create_manual(
             name=str(payload.get("name", "")),
-            category_id=int(payload["category_id"]),
-            amount=str(payload["amount"]),
-            period_start=date.fromisoformat(str(payload["period_start"])),
-            period_end=date.fromisoformat(str(payload["period_end"])),
+            category_id=_integer(_required(payload, "category_id")),
+            amount=str(_required(payload, "amount")),
+            period_start=_calendar_date(_required(payload, "period_start")),
+            period_end=_calendar_date(_required(payload, "period_end")),
             association_kind=association_kind,  # type: ignore[arg-type]
             association_id=association_id,
             period_kind=str(payload.get("period_kind", "annual_or_one_time")),  # type: ignore[arg-type]
@@ -273,7 +332,7 @@ def create_manual_expense():
     try:
         return jsonify(_record(_create_manual(_payload()))), 201
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.post("/expenses/manual")
@@ -285,7 +344,7 @@ def create_manual_expense_form():
         _create_manual(payload)
         return _redirect(year, message=_localized_message("factual_saved"))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return _redirect(year, error=str(error))
+        return _redirect_error(year, error)
 
 
 @blueprint.put("/api/expenses/<int:expense_id>")
@@ -297,17 +356,17 @@ def update_expense(expense_id: int):
             record = ExpenseService(connection).update_manual(
                 expense_id,
                 name=str(payload.get("name", "")),
-                category_id=int(payload["category_id"]),
-                amount=str(payload["amount"]),
-                period_start=date.fromisoformat(str(payload["period_start"])),
-                period_end=date.fromisoformat(str(payload["period_end"])),
+                category_id=_integer(_required(payload, "category_id")),
+                amount=str(_required(payload, "amount")),
+                period_start=_calendar_date(_required(payload, "period_start")),
+                period_end=_calendar_date(_required(payload, "period_end")),
                 association_kind=association_kind,  # type: ignore[arg-type]
                 association_id=association_id,
                 period_kind=str(payload.get("period_kind", "annual_or_one_time")),  # type: ignore[arg-type]
             )
         return jsonify(_record(record))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 def _resolve_overlap(expense_id: int, payload: dict[str, Any]):
@@ -324,7 +383,7 @@ def resolve_overlap(expense_id: int):
     try:
         return jsonify(_record(_resolve_overlap(expense_id, _payload())))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.post("/expenses/<int:expense_id>/overlap")
@@ -336,7 +395,7 @@ def resolve_overlap_form(expense_id: int):
         _resolve_overlap(expense_id, payload)
         return _redirect(year, message=_localized_message("overlap_saved"))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return _redirect(year, error=str(error))
+        return _redirect_error(year, error)
 
 
 # ----------------------------------------------------------------------
@@ -350,7 +409,7 @@ def import_expense_preview():
     try:
         pdf_file = request.files.get("file")
         if not pdf_file or not pdf_file.filename:
-            return jsonify({"error": "A PDF file is required."}), 400
+            return localized_api_error("expense_pdf_required")
 
         content = pdf_file.read()
         filename = pdf_file.filename
@@ -360,7 +419,7 @@ def import_expense_preview():
 
         return jsonify({"preview": preview.to_dict()})
     except (TypeError, ValueError, LookupError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.post("/api/expenses/import/confirm")
@@ -370,7 +429,7 @@ def import_expense_confirm():
         form = request.form
         pdf_file = request.files.get("file")
         if not pdf_file or not pdf_file.filename:
-            return jsonify({"error": "A PDF file is required."}), 400
+            return localized_api_error("expense_pdf_required")
 
         content = pdf_file.read()
         payload = dict(form)
@@ -382,11 +441,11 @@ def import_expense_confirm():
                 source_filename=pdf_file.filename,
                 provider_key=str(payload.get("provider_key", "")),
                 name=str(payload.get("name", "")),
-                category_id=int(payload["category_id"]),
+                category_id=_integer(_required(payload, "category_id")),
                 association_kind=association_kind,  # type: ignore[arg-type]
                 association_id=association_id,
             )
 
         return jsonify(_record(record)), 201
     except (TypeError, ValueError, LookupError, KeyError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(_expense_error_data(error)), 400

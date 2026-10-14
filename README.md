@@ -116,6 +116,8 @@ should update this section and add or revise regression tests deliberately.
 - Python 3.11 or newer. The current development environment uses Python 3.14.
 - SQLite, provided by Python.
 - A modern browser.
+- Node.js 20 or newer and npm for development dependencies and QA, including browser acceptance
+  tests. Node.js is not required to run the Python application.
 
 ## Quick start with synthetic data
 

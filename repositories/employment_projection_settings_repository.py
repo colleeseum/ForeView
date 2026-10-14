@@ -10,6 +10,7 @@ from decimal import Decimal
 from domain.employment_projection_settings import EmploymentProjectionSettings
 from domain.money import MoneyInput, from_cents, to_cents
 from domain.rates import from_rate_micros, to_rate_micros
+from domain.validation_error import ValidationError
 
 
 class EmploymentProjectionSettingsRepository:
@@ -33,7 +34,10 @@ class EmploymentProjectionSettingsRepository:
             date.fromisoformat(retirement_date)
         rate_micros = to_rate_micros(default_raise)
         if rate_micros < -1_000_000:
-            raise ValueError("Default raise cannot reduce salary below zero")
+            raise ValidationError(
+                "input_default_raise_cannot_reduce_salary_below_zero",
+                "Default raise cannot reduce salary below zero",
+            )
         amounts = tuple(
             to_cents(value)
             for value in (
@@ -43,7 +47,10 @@ class EmploymentProjectionSettingsRepository:
             )
         )
         if any(value < 0 for value in amounts):
-            raise ValueError("Recurring employment values cannot be negative")
+            raise ValidationError(
+                "input_recurring_employment_values_cannot_be_negative",
+                "Recurring employment values cannot be negative",
+            )
         self._connection.execute(
             """INSERT INTO employment_projection_settings(
                    scenario_id, person_id, default_raise_micros, retirement_date,

@@ -382,15 +382,23 @@ def help_catalog():
         merged = dict(original)
         for candidate, catalog in catalogs.items():
             templates = catalog.get("provider_templates", {})
+            overrides = original.get(candidate, {})
+            overrides = dict(overrides) if isinstance(overrides, Mapping) else {}
+            if "body" not in overrides and "help_text" in overrides:
+                overrides["body"] = overrides["help_text"]
+            translated_name = overrides.get("display_name")
+            candidate_name = (
+                translated_name
+                if isinstance(translated_name, str) and translated_name.strip()
+                else name
+            )
             defaults = {}
             for field in ("title", "summary"):
                 template = (
                     templates.get(f"{prefix}_{field}") if isinstance(templates, Mapping) else None
                 )
                 if isinstance(template, str) and template.strip():
-                    defaults[field] = template.replace("{name}", name)
-            overrides = original.get(candidate, {})
-            overrides = overrides if isinstance(overrides, Mapping) else {}
+                    defaults[field] = template.replace("{name}", candidate_name)
             # Blank provider fields must not suppress a usable generic prompt.
             merged[candidate] = {
                 **defaults,

@@ -8,6 +8,7 @@ PYTHON := .venv/bin/python
 install-dev:
 	$(PYTHON) -m pip install -r requirements-dev.txt
 	npm ci
+	npm run browser-install
 
 diff-check:
 	git --no-pager diff --check HEAD

@@ -27,3 +27,5 @@ coverage/
 node_modules/
 .opencode/
 tmp/
+test-results/
+playwright-report/

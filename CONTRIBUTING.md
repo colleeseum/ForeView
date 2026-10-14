@@ -139,6 +139,12 @@ if any, do not turn the project or its output into professional advice.
 
 ## Before starting substantial work
 
+Use Node.js 20 or newer with npm for development and QA, as declared in `package.json`.
+Install development dependencies with `make install-dev`. This also installs Playwright's
+Chromium for the isolated browser acceptance test included in pytest and `make qa`.
+If Python and Node dependencies are already installed, run `npm run browser-install` once.
+The browser test uses only disposable synthetic data and requires no running local server.
+
 Small corrections, documentation improvements, narrowly scoped tests,
 and clearly isolated bug fixes can generally be submitted directly.
 

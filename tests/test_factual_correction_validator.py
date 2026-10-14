@@ -12,6 +12,7 @@ from domain.income_tax_concept import (
     INCOME_TAX_CONCEPTS,
     income_tax_concept,
 )
+from domain.validation_error import ValidationError
 from services.factual_correction_validator import FactualCorrectionValidator
 
 
@@ -45,6 +46,14 @@ def test_validator_accepts_zero_and_normalizes_money_and_reason() -> None:
     assert values.concept.key == "employment_income"
     assert values.amount == Decimal("0.00")
     assert values.reason == "Supporting records show no income"
+
+
+def test_validator_errors_have_locale_independent_codes_and_original_diagnostics():
+    with pytest.raises(ValidationError) as captured:
+        FactualCorrectionValidator.validate(1, 1899, "employment_income", "0", "Evidence")
+    assert captured.value.code == "correction_year_range"
+    assert captured.value.values == {"minimum": 1900, "maximum": 2200}
+    assert str(captured.value) == "Tax year must be between 1900 and 2200"
 
 
 @pytest.mark.parametrize(

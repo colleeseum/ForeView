@@ -36,6 +36,17 @@ public_pension_source_registry = PublicPensionSourceRegistry(
         PublicPensionSourceProvider(
             key="retraite-quebec-participation",
             display_name="Retraite Québec Statement of Participation",
+            translations={
+                "fr-CA": {
+                    "display_name": "Relevé de participation de Retraite Québec",
+                    "help_text": "Dans Mon dossier de Retraite Québec, téléchargez votre relevé de "
+                    "participation au Régime de rentes du Québec. L’importateur lit la date d’émission, "
+                    "l’historique des gains admissibles au RPC/RRQ et les estimations de retraite. "
+                    "Le PDF, l’adresse, le numéro de client et la date de naissance ne sont pas "
+                    "conservés. Les estimations excluant le deuxième volet supplémentaire sont "
+                    "signalées comme incomplètes.",
+                }
+            },
             parser=RetraiteQuebecStatementParser().parse,
             detects=RetraiteQuebecStatementParser.detects,
             help_text=_HELP,

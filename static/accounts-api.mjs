@@ -7,7 +7,7 @@ async function jsonResponse(response) {
   const data = await response.json();
   if (!response.ok) {
     const error = new Error(data.error || t('accounts.request_failed', {status: response.status}));
-    error.language = data.error ? 'en-CA' : locale;
+    error.language = data.error ? (data.error_language || 'en-CA') : locale;
     throw error;
   }
   return data;

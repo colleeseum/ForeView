@@ -3,8 +3,57 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
+import {configureLocalization} from '../../static/i18n.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
+
+test('synthetic RTL dashboard uses registered fallback and preserves source evidence', async () => {
+  const catalogs = Object.fromEntries(['en-CA', 'fr-CA'].map((code) => [code,
+    JSON.parse(readFileSync(new URL(`../../localization/${code}/browser.json`, import.meta.url))),
+  ]));
+  catalogs['ar-XB'] = {dashboard: {gross: 'RTL gross assets'}};
+  configureLocalization({locale: 'ar-XB', fallbacks: ['fr-CA', 'en-CA'], catalogs});
+  const styles = readFileSync(new URL('../../static/style.css', import.meta.url), 'utf8');
+  const dom = new JSDOM(`<!doctype html><html lang="ar-XB" dir="rtl"><head><style>${styles}</style></head><body>
+    <div id="dashboard-metrics"></div><div id="dashboard-categories"></div>
+    <div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div>
+    <div id="dashboard-transactions"></div><button class="dialog-close"></button>
+    <button class="full-help-button"></button><div class="help-drawer"></div>
+  </body></html>`, {url: 'http://localhost/'});
+  Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+  const data = {
+    gross_assets: 1234.56, immovable_value: 0, invested_value: 0, gic_value: 0,
+    liquidity_value: 0, liquidity_by_type: {non_registered: 0}, rrsp_uninvested: 0,
+    uninvested_security_value: 0, savings_threshold: 0.025, low_rate_value: 0,
+    categories: [], maturities: [],
+    recent_transactions: [{transaction_date: '2026-01-01', institution: 'Synthetic Bank',
+      account_number: '123', description: 'Original English statement', description_language: 'en-CA', amount: 5}],
+  };
+  const original = JSON.stringify(data);
+  globalThis.fetch = async () => ({ok: true, json: async () => data});
+  try {
+    await import('../../static/dashboard.mjs?synthetic-rtl');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(document.documentElement.dir, 'rtl');
+    assert.match(document.querySelector('#dashboard-metrics').textContent, /RTL gross assets/);
+    assert.match(document.querySelector('#dashboard-maturities').textContent, /Aucune date d’échéance/);
+    const source = document.querySelector('#dashboard-transactions td:nth-child(3) span');
+    assert.equal(source.textContent, 'Original English statement');
+    assert.equal(source.lang, 'en-CA');
+    assert.equal(JSON.stringify(data), original);
+    assert.doesNotMatch(document.body.textContent, /⟦/);
+    // jsdom cannot measure visual RTL placement, but does validate the direction-neutral rules.
+    for (const selector of ['.dialog-close', '.full-help-button', '.help-drawer']) {
+      const computed = dom.window.getComputedStyle(document.querySelector(selector));
+      assert.notEqual(computed.getPropertyValue('inset-inline-end'), '', selector);
+      assert.equal(computed.getPropertyValue('right'), '', selector);
+    }
+  } finally {
+    configureTestLocalization();
+    dom.window.close();
+  }
+});
 
 test('dashboard renders escaped financial summaries', async () => {
   configureTestLocalization();

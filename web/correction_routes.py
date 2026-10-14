@@ -8,7 +8,7 @@ import sqlite3
 from flask import Blueprint, jsonify, request
 
 from domain.factual_correction_revision import FactualCorrectionRevision
-from domain.income_tax_concept import income_tax_concept
+from domain.validation_error import ValidationError
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_assessment_repository import AnnualTaxAssessmentRepository
 from repositories.annual_tax_value_repository import AnnualTaxValueRepository
@@ -21,6 +21,7 @@ from services.factual_correction_validator import FactualCorrectionValidator
 from services.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
 from web.correction_serialization import correction_revision_json
 from web.dependencies import dependency
+from web.localization import localized_api_error
 
 blueprint = Blueprint("corrections", __name__)
 
@@ -44,7 +45,7 @@ def create_correction():
                 values.tax_year, values.concept.key
             )
             if not source.has_value:
-                return jsonify({"error": "No source value exists for this correction"}), 400
+                return localized_api_error("correction_source_missing")
             revision = CorrectionRepository(connection).create(
                 values.person_id,
                 values.tax_year,
@@ -57,8 +58,12 @@ def create_correction():
             )
         return jsonify(correction_revision_json(revision, source)), 201
     except CorrectionConflictError as error:
-        return jsonify({"error": str(error)}), 409
-    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return localized_api_error(error.code, 409)
+    except ValidationError as error:
+        return localized_api_error(error.code, **error.values)
+    except KeyError as error:
+        return localized_api_error("correction_field_required", field=str(error.args[0]))
+    except (TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
 
@@ -92,10 +97,14 @@ def edit_correction(revision_id: int):
             )
         return jsonify(correction_revision_json(revision, source))
     except CorrectionConflictError as error:
-        return jsonify({"error": str(error)}), 409
+        return localized_api_error(error.code, 409)
     except CorrectionNotFoundError as error:
-        return jsonify({"error": str(error)}), 404
-    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return localized_api_error(error.code, 404)
+    except ValidationError as error:
+        return localized_api_error(error.code, **error.values)
+    except KeyError as error:
+        return localized_api_error("correction_field_required", field=str(error.args[0]))
+    except (TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
 
@@ -122,10 +131,14 @@ def confirm_correction(revision_id: int):
             )
         return jsonify(correction_revision_json(revision, source))
     except CorrectionConflictError as error:
-        return jsonify({"error": str(error)}), 409
+        return localized_api_error(error.code, 409)
     except CorrectionNotFoundError as error:
-        return jsonify({"error": str(error)}), 404
-    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return localized_api_error(error.code, 404)
+    except ValidationError as error:
+        return localized_api_error(error.code, **error.values)
+    except KeyError as error:
+        return localized_api_error("correction_field_required", field=str(error.args[0]))
+    except (TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
 
@@ -150,10 +163,14 @@ def remove_correction(revision_id: int):
             )
         return jsonify(correction_revision_json(revision, source))
     except CorrectionConflictError as error:
-        return jsonify({"error": str(error)}), 409
+        return localized_api_error(error.code, 409)
     except CorrectionNotFoundError as error:
-        return jsonify({"error": str(error)}), 404
-    except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return localized_api_error(error.code, 404)
+    except ValidationError as error:
+        return localized_api_error(error.code, **error.values)
+    except KeyError as error:
+        return localized_api_error("correction_field_required", field=str(error.args[0]))
+    except (TypeError, ValueError, sqlite3.IntegrityError) as error:
         return jsonify({"error": str(error)}), 400
 
 
@@ -186,7 +203,7 @@ def list_corrections_for_year(person_id: int, tax_year: int):
 @blueprint.get("/api/income/corrections/person/<int:person_id>/year/<int:tax_year>/<concept>")
 def correction_history(person_id: int, tax_year: int, concept: str):
     try:
-        definition = income_tax_concept(concept)
+        definition = FactualCorrectionValidator.concept(concept)
         with dependency("connect")() as connection:
             revisions = CorrectionRepository(connection).get_history(
                 person_id, tax_year, definition.key
@@ -195,6 +212,8 @@ def correction_history(person_id: int, tax_year: int, concept: str):
         return jsonify(
             {"corrections": [correction_revision_json(revision, source) for revision in revisions]}
         )
+    except ValidationError as error:
+        return localized_api_error(error.code, **error.values)
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
 

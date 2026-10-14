@@ -6,6 +6,7 @@
 from flask import Blueprint, jsonify
 
 from institution_support import institution_registry
+from web.localization import provider_presentation
 
 blueprint = Blueprint("institutions", __name__)
 
@@ -19,6 +20,7 @@ def institutions():
             {
                 "key": provider.key,
                 "display_name": provider.display_name,
+                "presentation": provider_presentation(provider.display_name, provider.translations),
                 "version": provider.version,
                 "aliases": list(provider.aliases),
                 "importers": [

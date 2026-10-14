@@ -16,6 +16,7 @@ from domain.money import (
     to_cents,
 )
 from domain.real_estate_projection import RealEstateProjection
+from domain.validation_error import ValidationError
 
 
 class RealEstateProjectionRepository:
@@ -101,13 +102,21 @@ class RealEstateProjectionRepository:
         if as_decimal(projected_value) < 0 or (
             projected_acb is not None and as_decimal(projected_acb) < 0
         ):
-            raise ValueError("Projected real-estate values cannot be negative")
+            raise ValidationError(
+                "input_projected_real_estate_values_cannot_be_negative",
+                "Projected real-estate values cannot be negative",
+            )
         if effective_tax_rate is not None and not 0 <= effective_tax_rate <= 1:
-            raise ValueError("Effective tax rate must be between 0 and 1")
+            raise ValidationError(
+                "input_effective_tax_rate_must_be_between_0_and_1",
+                "Effective tax rate must be between 0 and 1",
+            )
         try:
             date.fromisoformat(projection_date)
         except ValueError as error:
-            raise ValueError(f"Invalid date: {projection_date}") from error
+            raise ValidationError(
+                "input_invalid_date", f"Invalid date: {projection_date}", detail0=projection_date
+            ) from error
 
     @staticmethod
     def _from_row(row: sqlite3.Row | tuple[object, ...]) -> RealEstateProjection:

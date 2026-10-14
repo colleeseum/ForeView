@@ -180,7 +180,7 @@ function initializeExpenseImport() {
     }
     if (!response.ok) {
       const error = new Error(result.error || t('expenses.request_failed_status', {status: response.status}));
-      error.language = result.error ? 'en-CA' : locale;
+      error.language = result.error ? (result.error_language || 'en-CA') : locale;
       throw error;
     }
     return result;
@@ -274,10 +274,10 @@ function initializeExpenseImport() {
         method: 'POST',
         body: payload,
       });
-      await responseJson(response);
+      const confirmed = await responseJson(response);
       savedCount += 1;
-      const startYear = Number(periodStart.textContent.slice(0, 4));
-      const endYear = Number(periodEnd.textContent.slice(0, 4));
+      const startYear = Number(confirmed.period_start.slice(0, 4));
+      const endYear = Number(confirmed.period_end.slice(0, 4));
       for (let year = startYear; year <= endYear; year += 1) savedYears.add(year);
       if (currentFileIndex + 1 < pendingFiles.length) {
         currentFileIndex += 1;
@@ -289,7 +289,7 @@ function initializeExpenseImport() {
       const nextUrl = importCompletionUrl(
         savedCount,
         savedYears,
-        periodEnd.textContent.slice(0, 4),
+        confirmed.period_end.slice(0, 4),
         window.location.origin,
       );
       window.location.assign(nextUrl);

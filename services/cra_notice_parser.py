@@ -13,6 +13,7 @@ from pdfplumber.utils.exceptions import PdfminerException
 
 from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_tax_value import ParsedTaxValue
+from domain.validation_error import ValidationError
 
 
 class CraNoticeParser:
@@ -249,7 +250,9 @@ class CraNoticeParser:
     def _required(text: str, pattern: str, label: str) -> str:
         match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE)
         if not match:
-            raise ValueError(f"CRA notice {label} was not found")
+            raise ValidationError(
+                "input_cra_notice_was_not_found", f"CRA notice {label} was not found", detail0=label
+            )
         return match.group(1)
 
     def _line(self, text: str, number: str, description: str) -> Decimal:

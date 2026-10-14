@@ -227,7 +227,7 @@ function render() {
   fillForm(person);
   fillExpenseForm();
   if (person) {
-    if (person.error) showMessage(person.error, true, 'en-CA'); else showMessage('');
+    if (person.error) showMessage(person.error, true, person.error_language || 'en-CA'); else showMessage('');
     elements.table.innerHTML = projectionTable([...person.actuals, ...person.projection], {editable: true, overrides: person.overrides});
   } else {
     showMessage(t('salary.household_note'));
@@ -241,7 +241,7 @@ async function api(url, options) {
   const result = await response.json();
   if (!response.ok) {
     const error = new Error(result.error || t('salary.request_failed'));
-    error.language = result.error ? 'en-CA' : locale;
+    error.language = result.error ? (result.error_language || 'en-CA') : locale;
     throw error;
   }
   return result;

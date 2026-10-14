@@ -19,8 +19,15 @@ from services.account_summary_query import AccountSummaryQuery
 from services.fixed_term_deposit_creation_service import FixedTermDepositCreationService
 from services.transaction_service import TransactionService
 from web.dependencies import dependency
+from web.localization import error_data
 from web.model_blueprint import blueprint
-from web.route_values import payload_bool, payload_iso_date
+from web.route_values import (
+    payload_bool,
+    payload_integer,
+    payload_iso_date,
+    payload_ratio,
+    required_field,
+)
 
 
 @blueprint.get("/api/model/accounts")
@@ -41,7 +48,7 @@ def model_accounts():
 
 def _rate(payload: dict[str, Any]) -> float | None:
     value = payload.get("interest_rate")
-    return float(str(value)) / 100 if value not in (None, "") else None
+    return payload_ratio(str(value)) / 100 if value not in (None, "") else None
 
 
 @blueprint.post("/api/model/accounts")
@@ -49,11 +56,15 @@ def add_account_route():
     payload = request.get_json(silent=True) or {}
     try:
         owners = [
-            (int(item["person_id"]), float(item["share"])) for item in payload.get("owners", [])
+            (
+                payload_integer(required_field(item, "person_id")),
+                payload_ratio(required_field(item, "share")),
+            )
+            for item in payload.get("owners", [])
         ]
         with dependency("connect")() as connection:
             if payload.get("asset_kind") == "gic" and not owners:
-                parent_id = int(payload["parent_account_id"])
+                parent_id = payload_integer(required_field(payload, "parent_account_id"))
                 owners = [
                     (ownership.person_id, ownership.share)
                     for ownership in AccountOwnershipRepository(connection).list_for_account(
@@ -62,25 +73,25 @@ def add_account_route():
                 ]
             account = AccountRepository(connection).create(
                 payload.get("name"),
-                str(payload["category"]),
-                account_number=str(payload["account_number"]),
+                str(required_field(payload, "category")),
+                account_number=str(required_field(payload, "account_number")),
                 institution=payload.get("institution"),
                 external_provider=payload.get("external_provider") or None,
                 external_account_id=payload.get("external_account_id") or None,
                 asset_kind=str(payload.get("asset_kind", "account")),
-                parent_account_id=int(payload["parent_account_id"])
+                parent_account_id=payload_integer(required_field(payload, "parent_account_id"))
                 if payload.get("parent_account_id") not in (None, "")
                 else None,
-                start_date=payload_iso_date(payload["start_date"])
+                start_date=payload_iso_date(required_field(payload, "start_date"))
                 if payload.get("start_date") not in (None, "")
                 else None,
-                maturity_date=payload_iso_date(payload["maturity_date"])
+                maturity_date=payload_iso_date(required_field(payload, "maturity_date"))
                 if payload.get("maturity_date") not in (None, "")
                 else None,
-                maturity_value=as_decimal(payload["maturity_value"])
+                maturity_value=as_decimal(required_field(payload, "maturity_value"))
                 if payload.get("maturity_value") not in (None, "")
                 else None,
-                principal=as_decimal(payload["principal"])
+                principal=as_decimal(required_field(payload, "principal"))
                 if payload.get("principal") not in (None, "")
                 else None,
                 redeemable=payload_bool(payload.get("redeemable", False)),
@@ -93,13 +104,13 @@ def add_account_route():
                 BalanceSnapshotRepository(connection).add(
                     account.id,
                     payload_iso_date(payload.get("balance_date") or date.today().isoformat()),
-                    as_decimal(payload["balance_amount"]),
+                    as_decimal(required_field(payload, "balance_amount")),
                     current_rate,
                 )
                 TransactionService(connection).recalculate_balances(account.id)
         return jsonify({"id": account.id}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put("/api/model/accounts/<int:account_id>")
@@ -111,25 +122,25 @@ def update_account_route(account_id: int):
             AccountRepository(connection).update(
                 account_id,
                 name=payload.get("name"),
-                account_number=str(payload["account_number"]),
+                account_number=str(required_field(payload, "account_number")),
                 institution=payload.get("institution"),
                 external_provider=payload.get("external_provider") or None,
                 external_account_id=payload.get("external_account_id") or None,
                 category=payload.get("category"),
                 asset_kind=payload.get("asset_kind"),
-                parent_account_id=int(payload["parent_account_id"])
+                parent_account_id=payload_integer(required_field(payload, "parent_account_id"))
                 if payload.get("parent_account_id") not in (None, "")
                 else None,
-                start_date=payload_iso_date(payload["start_date"])
+                start_date=payload_iso_date(required_field(payload, "start_date"))
                 if payload.get("start_date") not in (None, "")
                 else None,
-                maturity_date=payload_iso_date(payload["maturity_date"])
+                maturity_date=payload_iso_date(required_field(payload, "maturity_date"))
                 if payload.get("maturity_date") not in (None, "")
                 else None,
-                maturity_value=as_decimal(payload["maturity_value"])
+                maturity_value=as_decimal(required_field(payload, "maturity_value"))
                 if payload.get("maturity_value") not in (None, "")
                 else None,
-                principal=as_decimal(payload["principal"])
+                principal=as_decimal(required_field(payload, "principal"))
                 if payload.get("principal") not in (None, "")
                 else None,
                 redeemable=payload_bool(payload.get("redeemable", False)),
@@ -137,15 +148,22 @@ def update_account_route(account_id: int):
             if "owners" in payload:
                 AccountOwnershipRepository(connection).replace(
                     account_id,
-                    [(int(item["person_id"]), float(item["share"])) for item in payload["owners"]],
+                    [
+                        (
+                            payload_integer(required_field(item, "person_id")),
+                            payload_ratio(required_field(item, "share")),
+                        )
+                        for item in required_field(payload, "owners")
+                    ],
                 )
             elif (
                 payload.get("asset_kind") == "gic"
                 and previous
-                and previous.parent_account_id != int(payload["parent_account_id"])
+                and previous.parent_account_id
+                != payload_integer(required_field(payload, "parent_account_id"))
             ):
                 new_parent_owners = AccountOwnershipRepository(connection).list_for_account(
-                    int(payload["parent_account_id"])
+                    payload_integer(required_field(payload, "parent_account_id"))
                 )
                 AccountOwnershipRepository(connection).replace(
                     account_id,
@@ -158,13 +176,13 @@ def update_account_route(account_id: int):
                 BalanceSnapshotRepository(connection).add(
                     account_id,
                     payload_iso_date(payload.get("balance_date") or date.today().isoformat()),
-                    as_decimal(payload["balance_amount"]),
+                    as_decimal(required_field(payload, "balance_amount")),
                     current_rate,
                 )
                 TransactionService(connection).recalculate_balances(account_id)
         return jsonify({"updated": True})
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/model/accounts/<int:account_id>/balance")
@@ -175,15 +193,15 @@ def add_balance_route(account_id: int):
             current_rate = _rate(payload)
             BalanceSnapshotRepository(connection).add(
                 account_id,
-                payload_iso_date(payload["date"]),
-                as_decimal(payload["amount"]),
+                payload_iso_date(required_field(payload, "date")),
+                as_decimal(required_field(payload, "amount")),
                 current_rate,
             )
             if current_rate is not None:
                 AccountRepository(connection).set_current_interest_rate(account_id, current_rate)
         return jsonify({"saved": True}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/model/accounts/<int:account_id>/gics")
@@ -193,14 +211,14 @@ def add_gic_route(account_id: int):
         with dependency("connect")() as connection:
             deposit = FixedTermDepositCreationService(connection).create(
                 account_id,
-                str(payload["name"]),
-                as_decimal(payload["principal"]),
-                float(payload["interest_rate"]),
-                payload_iso_date(payload["start_date"]),
-                payload_iso_date(payload["maturity_date"]),
+                str(required_field(payload, "name")),
+                as_decimal(required_field(payload, "principal")),
+                payload_ratio(required_field(payload, "interest_rate")),
+                payload_iso_date(required_field(payload, "start_date")),
+                payload_iso_date(required_field(payload, "maturity_date")),
                 redeemable=bool(payload.get("redeemable", False)),
                 renewal_rule=str(payload.get("renewal_rule", "cash_at_maturity")),
             )
         return jsonify({"id": deposit.id}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400

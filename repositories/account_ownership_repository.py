@@ -6,6 +6,7 @@ from __future__ import annotations
 import sqlite3
 
 from domain.account_ownership import AccountOwnership
+from domain.validation_error import ValidationError
 
 
 class AccountOwnershipRepository:
@@ -49,9 +50,18 @@ class AccountOwnershipRepository:
     @staticmethod
     def _validate(owners: list[tuple[int, float]]) -> None:
         if not owners:
-            raise ValueError("At least one account owner is required")
+            raise ValidationError(
+                "input_at_least_one_account_owner_is_required",
+                "At least one account owner is required",
+            )
         total = sum(share for _, share in owners)
         if abs(total - 1.0) > 0.000001:
-            raise ValueError("Account ownership shares must total 100%")
+            raise ValidationError(
+                "input_account_ownership_shares_must_total_100",
+                "Account ownership shares must total 100%",
+            )
         if any(share <= 0 or share > 1 for _, share in owners):
-            raise ValueError("Ownership shares must be between 0% and 100%")
+            raise ValidationError(
+                "input_ownership_shares_must_be_between_0_and_100",
+                "Ownership shares must be between 0% and 100%",
+            )

@@ -16,6 +16,7 @@ from domain.money import (
     to_cents,
 )
 from domain.real_estate_asset import RealEstateAsset
+from domain.validation_error import ValidationError
 
 
 class RealEstateAssetRepository:
@@ -115,7 +116,9 @@ class RealEstateAssetRepository:
             ),
         )
         if cursor.rowcount == 0:
-            raise ValueError("Real-estate asset not found")
+            raise ValidationError(
+                "input_real_estate_asset_not_found", "Real-estate asset not found"
+            )
 
     def get(self, asset_id: int | None) -> RealEstateAsset | None:
         if asset_id is None:
@@ -146,17 +149,30 @@ class RealEstateAssetRepository:
     ) -> str:
         clean_name = name.strip()
         if not clean_name:
-            raise ValueError("Real-estate asset name is required")
+            raise ValidationError(
+                "input_real_estate_asset_name_is_required", "Real-estate asset name is required"
+            )
         if as_decimal(estimated_value) < 0 or (acb is not None and as_decimal(acb) < 0):
-            raise ValueError("Real-estate values cannot be negative")
+            raise ValidationError(
+                "input_real_estate_values_cannot_be_negative",
+                "Real-estate values cannot be negative",
+            )
         if not 0 < ownership_share <= 1:
-            raise ValueError("Ownership share must be between 0 and 1")
+            raise ValidationError(
+                "input_ownership_share_must_be_between_0_and_1",
+                "Ownership share must be between 0 and 1",
+            )
         if effective_tax_rate is not None and not 0 <= effective_tax_rate <= 1:
-            raise ValueError("Effective tax rate must be between 0 and 1")
+            raise ValidationError(
+                "input_effective_tax_rate_must_be_between_0_and_1",
+                "Effective tax rate must be between 0 and 1",
+            )
         try:
             date.fromisoformat(valuation_date)
         except ValueError as error:
-            raise ValueError(f"Invalid date: {valuation_date}") from error
+            raise ValidationError(
+                "input_invalid_date", f"Invalid date: {valuation_date}", detail0=valuation_date
+            ) from error
         return clean_name
 
     @staticmethod

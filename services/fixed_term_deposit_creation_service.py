@@ -8,6 +8,7 @@ import sqlite3
 from domain.fixed_term_deposit import FixedTermDeposit
 from domain.gic_terms import GicTerms
 from domain.money import MoneyInput
+from domain.validation_error import ValidationError
 from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
 from repositories.fixed_term_deposit_repository import FixedTermDepositRepository
@@ -35,7 +36,9 @@ class FixedTermDepositCreationService:
     ) -> FixedTermDeposit:
         parent = self._accounts.get(parent_account_id)
         if parent is None:
-            raise ValueError("Parent account does not exist")
+            raise ValidationError(
+                "input_parent_account_does_not_exist", "Parent account does not exist"
+            )
         deposit = self._deposits.create(
             parent_account_id,
             name,

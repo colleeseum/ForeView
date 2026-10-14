@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from domain.income_tax_concept import IncomeTaxConcept, income_tax_concept
 from domain.money import MoneyInput, as_decimal, to_cents
+from domain.validation_error import ValidationError
 
 MIN_TAX_YEAR = 1900
 MAX_TAX_YEAR = 2200
@@ -35,19 +36,33 @@ class FactualCorrectionValidator:
         reason: object,
     ) -> ValidatedFactualCorrection:
         validated_person_id = FactualCorrectionValidator.positive_integer("Person", person_id)
-        validated_tax_year = FactualCorrectionValidator.integer("Tax year", tax_year)
+        validated_tax_year = FactualCorrectionValidator.integer(
+            "Tax year", tax_year, code="correction_year_integer"
+        )
         if not MIN_TAX_YEAR <= validated_tax_year <= MAX_TAX_YEAR:
-            raise ValueError(f"Tax year must be between {MIN_TAX_YEAR} and {MAX_TAX_YEAR}")
-        if not isinstance(concept, str):
-            raise ValueError("Concept is required")
-        definition = income_tax_concept(concept)
-        validated_amount = as_decimal(amount)
+            raise ValidationError(
+                "correction_year_range",
+                f"Tax year must be between {MIN_TAX_YEAR} and {MAX_TAX_YEAR}",
+                minimum=MIN_TAX_YEAR,
+                maximum=MAX_TAX_YEAR,
+            )
+        definition = FactualCorrectionValidator.concept(concept)
+        try:
+            validated_amount = as_decimal(amount)
+        except ValueError as error:
+            raise ValidationError(
+                "correction_amount_invalid", str(error), amount=repr(amount)
+            ) from error
         if validated_amount < 0:
-            raise ValueError("Corrected amount cannot be negative")
+            raise ValidationError(
+                "correction_amount_negative", "Corrected amount cannot be negative"
+            )
         if to_cents(validated_amount) > MAX_SQLITE_INTEGER:
-            raise ValueError("Corrected amount is outside the supported range")
+            raise ValidationError(
+                "correction_amount_range", "Corrected amount is outside the supported range"
+            )
         if not isinstance(reason, str) or not reason.strip():
-            raise ValueError("Correction reason is required")
+            raise ValidationError("correction_reason_required", "Correction reason is required")
         return ValidatedFactualCorrection(
             person_id=validated_person_id,
             tax_year=validated_tax_year,
@@ -57,30 +72,46 @@ class FactualCorrectionValidator:
         )
 
     @staticmethod
+    def concept(value: object) -> IncomeTaxConcept:
+        if not isinstance(value, str):
+            raise ValidationError("correction_concept_required", "Concept is required")
+        try:
+            return income_tax_concept(value)
+        except ValueError as error:
+            raise ValidationError(
+                "correction_concept_invalid", str(error), concept=value
+            ) from error
+
+    @staticmethod
     def expected_revision(value: object, *, allow_zero: bool) -> int:
-        revision = FactualCorrectionValidator.integer("Expected revision", value)
+        revision = FactualCorrectionValidator.integer(
+            "Expected revision", value, code="correction_revision_integer"
+        )
         minimum = 0 if allow_zero else 1
         if revision < minimum:
             qualifier = "zero or greater" if allow_zero else "one or greater"
-            raise ValueError(f"Expected revision must be {qualifier}")
+            raise ValidationError(
+                "correction_revision_nonnegative" if allow_zero else "correction_revision_positive",
+                f"Expected revision must be {qualifier}",
+            )
         return revision
 
     @staticmethod
     def positive_integer(name: str, value: object) -> int:
         number = FactualCorrectionValidator.integer(name, value)
         if number < 1:
-            raise ValueError(f"{name} must be one or greater")
+            raise ValidationError("correction_person_positive", f"{name} must be one or greater")
         return number
 
     @staticmethod
-    def integer(name: str, value: object) -> int:
+    def integer(name: str, value: object, *, code: str = "correction_person_integer") -> int:
         if isinstance(value, bool):
-            raise ValueError(f"{name} must be an integer")
+            raise ValidationError(code, f"{name} must be an integer")
         if isinstance(value, int):
             return value
         if isinstance(value, str):
             try:
                 return int(value)
             except ValueError as error:
-                raise ValueError(f"{name} must be an integer") from error
-        raise ValueError(f"{name} must be an integer")
+                raise ValidationError(code, f"{name} must be an integer") from error
+        raise ValidationError(code, f"{name} must be an integer")

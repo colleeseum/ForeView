@@ -7,6 +7,7 @@ import sqlite3
 
 from domain.money import MoneyInput, from_cents, to_cents
 from domain.registered_plan_room import RegisteredPlanRoom
+from domain.validation_error import ValidationError
 
 
 class RegisteredPlanRoomRepository:
@@ -32,7 +33,9 @@ class RegisteredPlanRoomRepository:
     ) -> RegisteredPlanRoom:
         plan = plan_type.strip().upper()
         if plan not in {"RRSP", "TFSA", "FHSA"}:
-            raise ValueError("Unsupported registered plan type")
+            raise ValidationError(
+                "input_unsupported_registered_plan_type", "Unsupported registered plan type"
+            )
         amounts = tuple(
             to_cents(value)
             for value in (

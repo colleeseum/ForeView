@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Mindstep Corporation
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
+import ast
 import json
 import re
 from datetime import date
 from pathlib import Path
+from string import Formatter
 from types import SimpleNamespace
 
 import pytest
@@ -85,6 +87,39 @@ def test_browser_catalogs_use_only_simple_placeholders():
                 invalid_messages.append(f"{path.parent.name}:{key}")
 
     assert invalid_messages == []
+
+
+def test_owned_validation_codes_exist_in_production_catalogs():
+    root = Path(__file__).parents[1]
+    references = set()
+    for folder in (
+        "domain",
+        "repositories",
+        "services",
+        "web",
+        "expense_sources",
+        "income_sources",
+        "account_types",
+    ):
+        for path in (root / folder).rglob("*.py"):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+                    continue
+                if node.func.id not in {
+                    "ValidationError",
+                    "ValidationLookupError",
+                    "localized_api_error",
+                    "localized_error_data",
+                }:
+                    continue
+                if node.args and isinstance(node.args[0], ast.Constant):
+                    references.add(node.args[0].value)
+    assert references
+    for locale in ("en-CA", "fr-CA"):
+        catalog = json.loads(
+            (root / "localization" / locale / "errors.json").read_text(encoding="utf-8")
+        )
+        assert references <= catalog.keys(), sorted(references - catalog.keys())
 
 
 def write_locale(root, code, messages):
@@ -710,7 +745,7 @@ def test_french_expense_form_status_is_localized(tmp_path):
     ) in response.get_data(as_text=True)
 
 
-def test_untranslated_expense_errors_keep_an_english_language_boundary(tmp_path):
+def test_expense_errors_translate_typed_failures_and_preserve_raw_language_boundary(tmp_path):
     import app as application
     from infrastructure.runtime_config import RuntimeConfig
 
@@ -727,8 +762,8 @@ def test_untranslated_expense_errors_keep_an_english_language_boundary(tmp_path)
     page = response.get_data(as_text=True)
     assert response.status_code == 400
     assert (
-        '<p class="connection-notice error" lang="en-CA" role="alert">'
-        "Imported statement count cannot be negative</p>"
+        '<p class="connection-notice error" lang="fr-CA" role="alert">'
+        "Le nombre de relevés importés ne peut pas être négatif</p>"
     ) in page
 
     response = client.post(
@@ -743,7 +778,12 @@ def test_untranslated_expense_errors_keep_an_english_language_boundary(tmp_path)
     )
     page = response.get_data(as_text=True)
     assert 'id="category-dialog-backdrop" class="dialog-backdrop"' in page
-    assert '<p class="connection-notice error" lang="en-CA" role="alert">' in page
+    assert '<p class="connection-notice error" lang="fr-CA" role="alert">' in page
+    assert "Classification de dépenses invalide" in page
+    raw = client.get("/expenses", query_string={"error": "External provider diagnostic"})
+    assert (
+        '<p class="connection-notice error" lang="en-CA" role="alert">External provider diagnostic</p>'
+    ) in raw.get_data(as_text=True)
 
 
 def test_french_disclaimer_marks_canonical_english_title(tmp_path):
@@ -825,8 +865,9 @@ def test_js_owned_regions_and_status_messages_are_language_safe(tmp_path):
     transactions = client.get("/transactions").get_data(as_text=True)
     assert 'id="import-dialog-title"' in transactions
     assert "Importer des transactions" in transactions or "Importer" in transactions
-    assert 'id="import-dialog-description" lang="en-CA"' in transactions
-    assert "Supported formats include" in transactions
+    assert 'id="import-dialog-description" lang="fr-CA"' in transactions
+    assert "Formats pris en charge" in transactions
+    assert '<strong lang="fr-CA">Importations EQ Bank</strong>' in transactions
 
     salary = client.get("/salary-projection").get_data(as_text=True)
     assert 'data-saved-text="' in salary
@@ -904,3 +945,82 @@ def test_browser_catalog_contract_serializes_declared_fallback_chain(tmp_path):
     assert state["locale"] == "fr-FR"
     assert state["fallbacks"] == ["fr-CA", "en-CA"]
     assert set(state["catalogs"]) == {"fr-FR", "fr-CA", "en-CA"}
+
+
+def test_required_core_catalogs_are_complete_for_production_locales():
+    root = Path(__file__).parents[1] / "localization"
+    registry = json.loads((root / "registry.json").read_text(encoding="utf-8"))
+    baseline = json.loads((root / "en-CA" / "core.json").read_text(encoding="utf-8"))
+    expected = catalog_messages(baseline)
+    assert expected, "Default core catalog must not be empty"
+    assert catalog_keys(baseline) == set(expected), "Core messages must be strings"
+    for entry in registry["locales"]:
+        code = entry["code"]
+        if code not in {"en-CA", "fr-CA"}:
+            continue  # Extension locales may use the declared fallback chain.
+        catalog = json.loads((root / code / "core.json").read_text(encoding="utf-8"))
+        messages = catalog_messages(catalog)
+        assert catalog_keys(catalog) == set(messages), f"{code} core messages must be strings"
+        assert set(messages) == set(expected), (
+            f"{code} core keys missing/extra: {set(expected) ^ set(messages)}"
+        )
+        assert all(value.strip() for value in messages.values()), (
+            f"{code} contains blank core messages"
+        )
+
+
+def _message_fields(message):
+    fields = set()
+    for _, field, specification, _ in Formatter().parse(message):
+        if field is not None:
+            fields.add(field)
+            fields.update(_message_fields(specification))
+    return fields
+
+
+def _assert_catalog_translation_contract(english, translated):
+    en = catalog_messages(english)
+    other = catalog_messages(translated)
+    assert en, "Default catalog must not be empty"
+    assert catalog_keys(english) == set(en), "Default messages must be strings"
+    assert catalog_keys(translated) == set(other), "Translated messages must be strings"
+    assert set(en) == set(other), f"Keys missing/extra: {set(en) ^ set(other)}"
+    for key in en:
+        assert en[key].strip() and other[key].strip(), f"Empty translation: {key}"
+        assert _message_fields(en[key]) == _message_fields(other[key]), (
+            f"Placeholder mismatch: {key}"
+        )
+
+
+@pytest.mark.parametrize("namespace", ["core", "pages", "pages_server", "browser", "errors"])
+def test_production_page_catalogs_have_matching_keys_and_placeholders(namespace):
+    root = Path(__file__).parents[1] / "localization"
+    en = json.loads((root / "en-CA" / f"{namespace}.json").read_text(encoding="utf-8"))
+    fr = json.loads((root / "fr-CA" / f"{namespace}.json").read_text(encoding="utf-8"))
+    _assert_catalog_translation_contract(en, fr)
+
+
+@pytest.mark.parametrize(
+    "english,translated",
+    [
+        ({"hello": "Hello {name}"}, {"hello": "Bonjour {person}"}),
+        ({"hello": "Hello {name}"}, {"hello": "Bonjour"}),
+        ({"hello": "Hello"}, {"hello": " "}),
+        ({"hello": "Hello"}, {"hello": None}),
+        ({"hello": None}, {"hello": None}),
+        ({"hello": "Hello"}, {"hello": "Bonjour", "extra": 1}),
+        ({"hello": "Hello"}, {}),
+        ({"hello": "Hello"}, {"hello": "Bonjour {name"}),
+        ({"hello": "{amount:{width}}"}, {"hello": "{amount:{size}}"}),
+    ],
+)
+def test_catalog_translation_gate_rejects_invalid_catalogs(english, translated):
+    with pytest.raises((AssertionError, ValueError)):
+        _assert_catalog_translation_contract(english, translated)
+
+
+def test_catalog_translation_gate_accepts_reordered_fields_and_literal_braces():
+    _assert_catalog_translation_contract(
+        {"hello": "{{Hello}} {first} {last}"},
+        {"hello": "{{Bonjour}} {last} {first}"},
+    )

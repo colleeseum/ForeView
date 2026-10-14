@@ -25,6 +25,7 @@ from web.expense_routes import blueprint as expense_blueprint
 from web.help_routes import blueprint as help_blueprint
 from web.income_routes import blueprint as income_blueprint
 from web.institution_routes import blueprint as institution_blueprint
+from web.localization import provider_presentation
 from web.model_routes import blueprint as model_blueprint
 from web.page_routes import blueprint as page_blueprint
 from web.public_rule_routes import blueprint as public_rule_blueprint
@@ -110,6 +111,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         browser_locale_chain = localization.fallback_chain(locale)
         formatter = ValueFormatter(localization, locale)
         return {
+            "provider_presentation": provider_presentation,
             "format_money": formatter.money,
             "format_number": formatter.number,
             "format_percent": formatter.percent,

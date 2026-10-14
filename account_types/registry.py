@@ -7,6 +7,8 @@ import importlib
 import pkgutil
 from collections.abc import Iterable
 
+from domain.validation_error import ValidationError
+
 from .account_type_provider import AccountTypeProvider
 
 
@@ -18,9 +20,16 @@ class AccountTypeRegistry:
         self._by_key: dict[str, AccountTypeProvider] = {}
         for provider in self._providers:
             if not provider.key or not provider.display_name:
-                raise ValueError("Account types require a key and display name")
+                raise ValidationError(
+                    "input_account_types_require_a_key_and_display_name",
+                    "Account types require a key and display name",
+                )
             if provider.key in self._by_key:
-                raise ValueError(f"Account type '{provider.key}' is already registered")
+                raise ValidationError(
+                    "input_account_type_is_already_registered",
+                    f"Account type '{provider.key}' is already registered",
+                    detail0=provider.key,
+                )
             self._by_key[provider.key] = provider
 
     @property
@@ -31,7 +40,9 @@ class AccountTypeRegistry:
         try:
             return self._by_key[key]
         except KeyError as error:
-            raise ValueError(f"Unknown account type: {key}") from error
+            raise ValidationError(
+                "input_unknown_account_type", f"Unknown account type: {key}", detail0=key
+            ) from error
 
     def find(self, key: str | None) -> AccountTypeProvider | None:
         return self._by_key.get(key) if key is not None else None

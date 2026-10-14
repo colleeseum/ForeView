@@ -58,6 +58,9 @@ const jsonResponse = (data, ok = true, status = 200) => ({ok, status, text: asyn
 
 test('transactions module loads filters and reconciles the selected account', async () => {
   const dom = installDom();
+  const guidance = document.querySelector('#import-dialog-description');
+  guidance.innerHTML = '<span lang="fr-CA">Instructions traduites</span><span lang="en-CA">Provider fallback</span>';
+  const originalGuidance = guidance.innerHTML;
   const attack = '<svg onload=alert(1)>';
   const calls = [];
   let importMode = 'success';
@@ -144,6 +147,7 @@ test('transactions module loads filters and reconciles the selected account', as
   document.querySelector('#close-reconcile-dialog').click();
 
   document.querySelector('#open-import-button').click();
+  assert.equal(guidance.innerHTML, originalGuidance);
   assert.equal(document.querySelector('#import-dialog').hidden, false);
   const fileInput = document.querySelector('#transaction-import-form input[type="file"]');
   Object.defineProperty(fileInput, 'files', {value: [new dom.window.File(['data'], 'transactions.csv')]});
@@ -156,6 +160,7 @@ test('transactions module loads filters and reconciles the selected account', as
   assert.match(document.querySelector('#toast').textContent, /1 transaction imported/);
 
   document.querySelector('#open-import-button').click();
+  assert.equal(guidance.innerHTML, originalGuidance);
   importMode = 'conflict';
   let confirmationMessage = '';
   dom.window.confirm = (message) => {

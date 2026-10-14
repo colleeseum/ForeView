@@ -6,6 +6,7 @@ from __future__ import annotations
 import sqlite3
 
 from domain.scenario import Scenario
+from domain.validation_error import ValidationError
 from repositories.employment_projection_override_repository import (
     EmploymentProjectionOverrideRepository,
 )
@@ -28,12 +29,14 @@ class ScenarioCloneService:
     def clone(self, source_scenario_id: int, name: str) -> Scenario:
         clean_name = name.strip()
         if not clean_name:
-            raise ValueError("Scenario name is required")
+            raise ValidationError("input_scenario_name_is_required", "Scenario name is required")
 
         scenarios = ScenarioRepository(self._connection)
         source = scenarios.get(source_scenario_id)
         if source is None:
-            raise ValueError("Source scenario does not exist")
+            raise ValidationError(
+                "input_source_scenario_does_not_exist", "Source scenario does not exist"
+            )
         clone = scenarios.create(clean_name, source.baseline_date, source.description)
 
         assumptions = ScenarioAssumptionRepository(self._connection)

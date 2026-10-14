@@ -48,6 +48,12 @@ def provider() -> InstitutionProvider:
                 "imports",
                 "Sun Life imports",
                 "Sun Life Group Choices RRSP statements and transaction histories.",
+                translations={
+                    "fr-CA": {
+                        "title": "Importations Sun Life",
+                        "body": "Relevés REER et historiques de transactions Group Choices de Sun Life.",
+                    }
+                },
             ),
         ),
     )

@@ -17,6 +17,7 @@ from domain.calendar_date import (
     canonical_date_or_stored,
 )
 from domain.money import MoneyInput, as_decimal
+from domain.validation_error import ValidationError
 from ingestion.raw_sources import has_bank_reported_balance
 from institution_support.registry import institution_registry
 from repositories.account_repository import AccountRepository
@@ -276,13 +277,20 @@ class TransactionService:
         self, account_id: int, reconciliation_date: str, known_balance: MoneyInput
     ) -> dict[str, object]:
         if as_decimal(known_balance) < 0:
-            raise ValueError("Reconciliation balance cannot be negative")
+            raise ValidationError(
+                "input_reconciliation_balance_cannot_be_negative",
+                "Reconciliation balance cannot be negative",
+            )
         try:
             normalized_date = date.fromisoformat(reconciliation_date).isoformat()
         except ValueError as error:
-            raise ValueError(f"Invalid reconciliation date: {reconciliation_date}") from error
+            raise ValidationError(
+                "input_invalid_reconciliation_date",
+                f"Invalid reconciliation date: {reconciliation_date}",
+                detail0=reconciliation_date,
+            ) from error
         if not self._transactions.account_exists(account_id):
-            raise ValueError("Account not found")
+            raise ValidationError("input_account_not_found", "Account not found")
         self._undo_manual_reconciliation(account_id, normalized_date)
         previous = self._transactions.latest_known_balance(account_id, normalized_date)
         previous_balance = previous[1] if previous else None

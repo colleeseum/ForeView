@@ -32,5 +32,17 @@ def provider() -> InstitutionProvider:
                 account_type="rrsp",
             ),
         ),
-        help_topics=(HelpTopic("imports", "Manulife imports", help_text),),
+        help_topics=(
+            HelpTopic(
+                "imports",
+                "Manulife imports",
+                help_text,
+                translations={
+                    "fr-CA": {
+                        "title": "Importations Manulife",
+                        "body": "Relevés de progression et relevés annuels du REER Personal Plan de Manulife.",
+                    }
+                },
+            ),
+        ),
     )

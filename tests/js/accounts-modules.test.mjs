@@ -3,6 +3,7 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {saveJson} from '../../static/accounts-api.mjs';
 import {
   escapeHtml,
   htmlWithLanguageSpans,
@@ -15,6 +16,20 @@ import {isSecurityAccount, money, ownerDetails} from '../../static/accounts-form
 import {formSignature, showError} from '../../static/form-state.mjs';
 import {editableAccountValues} from '../../static/setup-values.mjs';
 import {runButtonAction} from '../../static/button-action.mjs';
+
+test('API adapter preserves resolved message language and defaults raw diagnostics to English', async () => {
+  for (const [payload, language] of [
+    [{error: 'Une personne est requise', error_code: 'person_required', error_language: 'fr-CA'}, 'fr-CA'],
+    [{error: 'External service diagnostic'}, 'en-CA'],
+  ]) {
+    globalThis.fetch = async () => ({ok: false, status: 400, json: async () => payload});
+    await assert.rejects(saveJson('/synthetic', 'POST', {}), (error) => {
+      assert.equal(error.message, payload.error);
+      assert.equal(error.language, language);
+      return true;
+    });
+  }
+});
 import {
   cashFlowCategoryLabel,
   importHistoryHtml,

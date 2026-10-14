@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from domain.annual_tax_value import AnnualTaxValue
 from domain.money import from_cents, to_cents
 from domain.parsed_tax_value import ParsedTaxValue
+from domain.validation_error import ValidationError
 
 
 class AnnualTaxValueRepository:
@@ -32,10 +33,15 @@ class AnnualTaxValueRepository:
     ) -> list[AnnualTaxValue]:
         kind = document_kind.strip().lower()
         if kind not in self._DOCUMENT_KINDS:
-            raise ValueError("Tax document kind must be return or assessment")
+            raise ValidationError(
+                "input_tax_document_kind_must_be_return_or_assessment",
+                "Tax document kind must be return or assessment",
+            )
         code = jurisdiction.strip().upper()
         if not code:
-            raise ValueError("Tax jurisdiction is required")
+            raise ValidationError(
+                "input_tax_jurisdiction_is_required", "Tax jurisdiction is required"
+            )
         parsed_values = tuple(values)
         self._connection.execute(
             """DELETE FROM annual_tax_values
@@ -70,9 +76,14 @@ class AnnualTaxValueRepository:
         kind = document_kind.strip().lower()
         code = jurisdiction.strip().upper()
         if kind not in self._DOCUMENT_KINDS:
-            raise ValueError("Tax document kind must be return or assessment")
+            raise ValidationError(
+                "input_tax_document_kind_must_be_return_or_assessment",
+                "Tax document kind must be return or assessment",
+            )
         if not code:
-            raise ValueError("Tax jurisdiction is required")
+            raise ValidationError(
+                "input_tax_jurisdiction_is_required", "Tax jurisdiction is required"
+            )
         self._insert(
             person_id,
             tax_year,
@@ -108,9 +119,12 @@ class AnnualTaxValueRepository:
     ) -> None:
         concept = value.concept.strip()
         if not concept:
-            raise ValueError("Tax concept is required")
+            raise ValidationError("input_tax_concept_is_required", "Tax concept is required")
         if value.reported_amount is None and value.determined_amount is None:
-            raise ValueError("A tax value requires a reported or determined amount")
+            raise ValidationError(
+                "input_a_tax_value_requires_a_reported_or_determined_amount",
+                "A tax value requires a reported or determined amount",
+            )
         effective_year = value.effective_year or tax_year
         self._connection.execute(
             """INSERT INTO annual_tax_values(

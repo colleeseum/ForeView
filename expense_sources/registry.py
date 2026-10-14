@@ -10,6 +10,7 @@ import pkgutil
 from collections.abc import Iterable
 
 from domain.calver import is_calver
+from domain.validation_error import ValidationError
 from expense_sources.expense_source_provider import ExpenseSourceProvider
 
 
@@ -38,7 +39,9 @@ class ExpenseSourceRegistry:
         try:
             return self._providers[key]
         except KeyError as error:
-            raise ValueError(f"Unknown expense source: {key}") from error
+            raise ValidationError(
+                "expense_source_unknown", f"Unknown expense source: {key}", source=key
+            ) from error
 
     def detect(self, content: bytes) -> ExpenseSourceProvider:
         matches = tuple(
@@ -46,9 +49,16 @@ class ExpenseSourceRegistry:
         )
         if len(matches) > 1:
             keys = ", ".join(provider.key for provider in matches)
-            raise ValueError(f"The document matches multiple expense sources: {keys}")
+            raise ValidationError(
+                "expense_source_ambiguous",
+                f"The document matches multiple expense sources: {keys}",
+                sources=keys,
+            )
         if not matches:
-            raise ValueError("The uploaded PDF does not match any supported expense source")
+            raise ValidationError(
+                "expense_source_unsupported",
+                "The uploaded PDF does not match any supported expense source",
+            )
         return matches[0]
 
 

@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import fields as dataclass_fields
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from flask import Flask
@@ -164,7 +166,7 @@ def test_core_help_uses_declared_fallback_per_field_and_marks_actual_languages(t
     tooltip = next(item for item in data["tooltips"] if item["key"] == "salary-rate")
     assert tooltip["field_languages"] == {"title": "fr-CA", "body": "en-CA"}
     provider = next(item for item in data["articles"] if item["key"] == "institution-rbc-imports")
-    assert provider["field_languages"] == {"title": "en-CA", "summary": "fr-CA", "body": "en-CA"}
+    assert provider["field_languages"] == {"title": "fr-CA", "summary": "fr-CA", "body": "fr-CA"}
     assert provider["summary"] == "Aide du module RBC."
 
 
@@ -174,6 +176,71 @@ def test_french_seasonal_guidance_retains_stream_and_availability_constraints(tm
     assert "même flux de dépenses" in body
     assert "toute l’année civile" in body
     assert "chevauchements ne sont pas résolus" in body
+
+
+@pytest.mark.parametrize(
+    "key, fragment",
+    [
+        ("income-source-ufile", "Taxpayer’s copy"),
+        ("tax-notice-cra-noa", "numéro d’assurance sociale"),
+        ("tax-notice-revenu-quebec-noa", "RQAP"),
+        ("public-pension-retraite-quebec-participation", "incomplètes"),
+        ("expense-source-hydro-quebec", "versements égaux"),
+    ],
+)
+def test_provider_help_text_translations_reach_full_help(tmp_path, key, fragment):
+    service = _service(tmp_path)
+    service.select("fr-CA")
+    app = Flask(__name__)
+    app.extensions["localization"] = service
+    app.register_blueprint(blueprint)
+    article = next(
+        item
+        for item in app.test_client().get("/api/help").get_json()["articles"]
+        if item["key"] == key
+    )
+    assert article["field_languages"]["body"] == "fr-CA"
+    assert fragment in article["body"]
+
+
+@pytest.mark.parametrize(
+    "translation, expected, language",
+    [
+        ({"display_name": "Source synthétique"}, "Original provider instructions", "en-CA"),
+        ({"help_text": "Instructions françaises"}, "Instructions françaises", "fr-CA"),
+        (
+            {"help_text": "Instructions françaises", "body": "Explicit override"},
+            "Explicit override",
+            "fr-CA",
+        ),
+    ],
+)
+def test_provider_help_alias_and_fallback_preserve_original_source(
+    tmp_path, monkeypatch, translation, expected, language
+):
+    from income_sources import income_source_registry
+
+    original = replace(
+        income_source_registry.providers[0],
+        help_text="Original provider instructions",
+        translations={"fr-CA": translation},
+    )
+    monkeypatch.setattr(
+        "web.help_routes.income_source_registry", SimpleNamespace(providers=(original,))
+    )
+    service = _service(tmp_path)
+    service.select("fr-CA")
+    app = Flask(__name__)
+    app.extensions["localization"] = service
+    app.register_blueprint(blueprint)
+    article = next(
+        item
+        for item in app.test_client().get("/api/help").get_json()["articles"]
+        if item["key"] == "income-source-ufile"
+    )
+    assert article["body"] == expected
+    assert article["field_languages"]["body"] == language
+    assert original.help_text == "Original provider instructions"
 
 
 @pytest.mark.parametrize(

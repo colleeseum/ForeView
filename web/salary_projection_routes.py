@@ -17,6 +17,7 @@ from domain.employment_projection_settings import EmploymentProjectionSettings
 from domain.household_expense_plan import HouseholdExpensePlan
 from domain.money import as_decimal
 from domain.projected_employment_year import ProjectedEmploymentYear
+from domain.validation_error import ValidationError
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.employment_baseline_repository import EmploymentBaselineRepository
 from repositories.employment_projection_override_repository import (
@@ -31,6 +32,8 @@ from repositories.scenario_repository import ScenarioRepository
 from services.salary_projection_service import SalaryProjectionService
 from services.scenario_clone_service import ScenarioCloneService
 from web.dependencies import dependency
+from web.localization import error_data, localized_api_error
+from web.route_values import payload_integer, required_field
 
 blueprint = Blueprint("salary_projection", __name__)
 
@@ -45,7 +48,7 @@ def salary_projection_data():
     start_year = request.args.get("start_year", type=int) or date.today().year
     end_year = request.args.get("end_year", type=int) or start_year + 9
     if end_year < start_year or end_year - start_year > 100:
-        return jsonify({"error": "Projection range must be between 1 and 101 years"}), 400
+        return localized_api_error("projection_range")
     with dependency("connect")() as connection:
         people = PersonRepository(connection).list_all()
         scenarios = ScenarioRepository(connection).list_all()
@@ -73,6 +76,7 @@ def salary_projection_data():
             )
             rows: tuple[ProjectedEmploymentYear, ...] = ()
             error = None
+            error_language = None
             if scenario_id is not None and baseline is not None and settings is not None:
                 try:
                     rows = SalaryProjectionService(
@@ -80,7 +84,9 @@ def salary_projection_data():
                         current_app.extensions["finance_public_rules_path"](),
                     ).project_person(scenario_id, person.id, start_year, end_year)
                 except ValueError as caught:
-                    error = str(caught)
+                    failure = error_data(caught)
+                    error = failure["error"]
+                    error_language = failure["error_language"]
             result_people.append(
                 {
                     "id": person.id,
@@ -93,6 +99,7 @@ def salary_projection_data():
                     "overrides": [_override_json(item) for item in overrides],
                     "projection": [_projection_json(item) for item in rows],
                     "error": error,
+                    "error_language": error_language,
                 }
             )
         household = _household_projection(result_people, expense_plan)
@@ -124,8 +131,10 @@ def save_household_expenses(scenario_id: int):
         with dependency("connect")() as connection:
             plan = HouseholdExpensePlanRepository(connection).upsert(
                 scenario_id,
-                start_year=int(payload["start_year"]),
-                required_annual_amount=as_decimal(payload["required_annual_amount"]),
+                start_year=payload_integer(required_field(payload, "start_year")),
+                required_annual_amount=as_decimal(
+                    required_field(payload, "required_annual_amount")
+                ),
                 required_annual_growth=as_decimal(payload.get("required_annual_growth", 0)),
                 discretionary_annual_amount=as_decimal(
                     payload.get("discretionary_annual_amount", 0)
@@ -136,7 +145,7 @@ def save_household_expenses(scenario_id: int):
             )
         return jsonify(_expense_plan_json(plan))
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put("/api/salary-projection/people/<int:person_id>/baseline")
@@ -146,15 +155,15 @@ def save_employment_baseline(person_id: int):
         with dependency("connect")() as connection:
             baseline = EmploymentBaselineRepository(connection).upsert(
                 person_id,
-                str(payload["effective_date"]),
-                as_decimal(payload["annual_salary"]),
-                str(payload["province_of_employment"]),
-                str(payload["payroll_plan"]),
+                str(required_field(payload, "effective_date")),
+                as_decimal(required_field(payload, "annual_salary")),
+                str(required_field(payload, "province_of_employment")),
+                str(required_field(payload, "payroll_plan")),
                 str(payload.get("source") or "manual"),
             )
         return jsonify(_baseline_json(baseline))
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put("/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/settings")
@@ -190,7 +199,7 @@ def save_employment_settings(scenario_id: int, person_id: int):
             )
         return jsonify(_settings_json(settings))
     except (TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put("/api/salary-projection/scenarios/<int:scenario_id>/people/<int:person_id>/draft")
@@ -201,7 +210,7 @@ def save_employment_draft(scenario_id: int, person_id: int):
             saved_years = _save_draft(connection, scenario_id, person_id, payload)
         return jsonify({"scenario_id": scenario_id, "saved_years": saved_years})
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/salary-projection/scenarios/<int:scenario_id>/clone")
@@ -209,13 +218,15 @@ def clone_employment_scenario(scenario_id: int):
     payload = request.get_json(silent=True) or {}
     try:
         with dependency("connect")() as connection:
-            scenario = ScenarioCloneService(connection).clone(scenario_id, str(payload["name"]))
+            scenario = ScenarioCloneService(connection).clone(
+                scenario_id, str(required_field(payload, "name"))
+            )
             person_id = payload.get("person_id")
             if person_id is not None:
-                _save_draft(connection, scenario.id, int(person_id), payload)
+                _save_draft(connection, scenario.id, payload_integer(person_id), payload)
         return jsonify({"id": scenario.id, "name": scenario.name}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put(
@@ -239,7 +250,7 @@ def save_employment_override(scenario_id: int, person_id: int, year: int):
             }
         )
     except (TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put(
@@ -249,20 +260,22 @@ def save_employment_overrides(scenario_id: int, person_id: int):
     payload = request.get_json(silent=True) or {}
     overrides = payload.get("overrides")
     if not isinstance(overrides, list):
-        return jsonify({"error": "Overrides must be a list"}), 400
+        return localized_api_error("overrides_list")
     try:
         saved_years = []
         with dependency("connect")() as connection:
             repository = EmploymentProjectionOverrideRepository(connection)
             for item in overrides:
                 if not isinstance(item, dict):
-                    raise ValueError("Each override must be an object")
-                year = int(item["year"])
+                    raise ValidationError(
+                        "input_each_override_must_be_an_object", "Each override must be an object"
+                    )
+                year = payload_integer(required_field(item, "year"))
                 _replace_override(repository, scenario_id, person_id, year, item)
                 saved_years.append(year)
         return jsonify({"saved_years": saved_years})
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.delete(
@@ -282,7 +295,7 @@ def save_employment_actual(person_id: int, tax_year: int):
             actual = AnnualEmploymentActualRepository(connection).upsert(
                 person_id,
                 tax_year,
-                as_decimal(payload["salary_income"]),
+                as_decimal(required_field(payload, "salary_income")),
                 province_of_residence=str(
                     payload.get("province_of_residence")
                     or payload.get("province_of_employment")
@@ -302,7 +315,7 @@ def save_employment_actual(person_id: int, tax_year: int):
             )
         return jsonify(_actual_json(actual))
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 def _optional_decimal(payload: dict[str, object], key: str) -> Decimal | None:
@@ -349,7 +362,7 @@ def _save_draft(
 ) -> list[int]:
     settings_payload = payload.get("settings")
     if not isinstance(settings_payload, dict):
-        raise ValueError("Settings must be an object")
+        raise ValidationError("input_settings_must_be_an_object", "Settings must be an object")
     settings_repository = EmploymentProjectionSettingsRepository(connection)
     current = settings_repository.get(scenario_id, person_id)
     settings_repository.upsert(
@@ -364,13 +377,15 @@ def _save_draft(
 
     items = payload.get("overrides", [])
     if not isinstance(items, list):
-        raise ValueError("Overrides must be a list")
+        raise ValidationError("input_overrides_must_be_a_list", "Overrides must be a list")
     override_repository = EmploymentProjectionOverrideRepository(connection)
     saved_years: list[int] = []
     for item in items:
         if not isinstance(item, dict):
-            raise ValueError("Each override must be an object")
-        year = int(item["year"])
+            raise ValidationError(
+                "input_each_override_must_be_an_object", "Each override must be an object"
+            )
+        year = payload_integer(required_field(item, "year"))
         _replace_override(override_repository, scenario_id, person_id, year, item)
         saved_years.append(year)
     return saved_years

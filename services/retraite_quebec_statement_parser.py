@@ -12,6 +12,7 @@ import pdfplumber
 from pdfplumber.utils.exceptions import PdfminerException
 
 from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
+from domain.validation_error import ValidationError
 
 
 class RetraiteQuebecStatementParser:
@@ -48,13 +49,19 @@ class RetraiteQuebecStatementParser:
             )
         )
         if not earnings:
-            raise ValueError("Retraite Québec pensionable earnings were not found")
+            raise ValidationError(
+                "input_retraite_qu_bec_pensionable_earnings_were_not_found",
+                "Retraite Québec pensionable earnings were not found",
+            )
         estimate_text = text.split(
             "Estimate of the amount of your retirement pension (monthly)", 1
         )[-1].split("Statement of Participation in the Québec Pension Plan", 1)[0]
         estimate_values = [self._amount(raw) for raw in re.findall(r"([\d ]+)\s*\$", estimate_text)]
         if len(estimate_values) < 4:
-            raise ValueError("Retraite Québec retirement estimates were not found")
+            raise ValidationError(
+                "input_retraite_qu_bec_retirement_estimates_were_not_found",
+                "Retraite Québec retirement estimates were not found",
+            )
         continue_amounts = (estimate_values[1], estimate_values[0])
         stop_amounts = (estimate_values[3], estimate_values[2])
         return ParsedPublicPensionStatement(
@@ -83,7 +90,11 @@ class RetraiteQuebecStatementParser:
     def _required(text: str, pattern: str, label: str) -> str:
         match = re.search(pattern, text, re.MULTILINE)
         if not match:
-            raise ValueError(f"Retraite Québec statement {label} was not found")
+            raise ValidationError(
+                "input_retraite_qu_bec_statement_was_not_found",
+                f"Retraite Québec statement {label} was not found",
+                detail0=label,
+            )
         return match.group(1)
 
     @staticmethod

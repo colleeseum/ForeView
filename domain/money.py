@@ -6,6 +6,8 @@ from __future__ import annotations
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import TypeAlias
 
+from domain.validation_error import ValidationError
+
 MoneyInput: TypeAlias = Decimal | int | float | str
 CENT = Decimal("0.01")
 HUNDRED = Decimal(100)
@@ -16,10 +18,14 @@ def as_decimal(value: MoneyInput) -> Decimal:
     try:
         amount = Decimal(str(value))
         if not amount.is_finite():
-            raise ValueError(f"Invalid amount: {value!r}")
+            raise ValidationError(
+                "input_invalid_amount", f"Invalid amount: {value!r}", detail0=repr(value)
+            )
         return amount.quantize(CENT, rounding=ROUND_HALF_UP)
     except InvalidOperation as error:
-        raise ValueError(f"Invalid amount: {value!r}") from error
+        raise ValidationError(
+            "input_invalid_amount", f"Invalid amount: {value!r}", detail0=repr(value)
+        ) from error
 
 
 def to_cents(value: MoneyInput) -> int:

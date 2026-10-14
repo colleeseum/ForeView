@@ -15,6 +15,7 @@ from domain.money import (
     storage_decimal,
     to_cents,
 )
+from domain.validation_error import ValidationError
 
 
 class BalanceSnapshotRepository:
@@ -38,9 +39,11 @@ class BalanceSnapshotRepository:
     ) -> None:
         normalized_amount = as_decimal(amount)
         if normalized_amount < 0:
-            raise ValueError("Balance cannot be negative")
+            raise ValidationError("input_balance_cannot_be_negative", "Balance cannot be negative")
         if interest_rate is not None and interest_rate < 0:
-            raise ValueError("Interest rate cannot be negative")
+            raise ValidationError(
+                "input_interest_rate_cannot_be_negative", "Interest rate cannot be negative"
+            )
         self._connection.execute(
             """
             INSERT OR REPLACE INTO balance_snapshots(

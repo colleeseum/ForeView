@@ -4,6 +4,7 @@
 import io
 import json
 import re
+import shutil
 import sqlite3
 import tempfile
 import unittest
@@ -21,12 +22,15 @@ from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
 from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_tax_value import ParsedTaxValue
 from domain.parsed_ufile_tax_return import ParsedUFileTaxReturn
+from domain.validation_error import ValidationError
 from infrastructure.runtime_config import RuntimeConfig
 from institution_support.help_topic import HelpTopic
 from institutions.questrade.client import QuestradeClient
 from institutions.questrade.connection import QuestradeConnectionProvider
 from institutions.questrade.settings import AUTHORIZE_URL, TOKEN_URL, QuestradeSettings
 from institutions.questrade.unauthorized import QuestradeUnauthorized
+from localization import LocalizationService
+from repositories.person_repository import PersonRepository
 from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
@@ -95,6 +99,402 @@ class AppRouteTests(unittest.TestCase):
     @staticmethod
     def _stored_authorization(connection, name="alex"):
         return QuestradeAuthorizationRepository(connection).get_by_name(name)
+
+    def test_about_page_localization_and_language_metadata(self):
+        localization = self.app.extensions["localization"]
+        for code, heading in (("en-CA", "About"), ("fr-CA", "À propos")):
+            with self.subTest(locale=code):
+                localization.select(code)
+                response = self.client.get("/about")
+                self.assertEqual(response.status_code, 200)
+                text = unescape(self._visible_html(response).decode("utf-8"))
+                self.assertIn(f'<html lang="{code}" dir="ltr">', text)
+                self.assertIn(
+                    f"<h1>{localization.translate(code, 'pages_server.about.heading')}</h1>",
+                    text,
+                )
+                self.assertIn(
+                    f"<p>{localization.translate(code, 'pages_server.about.description')}</p>",
+                    text,
+                )
+                self.assertNotIn("⟦", text)
+                self.assertIn(heading, text)
+
+    def test_locale_navigation_persistence_rtl_and_financial_invariance(self):
+        catalog_root = Path(self.temporary_directory.name) / "localization"
+        shutil.copytree(application.ROOT / "localization", catalog_root)
+        registry_path = catalog_root / "registry.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        registry["locales"].append(
+            {
+                "code": "ar-XB",
+                "native_name": "Synthetic RTL",
+                "direction": "rtl",
+                "fallback": "fr-CA",
+            }
+        )
+        registry_path.write_text(json.dumps(registry), encoding="utf-8")
+        rtl_catalog = catalog_root / "ar-XB"
+        rtl_catalog.mkdir()
+        (rtl_catalog / "core.json").write_text(
+            json.dumps({"nav": {"summary": "RTL summary"}}), encoding="utf-8"
+        )
+        self.app.extensions["localization"] = LocalizationService(catalog_root, self.runtime)
+        api_paths = (
+            "/api/dashboard",
+            "/api/model/accounts",
+            "/api/model/people",
+            "/api/model/import-history",
+        )
+        before = {path: self.client.get(path).get_json() for path in api_paths}
+        database_before = self.database.read_bytes()
+        for locale, direction in (("en-CA", "ltr"), ("fr-CA", "ltr"), ("ar-XB", "rtl")):
+            with self.subTest(locale=locale):
+                selected = self.client.post(
+                    "/application-settings/language", data={"locale": locale}, follow_redirects=True
+                )
+                self.assertEqual(selected.status_code, 200)
+                # Recreate the service to exercise persisted preference, not its in-memory state.
+                self.app.extensions["localization"] = LocalizationService(
+                    catalog_root, self.runtime
+                )
+                self.assertEqual(self.app.extensions["localization"].selected_locale(), locale)
+                for path in (
+                    "/",
+                    "/setup",
+                    "/accounts",
+                    "/income",
+                    "/transactions",
+                    "/connections",
+                    "/expenses",
+                    "/salary-projection",
+                    "/about",
+                    "/disclaimer",
+                ):
+                    response = self.client.get(path)
+                    self.assertEqual(response.status_code, 200, path)
+                    html = response.get_data(as_text=True)
+                    self.assertIn(f'<html lang="{locale}" dir="{direction}">', html)
+                    self.assertNotIn("⟦", self._visible_html(response).decode("utf-8"))
+                if locale == "ar-XB":
+                    page = self.client.get("/").get_data(as_text=True)
+                    self.assertIn("RTL summary", page)
+                    self.assertIn("Données financières", page)
+                    match = re.search(
+                        r'<script id="browser-localization"[^>]*>(.*?)</script>', page, re.S
+                    )
+                    self.assertIsNotNone(match)
+                    state = json.loads(match.group(1))
+                    self.assertEqual(state["fallbacks"], ["fr-CA", "en-CA"])
+                    self.assertEqual(set(state["catalogs"]), {"ar-XB", "fr-CA", "en-CA"})
+                disclaimer = self.client.get("/disclaimer").get_data(as_text=True)
+                self.assertIn('legal-document" lang="en-CA" dir="ltr"', disclaimer)
+                self.assertEqual(
+                    {path: self.client.get(path).get_json() for path in api_paths}, before
+                )
+                self.assertEqual(self.database.read_bytes(), database_before)
+
+    def test_setup_examples_and_invalid_language_submission_are_localized(self):
+        for locale, person, gic in (
+            ("en-CA", "Alex Example", "RBC GIC 1"),
+            ("fr-CA", "Alex Exemple", "RBC CPG 1"),
+        ):
+            self.app.extensions["localization"].select(locale)
+            html = self.client.get("/setup").get_data(as_text=True)
+            self.assertIn(f'placeholder="{person}"', html)
+            self.assertIn(f'placeholder="{gic}"', html)
+            response = self.client.post(
+                "/application-settings/language", data={"locale": "unknown"}
+            )
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(
+                response.get_data(as_text=True),
+                self.app.extensions["localization"].translate(
+                    locale, "pages_server.setup.unsupported_locale"
+                ),
+            )
+            self.assertEqual(self.app.extensions["localization"].selected_locale(), locale)
+
+    def test_request_validation_messages_have_localized_text_and_stable_codes(self):
+        cases = (
+            ("GET", "/api/income", "person_required"),
+            ("POST", "/api/income/import/preview", "income_pdf_required"),
+            ("POST", "/api/expenses/import/preview", "expense_pdf_required"),
+            ("POST", "/api/expenses/import/confirm", "expense_pdf_required"),
+            ("GET", "/api/salary-projection?start_year=2026&end_year=2025", "projection_range"),
+            ("PUT", "/api/salary-projection/scenarios/1/people/1/overrides", "overrides_list"),
+        )
+        for locale in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(locale)
+            for method, path, code in cases:
+                with self.subTest(locale=locale, path=path):
+                    response = self.client.open(path, method=method, json={})
+                    self.assertEqual(response.status_code, 400)
+                    self.assertEqual(
+                        response.get_json(),
+                        {
+                            "error": self.app.extensions["localization"].translate(
+                                locale, f"errors.{code}"
+                            ),
+                            "error_code": code,
+                            "error_language": locale,
+                        },
+                    )
+
+    def test_provider_import_buttons_localize_without_changing_source_metadata(self):
+        self.app.extensions["localization"].select("fr-CA")
+        income = unescape(self.client.get("/income").get_data(as_text=True))
+        expenses = unescape(self.client.get("/expenses").get_data(as_text=True))
+        self.assertIn('<span lang="fr-CA">PDF T1 UFile</span>', income)
+        self.assertIn('<span lang="fr-CA">Avis de cotisation de l’ARC</span>', income)
+        self.assertIn('<span lang="fr-CA">Facture d’électricité d’Hydro-Québec</span>', expenses)
+        source = self.client.get("/api/income/sources").get_json()["sources"][0]
+        self.assertEqual(source["display_name"], "UFile T1 PDF")
+        self.assertEqual(source["presentation"]["display_name"], "PDF T1 UFile")
+        self.assertNotEqual(source["presentation"]["help_text"], source["help_text"])
+        self.assertIn("How to download", source["help_text"])
+        self.assertEqual(source["presentation"]["field_languages"]["help_text"], "fr-CA")
+
+    def test_correction_workflow_in_both_locales_preserves_underlying_facts(self):
+        person_id = self._people()[0]["id"]
+        for locale, year in (("en-CA", 2028), ("fr-CA", 2029)):
+            with self.subTest(locale=locale):
+                localization = self.app.extensions["localization"]
+                localization.select(locale)
+                saved = self.client.put(
+                    f"/api/income/people/{person_id}/years/{year}",
+                    json={
+                        "employment_income": "100000",
+                        "province_of_residence": "QC",
+                        "source": "Original English evidence",
+                    },
+                )
+                self.assertEqual(saved.status_code, 200)
+                underlying = saved.get_json()
+                payload = {
+                    "person_id": person_id,
+                    "tax_year": year,
+                    "concept": "employment_income",
+                    "correct_amount": "110000",
+                    "reason": "Supporting English records",
+                    "expected_revision": 0,
+                }
+                invalid = self.client.post(
+                    "/api/income/corrections", json={**payload, "reason": " "}
+                )
+                self.assertEqual(invalid.status_code, 400)
+                self.assertEqual(
+                    invalid.get_json(),
+                    {
+                        "error": localization.translate(
+                            locale, "errors.correction_reason_required"
+                        ),
+                        "error_code": "correction_reason_required",
+                        "error_language": locale,
+                    },
+                )
+                created_response = self.client.post("/api/income/corrections", json=payload)
+                self.assertEqual(created_response.status_code, 201)
+                created = created_response.get_json()
+                path = f"/api/income/corrections/{created['id']}"
+                edited_response = self.client.put(
+                    path,
+                    json={
+                        "correct_amount": "115000",
+                        "reason": "Revised English records",
+                        "expected_revision": 1,
+                    },
+                )
+                self.assertEqual(edited_response.status_code, 200)
+                edited = edited_response.get_json()
+                stale = self.client.put(
+                    path,
+                    json={
+                        "correct_amount": "120000",
+                        "reason": "Stale input",
+                        "expected_revision": 1,
+                    },
+                )
+                self.assertEqual(stale.status_code, 409)
+                self.assertEqual(stale.get_json()["error_code"], "correction_stale")
+                self.assertEqual(stale.get_json()["error_language"], locale)
+                confirmed = self.client.post(
+                    f"/api/income/corrections/{edited['id']}/confirm", json={"expected_revision": 2}
+                )
+                self.assertEqual(confirmed.status_code, 200)
+                removed = self.client.delete(
+                    f"/api/income/corrections/{confirmed.get_json()['id']}",
+                    json={"expected_revision": 3},
+                )
+                self.assertEqual(removed.status_code, 200)
+                history = self.client.get(
+                    f"/api/income/corrections/person/{person_id}/year/{year}/employment_income"
+                ).get_json()["corrections"]
+                self.assertEqual(len(history), 4)
+                self.assertEqual(history[0]["reason"], "Supporting English records")
+                self.assertEqual(
+                    self.client.get(f"/api/income?person_id={person_id}&year={year}").get_json()[
+                        "record"
+                    ],
+                    underlying,
+                )
+                missing = self.client.delete(
+                    "/api/income/corrections/999999", json={"expected_revision": 1}
+                )
+                self.assertEqual(missing.status_code, 404)
+                self.assertEqual(missing.get_json()["error_code"], "correction_not_found")
+                self.assertEqual(missing.get_json()["error_language"], locale)
+
+    def test_expense_validation_and_overlap_workflow_in_both_locales(self):
+        for locale, year in (("en-CA", 2028), ("fr-CA", 2029)):
+            with self.subTest(locale=locale):
+                localization = self.app.extensions["localization"]
+                localization.select(locale)
+                category_response = self.client.post(
+                    "/api/expenses/categories",
+                    json={
+                        "name": f"Original English category {year}",
+                        "classification": "required",
+                    },
+                )
+                self.assertEqual(category_response.status_code, 201)
+                category_id = category_response.get_json()["id"]
+                payload = {
+                    "name": "Original English electricity",
+                    "category_id": category_id,
+                    "amount": "125.50",
+                    "period_start": f"{year}-01-01",
+                    "period_end": f"{year}-01-31",
+                }
+                cases = (
+                    (
+                        "/api/expenses/categories",
+                        {"name": "", "classification": "required"},
+                        "expense_category_name",
+                    ),
+                    (
+                        "/api/expenses/categories",
+                        {"name": "Original", "classification": "unknown"},
+                        "expense_classification",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "amount": "NaN"},
+                        "expense_amount_invalid",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "amount": "-1"},
+                        "expense_amount_negative",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "period_end": "not-a-date"},
+                        "expense_date",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "period_start": f"{year}-02-01"},
+                        "expense_period_order",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "association_kind": "person", "association_id": 999999},
+                        "expense_association_missing",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "category_id": 999999},
+                        "expense_category_missing",
+                    ),
+                    (
+                        "/api/expenses/manual",
+                        {**payload, "category_id": float("inf")},
+                        "expense_integer",
+                    ),
+                )
+                for path, invalid_payload, code in cases:
+                    before = self.database.read_bytes()
+                    invalid = self.client.post(path, json=invalid_payload)
+                    self.assertEqual(invalid.status_code, 400)
+                    self.assertEqual(invalid.get_json()["error_code"], code)
+                    self.assertEqual(invalid.get_json()["error_language"], locale)
+                    self.assertEqual(self.database.read_bytes(), before)
+                before = self.database.read_bytes()
+                bad_update = self.client.put(
+                    f"/api/expenses/categories/{category_id}",
+                    json={
+                        "name": "Uncommitted name change",
+                        "classification": "unknown",
+                        "active": True,
+                    },
+                )
+                self.assertEqual(bad_update.status_code, 400)
+                self.assertEqual(bad_update.get_json()["error_code"], "expense_classification")
+                self.assertEqual(self.database.read_bytes(), before)
+                form = self.client.post(
+                    "/expenses/categories",
+                    data={"name": "", "classification": "required", "year": year},
+                    follow_redirects=True,
+                )
+                self.assertEqual(form.status_code, 200)
+                html = unescape(form.get_data(as_text=True))
+                self.assertIn(
+                    f'lang="{locale}" role="alert">{localization.translate(locale, "errors.expense_category_name")}',
+                    html,
+                )
+                first = self.client.post("/api/expenses/manual", json=payload)
+                second = self.client.post("/api/expenses/manual", json=payload)
+                self.assertEqual(first.status_code, 201)
+                self.assertEqual(second.status_code, 201)
+                first_id, second_id = first.get_json()["id"], second.get_json()["id"]
+                before = self.database.read_bytes()
+                bad_note = self.client.post(
+                    f"/api/expenses/{first_id}/overlap", json={"include": True, "note": " "}
+                )
+                self.assertEqual(bad_note.get_json()["error_code"], "expense_overlap_note")
+                self.assertEqual(self.database.read_bytes(), before)
+                for record_id, include in ((first_id, True), (second_id, False)):
+                    resolved = self.client.post(
+                        f"/api/expenses/{record_id}/overlap",
+                        json={"include": include, "note": "Original English audit note"},
+                    )
+                    self.assertEqual(resolved.status_code, 200)
+                    self.assertEqual(
+                        resolved.get_json()["overlap_resolution_note"],
+                        "Original English audit note",
+                    )
+                records = self.client.get(f"/api/expenses?year={year}").get_json()
+                self.assertEqual(
+                    {row["overlap_status"] for row in records},
+                    {"resolved_include", "resolved_exclude"},
+                )
+                self.assertTrue(all(row["name"] == payload["name"] for row in records))
+                before = self.database.read_bytes()
+                unsupported = self.client.post(
+                    "/api/expenses/import/preview",
+                    data={
+                        "file": (io.BytesIO(b"Unsupported synthetic document"), "unsupported.pdf")
+                    },
+                )
+                self.assertEqual(unsupported.status_code, 400)
+                self.assertEqual(unsupported.get_json()["error_code"], "expense_source_unsupported")
+                self.assertEqual(unsupported.get_json()["error_language"], locale)
+                self.assertEqual(self.database.read_bytes(), before)
+                with patch(
+                    "web.expense_routes.ExpenseImportService.preview",
+                    side_effect=KeyError("External parser detail"),
+                ):
+                    diagnostic = self.client.post(
+                        "/api/expenses/import/preview",
+                        data={"file": (io.BytesIO(b"Synthetic"), "external.pdf")},
+                    )
+                self.assertEqual(diagnostic.status_code, 400)
+                self.assertEqual(
+                    diagnostic.get_json(),
+                    {"error": "'External parser detail'", "error_language": "en-CA"},
+                )
+                self.assertEqual(self.database.read_bytes(), before)
 
     def test_html_pages_and_legacy_workbook_endpoints_are_absent(self):
         for path in (
@@ -1647,6 +2047,34 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(
             self.client.post("/api/model/transactions/import", data={}).status_code, 400
         )
+
+    def test_localized_import_failure_preserves_file_context_and_rolls_back(self):
+        account_id = self.client.get("/api/model/accounts").get_json()["accounts"][0]["id"]
+        original_people = self._people()
+
+        def reject_after_write(connection, *_args, **_kwargs):
+            PersonRepository(connection).create("Must be rolled back")
+            raise ValidationError("person_required", "Person is required")
+
+        for locale in ("en-CA", "fr-CA"):
+            with self.subTest(locale=locale):
+                self.app.extensions["localization"].select(locale)
+                before = self.database.read_bytes()
+                with patch("web.transaction_routes._import_csv", reject_after_write):
+                    response = self.client.post(
+                        "/api/model/transactions/import",
+                        data={
+                            "account_id": str(account_id),
+                            "files": (io.BytesIO(b"synthetic"), "Original evidence.csv"),
+                        },
+                        content_type="multipart/form-data",
+                    )
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.get_json()["error_code"], "person_required")
+                self.assertEqual(response.get_json()["error_language"], locale)
+                self.assertTrue(response.get_json()["error"].startswith("Original evidence.csv:"))
+                self.assertEqual(self._people(), original_people)
+                self.assertEqual(self.database.read_bytes(), before)
 
     def test_supported_document_matrix_imports_through_http_routes(self):
         fixtures = self.runtime / "fixtures"

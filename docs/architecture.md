@@ -105,12 +105,19 @@ modules use the shared `static/i18n.mjs` contract for lookup, interpolation, det
 fallback, and visible missing-key markers. The browser catalogs cover the primary dynamic
 workflows; core help navigation, tooltips, and guidance use locale catalogs with per-field
 fallback and resolved-language metadata. Provider help uses optional per-provider locale
-dictionaries through the same resolver. Provider-owned workflow actions outside help still
-require migration to the same adapter.
+dictionaries through the same resolver. Import guidance, display labels and About module names
+reuse that presentation adapter without replacing original provider identity or provenance.
+Owned validation exceptions carry stable codes and interpolation values to HTTP adapters, which
+resolve localized messages and language metadata. Non-HTTP callers retain original diagnostic text.
 Financial browser displays use shared Intl-based value helpers. Server-rendered expenses and
 public tax rules use the Decimal-based `localization/value_formatter.py` adapter and offline
 Babel CLDR locale data exposed through the Flask template context. These presentation adapters
 do not change domain calculations, persisted values, input syntax, or raw source evidence.
+
+The pytest acceptance suite runs headless Chromium against an isolated temporary synthetic runtime
+to exercise localized interactions and RTL layout/focus. Playwright is development-only; the
+production browser code remains framework-free. See `docs/localization.md` for the acceptance
+scope and contributor installation instructions.
 
 ### Institution and ingestion adapters
 

@@ -9,6 +9,7 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 from expense_sources import expense_source_registry
 from income_sources import income_source_registry
 from institution_support import institution_registry
+from localization.provider_content import localized_fields
 from public_pension_sources import public_pension_source_registry
 from tax_notices import tax_notice_registry
 
@@ -47,7 +48,9 @@ def set_application_language():
     try:
         localization.select(request.form.get("locale", ""))
     except ValueError:
-        return "Unsupported locale", 400
+        return localization.translate(
+            localization.selected_locale(), "pages_server.setup.unsupported_locale"
+        ), 400
     return redirect(url_for("pages.application_settings"))
 
 
@@ -92,4 +95,20 @@ def connections_page():
 
 @blueprint.get("/transactions")
 def transactions_page():
-    return render_template("transactions.html", import_help=institution_registry().import_help())
+    localization = current_app.extensions["localization"]
+    locale = localization.selected_locale()
+    topics = []
+    registry = institution_registry()
+    for provider in registry.providers:
+        for topic in provider.help_topics:
+            if topic.key == "imports":
+                fields, languages = localized_fields(
+                    {"title": topic.title, "body": topic.body},
+                    topic.translations,
+                    locale,
+                    localization,
+                )
+                topics.append({**fields, "field_languages": languages})
+    return render_template(
+        "transactions.html", import_help=registry.import_help(), import_help_topics=topics
+    )

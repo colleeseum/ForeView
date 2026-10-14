@@ -76,6 +76,9 @@
     "step_values": "3. Valeurs de référence",
     "step_scenario": "4. Scénario",
     "institution_example": "Questrade ou EQ",
+    "person_example": "Alex Exemple",
+    "gic_example": "RBC CPG 1",
+    "unsupported_locale": "La langue sélectionnée n’est pas prise en charge.",
     "account_number_placeholder": "Numéro bancaire ou de courtage obligatoire",
     "baseline_name": "Référence 2026"
   },
@@ -315,6 +318,8 @@
     "cash_flow": "Analyse des flux de trésorerie",
     "cash_flow_help": "Une fois les transactions importées, cette vue comparera les 12 derniers mois à la période précédente.",
     "import_title": "Importer un PDF ou un CSV",
+    "formats_intro": "Formats pris en charge :",
+    "csv_supported": "Les fichiers CSV standards avec les colonnes Date et Amount sont également pris en charge.",
     "bank_documents": "Comment obtenir les documents bancaires",
     "select_files": "Sélectionner des fichiers",
     "select_directory": "Ou sélectionner un dossier",

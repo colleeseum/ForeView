@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {accountTypeLabel} from './account-types.mjs';
+import {escapeHtml} from './html.mjs';
 import {createLatestRequestGate} from './latest-request.mjs';
 import {t, locale} from './i18n.mjs';
 import {calendarDateSortKey, formatDate, formatMoneyDollars} from './locale-format.mjs';
@@ -25,6 +26,7 @@ const reconcileForm = document.querySelector('#reconcile-form');
 const reconcileResult = document.querySelector('#reconcile-result');
 const importTitle = document.querySelector('#import-dialog-title');
 const importDescription = document.querySelector('#import-dialog-description');
+const importDescriptionHtml = importDescription.innerHTML || escapeHtml(importDescription.dataset.defaultText || '');
 const breadcrumbCategory = document.querySelector('#breadcrumb-category');
 const breadcrumbAccount = document.querySelector('#breadcrumb-account');
 const pageParams = new URLSearchParams(window.location.search);
@@ -89,7 +91,7 @@ function showResult(target, message, error = false, language = locale) {
 function openImportDialog() {
   importForm.reset();
   showResult(importResult, '');
-  importDescription.textContent = importDescription.dataset.defaultText;
+  importDescription.innerHTML = importDescriptionHtml;
   if (accountFilter.value) document.querySelector('#transaction-account').value = accountFilter.value;
   updateImportButton();
   importDialog.hidden = false;
@@ -247,7 +249,7 @@ importForm.addEventListener('submit', async (event) => {
     }
     if (!response.ok) {
       const error = new Error(data.error);
-      error.language = 'en-CA';
+      error.language = data.error_language || 'en-CA';
       error.helpUrl = data.help_url;
       throw error;
     }
@@ -292,7 +294,7 @@ reconcileForm.addEventListener('submit', async (event) => {
     const data = await responseJson(response);
     if (!response.ok) {
       const error = new Error(data.error);
-      error.language = 'en-CA';
+      error.language = data.error_language || 'en-CA';
       throw error;
     }
     await loadTransactions();

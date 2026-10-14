@@ -14,9 +14,17 @@ from domain.resolved_income_source import ResolvedIncomeSource
 class CorrectionConflictError(RuntimeError):
     """The correction stream changed after the caller read it."""
 
+    def __init__(self, message: str, *, code: str = "correction_stale") -> None:
+        super().__init__(message)
+        self.code = code
+
 
 class CorrectionNotFoundError(LookupError):
     """The requested correction stream does not exist or is inactive."""
+
+    def __init__(self, message: str, *, code: str = "correction_not_found") -> None:
+        super().__init__(message)
+        self.code = code
 
 
 class CorrectionRepository:
@@ -46,7 +54,9 @@ class CorrectionRepository:
         elif not latest.is_active and expected_revision == latest.revision_number:
             revision_number = latest.revision_number + 1
         else:
-            raise CorrectionConflictError("Correction stream already exists")
+            raise CorrectionConflictError(
+                "Correction stream already exists", code="correction_exists"
+            )
         try:
             revision_id = self._insert(
                 person_id,
@@ -60,7 +70,9 @@ class CorrectionRepository:
                 fingerprint,
             )
         except sqlite3.IntegrityError as error:
-            raise CorrectionConflictError("Correction stream already exists") from error
+            raise CorrectionConflictError(
+                "Correction stream already exists", code="correction_exists"
+            ) from error
         return self._required_by_id(revision_id)
 
     def get(self, person_id: int, tax_year: int, concept: str) -> FactualCorrectionRevision | None:

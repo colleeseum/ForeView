@@ -9,6 +9,7 @@ from decimal import Decimal
 from domain.household_expense_plan import HouseholdExpensePlan
 from domain.money import MoneyInput, from_cents, to_cents
 from domain.rates import from_rate_micros, to_rate_micros
+from domain.validation_error import ValidationError
 
 
 class HouseholdExpensePlanRepository:
@@ -28,7 +29,10 @@ class HouseholdExpensePlanRepository:
         discretionary_annual_growth: Decimal | str | int | float = 0,
     ) -> HouseholdExpensePlan:
         if start_year < 1900:
-            raise ValueError("Expense start year must be at least 1900")
+            raise ValidationError(
+                "input_expense_start_year_must_be_at_least_1900",
+                "Expense start year must be at least 1900",
+            )
         amounts = tuple(
             to_cents(value) for value in (required_annual_amount, discretionary_annual_amount)
         )
@@ -36,9 +40,15 @@ class HouseholdExpensePlanRepository:
             to_rate_micros(value) for value in (required_annual_growth, discretionary_annual_growth)
         )
         if any(value < 0 for value in amounts):
-            raise ValueError("Annual household expenses cannot be negative")
+            raise ValidationError(
+                "input_annual_household_expenses_cannot_be_negative",
+                "Annual household expenses cannot be negative",
+            )
         if any(value < -1_000_000 for value in growth):
-            raise ValueError("Expense growth cannot reduce spending below zero")
+            raise ValidationError(
+                "input_expense_growth_cannot_reduce_spending_below_zero",
+                "Expense growth cannot reduce spending below zero",
+            )
         self._connection.execute(
             """INSERT INTO household_expense_plans(
                    scenario_id, start_year, required_annual_amount_cents,

@@ -7,6 +7,7 @@ import sqlite3
 
 from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.money import MoneyInput, from_cents, to_cents
+from domain.validation_error import ValidationError
 
 
 class AnnualTaxAssessmentRepository:
@@ -35,7 +36,9 @@ class AnnualTaxAssessmentRepository:
     ) -> AnnualTaxAssessment:
         code = jurisdiction.strip().upper()
         if code not in {"CA", "CA-QC"}:
-            raise ValueError("Unsupported assessment jurisdiction")
+            raise ValidationError(
+                "input_unsupported_assessment_jurisdiction", "Unsupported assessment jurisdiction"
+            )
         amounts = tuple(
             to_cents(value)
             for value in (
@@ -49,7 +52,10 @@ class AnnualTaxAssessmentRepository:
             )
         )
         if any(value < 0 for value in amounts[:6]):
-            raise ValueError("Assessment totals other than the balance cannot be negative")
+            raise ValidationError(
+                "input_assessment_totals_other_than_the_balance_cannot_be_negative",
+                "Assessment totals other than the balance cannot be negative",
+            )
         self._connection.execute(
             """INSERT INTO annual_tax_assessments(
                    person_id, tax_year, jurisdiction, issued_on, total_income_cents,

@@ -9,7 +9,9 @@ from flask import jsonify, request
 
 from repositories.person_repository import PersonRepository
 from web.dependencies import dependency
+from web.localization import error_data
 from web.model_blueprint import blueprint
+from web.route_values import required_field
 
 
 @blueprint.get("/api/model/people")
@@ -32,11 +34,11 @@ def add_person_route():
     try:
         with dependency("connect")() as connection:
             person = PersonRepository(connection).create(
-                str(payload["name"]), payload.get("birth_date")
+                str(required_field(payload, "name")), payload.get("birth_date")
             )
         return jsonify({"id": person.id}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.put("/api/model/people/<int:person_id>")
@@ -44,7 +46,9 @@ def update_person_route(person_id: int):
     payload = request.get_json(silent=True) or {}
     try:
         with dependency("connect")() as connection:
-            PersonRepository(connection).update_birth_date(person_id, str(payload["birth_date"]))
+            PersonRepository(connection).update_birth_date(
+                person_id, str(required_field(payload, "birth_date"))
+            )
         return jsonify({"updated": True})
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400

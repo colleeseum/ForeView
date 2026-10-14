@@ -17,6 +17,7 @@ from domain.money import (
     optional_storage_decimal,
     to_cents,
 )
+from domain.validation_error import ValidationError
 
 
 class AccountRepository:
@@ -405,7 +406,9 @@ class AccountRepository:
 
     def set_current_interest_rate(self, account_id: int, interest_rate: float | None) -> None:
         if interest_rate is not None and interest_rate < 0:
-            raise ValueError("Interest rate cannot be negative")
+            raise ValidationError(
+                "input_interest_rate_cannot_be_negative", "Interest rate cannot be negative"
+            )
         self._connection.execute(
             "UPDATE accounts SET current_interest_rate = ? WHERE id = ?",
             (interest_rate, account_id),
@@ -429,15 +432,18 @@ class AccountRepository:
         if asset_kind == "gic" and (not clean_number or clean_number.startswith("gic:")):
             clean_number = f"gic:{parent_account_id}:{clean_name}:{maturity_date or 'open'}"
         if not clean_number:
-            raise ValueError("Account number is required")
+            raise ValidationError("input_account_number_is_required", "Account number is required")
         return clean_name, clean_number
 
     @staticmethod
     def _validate(asset_kind: str | None, parent_account_id: int | None) -> None:
         if asset_kind is not None and asset_kind not in {"account", "gic"}:
-            raise ValueError("Unknown asset kind")
+            raise ValidationError("input_unknown_asset_kind", "Unknown asset kind")
         if asset_kind == "gic" and parent_account_id is None:
-            raise ValueError("A GIC must be linked to a parent account")
+            raise ValidationError(
+                "input_a_gic_must_be_linked_to_a_parent_account",
+                "A GIC must be linked to a parent account",
+            )
 
     @staticmethod
     def _tax_treatment(account_type: str) -> str:

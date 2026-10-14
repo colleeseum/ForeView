@@ -8,6 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from domain.projected_employment_year import ProjectedEmploymentYear
+from domain.validation_error import ValidationError
 from projection.public_rules import PublicRuleSet
 from projection.salary import EmploymentIncomeProjector, QuebecEmploymentTaxCalculator
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
@@ -39,10 +40,10 @@ class SalaryProjectionService:
         end_year: int,
     ) -> tuple[ProjectedEmploymentYear, ...]:
         if ScenarioRepository(self._connection).get(scenario_id) is None:
-            raise ValueError("Scenario does not exist")
+            raise ValidationError("input_scenario_does_not_exist", "Scenario does not exist")
         person = PersonRepository(self._connection).get(person_id)
         if person is None:
-            raise ValueError("Person does not exist")
+            raise ValidationError("input_person_does_not_exist", "Person does not exist")
         baseline = EmploymentBaselineRepository(self._connection).get_effective(
             person_id, f"{start_year}-12-31"
         )
@@ -50,7 +51,10 @@ class SalaryProjectionService:
             scenario_id, person_id
         )
         if settings is None:
-            raise ValueError("Save employment projection settings before projecting this person")
+            raise ValidationError(
+                "input_save_employment_projection_settings_before_projecting_this_person",
+                "Save employment projection settings before projecting this person",
+            )
         overrides = tuple(
             EmploymentProjectionOverrideRepository(self._connection).list_for_person(
                 scenario_id, person_id
@@ -59,14 +63,20 @@ class SalaryProjectionService:
         actuals = AnnualEmploymentActualRepository(self._connection).list_for_person(person_id)
         latest_actual = max(actuals, key=lambda item: item.tax_year) if actuals else None
         if latest_actual is None and baseline is None:
-            raise ValueError("Add a factual Income record before projecting this person")
+            raise ValidationError(
+                "input_add_a_factual_income_record_before_projecting_this_person",
+                "Add a factual Income record before projecting this person",
+            )
         if latest_actual is not None:
             starting_salary = latest_actual.salary_rate
             starting_year = latest_actual.tax_year
             province = latest_actual.province_of_residence
             if province is None:
                 if baseline is None:
-                    raise ValueError("Add a province of employment to the latest Income record")
+                    raise ValidationError(
+                        "input_add_a_province_of_employment_to_the_latest_income_record",
+                        "Add a province of employment to the latest Income record",
+                    )
                 province = baseline.province_of_employment
         else:
             if baseline is None:  # pragma: no cover - guarded above
@@ -153,15 +163,20 @@ class SalaryProjectionService:
             and package.rule_set.tax_year <= projection_year
         ]
         if not candidates:
-            raise ValueError(
-                f"No public rules are available for {jurisdiction} in {projection_year}"
+            raise ValidationError(
+                "input_no_public_rules_are_available_for_in",
+                f"No public rules are available for {jurisdiction} in {projection_year}",
+                detail0=jurisdiction,
+                detail1=projection_year,
             )
         package = max(candidates, key=lambda item: item.rule_set.tax_year)
         approval = PublicRuleApprovalRepository(self._connection).get(
             package.rule_set.rule_set_id, package.content_hash
         )
         if approval is None:
-            raise ValueError(
-                f"Approve public rules {package.rule_set.rule_set_id} before calculating"
+            raise ValidationError(
+                "input_approve_public_rules_before_calculating",
+                f"Approve public rules {package.rule_set.rule_set_id} before calculating",
+                detail0=package.rule_set.rule_set_id,
             )
         return package.rule_set, package.rule_set.tax_year != projection_year

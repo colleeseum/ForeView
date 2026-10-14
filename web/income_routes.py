@@ -13,6 +13,7 @@ from flask import Blueprint, jsonify, request
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.money import as_decimal
 from domain.parsed_tax_value import ParsedTaxValue
+from domain.validation_error import ValidationError
 from income_sources import income_source_registry
 from public_pension_sources import public_pension_source_registry
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
@@ -27,6 +28,8 @@ from services.income_tax_source_resolver import IncomeTaxSourceResolver
 from tax_notices import tax_notice_registry
 from web.correction_serialization import correction_revision_json
 from web.dependencies import dependency
+from web.localization import error_data, localized_api_error, provider_presentation
+from web.route_values import payload_integer, required_field
 
 blueprint = Blueprint("income", __name__)
 
@@ -36,7 +39,7 @@ def income_record():
     year = request.args.get("year", type=int)
     person_id = request.args.get("person_id", type=int)
     if person_id is None:
-        return jsonify({"error": "Person is required"}), 400
+        return localized_api_error("person_required")
     with dependency("connect")() as connection:
         people = PersonRepository(connection).list_all()
         repository = AnnualEmploymentActualRepository(connection)
@@ -145,14 +148,14 @@ def save_income_record(person_id: int, year: int):
             tax_values = tax_repository.list_for_document(person_id, year, "return", "CA")
         return jsonify(_record_json(record, tax_values))
     except (TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/income/import/preview")
 def preview_income_source():
     uploaded = request.files.get("file")
     if uploaded is None:
-        return jsonify({"error": "An income source PDF is required"}), 400
+        return localized_api_error("income_pdf_required")
     try:
         content = uploaded.read()
         content_hash = sha256(content).hexdigest()
@@ -264,7 +267,7 @@ def preview_income_source():
             }
         )
     except (TypeError, ValueError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/income/people/<int:person_id>/assessments")
@@ -274,9 +277,9 @@ def save_tax_assessment(person_id: int):
         with dependency("connect")() as connection:
             assessment = AnnualTaxAssessmentRepository(connection).upsert(
                 person_id,
-                int(payload["tax_year"]),
-                str(payload["jurisdiction"]),
-                str(payload["issued_on"]),
+                payload_integer(required_field(payload, "tax_year")),
+                str(required_field(payload, "jurisdiction")),
+                str(required_field(payload, "issued_on")),
                 total_income=_amount(payload, "total_income"),
                 net_income=_amount(payload, "net_income"),
                 taxable_income=_amount(payload, "taxable_income"),
@@ -284,38 +287,38 @@ def save_tax_assessment(person_id: int):
                 additional_contributions=_amount(payload, "additional_contributions"),
                 tax_withheld=_amount(payload, "tax_withheld"),
                 balance=_amount(payload, "balance"),
-                source=str(payload["source"]),
-                source_version=str(payload["source_version"]),
-                document_hash=str(payload["document_hash"]),
+                source=str(required_field(payload, "source")),
+                source_version=str(required_field(payload, "source_version")),
+                document_hash=str(required_field(payload, "document_hash")),
             )
             if payload.get("rrsp_effective_year") is not None:
                 RegisteredPlanRoomRepository(connection).upsert(
                     person_id,
                     "RRSP",
-                    int(payload["rrsp_effective_year"]),
-                    str(payload["issued_on"]),
+                    payload_integer(required_field(payload, "rrsp_effective_year")),
+                    str(required_field(payload, "issued_on")),
                     deduction_limit=_amount(payload, "rrsp_deduction_limit"),
                     unused_deduction_room=_amount(payload, "rrsp_unused_deduction_room"),
                     new_room=_amount(payload, "rrsp_new_room"),
                     unused_contributions=_amount(payload, "rrsp_unused_contributions"),
                     available_room=_amount(payload, "rrsp_available_room"),
-                    source=str(payload["source"]),
-                    source_version=str(payload["source_version"]),
+                    source=str(required_field(payload, "source")),
+                    source_version=str(required_field(payload, "source_version")),
                 )
             if "tax_values" in payload:
                 AnnualTaxValueRepository(connection).replace_document(
                     person_id,
-                    int(payload["tax_year"]),
+                    payload_integer(required_field(payload, "tax_year")),
                     "assessment",
-                    str(payload["jurisdiction"]),
-                    str(payload["source"]),
-                    str(payload["source_version"]),
-                    str(payload["document_hash"]),
+                    str(required_field(payload, "jurisdiction")),
+                    str(required_field(payload, "source")),
+                    str(required_field(payload, "source_version")),
+                    str(required_field(payload, "document_hash")),
                     _parsed_tax_values(payload.get("tax_values")),
                 )
         return jsonify(_assessment_json(assessment)), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/income/people/<int:person_id>/public-pension-statements")
@@ -324,36 +327,36 @@ def save_public_pension_statement(person_id: int):
     try:
         earnings = tuple(
             (
-                int(item["year"]),
-                as_decimal(item["qpp_earnings"]),
-                as_decimal(item["cpp_earnings"]),
-                str(item["status"]) if item.get("status") else None,
+                payload_integer(required_field(item, "year")),
+                as_decimal(required_field(item, "qpp_earnings")),
+                as_decimal(required_field(item, "cpp_earnings")),
+                str(required_field(item, "status")) if item.get("status") else None,
             )
-            for item in payload["earnings"]
+            for item in required_field(payload, "earnings")
         )
         estimates = tuple(
             (
-                str(item["contribution_assumption"]),
-                int(item["activation_age"]),
-                as_decimal(item["monthly_amount"]),
+                str(required_field(item, "contribution_assumption")),
+                payload_integer(required_field(item, "activation_age")),
+                as_decimal(required_field(item, "monthly_amount")),
             )
-            for item in payload["estimates"]
+            for item in required_field(payload, "estimates")
         )
         with dependency("connect")() as connection:
             repository = PublicPensionStatementRepository(connection)
             statement = repository.upsert(
                 person_id,
-                str(payload["issued_on"]),
-                str(payload["provider"]),
+                str(required_field(payload, "issued_on")),
+                str(required_field(payload, "provider")),
                 bool(payload.get("excludes_second_enhancement")),
-                str(payload["source_version"]),
-                str(payload["document_hash"]),
+                str(required_field(payload, "source_version")),
+                str(required_field(payload, "document_hash")),
                 earnings,
                 estimates,
             )
         return jsonify({"id": statement.id, "issued_on": statement.issued_on}), 201
     except (KeyError, TypeError, ValueError, sqlite3.IntegrityError) as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify(error_data(error)), 400
 
 
 @blueprint.post("/api/income/import/ufile/preview")
@@ -372,6 +375,9 @@ def income_sources():
                     "display_name": source.display_name,
                     "version": source.version,
                     "help_text": source.help_text,
+                    "presentation": provider_presentation(
+                        source.display_name, source.translations, help_text=source.help_text
+                    ),
                 }
                 for source in income_source_registry.providers
             ]
@@ -436,24 +442,26 @@ def _record_json(
 
 def _parsed_tax_values(raw_values: Any) -> tuple[ParsedTaxValue, ...]:
     if not isinstance(raw_values, list):
-        raise ValueError("Tax values must be a list")
+        raise ValidationError("input_tax_values_must_be_a_list", "Tax values must be a list")
     return tuple(
         ParsedTaxValue(
-            concept=str(item["concept"]),
-            description=str(item["description"]),
+            concept=str(required_field(item, "concept")),
+            description=str(required_field(item, "description")),
             reported_amount=(
-                as_decimal(item["reported_amount"])
+                as_decimal(required_field(item, "reported_amount"))
                 if item.get("reported_amount") is not None
                 else None
             ),
             determined_amount=(
-                as_decimal(item["determined_amount"])
+                as_decimal(required_field(item, "determined_amount"))
                 if item.get("determined_amount") is not None
                 else None
             ),
-            line_code=str(item["line_code"]) if item.get("line_code") else None,
+            line_code=str(required_field(item, "line_code")) if item.get("line_code") else None,
             effective_year=(
-                int(item["effective_year"]) if item.get("effective_year") is not None else None
+                payload_integer(required_field(item, "effective_year"))
+                if item.get("effective_year") is not None
+                else None
             ),
         )
         for item in raw_values

@@ -2,12 +2,17 @@
   "name": "retirement-model-browser",
   "private": true,
   "license": "PolyForm-Noncommercial-1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
+    "browser-install": "playwright install chromium",
     "test": "node --test tests/js/*.test.mjs",
     "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=96 --branches=80 --functions=93 --lines=96 npm test",
     "audit": "npm audit --audit-level=high"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "c8": "10.1.3",
     "jsdom": "^22.1.0"
   }

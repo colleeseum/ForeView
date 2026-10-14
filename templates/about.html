@@ -34,28 +34,28 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         <h2>{{ t('pages_server.about.income_modules') }}</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>{{ t('pages_server.common.module') }}</th><th>{{ t('pages_server.common.key') }}</th><th>{{ t('pages_server.common.version') }}</th></tr></thead>
-          <tbody>{% for source in income_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for source in income_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <section class="dashboard-panel">
         <h2>{{ t('pages_server.about.tax_modules') }}</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>{{ t('pages_server.common.module') }}</th><th>{{ t('pages_server.common.key') }}</th><th>{{ t('pages_server.common.version') }}</th></tr></thead>
-          <tbody>{% for source in tax_notice_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for source in tax_notice_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <section class="dashboard-panel">
         <h2>{{ t('pages_server.about.pension_modules') }}</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>{{ t('pages_server.common.module') }}</th><th>{{ t('pages_server.common.key') }}</th><th>{{ t('pages_server.common.version') }}</th></tr></thead>
-          <tbody>{% for source in public_pension_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for source in public_pension_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <section class="dashboard-panel">
         <h2>{{ t('pages_server.about.expense_modules') }}</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>{{ t('pages_server.common.module') }}</th><th>{{ t('pages_server.common.key') }}</th><th>{{ t('pages_server.common.version') }}</th></tr></thead>
-          <tbody>{% for source in expense_sources %}<tr><td>{{ source.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for source in expense_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <section class="dashboard-panel">

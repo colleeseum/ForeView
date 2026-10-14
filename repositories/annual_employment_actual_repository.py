@@ -7,6 +7,7 @@ import sqlite3
 
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.money import MoneyInput, from_cents, to_cents
+from domain.validation_error import ValidationError
 
 
 class AnnualEmploymentActualRepository:
@@ -49,13 +50,19 @@ class AnnualEmploymentActualRepository:
         source: str | None = None,
     ) -> AnnualEmploymentActual:
         if tax_year < 1900:
-            raise ValueError("Tax year must be 1900 or later")
+            raise ValidationError(
+                "input_tax_year_must_be_1900_or_later", "Tax year must be 1900 or later"
+            )
         province = province_of_residence.strip().upper()
         if province not in self._PROVINCES:
-            raise ValueError("Province of residence is required")
+            raise ValidationError(
+                "input_province_of_residence_is_required", "Province of residence is required"
+            )
         plan = payroll_plan.strip().upper() if payroll_plan else None
         if plan not in {None, "CPP", "QPP"}:
-            raise ValueError("Payroll plan must be CPP or QPP")
+            raise ValidationError(
+                "input_payroll_plan_must_be_cpp_or_qpp", "Payroll plan must be CPP or QPP"
+            )
         values = tuple(
             to_cents(value)
             for value in (
@@ -72,9 +79,15 @@ class AnnualEmploymentActualRepository:
             )
         )
         if any(value < 0 for value in values):
-            raise ValueError("Annual employment facts cannot be negative")
+            raise ValidationError(
+                "input_annual_employment_facts_cannot_be_negative",
+                "Annual employment facts cannot be negative",
+            )
         if values[1] > values[0]:
-            raise ValueError("Bonus cannot exceed employment income")
+            raise ValidationError(
+                "input_bonus_cannot_exceed_employment_income",
+                "Bonus cannot exceed employment income",
+            )
         self._connection.execute(
             """INSERT INTO annual_employment_actuals(
                    person_id, tax_year, salary_income_cents, bonus_cents, other_income_cents,

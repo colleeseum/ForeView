@@ -29,5 +29,14 @@ def provider() -> InstitutionProvider:
                 help_text=help_text,
             ),
         ),
-        help_topics=(HelpTopic("imports", "Achieva imports", help_text),),
+        help_topics=(
+            HelpTopic(
+                "imports",
+                "Achieva imports",
+                help_text,
+                translations={
+                    "fr-CA": {"title": "Importations Achieva", "body": "Relevés de CPG Achieva."}
+                },
+            ),
+        ),
     )

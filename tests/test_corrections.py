@@ -6,6 +6,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Iterator
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from flask import Flask
@@ -13,6 +14,7 @@ from flask import Flask
 from domain.annual_tax_value import AnnualTaxValue
 from domain.parsed_tax_value import ParsedTaxValue
 from domain.resolved_income_source import ResolvedIncomeSource
+from localization import LocalizationService
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.annual_tax_value_repository import AnnualTaxValueRepository
 from repositories.correction_repository import (
@@ -320,6 +322,7 @@ def test_snapshot_uses_latest_active_revision_and_ignores_tombstone(
 
 
 def test_correction_api_rejects_a_stale_expected_revision(
+    tmp_path: Path,
     database: sqlite3.Connection,
 ) -> None:
     AnnualTaxValueRepository(database).upsert_value(
@@ -338,6 +341,9 @@ def test_correction_api_rejects_a_stale_expected_revision(
         ),
     )
     app = Flask(__name__)
+    app.extensions["localization"] = LocalizationService(
+        Path(__file__).parents[1] / "localization", tmp_path
+    )
     app.register_blueprint(correction_blueprint)
     app.extensions["finance_connect"] = lambda: database
     client = app.test_client()
@@ -392,6 +398,7 @@ def test_correction_api_rejects_a_stale_expected_revision(
     ],
 )
 def test_correction_api_rejects_invalid_input_without_writing(
+    tmp_path: Path,
     database: sqlite3.Connection,
     changes: dict[str, object],
     message: str,
@@ -412,6 +419,9 @@ def test_correction_api_rejects_invalid_input_without_writing(
         ),
     )
     app = Flask(__name__)
+    app.extensions["localization"] = LocalizationService(
+        Path(__file__).parents[1] / "localization", tmp_path
+    )
     app.register_blueprint(correction_blueprint)
     app.extensions["finance_connect"] = lambda: database
     payload: dict[str, object] = {
@@ -432,6 +442,7 @@ def test_correction_api_rejects_invalid_input_without_writing(
 
 
 def test_correction_api_rejects_invalid_edit_without_appending_revision(
+    tmp_path: Path,
     database: sqlite3.Connection,
 ) -> None:
     repository = CorrectionRepository(database)
@@ -446,6 +457,9 @@ def test_correction_api_rejects_invalid_edit_without_appending_revision(
     )
     database.commit()
     app = Flask(__name__)
+    app.extensions["localization"] = LocalizationService(
+        Path(__file__).parents[1] / "localization", tmp_path
+    )
     app.register_blueprint(correction_blueprint)
     app.extensions["finance_connect"] = lambda: database
 
@@ -463,6 +477,7 @@ def test_correction_api_rejects_invalid_edit_without_appending_revision(
 
 
 def test_correction_api_derives_review_status_and_confirmation_refreshes_source(
+    tmp_path: Path,
     database: sqlite3.Connection,
 ) -> None:
     tax_values = AnnualTaxValueRepository(database)
@@ -482,6 +497,9 @@ def test_correction_api_derives_review_status_and_confirmation_refreshes_source(
         ),
     )
     app = Flask(__name__)
+    app.extensions["localization"] = LocalizationService(
+        Path(__file__).parents[1] / "localization", tmp_path
+    )
     app.register_blueprint(correction_blueprint)
     app.extensions["finance_connect"] = lambda: database
     client = app.test_client()
@@ -565,6 +583,7 @@ def test_correction_api_derives_review_status_and_confirmation_refreshes_source(
 
 
 def test_correction_api_accepts_annual_record_fallback(
+    tmp_path: Path,
     database: sqlite3.Connection,
 ) -> None:
     AnnualEmploymentActualRepository(database).upsert(
@@ -575,6 +594,9 @@ def test_correction_api_accepts_annual_record_fallback(
         source="Manual annual record",
     )
     app = Flask(__name__)
+    app.extensions["localization"] = LocalizationService(
+        Path(__file__).parents[1] / "localization", tmp_path
+    )
     app.register_blueprint(correction_blueprint)
     app.register_blueprint(income_blueprint)
     app.extensions["finance_connect"] = lambda: database

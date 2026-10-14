@@ -7,6 +7,7 @@ import hashlib
 import re
 import sqlite3
 
+from domain.validation_error import ValidationError
 from ingestion.csv_format import csv_date, parse_csv_transactions
 from ingestion.reconciled_period_guard import ReconciledPeriodGuard
 from ingestion.recorded_transaction_matcher import RecordedTransactionMatcher
@@ -37,7 +38,7 @@ class CsvImportService:
             return already_imported(existing)
         account = self._accounts.get(account_id)
         if account is None:
-            raise ValueError("Account not found")
+            raise ValidationError("input_account_not_found", "Account not found")
         rows = None
         for parser in institution_registry().csv_parsers(account.institution):
             rows = parser(content, account.account_number, filename)

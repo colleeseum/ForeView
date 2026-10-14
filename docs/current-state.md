@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-11
+Updated: 2026-10-14
 
 ## Development focus
 
@@ -46,11 +46,25 @@ A registry-backed localization foundation supports English and French Canadian m
 declared locale fallback chains, text direction, and a language preference stored with each
 runtime. The shared side menu, selected server-rendered pages, and primary browser-generated
 workflows use it through a shared browser catalog contract. Help uses expandable categories with
-page and contextual branch selection, searchable category paths, and provider metadata. Remaining
-localization work includes help content and broader message translation coverage. Shared browser
+page and contextual branch selection, searchable category paths, and provider metadata. Shared browser
 and server value formatters cover financial dates, money, quantities and percentages, including
 expenses, public tax rules, account details and document dates, with locale-switching tests that
 verify unchanged factual values.
+Localization validation now includes persisted language changes across primary-page navigation,
+synthetic RTL registration and browser fallback, unchanged financial read models, and logical
+inline layout rules. Real Chromium acceptance now exercises English/French create/edit/import
+workflows, calculated-result invariance, RTL placement, focus, Escape and mobile layout against
+an isolated synthetic runtime. See `docs/localization.md` for the acceptance scope and exclusions.
+Import-help buttons resolve provider display translations with per-field language metadata.
+Built-in tax, pension, expense and institution import instructions have French translations,
+shared with full help and retained as language-tagged fields in the transaction dialog.
+Explicit request validations now expose stable error codes, localized text and resolved language;
+owned account, income, expense, real-estate, projection and built-in parser validations use that
+contract. External and operational diagnostics retain their original wording.
+Factual-correction validation and concurrency/not-found failures now expose localized error codes,
+with bilingual lifecycle tests preserving revision history and underlying records.
+Expense validation and source-detection failures now share localized JSON/form error handling;
+bilingual workflow tests verify rejected-request immutability and retained evidence/audit notes.
 
 ## Intentional or known limitations
 

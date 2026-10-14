@@ -12,6 +12,7 @@ from decimal import Decimal
 from typing import Any
 
 from domain.expense import ExpenseAssociationKind, ExpensePeriodKind, ExpenseRecord
+from domain.validation_error import ValidationError
 from expense_sources.expense_source_provider import ExpenseSourceProvider
 from expense_sources.registry import ExpenseSourceRegistry, expense_source_registry
 from ingestion.statement_import import content_hash
@@ -123,7 +124,9 @@ class ExpenseImportService:
             self._registry.get(provider_key) if provider_key else self._registry.detect(content)
         )
         if not provider.detects(content):
-            raise ValueError(
-                f"The PDF does not match the expected format for {provider.display_name}"
+            raise ValidationError(
+                "expense_source_mismatch",
+                f"The PDF does not match the expected format for {provider.display_name}",
+                provider=provider.display_name,
             )
         return provider

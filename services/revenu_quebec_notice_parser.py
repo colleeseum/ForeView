@@ -13,6 +13,7 @@ from pdfplumber.utils.exceptions import PdfminerException
 
 from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_tax_value import ParsedTaxValue
+from domain.validation_error import ValidationError
 
 
 class RevenuQuebecNoticeParser:
@@ -130,7 +131,11 @@ class RevenuQuebecNoticeParser:
     def _required(text: str, pattern: str, label: str) -> str:
         match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE)
         if not match:
-            raise ValueError(f"Revenu Québec notice {label} was not found")
+            raise ValidationError(
+                "input_revenu_qu_bec_notice_was_not_found",
+                f"Revenu Québec notice {label} was not found",
+                detail0=label,
+            )
         return match.group(1)
 
     def _line(
@@ -146,13 +151,21 @@ class RevenuQuebecNoticeParser:
             None,
         )
         if matching is None:
-            raise ValueError(f"Revenu Québec notice line {number} was not found")
+            raise ValidationError(
+                "input_revenu_qu_bec_notice_line_was_not_found",
+                f"Revenu Québec notice line {number} was not found",
+                detail0=number,
+            )
         selected = lines[matching]
         if multiline and matching + 1 < len(lines):
             selected += " " + lines[matching + 1]
         values = re.findall(r"(?<!\d)([\d,]+\.\d{2})(?!\d)", selected)
         if not values:
-            raise ValueError(f"Revenu Québec notice line {number} amount was not found")
+            raise ValidationError(
+                "input_revenu_qu_bec_notice_line_amount_was_not_found",
+                f"Revenu Québec notice line {number} amount was not found",
+                detail0=number,
+            )
         return self._amount(values[-1])
 
     def _line_amounts(self, text: str, number: str) -> tuple[Decimal, ...]:

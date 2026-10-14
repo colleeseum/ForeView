@@ -20,6 +20,8 @@ from domain.expense import (
     ExpenseYearSummary,
 )
 from domain.money import MoneyInput, from_cents, to_cents
+from domain.validation_error import ValidationError
+from domain.validation_lookup_error import ValidationLookupError
 
 
 class ExpenseRepository:
@@ -31,9 +33,9 @@ class ExpenseRepository:
     def create_category(self, name: str, classification: ExpenseClassification) -> ExpenseCategory:
         name = name.strip()
         if not name:
-            raise ValueError("Expense category name is required")
+            raise ValidationError("expense_category_name", "Expense category name is required")
         if classification not in ("required", "discretionary"):
-            raise ValueError("Invalid expense classification")
+            raise ValidationError("expense_classification", "Invalid expense classification")
         cursor = self._connection.execute(
             "INSERT INTO expense_categories(name, classification) VALUES (?, ?)",
             (name, classification),
@@ -48,7 +50,11 @@ class ExpenseRepository:
             (category_id,),
         ).fetchone()
         if row is None:
-            raise LookupError(f"Expense category {category_id} not found")
+            raise ValidationLookupError(
+                "expense_category_missing",
+                f"Expense category {category_id} not found",
+                identifier=category_id,
+            )
         return ExpenseCategory(int(row[0]), str(row[1]), str(row[2]), bool(row[3]))  # type: ignore[arg-type]
 
     def list_categories(self, *, include_inactive: bool = False) -> list[ExpenseCategory]:
@@ -67,7 +73,7 @@ class ExpenseRepository:
     def rename_category(self, category_id: int, name: str) -> ExpenseCategory:
         name = name.strip()
         if not name:
-            raise ValueError("Expense category name is required")
+            raise ValidationError("expense_category_name", "Expense category name is required")
         self._connection.execute(
             "UPDATE expense_categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
             (name, category_id),
@@ -78,7 +84,7 @@ class ExpenseRepository:
         self, category_id: int, classification: ExpenseClassification
     ) -> ExpenseCategory:
         if classification not in ("required", "discretionary"):
-            raise ValueError("Invalid expense classification")
+            raise ValidationError("expense_classification", "Invalid expense classification")
         self.get_category(category_id)
         self._connection.execute(
             "UPDATE expense_categories SET classification = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
@@ -139,13 +145,19 @@ class ExpenseRepository:
         association_id: int | None = None,
     ) -> ExpenseRecord:
         if not parser_name.strip():
-            raise ValueError("Imported expenses require parser provenance")
+            raise ValidationError(
+                "expense_provenance", "Imported expenses require parser provenance"
+            )
         source = self._connection.execute(
             "SELECT filename, file_hash FROM import_batches WHERE id = ?",
             (source_document_id,),
         ).fetchone()
         if source is None:
-            raise LookupError(f"Import batch {source_document_id} not found")
+            raise ValidationLookupError(
+                "expense_batch_missing",
+                f"Import batch {source_document_id} not found",
+                identifier=source_document_id,
+            )
         return self._create_expense(
             name=name,
             category_id=category_id,
@@ -183,17 +195,24 @@ class ExpenseRepository:
     ) -> ExpenseRecord:
         name = name.strip()
         if not name:
-            raise ValueError("Expense name is required")
+            raise ValidationError("expense_name", "Expense name is required")
         if period_end < period_start:
-            raise ValueError("Expense period end cannot precede start")
+            raise ValidationError("expense_period_order", "Expense period end cannot precede start")
         category = self.get_category(category_id)
         if not category.is_active:
-            raise ValueError("Cannot add an expense to an archived category")
+            raise ValidationError(
+                "expense_category_archived", "Cannot add an expense to an archived category"
+            )
         self._validate_association(association_kind, association_id)
         self._validate_period_kind(period_kind)
-        amount_cents = to_cents(amount)
+        try:
+            amount_cents = to_cents(amount)
+        except ValueError as error:
+            raise ValidationError(
+                "expense_amount_invalid", str(error), amount=repr(amount)
+            ) from error
         if amount_cents < 0:
-            raise ValueError("Expense amount cannot be negative")
+            raise ValidationError("expense_amount_negative", "Expense amount cannot be negative")
         identity_id = self._get_or_create_identity(
             name, category_id, association_kind, association_id
         )
@@ -252,10 +271,14 @@ class ExpenseRepository:
     ) -> None:
         if association_kind == "household":
             if association_id is not None:
-                raise ValueError("Household expenses cannot have an association id")
+                raise ValidationError(
+                    "expense_household_id", "Household expenses cannot have an association id"
+                )
             return
         if association_id is None:
-            raise ValueError("Associated expenses require an association id")
+            raise ValidationError(
+                "expense_association_id", "Associated expenses require an association id"
+            )
         if association_kind == "person":
             exists = self._connection.execute(
                 "SELECT 1 FROM people WHERE id = ?", (association_id,)
@@ -269,14 +292,19 @@ class ExpenseRepository:
                 "SELECT 1 FROM real_estate_assets WHERE id = ?", (association_id,)
             ).fetchone()
         else:
-            raise ValueError("Invalid expense association kind")
+            raise ValidationError("expense_association_kind", "Invalid expense association kind")
         if exists is None:
-            raise ValueError(f"Unknown {association_kind} association {association_id}")
+            raise ValidationError(
+                "expense_association_missing",
+                f"Unknown {association_kind} association {association_id}",
+                kind=association_kind,
+                identifier=association_id,
+            )
 
     @staticmethod
     def _validate_period_kind(period_kind: ExpensePeriodKind) -> None:
         if period_kind not in ("annual_or_one_time", "recurring_statement"):
-            raise ValueError("Invalid expense period kind")
+            raise ValidationError("expense_period_kind", "Invalid expense period kind")
 
     def _overlapping_ids(
         self,
@@ -346,7 +374,11 @@ class ExpenseRepository:
             (expense_id,),
         ).fetchone()
         if row is None:
-            raise LookupError(f"Expense record {expense_id} not found")
+            raise ValidationLookupError(
+                "expense_record_missing",
+                f"Expense record {expense_id} not found",
+                identifier=expense_id,
+            )
         return ExpenseRecord(
             id=int(row[0]),
             identity_id=int(row[20]),
@@ -413,19 +445,28 @@ class ExpenseRepository:
     ) -> ExpenseRecord:
         current = self.get_expense(expense_id)
         if current.source_kind != "manual":
-            raise ValueError("Imported expense evidence cannot be edited manually")
+            raise ValidationError(
+                "expense_imported_edit", "Imported expense evidence cannot be edited manually"
+            )
         if not name.strip():
-            raise ValueError("Expense name is required")
+            raise ValidationError("expense_name", "Expense name is required")
         if period_end < period_start:
-            raise ValueError("Expense period end cannot precede start")
+            raise ValidationError("expense_period_order", "Expense period end cannot precede start")
         category = self.get_category(category_id)
         if not category.is_active and category_id != current.category_id:
-            raise ValueError("Cannot move an expense to an archived category")
+            raise ValidationError(
+                "expense_category_move_archived", "Cannot move an expense to an archived category"
+            )
         self._validate_association(association_kind, association_id)
         self._validate_period_kind(period_kind)
-        amount_cents = to_cents(amount)
+        try:
+            amount_cents = to_cents(amount)
+        except ValueError as error:
+            raise ValidationError(
+                "expense_amount_invalid", str(error), amount=repr(amount)
+            ) from error
         if amount_cents < 0:
-            raise ValueError("Expense amount cannot be negative")
+            raise ValidationError("expense_amount_negative", "Expense amount cannot be negative")
         identity_id = self._get_or_create_identity(
             name, category_id, association_kind, association_id
         )
@@ -490,7 +531,9 @@ class ExpenseRepository:
 
     def resolve_overlap(self, expense_id: int, *, include: bool, note: str) -> ExpenseRecord:
         if not note.strip():
-            raise ValueError("Overlap resolution requires an audit note")
+            raise ValidationError(
+                "expense_overlap_note", "Overlap resolution requires an audit note"
+            )
         self.get_expense(expense_id)
         status = "resolved_include" if include else "resolved_exclude"
         self._connection.execute(
@@ -529,7 +572,9 @@ class ExpenseRepository:
 
     def totals_for_year(self, year: int) -> ExpenseYearSummary:
         if year < 1900 or year > 9999:
-            raise ValueError("Expense summary year must be between 1900 and 9999")
+            raise ValidationError(
+                "expense_summary_year", "Expense summary year must be between 1900 and 9999"
+            )
         records = self.list_expenses(year=year)
         if not records:
             return {

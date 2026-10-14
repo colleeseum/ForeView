@@ -79,6 +79,12 @@ def provider() -> InstitutionProvider:
                 "RBC imports",
                 "RBC deposit statements, TFSA investment statements, GIC transaction "
                 "histories, and CPG maturity notices.",
+                translations={
+                    "fr-CA": {
+                        "title": "Importations RBC",
+                        "body": "Relevés de dépôt RBC, relevés de placements CELI, historiques de transactions CPG et avis d’échéance CPG.",
+                    }
+                },
             ),
         ),
     )

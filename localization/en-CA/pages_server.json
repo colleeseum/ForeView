@@ -76,6 +76,9 @@
     "step_values": "3. Baseline values",
     "step_scenario": "4. Scenario",
     "institution_example": "Questrade or EQ",
+    "person_example": "Alex Example",
+    "gic_example": "RBC GIC 1",
+    "unsupported_locale": "Unsupported language selection.",
     "account_number_placeholder": "Required bank or broker number",
     "baseline_name": "Baseline 2026"
   },
@@ -315,6 +318,8 @@
     "cash_flow": "Cash flow analysis",
     "cash_flow_help": "Once transactions are imported, this view will compare the last 12 months with the preceding period.",
     "import_title": "Import PDF or CSV",
+    "formats_intro": "Supported formats include:",
+    "csv_supported": "Standard Date/Amount CSV files are also supported.",
     "bank_documents": "How to get bank documents",
     "select_files": "Select files",
     "select_directory": "Or select a directory",

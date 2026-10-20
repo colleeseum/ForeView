@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {t, locale} from './i18n.mjs';
+import {t, locale} from './shared/i18n.mjs';
 
 async function jsonResponse(response) {
   const data = await response.json();

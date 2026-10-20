@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {escapeHtml} from './html.mjs';
-import {t, locale} from './i18n.mjs';
-import {formatMoneyDollars, formatPercent} from './locale-format.mjs';
-import {formSignature} from './form-state.mjs';
-import {incomeSourceLabel} from './income-source-label.mjs';
+import {escapeHtml} from './shared/html.mjs';
+import {t, locale} from './shared/i18n.mjs';
+import {formatMoneyDollars, formatPercent} from './shared/locale-format.mjs';
+import {formSignature} from './shared/form-state.mjs';
+import {incomeSourceLabel} from './shared/income-source-label.mjs';
 
 const elements = {
   scenario: document.querySelector('#salary-scenario'),

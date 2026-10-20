@@ -816,7 +816,7 @@ class AppRouteTests(unittest.TestCase):
             "button-action.mjs",
             "connections.mjs",
             "dashboard.mjs",
-            "html.mjs",
+            "shared/html.mjs",
             "latest-request.mjs",
             "setup-values.mjs",
             "setup.mjs",
@@ -830,7 +830,7 @@ class AppRouteTests(unittest.TestCase):
             "accounts-real-estate.mjs",
             "accounts-render.mjs",
             "accounts-state.mjs",
-            "form-state.mjs",
+            "shared/form-state.mjs",
             "gic-dialog.mjs",
             "ownership-fields.mjs",
             "salary-projection.mjs",
@@ -842,6 +842,28 @@ class AppRouteTests(unittest.TestCase):
                     self.assertIn("javascript", response.content_type)
                 finally:
                     response.close()
+
+    def test_shared_browser_modules_use_only_canonical_nested_urls(self):
+        for module in (
+            "account-types",
+            "form-state",
+            "html",
+            "i18n",
+            "income-source-label",
+            "locale-format",
+        ):
+            with self.subTest(module=module):
+                response = self.client.get(f"/static/shared/{module}.mjs")
+                try:
+                    self.assertEqual(response.status_code, 200)
+                    self.assertIn("javascript", response.content_type)
+                finally:
+                    response.close()
+                old_response = self.client.get(f"/static/{module}.mjs")
+                try:
+                    self.assertEqual(old_response.status_code, 404)
+                finally:
+                    old_response.close()
 
     def test_setup_exposes_browser_localization_before_its_module(self):
         self.app.extensions["localization"].select("fr-CA")

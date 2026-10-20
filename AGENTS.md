@@ -95,6 +95,15 @@ For substantial tasks, do not work silently for long periods.
   fixes, unless the request explicitly limits the work to analysis. Merging still requires
   an explicit request. Preserve unrelated work and report any blocker before publishing.
 - Start substantial feature and defect work from an issue in the authoritative GitHub Project.
+- Keep implementation issues atomic: one cohesive, independently reviewable outcome with explicit
+  acceptance criteria, normally delivered by one pull request. Use parent issues for broader work
+  and create a sub-issue for each planned PR-sized batch before implementation. Explain exceptions
+  rather than silently spreading one implementation issue across multiple PRs. Close a leaf issue
+  only after its completing PR is merged; close its parent after all required children are complete.
+- Whenever creating an issue, including a sub-issue, add it to the authoritative GitHub Project
+  as part of the same workflow. Set an appropriate Project status and link its parent when
+  applicable. Verify Project membership; report any failure instead of claiming the issue is
+  fully tracked.
 - Include the roadmap identifier in the branch name, for example
   `feature/inc-10-projection-input`.
 - Include both the roadmap identifier and GitHub issue number in commit subjects, for example

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
-import {configureLocalization} from '../../static/i18n.mjs';
+import {configureLocalization} from '../../static/shared/i18n.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
 
 test('synthetic RTL dashboard uses registered fallback and preserves source evidence', async () => {

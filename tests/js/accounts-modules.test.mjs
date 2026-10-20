@@ -9,11 +9,11 @@ import {
   htmlWithLanguageSpans,
   languageSpan,
   sourceTextSpan,
-} from '../../static/html.mjs';
+} from '../../static/shared/html.mjs';
 import {createLatestRequestGate} from '../../static/latest-request.mjs';
 
 import {isSecurityAccount, money, ownerDetails} from '../../static/accounts-format.mjs';
-import {formSignature, showError} from '../../static/form-state.mjs';
+import {formSignature, showError} from '../../static/shared/form-state.mjs';
 import {editableAccountValues} from '../../static/setup-values.mjs';
 import {runButtonAction} from '../../static/button-action.mjs';
 
@@ -37,7 +37,7 @@ import {
 } from '../../static/transactions-render.mjs';
 import {importMessage} from '../../static/transaction-import-message.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
-import {formatMoneyDollars} from '../../static/locale-format.mjs';
+import {formatMoneyDollars} from '../../static/shared/locale-format.mjs';
 
 configureTestLocalization();
 

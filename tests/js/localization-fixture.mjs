@@ -3,7 +3,7 @@
 
 import {readFileSync} from 'node:fs';
 
-import {configureLocalization} from '../../static/i18n.mjs';
+import {configureLocalization} from '../../static/shared/i18n.mjs';
 
 const catalogs = {
   'en-CA': JSON.parse(readFileSync(new URL('../../localization/en-CA/browser.json', import.meta.url))),

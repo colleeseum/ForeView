@@ -6,7 +6,7 @@ import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
 import {transactionsTableHtml} from '../../static/transactions-render.mjs';
-import {formatDate, formatMoneyDollars} from '../../static/locale-format.mjs';
+import {formatDate, formatMoneyDollars} from '../../static/shared/locale-format.mjs';
 
 test('transaction table keeps canonical openings and malformed evidence in semantic order', () => {
   configureTestLocalization();

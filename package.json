@@ -8,7 +8,7 @@
   "scripts": {
     "browser-install": "playwright install chromium",
     "test": "node --test tests/js/*.test.mjs",
-    "coverage": "c8 --all --include='static/*.mjs' --reporter=text --reporter=lcov --check-coverage --statements=96 --branches=80 --functions=93 --lines=96 npm test",
+    "coverage": "c8 --all --include='static/**/*.mjs' --reporter=text --reporter=lcov --reporter=json --check-coverage --statements=96 --branches=80 --functions=93 --lines=96 npm test && node scripts/check-browser-coverage.mjs",
     "audit": "npm audit --audit-level=high"
   },
   "devDependencies": {

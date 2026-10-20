@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 
 async function translator(config) {
   globalThis.document = {querySelector: () => ({textContent: JSON.stringify(config)})};
-  return import(`../../static/i18n.mjs?case=${Math.random()}`);
+  return import(`../../static/shared/i18n.mjs?case=${Math.random()}`);
 }
 
 test('browser localization selects French, interpolates values and falls back', async () => {

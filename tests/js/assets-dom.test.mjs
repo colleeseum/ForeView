@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
-import {formatMoneyDollars, formatDate, formatNumber, formatPercent} from '../../static/locale-format.mjs';
+import {formatMoneyDollars, formatDate, formatNumber, formatPercent} from '../../static/shared/locale-format.mjs';
 
 function installDom() {
 configureTestLocalization();

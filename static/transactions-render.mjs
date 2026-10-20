@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {escapeHtml, sourceTextSpan} from './html.mjs';
-import {t} from './i18n.mjs';
-import {calendarDateSortKey, formatDate, formatMoneyDollars} from './locale-format.mjs';
+import {escapeHtml, sourceTextSpan} from './shared/html.mjs';
+import {t} from './shared/i18n.mjs';
+import {calendarDateSortKey, formatDate, formatMoneyDollars} from './shared/locale-format.mjs';
 
 const money = (value) => value == null ? '' : formatMoneyDollars(value);
 

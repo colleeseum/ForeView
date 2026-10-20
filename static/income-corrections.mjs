@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {formSignature} from './form-state.mjs';
-import {escapeHtml, htmlWithLanguageSpans} from './html.mjs';
-import {t, locale} from './i18n.mjs';
-import {incomeSourceLabel} from './income-source-label.mjs';
+import {formSignature} from './shared/form-state.mjs';
+import {escapeHtml, htmlWithLanguageSpans} from './shared/html.mjs';
+import {t, locale} from './shared/i18n.mjs';
+import {incomeSourceLabel} from './shared/income-source-label.mjs';
 
 let elements = null;
 

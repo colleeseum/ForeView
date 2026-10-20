@@ -109,5 +109,7 @@ The authoritative priorities, execution order, and progress are maintained in th
 implementation state and intentional limitations without duplicating the changing roadmap.
 
 A dependency-based organization proposal for ARCH-01A (#69) is documented in
-[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). No code has moved; target paths and
-compatibility policy require maintainer agreement before implementation batches.
+[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). ARCH-01B-1 (#76), batch 70-1, moves the six
+shared browser modules under `static/shared/` and updates consumers and recursive syntax/coverage checks.
+Remaining browser, service and synthetic-tool batches are not implemented. The maintainer approved
+internal path changes without compatibility aliases; deployment requires a full browser reload.

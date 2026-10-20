@@ -51,6 +51,18 @@ duplicating message text.
 Reason: server-rendered and dynamically generated interface text must not diverge in language or
 fallback behavior, and additional locales should not require feature-specific code changes.
 
+## Repository organization uses canonical internal paths
+
+The ARCH-01 move batches use the agreed internal module and asset paths without temporary
+compatibility aliases or root launchers. Every tracked caller must change atomically with its
+batch; deployments require a full browser reload. Old static URLs and internal Python imports
+are not a supported extension API. Existing financial data, public HTTP APIs, provider identities
+and applied migrations remain unchanged.
+
+Reason: the maintainer explicitly chose policy 2 in the organization plan rather than retaining
+duplicate paths. This is a scoped approval of internal path changes, not general permission to
+break persisted data or unrelated interfaces.
+
 ## Persisted dates are locale and calendar independent
 
 Calendar dates stored in the database use the ISO 8601 date-only form `YYYY-MM-DD`, interpreted in

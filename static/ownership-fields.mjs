@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {escapeHtml} from './html.mjs';
+import {escapeHtml} from './shared/html.mjs';
 
 function shareInput(container, ownerId) {
   return container.querySelector(`[data-owner-share="${ownerId}"]`);

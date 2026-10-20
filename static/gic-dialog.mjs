@@ -3,7 +3,7 @@
 
 import {saveJson} from './accounts-api.mjs';
 import {assetState} from './accounts-state.mjs';
-import {showError} from './form-state.mjs';
+import {showError} from './shared/form-state.mjs';
 
 const dialog = document.querySelector('#subaccount-dialog');
 const form = document.querySelector('#subaccount-dialog-form');

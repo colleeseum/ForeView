@@ -5,7 +5,8 @@ target-state design.
 
 The proposed repository organization work is analyzed separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). That inventory and move map require
-maintainer approval; the current layout described here has not been relocated.
+maintainer approval for each batch. The six shared browser modules have moved under
+`static/shared/`; other proposed moves remain unimplemented.
 
 ## System shape
 
@@ -90,9 +91,12 @@ from focused account, people, real-estate, reporting, and transaction route modu
 blueprints own pages, dashboards, income records, public rules, help, institutions, and employment
 projection.
 
-`templates/` contains server-rendered HTML. `static/*.mjs` contains framework-free browser modules,
+`templates/` contains server-rendered HTML. `static/` contains framework-free browser modules,
 with reusable modules for API calls, rendering, form state, dialogs, ownership, and help. Browser
-tests use Node's test runner and jsdom.
+tests use Node's test runner and jsdom. Shared localization, value formatting, HTML, form state,
+account-type labels and income-source labels live under `static/shared/`. Feature modules still
+remain at the static root until their respective relocation batches land. Syntax and coverage
+checks traverse browser modules recursively and verify executed coverage for every module.
 
 The shared help API combines core articles and provider contributions under stable category IDs.
 The help drawer renders expandable category ancestry, preserves category paths in search, and
@@ -105,7 +109,7 @@ category hierarchy, not the lowest article order across unrelated categories.
 deterministic locale fallback chains, and a per-runtime language preference. Flask exposes the
 selected locale, text direction, supported locales, translation function, and every browser
 catalog required by the selected locale's fallback chain to templates. Framework-free browser
-modules use the shared `static/i18n.mjs` contract for lookup, interpolation, deterministic
+modules use the shared `static/shared/i18n.mjs` contract for lookup, interpolation, deterministic
 fallback, and visible missing-key markers. The browser catalogs cover the primary dynamic
 workflows; core help navigation, tooltips, and guidance use locale catalogs with per-field
 fallback and resolved-language metadata. Provider help uses optional per-provider locale

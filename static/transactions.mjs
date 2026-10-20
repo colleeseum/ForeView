@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {accountTypeLabel} from './account-types.mjs';
-import {escapeHtml} from './html.mjs';
+import {accountTypeLabel} from './shared/account-types.mjs';
+import {escapeHtml} from './shared/html.mjs';
 import {createLatestRequestGate} from './latest-request.mjs';
-import {t, locale} from './i18n.mjs';
-import {calendarDateSortKey, formatDate, formatMoneyDollars} from './locale-format.mjs';
+import {t, locale} from './shared/i18n.mjs';
+import {calendarDateSortKey, formatDate, formatMoneyDollars} from './shared/locale-format.mjs';
 import {importMessage} from './transaction-import-message.mjs';
 import {importHistoryHtml, transactionsTableHtml} from './transactions-render.mjs';
 

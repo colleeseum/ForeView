@@ -30,7 +30,7 @@ lint:
 	$(PYTHON) -m ruff check .
 
 javascript:
-	@for file in static/*.mjs; do node --check $$file || exit 1; done
+	node scripts/check-browser-syntax.mjs
 	npm test
 
 javascript-coverage:

@@ -1,6 +1,6 @@
 # Locale-aware value presentation (UX-02E initial contract)
 
-Use `static/locale-format.mjs` at browser presentation boundaries. Its helpers use
+Use `static/shared/locale-format.mjs` at browser presentation boundaries. Its helpers use
 the selected locale from `i18n.mjs`, or an explicit locale for tests and special cases.
 
 - `formatDate(isoDate)`: calendar-only ISO `YYYY-MM-DD` input; UTC formatting prevents

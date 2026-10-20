@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
-import {formatDate} from '../../static/locale-format.mjs';
+import {formatDate} from '../../static/shared/locale-format.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));

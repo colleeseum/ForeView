@@ -4,7 +4,7 @@
 import {saveJson} from './accounts-api.mjs';
 import {ownerDetails} from './accounts-format.mjs';
 import {assetState} from './accounts-state.mjs';
-import {formSignature, showError} from './form-state.mjs';
+import {formSignature, showError} from './shared/form-state.mjs';
 import {ownershipSignature, renderOwnershipFields, selectedOwners} from './ownership-fields.mjs';
 
 const dialog = document.querySelector('#account-dialog');

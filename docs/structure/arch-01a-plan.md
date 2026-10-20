@@ -304,14 +304,17 @@ names, discovery defaults, provider factories and connection-blueprint registrat
 No CSP policy or JS bundler path assumptions were found in tracked configuration. This is an
 observation of this revision, not a promise about deployment outside the repository.
 
-## Compatibility approval gate
+## Compatibility policy
 
 Module and asset paths are changing even though financial/UI behavior must not change.
 Repository evidence does not establish whether external plugins import `services.*`, or whether
 maintainers require already-open/cached pages to keep loading old static module URLs. Synthetic
 tools also have root import and CLI paths whose compatibility must be considered explicitly.
 
-Before #70/#71/#75, choose and record one of these policies:
+On 2026-10-14 the maintainer approved policy 2 for #70/#71/#75: use canonical new internal
+paths without compatibility aliases, update tracked consumers atomically in each batch, and
+require a full browser reload on deployment. This does not change persisted data or public APIs.
+The alternatives considered were:
 
 1. Retain old paths temporarily with tested ES re-exports/entrypoint loaders and identity-preserving
    Python module aliases. Update tracked consumers to canonical new paths. Verify one module/state
@@ -322,15 +325,21 @@ Before #70/#71/#75, choose and record one of these policies:
    consumers must be rewritten atomically per batch, and deployment must require a full browser
    reload. Do not claim undocumented external import compatibility.
 
-The conservative recommendation is policy 1 unless the maintainer confirms these paths are
-repository-internal. Implementation of the alias mechanism itself belongs in the relevant move PR,
-with tests, not in this planning issue. No compatibility policy is approved by this document.
+Policy 1 was the conservative proposal before maintainer agreement. Policy 2 is now selected;
+do not add compatibility files in these move batches. The pinned evidence snapshots remain a
+record of the pre-move revision, not the current filesystem layout.
 
 ## Incremental PR boundaries
 
 Each row is a separate reviewed PR on a fresh branch based on accepted main; do not stack all
 moves before validating earlier batches. Preserve all four existing coverage thresholds and run
 `make qa` in every implementation PR.
+
+ARCH-01B (#70) and ARCH-01C (#71) are coordination parents. Their PR-sized implementation
+batches are tracked as nested issues: 70-1 through 70-4 in #76 through #79, and 71-1 through
+71-3 in #80 through #82. Use each leaf issue for its branch, commit and completing PR; reference
+the parent without closing it prematurely. The leaf issue requirements are self-contained in
+GitHub. Add every leaf issue to the authoritative Project and verify membership.
 
 | Batch | Boundary | Prerequisites / focused evidence |
 | --- | --- | --- |

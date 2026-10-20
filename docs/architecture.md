@@ -180,6 +180,12 @@ The institution, account-type, and expense-source registries use package discove
 tax-notice, public-pension, and public-rule providers are currently assembled explicitly in their
 registries.
 
+The [ARCH-01D provider review](structure/arch-01d-provider-review.md) documents why institution,
+account-type, expense-source, income-source, tax-notice and public-pension packages and contracts
+remain separate, the shared mechanisms already in use, and the observed policy differences.
+Public-rule providers are outside that review's scope. It makes no provider relocation or
+runtime change.
+
 ## Public financial rules
 
 `projection/public_rules/` defines typed Pydantic models for annual jurisdiction rule sets,

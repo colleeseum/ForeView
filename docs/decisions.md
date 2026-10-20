@@ -134,6 +134,15 @@ the application core.
 Provider module versions use CalVer. The code does not provide evidence for the historical reason
 beyond the need to expose when parsing behavior last changed.
 
+The [ARCH-01D provider review](structure/arch-01d-provider-review.md) retains the existing
+institution, account-type, expense-source, income-source, tax-notice and public-pension packages
+and interfaces. Public-rule providers are outside this decision's scope. Shared discovery/metadata
+mechanics do not justify a universal provider registry: parser outputs, detection failures,
+persistence responsibilities, factory lifetime and institution connections differ. Shared
+localization, help adaptation and ingestion remain at their existing boundaries. The review records
+uneven validation/discovery
+policies as observations, not inferred historical decisions or changes approved by this outcome.
+
 ## Public rules are version-controlled data requiring explicit approval
 
 Official source artifacts, normalized annual rules, manifests, provenance, and content hashes are

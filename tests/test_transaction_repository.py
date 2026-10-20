@@ -9,7 +9,7 @@ from contextlib import closing
 from dataclasses import FrozenInstanceError
 
 from repositories.transaction_repository import TransactionRepository
-from services.transaction_service import TransactionService
+from services.transactions.transaction_service import TransactionService
 from tests.support import (
     add_balance_snapshot,
     create_account,

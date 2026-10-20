@@ -20,7 +20,7 @@ from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.import_batch_repository import ImportBatchRepository
-from services.transaction_service import TransactionService
+from services.transactions.transaction_service import TransactionService
 
 StatementParser = Callable[[Iterable[str], str], dict[str, Any]]
 PdfOpener = Callable[[io.BytesIO], PdfDocument]

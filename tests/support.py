@@ -55,12 +55,12 @@ from repositories.scenario_repository import ScenarioRepository
 from services.accounts.account_aggregation_service import AccountAggregationService
 from services.accounts.account_summary_query import AccountSummaryQuery
 from services.accounts.real_estate_summary_query import RealEstateSummaryQuery
-from services.database_initialization import ensure_domain_schema
-from services.imported_transaction_repair import ImportedTransactionRepair
 from services.imports.csv_import_service import CsvImportService
 from services.imports.document_import_account_resolver import DocumentImportAccountResolver
-from services.legacy_fixed_deposit_migration import LegacyFixedDepositMigration
-from services.transaction_service import TransactionService
+from services.runtime.database_initialization import ensure_domain_schema
+from services.runtime.imported_transaction_repair import ImportedTransactionRepair
+from services.runtime.legacy_fixed_deposit_migration import LegacyFixedDepositMigration
+from services.transactions.transaction_service import TransactionService
 
 __all__ = [
     "ensure_domain_schema",

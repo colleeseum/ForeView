@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 
 from infrastructure.runtime_config import RuntimeConfig
-from services.runtime_backup_service import RuntimeBackupService
+from services.runtime.runtime_backup_service import RuntimeBackupService
 
 PROFILE_DATA_DIRS = {
     "dev": Path(__file__).parent / ".runtime" / "dev",

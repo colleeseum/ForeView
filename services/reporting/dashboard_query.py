@@ -14,7 +14,7 @@ from services.accounts.account_aggregation_service import AccountAggregationServ
 from services.accounts.account_summary_query import AccountSummaryQuery
 from services.accounts.real_estate_summary_query import RealEstateSummaryQuery
 from services.reporting.dashboard import build_dashboard_summary
-from services.transaction_service import TransactionService
+from services.transactions.transaction_service import TransactionService
 
 
 class DashboardQuery:

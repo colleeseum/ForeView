@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 import app as application
 from infrastructure.runtime_config import RuntimeConfig
-from services.runtime_backup_service import RuntimeBackupService
+from services.runtime.runtime_backup_service import RuntimeBackupService
 
 
 class RuntimeBackupServiceTests(unittest.TestCase):
@@ -84,6 +86,29 @@ class RuntimeBackupServiceTests(unittest.TestCase):
                 with target.connect() as connection:
                     people = [row[0] for row in connection.execute("SELECT name FROM people")]
                 self.assertEqual(people, ["Original Person"])
+
+    def test_root_cli_round_trip_uses_grouped_backup_service(self):
+        root = Path(__file__).parents[1]
+        backup = self.root / "cli-backup"
+        restored = self.root / "cli-restored"
+        for arguments in (
+            ["--data-dir", str(self.runtime.data_dir), "backup", str(backup)],
+            ["--data-dir", str(restored), "restore", str(backup)],
+        ):
+            result = subprocess.run(
+                [sys.executable, str(root / "runtime_backup.py"), *arguments],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        target = RuntimeConfig.load(restored)
+        with target.connect() as connection:
+            people = [row[0] for row in connection.execute("SELECT name FROM people")]
+        self.assertEqual(people, ["Original Person"])
+        self.assertEqual(json.loads((restored / "locale.json").read_text()), {"locale": "fr-CA"})
 
 
 if __name__ == "__main__":

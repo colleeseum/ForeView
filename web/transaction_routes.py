@@ -22,8 +22,8 @@ from services.imports.document_import_account_resolver import (
     AccountCreationRequired,
     DocumentImportAccountResolver,
 )
-from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
-from services.transaction_service import TransactionService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transactions.transaction_service import TransactionService
 from web.dependencies import dependency
 from web.localization import error_data, localized_error_data
 from web.model_blueprint import blueprint

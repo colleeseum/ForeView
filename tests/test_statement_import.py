@@ -19,7 +19,7 @@ from repositories.account_repository import AccountRepository
 from repositories.import_batch_repository import ImportBatchRepository
 from repositories.raw_transaction_repository import RawTransactionRepository
 from repositories.transaction_repository import TransactionRepository
-from services.database_initialization import ensure_domain_schema
+from services.runtime.database_initialization import ensure_domain_schema
 
 
 def _row(date: str, amount: float, **values):

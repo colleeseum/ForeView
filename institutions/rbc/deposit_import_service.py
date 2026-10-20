@@ -15,8 +15,8 @@ from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.import_batch_repository import ImportBatchRepository
 from repositories.statement_reconciliation_repository import StatementReconciliationRepository
 from repositories.transaction_repository import TransactionRepository
-from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
-from services.transaction_service import TransactionService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transactions.transaction_service import TransactionService
 
 StatementParser = Callable[[bytes, str], dict[str, Any]]
 

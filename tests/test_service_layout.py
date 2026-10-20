@@ -12,13 +12,15 @@ import pytest
 
 @pytest.mark.parametrize("app_first", [False, True])
 def test_grouped_service_identity_and_fresh_startup(tmp_path: Path, app_first: bool) -> None:
+    root = Path(__file__).parents[1]
+    assert sorted(path.name for path in (root / "services").glob("*.py")) == ["__init__.py"]
     code = """
 import importlib
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
-packages = ("services.accounts", "services.reporting", "services.projections", "services.income", "services.imports", "services.expenses")
+packages = ("services.accounts", "services.reporting", "services.projections", "services.income", "services.imports", "services.expenses", "services.runtime", "services.transactions")
 for name in packages:
     importlib.import_module(name)
 assert not any(name.startswith(tuple(package + "." for package in packages)) for name in sys.modules)
@@ -45,12 +47,26 @@ from services.imports.revenu_quebec_notice_parser import RevenuQuebecNoticeParse
 from services.imports.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
 from services.expenses.expense_import_service import ExpenseImportService
 from services.expenses.expense_service import ExpenseService
+from services.transactions.transaction_service import TransactionService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.runtime.database_initialization import initialize_database, ensure_domain_schema
+from services.runtime.imported_transaction_repair import ImportedTransactionRepair
+from services.runtime.legacy_fixed_deposit_migration import LegacyFixedDepositMigration
+from services.runtime.runtime_backup_service import RuntimeBackupService
 import app
 from infrastructure.runtime_config import RuntimeConfig
 from web import account_routes, dashboard_routes, public_rule_routes, real_estate_routes, reporting_routes, salary_projection_routes
 from web import income_routes, correction_routes, correction_serialization, transaction_routes, expense_routes
 from services.reporting import dashboard_query
-from services import database_initialization
+from services.runtime import database_initialization
+from ingestion import reconciled_period_guard
+from institutions.questrade import sync as questrade_sync
+from institutions.sunlife import import_service as sunlife_import
+from institutions.manulife import import_service as manulife_import
+from institutions.rbc import deposit_import_service, gic_history_import_service, tfsa_import_service
+import runtime_backup
+import synthetic_expenses
+import synthetic_questrade
 from income_sources import income_source_registry
 from tax_notices import tax_notice_registry
 from public_pension_sources import public_pension_source_registry
@@ -82,9 +98,29 @@ bindings = (
     (support.CsvImportService, CsvImportService),
     (expense_routes.ExpenseImportService, ExpenseImportService),
     (expense_routes.ExpenseService, ExpenseService),
+    (app.ensure_domain_schema, ensure_domain_schema),
+    (app.initialize_database, initialize_database),
+    (synthetic_runtime.ensure_domain_schema, ensure_domain_schema),
+    (synthetic_expenses.initialize_database, initialize_database),
+    (synthetic_questrade.initialize_database, initialize_database),
+    (runtime_backup.RuntimeBackupService, RuntimeBackupService),
+    (database_initialization.ImportedTransactionRepair, ImportedTransactionRepair),
+    (database_initialization.LegacyFixedDepositMigration, LegacyFixedDepositMigration),
+    (transaction_routes.TransactionService, TransactionService),
+    (account_routes.TransactionService, TransactionService),
+    (dashboard_query.TransactionService, TransactionService),
+    (questrade_sync.TransactionService, TransactionService),
+    (sunlife_import.TransactionService, TransactionService),
+    (manulife_import.TransactionService, TransactionService),
+    (deposit_import_service.TransactionService, TransactionService),
+    (gic_history_import_service.TransactionService, TransactionService),
+    (tfsa_import_service.TransactionService, TransactionService),
+    (reconciled_period_guard.ReconciliationCheckpointService, ReconciliationCheckpointService),
+    (transaction_routes.ReconciliationCheckpointService, ReconciliationCheckpointService),
+    (deposit_import_service.ReconciliationCheckpointService, ReconciliationCheckpointService),
 )
 assert all(actual is canonical for actual, canonical in bindings)
-for symbol in (AccountAggregationService, AccountSummaryQuery, FixedTermDepositCreationService, RealEstateSummaryQuery, build_dashboard_summary, DashboardQuery, ReportingQuery, PublicRuleCatalog, SalaryProjectionService, ScenarioCloneService, FactualCorrectionValidator, IncomeTaxSnapshotService, IncomeTaxSourceResolver, CsvImportService, DocumentImportAccountResolver, UFileTaxReturnParser, CraNoticeParser, RevenuQuebecNoticeParser, RetraiteQuebecStatementParser, ExpenseImportService, ExpenseService):
+for symbol in (AccountAggregationService, AccountSummaryQuery, FixedTermDepositCreationService, RealEstateSummaryQuery, build_dashboard_summary, DashboardQuery, ReportingQuery, PublicRuleCatalog, SalaryProjectionService, ScenarioCloneService, FactualCorrectionValidator, IncomeTaxSnapshotService, IncomeTaxSourceResolver, CsvImportService, DocumentImportAccountResolver, UFileTaxReturnParser, CraNoticeParser, RevenuQuebecNoticeParser, RetraiteQuebecStatementParser, ExpenseImportService, ExpenseService, TransactionService, ReconciliationCheckpointService, initialize_database, ImportedTransactionRepair, LegacyFixedDepositMigration, RuntimeBackupService):
     old = "services." + symbol.__module__.rsplit(".", 1)[1]
     assert importlib.util.find_spec(old) is None
     assert old not in sys.modules
@@ -123,7 +159,7 @@ print("SERVICE_LAYOUT_PASSED")
 """
     result = subprocess.run(
         [sys.executable, "-c", code, str(tmp_path / "runtime"), str(app_first)],
-        cwd=Path(__file__).parents[1],
+        cwd=root,
         capture_output=True,
         text=True,
         timeout=60,

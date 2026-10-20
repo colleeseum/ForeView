@@ -126,6 +126,9 @@ packages, with canonical consumers, recursive coverage filters, executed-coverag
 fresh-process startup/identity tests.
 ARCH-01C-2 (#81), batch 71-2, groups eleven income, import and expense services under capability
 packages, with canonical provider/parser bindings, updated patch targets and extended fresh-process
-checks. Transaction and runtime services and the synthetic-tool relocation are not yet
-implemented. The maintainer approved internal path changes
+checks.
+ARCH-01C-3 (#82), batch 71-3, groups the remaining six transaction and runtime services, including
+startup repairs and backup/restore, with canonical institution/CLI consumers and extended
+fresh-process identity checks. All 27 service implementations now use capability packages;
+synthetic-tool relocation remains unimplemented. The maintainer approved internal path changes
 without compatibility aliases; deployment requires a full browser reload.

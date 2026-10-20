@@ -10,7 +10,7 @@ import sqlite3
 from domain.calendar_date import parse_calendar_date
 from domain.reconciliation_checkpoint import ReconciliationCheckpoint
 from ingestion.reconciled_period_change import ReconciledPeriodChange
-from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
 
 
 class ReconciledPeriodGuard:

@@ -18,7 +18,7 @@ from repositories.employment_projection_settings_repository import (
 from repositories.household_expense_plan_repository import HouseholdExpensePlanRepository
 from repositories.person_repository import PersonRepository
 from repositories.scenario_repository import ScenarioRepository
-from services.database_initialization import ensure_domain_schema
+from services.runtime.database_initialization import ensure_domain_schema
 
 
 class EmploymentProjectionRepositoryTests(unittest.TestCase):

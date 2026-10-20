@@ -7,8 +7,8 @@ The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
 `static/shared/`, and all browser feature implementations use capability directories.
-Account, reporting, projection, income, import and expense services use capability packages.
-Remaining service and synthetic-tool moves are not yet implemented.
+All application service implementations use capability packages. Synthetic-tool moves are not
+yet implemented.
 
 ## System shape
 
@@ -72,7 +72,7 @@ purpose-specific read rows. Services and routes depend on repositories rather th
 Numbered migrations under `infrastructure/migrations/` evolve existing runtimes. The migration
 runner records applied versions in `schema_migrations`, validates recorded names, and commits each
 migration separately. Startup also performs explicit data repairs and balance recalculation through
-`services.database_initialization`.
+`services.runtime.database_initialization`.
 
 Authoritative monetary facts use integer-cent columns and are converted to `Decimal`. Some legacy
 `REAL` columns remain for compatibility and direct inspection.
@@ -89,8 +89,10 @@ deposit creation. `services/reporting/` owns the dashboard builder and dashboard
 cloning. `services/income/` owns source resolution, consolidated snapshots and correction validation;
 `services/imports/` owns CSV ingestion, document account resolution, and tax/pension parsers;
 `services/expenses/` owns factual expense workflows and statement-import coordination.
-Their package initializers do not eagerly import implementations. Other services remain
-at the package root until their separate move batches land. Callers use canonical imports without
+`services/transactions/` owns transaction coordination, balance calculation and reconciliation;
+`services/runtime/` owns database initialization, legacy repairs and verified backup/restore.
+Package initializers do not eagerly import implementations. Only `__init__.py` remains at the
+service package root. Callers use canonical imports without
 legacy aliases; these directory moves do not change HTTP or persistence contracts.
 
 Read-oriented services such as `DashboardQuery`, `AccountSummaryQuery`, and
@@ -262,3 +264,6 @@ in each capability-grouped implementation. Fresh-process tests check non-eager p
 canonical dependency identity, use-site patches and application startup in both import orders.
 Document-provider tests also verify that registry-bound parser instances and detection functions
 use the canonical implementations and that dependency patches reach those retained parser bindings.
+The integration run includes backup/restore tests, including the root CLI round trip. Its existing
+backup-specific aggregate coverage exclusion names the canonical runtime service path; the
+executed-coverage sentinel still verifies every grouped service in both reports.

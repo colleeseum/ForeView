@@ -17,8 +17,8 @@ from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
 from localization import LocalizationService
 from localization.value_formatter import ValueFormatter
-from services.database_initialization import ensure_domain_schema as ensure_domain_schema
-from services.database_initialization import initialize_database
+from services.runtime.database_initialization import ensure_domain_schema as ensure_domain_schema
+from services.runtime.database_initialization import initialize_database
 from web.correction_routes import blueprint as correction_blueprint
 from web.dashboard_routes import blueprint as dashboard_blueprint
 from web.expense_routes import blueprint as expense_blueprint

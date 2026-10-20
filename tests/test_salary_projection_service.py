@@ -16,9 +16,9 @@ from repositories.employment_projection_settings_repository import (
 from repositories.person_repository import PersonRepository
 from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.scenario_repository import ScenarioRepository
-from services.database_initialization import ensure_domain_schema
 from services.projections.public_rule_catalog import PublicRuleCatalog
 from services.projections.salary_projection_service import SalaryProjectionService
+from services.runtime.database_initialization import ensure_domain_schema
 
 
 class SalaryProjectionServiceTests(unittest.TestCase):

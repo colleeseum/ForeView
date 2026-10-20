@@ -23,7 +23,7 @@ from institution_support.registry import institution_registry
 from repositories.account_repository import AccountRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.transaction_repository import TransactionRepository
-from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
 
 
 class TransactionService:

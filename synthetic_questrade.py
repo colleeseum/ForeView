@@ -18,7 +18,7 @@ from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
 from repositories.person_repository import PersonRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
-from services.database_initialization import initialize_database
+from services.runtime.database_initialization import initialize_database
 
 SCENARIOS = Path(__file__).parent / "tests/fixtures/questrade/sync_scenarios.json"
 

@@ -14,7 +14,7 @@ from pathlib import Path
 from domain.expense import ExpenseClassification, ExpensePeriodKind
 from infrastructure.runtime_config import RuntimeConfig
 from repositories.expense_repository import ExpenseRepository
-from services.database_initialization import initialize_database
+from services.runtime.database_initialization import initialize_database
 
 
 def seed_synthetic_expenses(connection: sqlite3.Connection) -> int:

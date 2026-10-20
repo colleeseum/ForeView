@@ -14,8 +14,8 @@ from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.import_batch_repository import ImportBatchRepository
 from repositories.raw_transaction_repository import RawTransactionRepository
 from repositories.transaction_repository import TransactionRepository
-from services.database_initialization import ensure_domain_schema
-from services.transaction_service import TransactionService
+from services.runtime.database_initialization import ensure_domain_schema
+from services.transactions.transaction_service import TransactionService
 
 # Each row is (date, amount, stored balance, raw source data or None).
 # Expected balances are listed oldest first.

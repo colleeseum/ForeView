@@ -18,7 +18,7 @@ from repositories.import_batch_repository import ImportBatchRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from repositories.raw_transaction_repository import RawTransactionRepository
 from repositories.transaction_repository import TransactionRepository
-from services.database_initialization import ensure_domain_schema
+from services.runtime.database_initialization import ensure_domain_schema
 
 DIVIDEND = {"transactionDate": "2026-09-01T12:00:00Z", "netAmount": 25.0, "type": "Dividend"}
 DEPOSIT = {"transactionDate": "2026-08-01T12:00:00Z", "netAmount": 500.0, "type": "Deposit"}

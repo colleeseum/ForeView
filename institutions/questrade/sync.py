@@ -22,7 +22,7 @@ from repositories.investment_holding_repository import InvestmentHoldingReposito
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from repositories.raw_transaction_repository import RawTransactionRepository
 from repositories.transaction_repository import TransactionRepository
-from services.transaction_service import TransactionService
+from services.transactions.transaction_service import TransactionService
 
 from .refresh_error import QuestradeRefreshError
 from .unauthorized import QuestradeUnauthorized

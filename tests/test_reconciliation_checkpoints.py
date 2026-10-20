@@ -19,8 +19,8 @@ from repositories.balance_snapshot_repository import BalanceSnapshotRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from repositories.reconciliation_checkpoint_repository import ReconciliationCheckpointRepository
 from repositories.transaction_repository import TransactionRepository
-from services.reconciliation_checkpoint_service import ReconciliationCheckpointService
-from services.transaction_service import TransactionService
+from services.transactions.reconciliation_checkpoint_service import ReconciliationCheckpointService
+from services.transactions.transaction_service import TransactionService
 from tests.support import (
     create_account,
     ensure_domain_schema,

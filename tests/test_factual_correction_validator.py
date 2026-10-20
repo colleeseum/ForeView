@@ -13,7 +13,7 @@ from domain.income_tax_concept import (
     income_tax_concept,
 )
 from domain.validation_error import ValidationError
-from services.factual_correction_validator import FactualCorrectionValidator
+from services.income.factual_correction_validator import FactualCorrectionValidator
 
 
 def test_income_tax_concepts_are_the_approved_shared_allowlist() -> None:

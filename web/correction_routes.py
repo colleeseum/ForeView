@@ -17,8 +17,8 @@ from repositories.correction_repository import (
     CorrectionNotFoundError,
     CorrectionRepository,
 )
-from services.factual_correction_validator import FactualCorrectionValidator
-from services.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
+from services.income.factual_correction_validator import FactualCorrectionValidator
+from services.income.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
 from web.correction_serialization import correction_revision_json
 from web.dependencies import dependency
 from web.localization import localized_api_error

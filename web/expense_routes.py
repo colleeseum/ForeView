@@ -18,8 +18,8 @@ from repositories.account_repository import AccountRepository
 from repositories.expense_repository import ExpenseRepository
 from repositories.person_repository import PersonRepository
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
-from services.expense_import_service import ExpenseImportService
-from services.expense_service import ExpenseService
+from services.expenses.expense_import_service import ExpenseImportService
+from services.expenses.expense_service import ExpenseService
 from web.dependencies import dependency
 from web.localization import localized_api_error, localized_error_data
 

@@ -123,6 +123,9 @@ ARCH-01B-4 (#79), batch 70-4, relocates the final five browser modules under inc
 expenses and help, with updated consumers and canonical-path tests.
 ARCH-01C-1 (#80), batch 71-1, groups ten account, reporting and projection services under capability
 packages, with canonical consumers, recursive coverage filters, executed-coverage checks and
-fresh-process startup/identity tests. The remaining service and synthetic-tool batches are not
+fresh-process startup/identity tests.
+ARCH-01C-2 (#81), batch 71-2, groups eleven income, import and expense services under capability
+packages, with canonical provider/parser bindings, updated patch targets and extended fresh-process
+checks. Transaction and runtime services and the synthetic-tool relocation are not yet
 implemented. The maintainer approved internal path changes
 without compatibility aliases; deployment requires a full browser reload.

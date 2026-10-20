@@ -12,7 +12,7 @@ from dataclasses import FrozenInstanceError
 from ingestion.csv_format import csv_date, csv_number, parse_csv_transactions
 from repositories.import_batch_repository import ImportBatchRepository
 from repositories.raw_transaction_repository import RawTransactionRepository
-from services.csv_import_service import CsvImportService
+from services.imports.csv_import_service import CsvImportService
 from tests.support import create_account, ensure_domain_schema, import_csv_transactions
 
 

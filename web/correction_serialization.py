@@ -8,7 +8,7 @@ from typing import Any
 from domain.factual_correction_revision import FactualCorrectionRevision
 from domain.income_tax_concept import income_tax_concept
 from domain.resolved_income_source import ResolvedIncomeSource
-from services.income_tax_source_resolver import source_fingerprint
+from services.income.income_tax_source_resolver import source_fingerprint
 
 
 def correction_revision_json(

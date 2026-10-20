@@ -22,8 +22,8 @@ from repositories.correction_repository import (
     CorrectionRepository,
 )
 from services.database_initialization import ensure_domain_schema
-from services.income_tax_snapshot_service import IncomeTaxSnapshotService
-from services.income_tax_source_resolver import source_fingerprint
+from services.income.income_tax_snapshot_service import IncomeTaxSnapshotService
+from services.income.income_tax_source_resolver import source_fingerprint
 from web.correction_routes import blueprint as correction_blueprint
 from web.income_routes import blueprint as income_blueprint
 

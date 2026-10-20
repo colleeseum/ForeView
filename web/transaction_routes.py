@@ -17,8 +17,8 @@ from institution_support.document_detection import detect_importer
 from institution_support.registry import institution_registry
 from institutions.eq.document_importers import import_eq_statement_pdf
 from repositories.account_repository import AccountRepository
-from services.csv_import_service import CsvImportService
-from services.document_import_account_resolver import (
+from services.imports.csv_import_service import CsvImportService
+from services.imports.document_import_account_resolver import (
     AccountCreationRequired,
     DocumentImportAccountResolver,
 )

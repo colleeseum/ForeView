@@ -7,7 +7,7 @@ from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.annual_tax_value import AnnualTaxValue
 from domain.resolved_income_source import ResolvedIncomeSource
-from services.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
+from services.income.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
 
 
 def annual_record() -> AnnualEmploymentActual:

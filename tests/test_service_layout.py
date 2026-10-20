@@ -18,9 +18,10 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-for name in ("services.accounts", "services.reporting", "services.projections"):
+packages = ("services.accounts", "services.reporting", "services.projections", "services.income", "services.imports", "services.expenses")
+for name in packages:
     importlib.import_module(name)
-assert not any(name.startswith(("services.accounts.", "services.reporting.", "services.projections.")) for name in sys.modules)
+assert not any(name.startswith(tuple(package + "." for package in packages)) for name in sys.modules)
 if sys.argv[2] == "True":
     import app
 from services.accounts.account_aggregation_service import AccountAggregationService
@@ -33,10 +34,26 @@ from services.reporting.reporting_query import ReportingQuery
 from services.projections.public_rule_catalog import PublicRuleCatalog
 from services.projections.salary_projection_service import SalaryProjectionService
 from services.projections.scenario_clone_service import ScenarioCloneService
+from services.income.factual_correction_validator import FactualCorrectionValidator
+from services.income.income_tax_snapshot_service import IncomeTaxSnapshotService
+from services.income.income_tax_source_resolver import IncomeTaxSourceResolver, source_fingerprint
+from services.imports.csv_import_service import CsvImportService
+from services.imports.document_import_account_resolver import DocumentImportAccountResolver
+from services.imports.ufile_tax_return_parser import UFileTaxReturnParser
+from services.imports.cra_notice_parser import CraNoticeParser
+from services.imports.revenu_quebec_notice_parser import RevenuQuebecNoticeParser
+from services.imports.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
+from services.expenses.expense_import_service import ExpenseImportService
+from services.expenses.expense_service import ExpenseService
 import app
 from infrastructure.runtime_config import RuntimeConfig
 from web import account_routes, dashboard_routes, public_rule_routes, real_estate_routes, reporting_routes, salary_projection_routes
+from web import income_routes, correction_routes, correction_serialization, transaction_routes, expense_routes
 from services.reporting import dashboard_query
+from services import database_initialization
+from income_sources import income_source_registry
+from tax_notices import tax_notice_registry
+from public_pension_sources import public_pension_source_registry
 import synthetic_runtime
 from tests import support
 
@@ -53,12 +70,43 @@ bindings = (
     (dashboard_query.build_dashboard_summary, build_dashboard_summary),
     (synthetic_runtime.PublicRuleCatalog, PublicRuleCatalog),
     (support.AccountSummaryQuery, AccountSummaryQuery),
+    (income_routes.IncomeTaxSnapshotService, IncomeTaxSnapshotService),
+    (income_routes.IncomeTaxSourceResolver, IncomeTaxSourceResolver),
+    (correction_routes.FactualCorrectionValidator, FactualCorrectionValidator),
+    (correction_routes.source_fingerprint, source_fingerprint),
+    (correction_serialization.source_fingerprint, source_fingerprint),
+    (transaction_routes.CsvImportService, CsvImportService),
+    (transaction_routes.DocumentImportAccountResolver, DocumentImportAccountResolver),
+    (database_initialization.CsvImportService, CsvImportService),
+    (synthetic_runtime.CsvImportService, CsvImportService),
+    (support.CsvImportService, CsvImportService),
+    (expense_routes.ExpenseImportService, ExpenseImportService),
+    (expense_routes.ExpenseService, ExpenseService),
 )
 assert all(actual is canonical for actual, canonical in bindings)
-for symbol in (AccountAggregationService, AccountSummaryQuery, FixedTermDepositCreationService, RealEstateSummaryQuery, build_dashboard_summary, DashboardQuery, ReportingQuery, PublicRuleCatalog, SalaryProjectionService, ScenarioCloneService):
+for symbol in (AccountAggregationService, AccountSummaryQuery, FixedTermDepositCreationService, RealEstateSummaryQuery, build_dashboard_summary, DashboardQuery, ReportingQuery, PublicRuleCatalog, SalaryProjectionService, ScenarioCloneService, FactualCorrectionValidator, IncomeTaxSnapshotService, IncomeTaxSourceResolver, CsvImportService, DocumentImportAccountResolver, UFileTaxReturnParser, CraNoticeParser, RevenuQuebecNoticeParser, RetraiteQuebecStatementParser, ExpenseImportService, ExpenseService):
     old = "services." + symbol.__module__.rsplit(".", 1)[1]
     assert importlib.util.find_spec(old) is None
     assert old not in sys.modules
+provider_bindings = (
+    (income_source_registry.providers[0], UFileTaxReturnParser),
+    (tax_notice_registry.providers[0], CraNoticeParser),
+    (tax_notice_registry.providers[1], RevenuQuebecNoticeParser),
+    (public_pension_source_registry.providers[0], RetraiteQuebecStatementParser),
+)
+for provider, parser in provider_bindings:
+    assert type(provider.parser.__self__) is parser
+    assert provider.parser.__func__ is parser.parse
+    assert provider.detects is parser.detects
+    sentinel = RuntimeError("canonical parser patch")
+    with patch.object(importlib.import_module(parser.__module__).pdfplumber, "open", side_effect=sentinel) as reader:
+        try:
+            provider.parser(b"synthetic")
+        except RuntimeError as error:
+            assert error is sentinel
+        else:
+            raise AssertionError("Provider did not use canonical parser dependency")
+        reader.assert_called_once()
 runtime = RuntimeConfig(Path(sys.argv[1]))
 app.initialize(runtime)
 application = app.create_app(runtime)
@@ -67,7 +115,7 @@ with patch.object(dashboard_routes, "DashboardQuery") as query:
     query.return_value.execute.return_value = {"sentinel": "use-site"}
     assert client.get("/api/dashboard").get_json() == {"sentinel": "use-site"}
     query.return_value.execute.assert_called_once()
-for url in ("/api/dashboard", "/api/model/accounts", "/api/model/real-estate", "/api/model/annual-summary", "/api/model/holdings", "/api/model/import-history", "/api/salary-projection", "/api/institutions"):
+for url in ("/api/dashboard", "/api/model/accounts", "/api/model/real-estate", "/api/model/annual-summary", "/api/model/holdings", "/api/model/import-history", "/api/salary-projection", "/api/institutions", "/api/income?person_id=1", "/api/income/sources", "/api/expenses"):
     response = client.get(url)
     assert response.status_code == 200, (url, response.status_code)
 assert client.get("/settings").status_code == 200

@@ -7,7 +7,7 @@ import unittest
 from decimal import Decimal
 from unittest.mock import patch
 
-from services.ufile_tax_return_parser import UFileTaxReturnParser
+from services.imports.ufile_tax_return_parser import UFileTaxReturnParser
 
 
 class FakePage:
@@ -46,14 +46,14 @@ class UFileTaxReturnParserTests(unittest.TestCase):
     def test_detects_ufile_pdf_by_extracted_text(self) -> None:
         pages = [FakePage("Tax return Summary\nfor 2024 taxation year")]
         with patch(
-            "services.ufile_tax_return_parser.pdfplumber.open",
+            "services.imports.ufile_tax_return_parser.pdfplumber.open",
             return_value=FakePdf(pages),
         ):
             self.assertTrue(UFileTaxReturnParser.detects(b"synthetic pdf"))
 
     def test_does_not_detect_invalid_pdf(self) -> None:
         with patch(
-            "services.ufile_tax_return_parser.pdfplumber.open",
+            "services.imports.ufile_tax_return_parser.pdfplumber.open",
             side_effect=ValueError("not a PDF"),
         ):
             self.assertFalse(UFileTaxReturnParser.detects(b"not a PDF"))
@@ -79,7 +79,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
             FakePage("T1-KFS", {"24500": "22,000.00"}),
         ]
         with patch(
-            "services.ufile_tax_return_parser.pdfplumber.open",
+            "services.imports.ufile_tax_return_parser.pdfplumber.open",
             return_value=FakePdf(pages),
         ):
             parsed = UFileTaxReturnParser().parse(b"synthetic pdf")
@@ -106,7 +106,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
         pages = [FakePage("Tax return Summary - Combined\nfor 2024 taxation year")]
         with (
             patch(
-                "services.ufile_tax_return_parser.pdfplumber.open",
+                "services.imports.ufile_tax_return_parser.pdfplumber.open",
                 return_value=FakePdf(pages),
             ),
             self.assertRaisesRegex(ValueError, "individual UFile"),
@@ -123,7 +123,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
             FakePage("2024 Tax return for 2024 prepared for Alex Example by UFile.ca"),
         ]
         with patch(
-            "services.ufile_tax_return_parser.pdfplumber.open",
+            "services.imports.ufile_tax_return_parser.pdfplumber.open",
             return_value=FakePdf(pages),
         ):
             parsed = UFileTaxReturnParser().parse(b"synthetic pdf")
@@ -140,7 +140,7 @@ class UFileTaxReturnParserTests(unittest.TestCase):
             FakePage("Name: Alex Example Date of birth: 29-03-1970"),
         ]
         with patch(
-            "services.ufile_tax_return_parser.pdfplumber.open",
+            "services.imports.ufile_tax_return_parser.pdfplumber.open",
             return_value=FakePdf(pages),
         ):
             parsed = UFileTaxReturnParser().parse(b"synthetic pdf")

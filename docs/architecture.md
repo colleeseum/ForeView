@@ -7,8 +7,8 @@ The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
 `static/shared/`, and all browser feature implementations use capability directories.
-Account, reporting and projection services use capability packages. Remaining service and
-synthetic-tool moves are not yet implemented.
+Account, reporting, projection, income, import and expense services use capability packages.
+Remaining service and synthetic-tool moves are not yet implemented.
 
 ## System shape
 
@@ -86,7 +86,10 @@ public-rule catalog verification, salary projection, document parsing, and scena
 `services/accounts/` groups account aggregation, account and real-estate summaries, and fixed-term
 deposit creation. `services/reporting/` owns the dashboard builder and dashboard/reporting queries.
 `services/projections/` owns public-rule package verification, salary projection and scenario
-cloning. Their package initializers do not eagerly import implementations. Other services remain
+cloning. `services/income/` owns source resolution, consolidated snapshots and correction validation;
+`services/imports/` owns CSV ingestion, document account resolution, and tax/pension parsers;
+`services/expenses/` owns factual expense workflows and statement-import coordination.
+Their package initializers do not eagerly import implementations. Other services remain
 at the package root until their separate move batches land. Callers use canonical imports without
 legacy aliases; these directory moves do not change HTTP or persistence contracts.
 
@@ -257,3 +260,5 @@ Service coverage filters include nested packages. The service coverage sentinel 
 and integration XML reports and requires executed function bodies and, where present, branches
 in each capability-grouped implementation. Fresh-process tests check non-eager package imports,
 canonical dependency identity, use-site patches and application startup in both import orders.
+Document-provider tests also verify that registry-bound parser instances and detection functions
+use the canonical implementations and that dependency patches reach those retained parser bindings.

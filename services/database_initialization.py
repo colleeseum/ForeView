@@ -38,8 +38,8 @@ from infrastructure.migrations.tax_and_public_pension_records import (
 )
 from repositories.account_repository import AccountRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
-from services.csv_import_service import CsvImportService
 from services.imported_transaction_repair import ImportedTransactionRepair
+from services.imports.csv_import_service import CsvImportService
 from services.legacy_fixed_deposit_migration import LegacyFixedDepositMigration
 from services.transaction_service import TransactionService
 

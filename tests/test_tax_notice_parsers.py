@@ -7,8 +7,8 @@ import unittest
 from decimal import Decimal
 from unittest.mock import patch
 
-from services.cra_notice_parser import CraNoticeParser
-from services.revenu_quebec_notice_parser import RevenuQuebecNoticeParser
+from services.imports.cra_notice_parser import CraNoticeParser
+from services.imports.revenu_quebec_notice_parser import RevenuQuebecNoticeParser
 
 
 class TaxNoticeParserTests(unittest.TestCase):

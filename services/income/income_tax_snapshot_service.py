@@ -12,7 +12,7 @@ from domain.consolidated_income_value import ConsolidatedIncomeValue
 from domain.income_tax_concept import INCOME_TAX_CONCEPTS
 from domain.income_tax_snapshot import IncomeTaxSnapshot
 from repositories.correction_repository import CorrectionRepository
-from services.income_tax_source_resolver import IncomeTaxSourceResolver
+from services.income.income_tax_source_resolver import IncomeTaxSourceResolver
 
 
 class IncomeTaxSnapshotService:

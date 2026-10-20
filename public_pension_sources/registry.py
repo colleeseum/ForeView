@@ -7,7 +7,7 @@ from pathlib import Path
 
 from domain.calver import is_calver
 from public_pension_sources.public_pension_source_provider import PublicPensionSourceProvider
-from services.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
+from services.imports.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
 
 _HELP = (Path(__file__).parent / "retraite_quebec_help.md").read_text(encoding="utf-8")
 

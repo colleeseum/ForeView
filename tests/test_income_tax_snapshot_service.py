@@ -6,7 +6,7 @@ from decimal import Decimal
 from domain.annual_employment_actual import AnnualEmploymentActual
 from domain.annual_tax_assessment import AnnualTaxAssessment
 from domain.annual_tax_value import AnnualTaxValue
-from services.income_tax_snapshot_service import IncomeTaxSnapshotService
+from services.income.income_tax_snapshot_service import IncomeTaxSnapshotService
 
 
 def annual_record(

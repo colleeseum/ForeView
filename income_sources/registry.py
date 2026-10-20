@@ -8,7 +8,7 @@ from pathlib import Path
 from domain.calver import is_calver
 from domain.validation_error import ValidationError
 from income_sources.income_source_provider import IncomeSourceProvider
-from services.ufile_tax_return_parser import UFileTaxReturnParser
+from services.imports.ufile_tax_return_parser import UFileTaxReturnParser
 
 _UFIlE_HELP = (Path(__file__).with_name("ufile_help.md")).read_text(encoding="utf-8")
 

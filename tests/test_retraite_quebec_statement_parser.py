@@ -7,7 +7,7 @@ import unittest
 from decimal import Decimal
 from unittest.mock import patch
 
-from services.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
+from services.imports.retraite_quebec_statement_parser import RetraiteQuebecStatementParser
 
 
 class RetraiteQuebecStatementParserTests(unittest.TestCase):

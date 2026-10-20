@@ -6,8 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from domain.calver import is_calver
-from services.cra_notice_parser import CraNoticeParser
-from services.revenu_quebec_notice_parser import RevenuQuebecNoticeParser
+from services.imports.cra_notice_parser import CraNoticeParser
+from services.imports.revenu_quebec_notice_parser import RevenuQuebecNoticeParser
 from tax_notices.tax_notice_provider import TaxNoticeProvider
 
 _ROOT = Path(__file__).parent

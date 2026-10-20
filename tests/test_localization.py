@@ -655,7 +655,7 @@ def test_dashboard_js_owned_regions_use_selected_language_metadata(tmp_path):
 def test_french_expense_association_selector_is_localized(tmp_path):
     import app as application
     from infrastructure.runtime_config import RuntimeConfig
-    from services.expense_service import ExpenseService
+    from services.expenses.expense_service import ExpenseService
     from tests.support import create_person
 
     runtime = RuntimeConfig(tmp_path / "runtime")

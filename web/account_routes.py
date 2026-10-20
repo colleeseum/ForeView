@@ -14,9 +14,9 @@ from domain.money import as_decimal
 from repositories.account_ownership_repository import AccountOwnershipRepository
 from repositories.account_repository import AccountRepository
 from repositories.balance_snapshot_repository import BalanceSnapshotRepository
-from services.account_aggregation_service import AccountAggregationService
-from services.account_summary_query import AccountSummaryQuery
-from services.fixed_term_deposit_creation_service import FixedTermDepositCreationService
+from services.accounts.account_aggregation_service import AccountAggregationService
+from services.accounts.account_summary_query import AccountSummaryQuery
+from services.accounts.fixed_term_deposit_creation_service import FixedTermDepositCreationService
 from services.transaction_service import TransactionService
 from web.dependencies import dependency
 from web.localization import error_data

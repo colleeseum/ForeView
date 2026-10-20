@@ -13,7 +13,7 @@ from projection.salary import (
     QuebecEmploymentTaxCalculator,
 )
 from projection.tax.rule_values import schedule
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 
 
 class SalaryTaxCalculationTests(unittest.TestCase):

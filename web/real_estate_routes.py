@@ -12,7 +12,7 @@ from domain.money import as_decimal
 from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from repositories.real_estate_ownership_repository import RealEstateOwnershipRepository
 from repositories.real_estate_projection_repository import RealEstateProjectionRepository
-from services.real_estate_summary_query import RealEstateSummaryQuery
+from services.accounts.real_estate_summary_query import RealEstateSummaryQuery
 from web.dependencies import dependency
 from web.localization import error_data
 from web.model_blueprint import blueprint

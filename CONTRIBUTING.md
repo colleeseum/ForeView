@@ -339,6 +339,12 @@ The complete QA suite includes formatting and lint checks, JavaScript
 tests, type checking, Python tests and coverage, integration coverage,
 security checks, and dependency audits.
 
+Service coverage includes nested capability packages. Main and integration coverage targets run
+`scripts/check_service_coverage.py` against their XML reports to verify that grouped implementations
+have executed function and branch coverage, rather than disappearing behind aggregate thresholds.
+Service package initializers must stay non-eager; update canonical imports and use-site test mocks
+together when moving a service. The approved directory moves do not retain legacy import aliases.
+
 Useful focused targets include:
 
 ``` sh

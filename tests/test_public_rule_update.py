@@ -25,7 +25,7 @@ from projection.rule_update import (
     cra_jurisdiction_providers,
 )
 from projection.rule_update.errors import RuleRetrievalError, RuleSourceFormatError
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 from update_public_rules import build_registry, parse_arguments, providers_to_update
 
 FEDERAL_TAX_HTML = b"""

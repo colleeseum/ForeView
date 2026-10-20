@@ -8,7 +8,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from projection.tax import EffectiveMarginalRateService
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 
 
 class EffectiveMarginalRateTests(unittest.TestCase):

@@ -3,7 +3,7 @@
 
 from flask import Blueprint, jsonify
 
-from services.dashboard_query import DashboardQuery
+from services.reporting.dashboard_query import DashboardQuery
 from web.dependencies import dependency
 
 blueprint = Blueprint("dashboard", __name__)

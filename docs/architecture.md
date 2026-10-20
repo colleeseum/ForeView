@@ -7,7 +7,8 @@ The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
 `static/shared/`, and all browser feature implementations use capability directories.
-Service and synthetic-tool moves remain unimplemented.
+Account, reporting and projection services use capability packages. Remaining service and
+synthetic-tool moves are not yet implemented.
 
 ## System shape
 
@@ -81,6 +82,13 @@ Authoritative monetary facts use integer-cent columns and are converted to `Deci
 `services/` coordinates workflows and builds read models. Examples include transaction balance
 recalculation, reconciliation checkpoints, dashboard aggregation, runtime backup and restore,
 public-rule catalog verification, salary projection, document parsing, and scenario cloning.
+
+`services/accounts/` groups account aggregation, account and real-estate summaries, and fixed-term
+deposit creation. `services/reporting/` owns the dashboard builder and dashboard/reporting queries.
+`services/projections/` owns public-rule package verification, salary projection and scenario
+cloning. Their package initializers do not eagerly import implementations. Other services remain
+at the package root until their separate move batches land. Callers use canonical imports without
+legacy aliases; these directory moves do not change HTTP or persistence contracts.
 
 Read-oriented services such as `DashboardQuery`, `AccountSummaryQuery`, and
 `RealEstateSummaryQuery` assemble presentation data without moving SQL out of repositories.
@@ -245,3 +253,7 @@ Python unit and integration tests live under `tests/`. Browser behavior tests li
 documents. The project enforces branch-aware Python and JavaScript coverage floors of at least 80
 percent, plus Ruff, mypy, Bandit, dependency audits, and dedicated integration-coverage targets.
 The exact commands are maintained in `Makefile` and summarized in `README.md`.
+Service coverage filters include nested packages. The service coverage sentinel reads the main
+and integration XML reports and requires executed function bodies and, where present, branches
+in each capability-grouped implementation. Fresh-process tests check non-eager package imports,
+canonical dependency identity, use-site patches and application startup in both import orders.

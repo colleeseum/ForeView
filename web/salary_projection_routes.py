@@ -29,8 +29,8 @@ from repositories.employment_projection_settings_repository import (
 from repositories.household_expense_plan_repository import HouseholdExpensePlanRepository
 from repositories.person_repository import PersonRepository
 from repositories.scenario_repository import ScenarioRepository
-from services.salary_projection_service import SalaryProjectionService
-from services.scenario_clone_service import ScenarioCloneService
+from services.projections.salary_projection_service import SalaryProjectionService
+from services.projections.scenario_clone_service import ScenarioCloneService
 from web.dependencies import dependency
 from web.localization import error_data, localized_api_error
 from web.route_values import payload_integer, required_field

@@ -10,10 +10,10 @@ from typing import Any
 
 from institution_support.registry import institution_registry
 from repositories.investment_holding_repository import InvestmentHoldingRepository
-from services.account_aggregation_service import AccountAggregationService
-from services.account_summary_query import AccountSummaryQuery
-from services.dashboard import build_dashboard_summary
-from services.real_estate_summary_query import RealEstateSummaryQuery
+from services.accounts.account_aggregation_service import AccountAggregationService
+from services.accounts.account_summary_query import AccountSummaryQuery
+from services.accounts.real_estate_summary_query import RealEstateSummaryQuery
+from services.reporting.dashboard import build_dashboard_summary
 from services.transaction_service import TransactionService
 
 

@@ -9,7 +9,7 @@ from flask import Blueprint, abort, current_app, redirect, render_template, requ
 
 from projection.tax import EffectiveMarginalRateService
 from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 
 blueprint = Blueprint("public_rules", __name__)
 

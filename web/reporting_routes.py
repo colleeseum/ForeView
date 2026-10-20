@@ -9,7 +9,7 @@ from flask import jsonify, request
 
 from repositories.scenario_assumption_repository import ScenarioAssumptionRepository
 from repositories.scenario_repository import ScenarioRepository
-from services.reporting_query import ReportingQuery
+from services.reporting.reporting_query import ReportingQuery
 from web.dependencies import dependency
 from web.localization import error_data
 from web.model_blueprint import blueprint

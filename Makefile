@@ -47,12 +47,14 @@ test:
 
 coverage:
 	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-report=xml
-	$(PYTHON) -m coverage report --include='repositories/*.py,services/*.py' --fail-under=80
+	$(PYTHON) -m coverage report --include='repositories/*.py,services/**/*.py' --fail-under=80
 	$(PYTHON) -m coverage report --include=app.py --fail-under=80
+	$(PYTHON) scripts/check_service_coverage.py coverage.xml
 
 integration-coverage:
 	COVERAGE_FILE=.coverage.integration $(PYTHON) -m pytest tests/test_app_routes.py tests/test_runtime_profiles.py tests/test_synthetic_documents.py tests/test_import_idempotency.py tests/test_expense_import_routes.py tests/test_expense_import_service.py tests/test_reconciliation_checkpoints.py tests/test_transaction_balance_recalculation.py tests/test_tax_notice_parsers.py tests/test_ufile_tax_return_parser.py tests/test_retraite_quebec_statement_parser.py --cov=. --cov-branch --cov-fail-under=0 --cov-report=term-missing --cov-report=xml:coverage-integration.xml
-	COVERAGE_FILE=.coverage.integration $(PYTHON) -m coverage report --include='repositories/*.py,services/*.py' --omit='services/runtime_backup_service.py' --fail-under=80
+	COVERAGE_FILE=.coverage.integration $(PYTHON) -m coverage report --include='repositories/*.py,services/**/*.py' --omit='services/runtime_backup_service.py' --fail-under=80
+	$(PYTHON) scripts/check_service_coverage.py coverage-integration.xml
 
 coverage-target:
 	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-fail-under=80
@@ -60,6 +62,7 @@ coverage-target:
 coverage-gate:
 	npm run coverage
 	$(PYTHON) -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+	$(PYTHON) scripts/check_service_coverage.py coverage.xml
 
 security:
 	$(PYTHON) -m bandit -c pyproject.toml -r app.py runtime_backup.py synthetic_documents.py synthetic_expenses.py synthetic_questrade.py synthetic_runtime.py domain infrastructure ingestion institution_support institutions projection repositories services web

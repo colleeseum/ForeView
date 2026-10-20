@@ -120,6 +120,9 @@ with updated consumers and recursive syntax/coverage checks.
 ARCH-01B-2 (#77), batch 70-2, has landed: accounts, dashboard and setup use feature directories.
 ARCH-01B-3 (#78), batch 70-3, has landed: transactions and connections use feature directories.
 ARCH-01B-4 (#79), batch 70-4, relocates the final five browser modules under income, projections,
-expenses and help, with updated consumers and canonical-path tests. Service and synthetic-tool
-batches remain unimplemented. The maintainer approved internal path changes
+expenses and help, with updated consumers and canonical-path tests.
+ARCH-01C-1 (#80), batch 71-1, groups ten account, reporting and projection services under capability
+packages, with canonical consumers, recursive coverage filters, executed-coverage checks and
+fresh-process startup/identity tests. The remaining service and synthetic-tool batches are not
+implemented. The maintainer approved internal path changes
 without compatibility aliases; deployment requires a full browser reload.

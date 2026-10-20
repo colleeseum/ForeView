@@ -22,7 +22,7 @@ from repositories.employment_projection_settings_repository import (
 from repositories.person_repository import PersonRepository
 from repositories.public_rule_approval_repository import PublicRuleApprovalRepository
 from repositories.scenario_repository import ScenarioRepository
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 
 
 class SalaryProjectionService:

@@ -34,7 +34,7 @@ from repositories.transaction_repository import TransactionRepository
 from services.csv_import_service import CsvImportService
 from services.database_initialization import ensure_domain_schema
 from services.document_import_account_resolver import DocumentImportAccountResolver
-from services.public_rule_catalog import PublicRuleCatalog
+from services.projections.public_rule_catalog import PublicRuleCatalog
 from services.transaction_service import TransactionService
 from synthetic_documents import create_synthetic_fixture_set
 from synthetic_expenses import seed_synthetic_expenses

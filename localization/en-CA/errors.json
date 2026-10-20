@@ -1,4 +1,9 @@
 {
+  "questrade_authorization_rejected": "Questrade rejected this authorization. Reconnect this login.",
+  "questrade_refresh_unavailable": "Questrade is temporarily unavailable. Retry synchronization later; your saved authorization has been kept.",
+  "questrade_refresh_invalid": "Questrade refresh could not be completed. Review this connection’s configuration before retrying.",
+  "questrade_refresh_rejected": "Questrade rejected the refresh request. Review configuration or reconnect this login; this does not establish that the authorization expired.",
+  "questrade_connection_failed": "The last connection attempt failed. Retry synchronization or reconnect this login if necessary.",
   "person_required": "Person is required",
   "transaction_reconciled_period": "This account is reconciled through {date}. Transactions entering that period: {count}.",
   "transaction_new_account": "The document identifies a new account at {institution} ({account_number}), type {account_type}.",

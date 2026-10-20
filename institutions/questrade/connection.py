@@ -17,6 +17,7 @@ from datetime import UTC, datetime, timedelta
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 
 from .client import QuestradeClient
+from .refresh_error import QuestradeRefreshError
 from .settings import QuestradeSettings
 
 
@@ -42,13 +43,25 @@ class QuestradeConnectionProvider:
     def status(self) -> dict[str, object]:
         configured_connections = self.configured_connections()
         with self.connect() as connection:
-            self.client.refresh_expiring_authorizations(connection)
             authorizations = QuestradeAuthorizationRepository(connection).list_all()
+        states = []
+        for authorization in authorizations:
+            state = authorization.status()
+            # Old diagnostics may contain raw upstream bodies. Do not expose them.
+            error = authorization.last_sync_error
+            state["last_sync_error"] = None
+            if error:
+                state["error_code"] = (
+                    error
+                    if error in QuestradeRefreshError.MESSAGES
+                    else "questrade_connection_failed"
+                )
+            states.append(state)
         return {
             "configured": bool(configured_connections),
             "configured_connections": configured_connections,
             "connected": bool(authorizations),
-            "authorizations": [authorization.status() for authorization in authorizations],
+            "authorizations": states,
         }
 
     def authorization_url(self, connection_name: str, state: str) -> str:
@@ -126,7 +139,15 @@ class QuestradeConnectionProvider:
             )
             if authorization is None:
                 raise RuntimeError("No saved Questrade authorization")
-            self.client.refresh_authorization(connection, authorization)
+            try:
+                self.client.refresh_authorization(connection, authorization)
+            except QuestradeRefreshError as error:
+                QuestradeAuthorizationRepository(connection).mark_failed(
+                    connection_name, datetime.now(UTC).isoformat(timespec="seconds"), error.code
+                )
+                connection.commit()
+                raise
+            QuestradeAuthorizationRepository(connection).clear_error(connection_name)
 
     def synchronize(
         self, connection_name: str, *, fetch_from: str | None = None

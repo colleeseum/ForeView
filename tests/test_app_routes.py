@@ -2814,8 +2814,11 @@ class AppRouteTests(unittest.TestCase):
                 TOKEN_URL, 400, "bad", {}, io.BytesIO(b"synthetic detail")
             )
             with patch.object(application.urllib.request, "urlopen", side_effect=http_error):
-                with self.assertRaisesRegex(RuntimeError, "refresh failed.*synthetic detail"):
+                with self.assertRaisesRegex(
+                    RuntimeError, "refresh failed.*request rejected"
+                ) as caught:
                     self._questrade().client.refresh_authorization(connection, row)
+                self.assertNotIn("synthetic detail", str(caught.exception))
             with patch.object(
                 application.urllib.request,
                 "urlopen",
@@ -2886,6 +2889,264 @@ class AppRouteTests(unittest.TestCase):
                 self._questrade().client.refresh_expiring_authorizations(connection)
         self.assertEqual(refresh.call_count, 1)
         self.assertEqual(refresh.call_args.args[1].name, "expired")
+
+    def test_questrade_status_is_read_only_and_hides_legacy_diagnostics(self):
+        self._insert_authorization("bad", "2020-01-01T00:00:00+00:00")
+        self._insert_authorization("good", "2099-01-01T00:00:00+00:00")
+        with self.runtime_config.connect() as connection:
+            repository = QuestradeAuthorizationRepository(connection)
+            repository.mark_failed("bad", "2026-01-01T00:00:00+00:00", "secret upstream token")
+            before = repository.list_all()
+        with (
+            self._questrade_logins("bad", "good"),
+            patch.object(QuestradeClient, "refresh_authorization") as refresh,
+        ):
+            for path in ("/api/questrade/status", "/api/connections/questrade/status"):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(len(response.get_json()["authorizations"]), 2)
+                self.assertNotIn("secret upstream token", response.get_data(as_text=True))
+                self.assertEqual(
+                    response.get_json()["authorizations"][0]["error_code"],
+                    "questrade_connection_failed",
+                )
+            refresh.assert_not_called()
+        with self.runtime_config.connect() as connection:
+            self.assertEqual(QuestradeAuthorizationRepository(connection).list_all(), before)
+
+    def test_questrade_failed_refresh_is_isolated_localized_and_preserves_rotated_tokens(self):
+        expired = "2020-01-01T00:00:00+00:00"
+        self._insert_authorization("bad", expired)
+        self._insert_authorization("good", expired)
+        with self.runtime_config.connect() as connection:
+            before = self._stored_authorization(connection, "bad")
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self):
+                return b'{"access_token":"rotated-access","refresh_token":"rotated-refresh","expires_in":1800}'
+
+        self.app.extensions["localization"].select("fr-CA")
+        error = urllib.error.HTTPError(
+            TOKEN_URL,
+            400,
+            "secret",
+            {},
+            io.BytesIO(b'{"error":"invalid_grant","error_description":"secret"}'),
+        )
+        with (
+            self._questrade_logins("bad", "good"),
+            patch.object(
+                application.urllib.request, "urlopen", side_effect=[error, Response()]
+            ) as request,
+            patch.object(QuestradeClient, "api_get", return_value={"accounts": []}),
+        ):
+            result = self.client.post("/api/connections/questrade/sync", json={})
+            self.assertEqual(result.status_code, 207)
+            failure = result.get_json()["errors"][0]
+            self.assertEqual(failure["error_code"], "questrade_authorization_rejected")
+            self.assertEqual(failure["error_language"], "fr-CA")
+            self.assertNotIn("secret", result.get_data(as_text=True))
+            self.assertEqual(result.get_json()["results"][0]["connection"], "good")
+            self.assertEqual(request.call_count, 2)
+            for _ in range(2):
+                status = self.client.get("/api/connections/questrade/status")
+                self.assertEqual(status.status_code, 200)
+            self.assertEqual(request.call_count, 2)
+        with self.runtime_config.connect() as connection:
+            bad = self._stored_authorization(connection, "bad")
+            good = self._stored_authorization(connection, "good")
+        self.assertEqual(
+            (bad.access_token, bad.refresh_token), (before.access_token, before.refresh_token)
+        )
+        cipher = self._questrade().settings.cipher()
+        self.assertEqual(cipher.decrypt(good.refresh_token.encode()), b"rotated-refresh")
+        self.assertIsNone(good.last_sync_error)
+
+    def test_component_refresh_failures_keep_codes_and_do_not_retry(self):
+        self._insert_authorization("bad")
+        self._insert_authorization("good")
+        components = ("balances", "positions", "executions", "activities")
+        for language in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(language)
+            for component in components:
+                for rejected in (True, False):
+                    with self.subTest(language=language, component=component, rejected=rejected):
+                        calls = []
+
+                        def api(authorization, path, *, calls=calls, component=component):
+                            calls.append((authorization.name, path))
+                            if path == "/v1/accounts":
+                                return (
+                                    {"accounts": [{"number": "SYNTH-1", "type": "TFSA"}]}
+                                    if authorization.name == "bad"
+                                    else {"accounts": []}
+                                )
+                            if f"/{component}" in path:
+                                raise QuestradeUnauthorized("expired")
+                            if "/balances" in path:
+                                return {
+                                    "combinedBalances": [{"currency": "CAD", "totalEquity": 100}]
+                                }
+                            return {}
+
+                        error = (
+                            urllib.error.HTTPError(
+                                TOKEN_URL,
+                                400,
+                                "private",
+                                {},
+                                io.BytesIO(b'{"error":"invalid_grant"}'),
+                            )
+                            if rejected
+                            else urllib.error.URLError("private")
+                        )
+                        with self.runtime_config.connect() as connection:
+                            before = self._stored_authorization(connection, "bad")
+                        with (
+                            self._questrade_logins("bad", "good"),
+                            patch.object(QuestradeClient, "api_get", side_effect=api),
+                            patch.object(
+                                application.urllib.request, "urlopen", side_effect=error
+                            ) as refresh,
+                        ):
+                            response = self.client.post("/api/connections/questrade/sync", json={})
+                            self.assertEqual(response.status_code, 207)
+                            self.assertEqual(refresh.call_count, 1)
+                            status = self.client.get("/api/connections/questrade/status").get_json()
+                            self.assertEqual(refresh.call_count, 1)
+                        expected = (
+                            "questrade_authorization_rejected"
+                            if rejected
+                            else "questrade_refresh_unavailable"
+                        )
+                        data = response.get_json()
+                        self.assertEqual(data["results"][0]["status"], "partial")
+                        self.assertEqual(data["results"][1]["status"], "success")
+                        self.assertEqual(
+                            data["results"][0]["balance_count"], 0 if component == "balances" else 1
+                        )
+                        for detail in data["errors"] + data["results"][0]["errors"]:
+                            self.assertEqual(detail["error_code"], expected)
+                            self.assertEqual(detail["error_language"], language)
+                        self.assertNotIn("private", response.get_data(as_text=True))
+                        bad_calls = [path for name, path in calls if name == "bad"]
+                        self.assertIn(f"/{component}", bad_calls[-1])
+                        self.assertEqual(status["authorizations"][0]["error_code"], expected)
+                        with self.runtime_config.connect() as connection:
+                            after = self._stored_authorization(connection, "bad")
+                        self.assertEqual(
+                            (before.access_token, before.refresh_token),
+                            (after.access_token, after.refresh_token),
+                        )
+                        self.assertEqual(after.last_sync_error, expected)
+
+    def test_questrade_refresh_failure_classification_and_no_credential_changes(self):
+        self._insert_authorization(expires_at="2020-01-01T00:00:00+00:00")
+        self.app.extensions["localization"].select("fr-CA")
+        cases = [
+            (400, b"private response", "questrade_refresh_rejected"),
+            (503, b"private response", "questrade_refresh_unavailable"),
+            (429, b"private response", "questrade_refresh_unavailable"),
+            (400, b"[]", "questrade_refresh_rejected"),
+            (400, b'{"error":"invalid_grant"}', "questrade_authorization_rejected"),
+        ]
+        with self.runtime_config.connect() as connection:
+            before = self._stored_authorization(connection)
+        for status, body, code in cases:
+            with self.subTest(status=status, body=body):
+                error = urllib.error.HTTPError(TOKEN_URL, status, "private", {}, io.BytesIO(body))
+                with (
+                    self._questrade_logins("alex"),
+                    patch.object(application.urllib.request, "urlopen", side_effect=error),
+                ):
+                    response = self.client.post(
+                        "/api/connections/questrade/sync", json={"connection": "alex"}
+                    )
+                self.assertEqual(response.status_code, 502)
+                self.assertEqual(response.get_json()["errors"][0]["error_code"], code)
+                self.assertNotIn("private", response.get_data(as_text=True))
+        with (
+            self._questrade_logins("alex"),
+            patch.object(
+                application.urllib.request,
+                "urlopen",
+                side_effect=urllib.error.URLError("private token"),
+            ),
+        ):
+            response = self.client.post("/api/connections/questrade/refresh?connection=alex")
+            self.assertEqual(response.status_code, 302)
+            self.assertNotIn("private", response.location)
+            status = self.client.get("/api/connections/questrade/status").get_json()
+            self.assertEqual(
+                status["authorizations"][0]["error_code"], "questrade_refresh_unavailable"
+            )
+        with self.runtime_config.connect() as connection:
+            after = self._stored_authorization(connection)
+        self.assertEqual(
+            (before.access_token, before.refresh_token), (after.access_token, after.refresh_token)
+        )
+
+    def test_questrade_malformed_refresh_responses_preserve_credentials_and_recovery_clears_error(
+        self,
+    ):
+        self._insert_authorization()
+
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self):
+                return self.payload
+
+        with self.runtime_config.connect() as connection:
+            before = self._stored_authorization(connection)
+        invalid = [
+            b"not-json",
+            b"[]",
+            b"{}",
+            b'{"access_token":123}',
+            b'{"access_token":"new","expires_in":-1}',
+            b'{"access_token":"new","api_server":"https://example.com"}',
+            b'{"access_token":"new","refresh_token_expires_at":{}}',
+        ]
+        for payload in invalid:
+            with (
+                self.subTest(payload=payload),
+                patch.object(application.urllib.request, "urlopen", return_value=Response(payload)),
+            ):
+                response = self.client.post("/api/connections/questrade/refresh?connection=alex")
+                self.assertEqual(response.status_code, 302)
+                self.assertIn("questrade=error", response.location)
+                with self.runtime_config.connect() as connection:
+                    row = self._stored_authorization(connection)
+                    self.assertEqual(
+                        (row.access_token, row.refresh_token),
+                        (before.access_token, before.refresh_token),
+                    )
+                    self.assertEqual(row.last_sync_error, "questrade_refresh_invalid")
+        with patch.object(
+            application.urllib.request,
+            "urlopen",
+            return_value=Response(b'{"access_token":"new","refresh_token":"rotated"}'),
+        ):
+            response = self.client.post("/api/connections/questrade/refresh?connection=alex")
+        self.assertIn("questrade=refreshed", response.location)
+        with self.runtime_config.connect() as connection:
+            row = self._stored_authorization(connection)
+            self.assertIsNone(row.last_sync_error)
+            self.assertIsNone(row.last_sync_at)
 
 
 if __name__ == "__main__":

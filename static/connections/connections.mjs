@@ -10,6 +10,7 @@ const syncAllButton = document.querySelector('#sync-all');
 const syncAllDefaultText = syncAllButton.dataset.defaultText;
 const syncAllBusyText = syncAllButton.dataset.busyText;
 let connectedInstitutions = [];
+let syncableInstitutions = [];
 
 function localizedError(message) {
   const error = new Error(message);
@@ -40,19 +41,27 @@ async function loadConnections() {
   const discovery = await discoveryResponse.json();
   connectedInstitutions = (discovery.institutions || []).filter((item) => item.connection);
   const states = await Promise.all(connectedInstitutions.map(async (institution) => {
-    const response = await fetch(institution.connection.status_path);
-    if (!response.ok) {
-      throw localizedError(t('connections.status_error', {provider: institution.display_name}));
+    try {
+      const response = await fetch(institution.connection.status_path);
+      if (!response.ok) throw new Error('Status unavailable');
+      return {institution, status: await response.json()};
+    } catch {
+      return {institution, status: {unavailable: true}};
     }
-    return {institution, status: await response.json()};
   }));
+  const unavailable = states.filter(({status}) => status.unavailable).map(({institution}) =>
+    `<article class="connection-card"><h2>${escapeHtml(institution.display_name)}</h2><p role="alert">${escapeHtml(t('connections.status_error', {provider: institution.display_name}))}</p></article>`).join('');
+  syncableInstitutions = states
+    .filter(({status}) => !status.unavailable && status.configured_connections?.length)
+    .map(({institution}) => institution);
   const configured = states.flatMap(({institution, status}) =>
     (status.configured_connections || []).map((name) => ({institution, status, name})));
   if (!configured.length) {
-    connectionList.innerHTML = `<div class="empty-panel"><p>${t('connections.none')}</p><p>${escapeHtml(t('connections.configure'))}</p></div>`;
+    connectionList.innerHTML = unavailable || `<div class="empty-panel"><p>${t('connections.none')}</p><p>${escapeHtml(t('connections.configure'))}</p></div>`;
     syncAllButton.disabled = true;
     return;
   }
+  syncAllButton.disabled = false;
   const params = new URLSearchParams(window.location.search);
   const providerResult = connectedInstitutions.find((item) => params.has(item.key));
   const result = providerResult ? params.get(providerResult.key) : null;
@@ -62,7 +71,7 @@ async function loadConnections() {
     : result === 'error' ? message
       ? htmlWithLanguageSpans(
         ({message: messageToken}) => t('connections.error', {message: messageToken}),
-        {message},
+        {message: {value: message, language: params.get('message_language') || 'en-CA'}},
       )
       : escapeHtml(t('connections.error', {message: t('connections.unknown')})) : '';
   if (notice) {
@@ -74,10 +83,12 @@ async function loadConnections() {
     const authorization = (status.authorizations || []).find((item) => item.name === name);
     const detail = authorization
       ? [
-        escapeHtml(t('connections.connected')),
+        escapeHtml(t('connections.saved_authorization')),
         escapeHtml(t('connections.valid_until', {time: new Date(authorization.access_expires_at).toLocaleTimeString(locale, {hour: 'numeric', minute: '2-digit'})})),
         escapeHtml(t('connections.last_sync', {time: authorization.last_sync_at ? new Date(authorization.last_sync_at).toLocaleString(locale) : t('connections.never')})),
-        authorization.last_sync_error
+        authorization.error
+          ? `<span lang="${escapeHtml(authorization.error_language || locale)}">${escapeHtml(authorization.error)}</span>`
+          : authorization.last_sync_error
           ? htmlWithLanguageSpans(
             ({message}) => t('connections.last_failed', {message}),
             {message: authorization.last_sync_error},
@@ -88,10 +99,11 @@ async function loadConnections() {
     const action = authorization
       ? `<div class="connection-actions"><button class="view-action sync-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">${escapeHtml(t('connections.sync', {provider: institution.display_name, name}))}</button>`
         + `<details class="connection-advanced"><summary>${t('connections.advanced')}</summary><div class="refetch-controls"><label class="refetch-field" title="${escapeHtml(t('connections.refetch_help'))}">${t('connections.refetch_from')} <input class="refetch-date" type="date" data-connection="${escapeHtml(name)}"></label>`
-        + `<button class="view-action refetch-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">${t('connections.refetch')}</button></div></details></div>`
+        + `<button class="view-action refetch-connection" type="button" data-provider="${escapeHtml(institution.key)}" data-connection="${escapeHtml(name)}">${t('connections.refetch')}</button></div></details>`
+        + `<a class="view-action" href="${escapeHtml(institution.connection.connect_path)}?connection=${encodeURIComponent(name)}">${escapeHtml(t('connections.reconnect', {provider: institution.display_name, name}))}</a></div>`
       : `<a class="view-action" href="${escapeHtml(institution.connection.connect_path)}?connection=${encodeURIComponent(name)}">${escapeHtml(t('connections.connect', {provider: institution.display_name, name}))}</a>`;
     return `<article class="connection-card"><div><p class="eyebrow">${escapeHtml(institution.display_name)}</p><h2>${escapeHtml(name)}</h2><p class="connection-status">${detail}</p></div>${action}</article>`;
-  }).join('');
+  }).join('') + unavailable;
 }
 
 async function sync(provider, connection = null, reload = true, fetchFrom = null) {
@@ -101,14 +113,25 @@ async function sync(provider, connection = null, reload = true, fetchFrom = null
   if (fetchFrom) payload.fetch_from = fetchFrom;
   const response = await fetch(institution.connection.sync_path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
   const data = await response.json();
-  if (!response.ok) {
-    throw data.errors?.[0]?.error
-      ? rawError(data.errors[0].error)
-      : localizedError(t('connections.sync_failed'));
+  if (reload) {
+    try {
+      await loadConnections();
+    } catch (error) {
+      showError(error);
+    }
   }
+  if (!response.ok) {
+    const failure = data.errors?.[0];
+    const error = failure?.error
+      ? rawError(failure.error)
+      : localizedError(t('connections.sync_failed'));
+    if (failure?.error_language) error.language = failure.error_language;
+    throw error;
+  }
+  let partialError = null;
   if (data.errors?.length) {
     const spanValues = Object.fromEntries(
-      data.errors.map((item, index) => [`error${index}`, item.error]),
+      data.errors.map((item, index) => [`error${index}`, {value: item.error, language: item.error_language || 'en-CA'}]),
     );
     const error = localizedError(t('connections.sync_failed'));
     error.html = htmlWithLanguageSpans((tokens) => {
@@ -120,31 +143,46 @@ async function sync(provider, connection = null, reload = true, fetchFrom = null
       })).join(' · ');
       return t('connections.partial', {details: failures});
     }, spanValues);
-    throw error;
+    partialError = error;
   }
-  if (reload) await loadConnections();
-  const summary = data.results.map((item) => t('connections.summary', {
+  const summary = (data.results || []).map((item) => t('connections.summary', {
     name: item.connection,
     accounts: connectionCount('account_count', 'account_count_plural', item.account_count),
     balances: connectionCount('balance_count', 'balance_count_plural', item.balance_count),
     positions: connectionCount('position_count', 'position_count_plural', item.position_count),
     transactions: connectionCount('transaction_count', 'transaction_count_plural', item.transaction_count),
   })).join(' · ');
-  if (reload) connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice" role="status">${escapeHtml(t('connections.complete', {summary}))}</p>`);
-  return summary;
+  if (reload) {
+    if (partialError) showError(partialError);
+    if (summary) connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice" role="status">${escapeHtml(t('connections.complete', {summary}))}</p>`);
+  }
+  return {summary, error: partialError};
 }
 
 syncAllButton?.addEventListener('click', async () => {
   try {
     syncAllButton.disabled = true;
     syncAllButton.textContent = syncAllBusyText;
-    const summaries = await Promise.all(connectedInstitutions.map((item) => sync(item.key, null, false)));
-    await loadConnections();
-    connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice" role="status">${escapeHtml(t('connections.complete', {summary: summaries.filter(Boolean).join(' · ')}))}</p>`);
+    const outcomes = await Promise.allSettled(syncableInstitutions.map((item) => sync(item.key, null, false)));
+    try {
+      await loadConnections();
+    } catch (error) {
+      showError(error);
+    }
+    const summaries = [];
+    for (const outcome of outcomes) {
+      if (outcome.status === 'fulfilled') {
+        if (outcome.value.summary) summaries.push(outcome.value.summary);
+        if (outcome.value.error) showError(outcome.value.error);
+      } else showError(outcome.reason);
+    }
+    if (summaries.length) {
+      connectionList.insertAdjacentHTML('beforebegin', `<p class="connection-notice" role="status">${escapeHtml(t('connections.complete', {summary: summaries.filter(Boolean).join(' · ')}))}</p>`);
+    }
   } catch (error) {
     showError(error);
   } finally {
-    syncAllButton.disabled = false;
+    syncAllButton.disabled = !syncableInstitutions.length;
     syncAllButton.textContent = syncAllDefaultText;
   }
 });

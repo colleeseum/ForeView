@@ -22,7 +22,9 @@ def create_connection_provider(runtime: RuntimeContext) -> QuestradeConnectionPr
             runtime.connect,
             connection_name,
             api_getter=client.api_get,
-            refresh_expiring=client.refresh_expiring_authorizations,
+            refresh_expiring=lambda connection: client.refresh_expiring_authorizations(
+                connection, name=connection_name
+            ),
             refresh_authorization=client.refresh_authorization,
             history_start=settings.profiles.get(connection_name, {}).get("history_start"),
             fetch_from=fetch_from,

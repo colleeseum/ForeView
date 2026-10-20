@@ -66,6 +66,11 @@ with bilingual lifecycle tests preserving revision history and underlying record
 Expense validation and source-detection failures now share localized JSON/form error handling;
 bilingual workflow tests verify rejected-request immutability and retained evidence/audit notes.
 
+Questrade status reads no longer refresh tokens. Refresh failures are isolated to the selected
+login and reported with safe localized guidance while synchronization and reconnect controls
+remain available. Failed refreshes preserve credentials; successful rotations are committed
+independently of other logins' failures.
+
 ## Intentional or known limitations
 
 - The broader retirement cash-flow, account drawdown, CPP/QPP and OAS benefit, RRIF/LIF,

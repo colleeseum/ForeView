@@ -99,6 +99,12 @@ class QuestradeAuthorizationRepository:
             (attempted_at, name),
         )
 
+    def clear_error(self, name: str) -> None:
+        """A successful explicit refresh resolves an error, not a successful sync."""
+        self._connection.execute(
+            "UPDATE questrade_authorizations SET last_sync_error = NULL WHERE name = ?", (name,)
+        )
+
     def mark_synced(self, name: str, synced_at: str) -> None:
         self._connection.execute(
             """UPDATE questrade_authorizations

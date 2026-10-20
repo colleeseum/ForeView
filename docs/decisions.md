@@ -197,6 +197,17 @@ untrusted network.
 No durable decision about a future hosted or zero-knowledge architecture can be inferred from the
 repository.
 
+## Connection status reads do not rotate credentials
+
+Questrade status reads are side-effect-free. Refresh occurs during an explicit refresh or
+synchronization operation and is scoped to the selected login. Failed refreshes preserve saved
+credentials and do not prevent other logins from synchronizing. Expected failures expose safe
+codes and localized guidance, not upstream bodies. A generic HTTP 400 is not treated as proof
+that an authorization expired; an explicit OAuth `invalid_grant` response identifies rejection.
+
+Reason: opening or reloading a page must not repeatedly rotate tokens or hide recovery controls
+because one remote authorization fails.
+
 ## Synthetic data is the test boundary for private formats
 
 Tests and development runtimes use generated people, accounts, statements, PDFs, and Questrade API

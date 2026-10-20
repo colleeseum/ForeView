@@ -227,6 +227,16 @@ balances. Importing into a reconciled period is guarded and can mark the checkpo
 Questrade is the only live account connection. It supports multiple named authorizations,
 encrypted tokens, incremental activity synchronization, overlap lookback, and explicit historical
 re-fetch.
+Status reads use saved authorization metadata only and never refresh tokens. Synchronization
+refreshes only its selected login, so another login's refresh failure cannot block it. Expected
+refresh failures carry safe error codes to localized HTTP adapters; saved credentials survive
+failed refreshes. The Connections UI isolates unavailable providers and retains explicit sync
+and reconnect controls for saved authorizations.
+Bulk synchronization skips unavailable providers and reports each outcome independently, retaining
+successful summaries even if another synchronization or the subsequent status reload fails.
+During a synchronization, a failed unauthorized-response refresh is retained for that login:
+remaining components do not retry remote calls, and component errors retain their safe refresh
+code for localized API guidance and subsequent status reads.
 
 ## Test and quality architecture
 

@@ -1,4 +1,9 @@
 {
+  "questrade_authorization_rejected": "Questrade a refusé cette autorisation. Reconnectez cet identifiant.",
+  "questrade_refresh_unavailable": "Questrade est temporairement indisponible. Réessayez la synchronisation plus tard; votre autorisation enregistrée est conservée.",
+  "questrade_refresh_invalid": "L’actualisation Questrade n’a pas pu être effectuée. Vérifiez la configuration de cette connexion avant de réessayer.",
+  "questrade_refresh_rejected": "Questrade a refusé la demande d’actualisation. Vérifiez la configuration ou reconnectez cet identifiant; cela ne prouve pas que l’autorisation a expiré.",
+  "questrade_connection_failed": "La dernière tentative de connexion a échoué. Réessayez la synchronisation ou reconnectez cet identifiant au besoin.",
   "person_required": "Une personne est requise",
   "transaction_reconciled_period": "Ce compte est rapproché jusqu'au {date}. Transactions ajoutées à cette période : {count}.",
   "transaction_new_account": "Le document identifie un nouveau compte chez {institution} ({account_number}), de type {account_type}.",

@@ -24,6 +24,7 @@ from repositories.raw_transaction_repository import RawTransactionRepository
 from repositories.transaction_repository import TransactionRepository
 from services.transaction_service import TransactionService
 
+from .refresh_error import QuestradeRefreshError
 from .unauthorized import QuestradeUnauthorized
 
 ApiGetter = Callable[[QuestradeAuthorization, str], dict[str, Any]]
@@ -98,7 +99,11 @@ def sync_questrade_connection(
         try:
             refresh_expiring(connection)
         except RuntimeError as error:
-            authorizations.mark_failed(connection_name, attempted_at, str(error))
+            authorizations.mark_failed(
+                connection_name,
+                attempted_at,
+                error.code if isinstance(error, QuestradeRefreshError) else str(error),
+            )
             connection.commit()
             raise
         stored = authorizations.get_by_name(connection_name)
@@ -106,18 +111,26 @@ def sync_questrade_connection(
             raise RuntimeError(f"Questrade connection '{connection_name}' is not connected")
         authorization: QuestradeAuthorization = stored
         component_errors: list[dict[str, str]] = []
+        refresh_failure: QuestradeRefreshError | None = None
 
         def record_error(account_number: str, component: str, error: RuntimeError) -> None:
-            component_errors.append(
-                {"account": account_number, "component": component, "error": str(error)}
-            )
+            detail = {"account": account_number, "component": component, "error": str(error)}
+            if isinstance(error, QuestradeRefreshError):
+                detail["error_code"] = error.code
+            component_errors.append(detail)
 
         def api_get(path: str) -> dict[str, Any]:
-            nonlocal authorization
+            nonlocal authorization, refresh_failure
+            if refresh_failure is not None:
+                raise refresh_failure
             try:
                 return api_getter(authorization, path)
             except QuestradeUnauthorized:
-                refresh_authorization(connection, authorization)
+                try:
+                    refresh_authorization(connection, authorization)
+                except QuestradeRefreshError as error:
+                    refresh_failure = error
+                    raise
                 refreshed = authorizations.get_by_name(connection_name)
                 if refreshed is None:
                     raise
@@ -127,7 +140,11 @@ def sync_questrade_connection(
         try:
             accounts_data = api_get("/v1/accounts")
         except RuntimeError as error:
-            authorizations.mark_failed(connection_name, attempted_at, str(error))
+            authorizations.mark_failed(
+                connection_name,
+                attempted_at,
+                error.code if isinstance(error, QuestradeRefreshError) else str(error),
+            )
             connection.commit()
             raise
         accounts = accounts_data.get("accounts", [])
@@ -329,7 +346,9 @@ def sync_questrade_connection(
                 f"{item['account']} {item['component']}: {item['error']}"
                 for item in component_errors
             )
-            authorizations.mark_failed(connection_name, attempted_at, summary)
+            authorizations.mark_failed(
+                connection_name, attempted_at, refresh_failure.code if refresh_failure else summary
+            )
         else:
             authorizations.mark_synced(connection_name, synced_at)
         connection.commit()

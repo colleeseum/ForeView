@@ -10,11 +10,12 @@ import urllib.parse
 import urllib.request
 from datetime import UTC, datetime, timedelta
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from domain.questrade_authorization import QuestradeAuthorization
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 
+from .refresh_error import QuestradeRefreshError
 from .settings import QuestradeSettings
 from .unauthorized import QuestradeUnauthorized
 
@@ -42,13 +43,16 @@ class QuestradeClient:
         self, connection: sqlite3.Connection, authorization: QuestradeAuthorization
     ) -> None:
         """Refresh and persist one Questrade authorization token."""
-        cipher = self.cipher()
-        refresh_token = cipher.decrypt(authorization.refresh_token.encode()).decode()
+        try:
+            cipher = self.cipher()
+            refresh_token = cipher.decrypt(authorization.refresh_token.encode()).decode()
+            self.validate_url(self._settings.token_url)
+        except (RuntimeError, InvalidToken, ValueError, UnicodeError) as exc:
+            raise QuestradeRefreshError("questrade_refresh_invalid") from exc
         form = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
         }
-        self.validate_url(self._settings.token_url)
         try:
             # The URL is restricted to Questrade HTTPS hosts above.
             with urllib.request.urlopen(  # nosec B310
@@ -66,32 +70,66 @@ class QuestradeClient:
                 token_data = json.loads(response.read().decode())
         except urllib.error.HTTPError as exc:
             try:
-                detail = exc.read().decode(errors="replace").strip()
+                try:
+                    payload = json.loads(exc.read())
+                except (ValueError, UnicodeError, OSError):
+                    payload = None
             finally:
                 exc.close()
-            message = f"Questrade token refresh failed ({exc.code})"
-            if detail:
-                message = f"{message}: {detail[:300]}"
-            raise RuntimeError(message) from exc
-        except (urllib.error.URLError, ValueError) as exc:
-            raise RuntimeError(f"Questrade token refresh failed: {exc}") from exc
+            # A bare HTTP 400 is not evidence that the authorization expired.
+            rejected = (
+                exc.code in (400, 401)
+                and isinstance(payload, dict)
+                and payload.get("error") == "invalid_grant"
+            )
+            code = (
+                "questrade_authorization_rejected"
+                if rejected
+                else (
+                    "questrade_refresh_unavailable"
+                    if exc.code == 429 or exc.code >= 500
+                    else "questrade_refresh_rejected"
+                )
+            )
+            raise QuestradeRefreshError(code) from exc
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise QuestradeRefreshError("questrade_refresh_unavailable") from exc
+        except (ValueError, UnicodeError) as exc:
+            raise QuestradeRefreshError("questrade_refresh_invalid") from exc
 
-        access_token = token_data.get("access_token")
-        if not access_token:
-            raise RuntimeError("Questrade token refresh returned no access token")
-        access_expires = (
-            datetime.now(UTC) + timedelta(seconds=int(token_data.get("expires_in", 1800)))
-        ).isoformat(timespec="seconds")
-        new_refresh_token = token_data.get("refresh_token", refresh_token)
+        try:
+            if not isinstance(token_data, dict):
+                raise ValueError("Invalid token response")
+            access_token = token_data.get("access_token")
+            new_refresh_token = token_data.get("refresh_token", refresh_token)
+            if (
+                not isinstance(access_token, str)
+                or not access_token
+                or not isinstance(new_refresh_token, str)
+                or not new_refresh_token
+            ):
+                raise ValueError("Invalid tokens")
+            lifetime = int(token_data.get("expires_in", 1800))
+            if lifetime <= 0:
+                raise ValueError("Invalid token lifetime")
+            access_expires = (datetime.now(UTC) + timedelta(seconds=lifetime)).isoformat(
+                timespec="seconds"
+            )
+            api_server = self.validate_url(token_data.get("api_server", authorization.api_server))
+            refresh_expires = token_data.get(
+                "refresh_token_expires_at", authorization.refresh_expires_at
+            )
+            if refresh_expires is not None and not isinstance(refresh_expires, str):
+                raise ValueError("Invalid refresh expiry")
+        except (ValueError, TypeError, OverflowError, RuntimeError, AttributeError) as exc:
+            raise QuestradeRefreshError("questrade_refresh_invalid") from exc
         QuestradeAuthorizationRepository(connection).update_tokens(
             authorization.id,
             access_token=cipher.encrypt(access_token.encode()).decode(),
             refresh_token=cipher.encrypt(new_refresh_token.encode()).decode(),
-            api_server=token_data.get("api_server", authorization.api_server),
+            api_server=api_server,
             access_expires_at=access_expires,
-            refresh_expires_at=token_data.get(
-                "refresh_token_expires_at", authorization.refresh_expires_at
-            ),
+            refresh_expires_at=refresh_expires,
         )
         connection.commit()
 
@@ -114,22 +152,23 @@ class QuestradeClient:
             ) as response:
                 return json.loads(response.read().decode())
         except urllib.error.HTTPError as exc:
-            try:
-                detail = exc.read().decode(errors="replace").strip()
-            finally:
-                exc.close()
+            exc.close()
             message = f"Questrade API request failed ({exc.code})"
-            if detail:
-                message = f"{message}: {detail[:300]}"
             if exc.code == 401:
                 raise QuestradeUnauthorized(message) from exc
             raise RuntimeError(message) from exc
         except (urllib.error.URLError, ValueError) as exc:
-            raise RuntimeError(f"Questrade API request failed: {exc}") from exc
+            raise RuntimeError(
+                "Questrade API request failed: service unavailable or invalid response"
+            ) from exc
 
-    def refresh_expiring_authorizations(self, connection: sqlite3.Connection) -> None:
+    def refresh_expiring_authorizations(
+        self, connection: sqlite3.Connection, *, name: str | None = None
+    ) -> None:
         threshold = datetime.now(UTC) + timedelta(minutes=2)
         for authorization in QuestradeAuthorizationRepository(connection).list_all():
+            if name is not None and authorization.name != name:
+                continue
             expires_at = authorization.access_expires_at
             if not expires_at:
                 continue
@@ -137,5 +176,5 @@ class QuestradeClient:
                 expires = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
             except ValueError:
                 continue
-            if expires <= threshold:
+            if expires.tzinfo is not None and expires <= threshold:
                 self.refresh_authorization(connection, authorization)

@@ -70,6 +70,8 @@
     "request_failed": "Request failed"
   },
   "connections": {
+    "saved_authorization": "Authorization saved; synchronization checks access",
+    "reconnect": "Reconnect {provider} {name}",
     "none": "No institutions are configured yet.",
     "configure": "Add a connection in finance.config.json, then restart the server.",
     "refreshed": "Connection refreshed automatically.",

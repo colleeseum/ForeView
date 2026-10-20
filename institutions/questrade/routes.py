@@ -10,6 +10,9 @@ import urllib.parse
 from flask import Blueprint, jsonify, redirect, request, session
 
 from web.dependencies import dependency
+from web.localization import localized_error_data
+
+from .refresh_error import QuestradeRefreshError
 
 blueprint = Blueprint("questrade", __name__)
 
@@ -18,7 +21,11 @@ blueprint = Blueprint("questrade", __name__)
 @blueprint.get("/api/connections/questrade/status")
 def questrade_status():
     provider = dependency("connection_providers")()["questrade"]
-    return jsonify(provider.status())
+    status = provider.status()
+    for authorization in status.get("authorizations", []):
+        if authorization.get("error_code"):
+            authorization.update(localized_error_data(authorization["error_code"]))
+    return jsonify(status)
 
 
 @blueprint.post("/api/questrade/sync")
@@ -39,11 +46,17 @@ def questrade_sync():
                 if fetch_from
                 else provider.synchronize(str(name))
             )
+            for component_error in result.get("errors", []):
+                code = component_error.get("error_code")
+                if code in QuestradeRefreshError.MESSAGES:
+                    component_error.update(localized_error_data(code))
             results.append(result)
             errors.extend(
                 {"connection": name, **component_error}
                 for component_error in result.get("errors", [])
             )
+        except QuestradeRefreshError as exc:
+            errors.append({"connection": name, **localized_error_data(exc.code)})
         except RuntimeError as exc:
             errors.append({"connection": name, "error": str(exc)})
     status = 200 if results and not errors else (207 if results else 502)
@@ -57,6 +70,18 @@ def questrade_refresh():
     provider = dependency("connection_providers")()["questrade"]
     try:
         provider.refresh(connection_name)
+    except QuestradeRefreshError as exc:
+        data = localized_error_data(exc.code)
+        return redirect(
+            "/connections?"
+            + urllib.parse.urlencode(
+                {
+                    "questrade": "error",
+                    "message": data["error"],
+                    "message_language": data["error_language"],
+                }
+            )
+        )
     except RuntimeError as exc:
         return redirect(f"/connections?questrade=error&message={urllib.parse.quote(str(exc))}")
     return redirect("/connections?questrade=refreshed")

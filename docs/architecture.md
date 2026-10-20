@@ -6,8 +6,8 @@ target-state design.
 The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
-`static/shared/`, and accounts, dashboard, setup, transactions and connections use feature directories.
-The remaining proposed moves are unimplemented.
+`static/shared/`, and all browser feature implementations use capability directories.
+Service and synthetic-tool moves remain unimplemented.
 
 ## System shape
 
@@ -98,8 +98,10 @@ tests use Node's test runner and jsdom. Shared localization, value formatting, H
 account-type labels and income-source labels live under `static/shared/`. The accounts workspace
 uses `static/accounts/`, the dashboard uses `static/dashboard/`, and household setup uses
 `static/setup/`. Transactions and reconciliation UI modules use `static/transactions/`;
-connection controls and their button-action helper use `static/connections/`. Income, expenses,
-projection and help modules remain at the static root until their batch lands.
+connection controls and their button-action helper use `static/connections/`. Income and corrections
+use `static/income/`; expenses use `static/expenses/`; salary projection uses `static/projections/`;
+and the shared help drawer uses `static/help/`. Only the classic CSRF script and stylesheet remain
+at the static root. There are no legacy ES-module URL aliases.
 Syntax and coverage checks traverse browser modules recursively and verify executed coverage
 for every module.
 

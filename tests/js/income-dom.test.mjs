@@ -90,7 +90,7 @@ function factualCorrection(overrides = {}) {
 }
 
 test('income concept labels follow the browser locale and retain an unknown fallback', async () => {
-  const {incomeConceptLabel} = await import('../../static/income-corrections.mjs');
+  const {incomeConceptLabel} = await import('../../static/income/income-corrections.mjs');
   configureTestLocalization('fr-CA');
   assert.equal(
     incomeConceptLabel({concept: 'employment_income', label: 'Employment income'}),
@@ -133,7 +133,7 @@ test('income screen previews a UFile return and saves only after review', async 
     throw new Error(`Unexpected URL ${url}`);
   };
 
-  await import(`../../static/income.mjs?main=${Date.now()}`);
+  await import(`../../static/income/income.mjs?main=${Date.now()}`);
   await tick(); await tick();
   assert.match(document.querySelector('#income-message').textContent, /2 annual records/);
   assert.match(document.querySelector('#income-history').textContent, /2025 Latest/);
@@ -247,7 +247,7 @@ test('income screen creates a correction and can select a historical snapshot', 
     throw new Error(`Unexpected URL ${address}`);
   };
 
-  await import(`../../static/income.mjs?correction-create=${Date.now()}`);
+  await import(`../../static/income/income.mjs?correction-create=${Date.now()}`);
   await tick(); await tick();
   document.querySelector('[data-correct-concept="employment_income"]').click();
   await tick();
@@ -360,7 +360,7 @@ test('income screen reviews, edits, confirms, and removes a correction', async (
     throw new Error(`Unexpected URL ${address}`);
   };
 
-  await import(`../../static/income.mjs?correction-lifecycle=${Date.now()}`);
+  await import(`../../static/income/income.mjs?correction-lifecycle=${Date.now()}`);
   await tick(); await tick();
   assert.match(document.querySelector('#income-summary').textContent, /Review required/);
   document.querySelector('[data-correct-concept="employment_income"]').click();
@@ -449,7 +449,7 @@ test('correction provenance localizes known document kinds and preserves unknown
     throw new Error(`Unexpected URL ${url}`);
   };
 
-  await import(`../../static/income.mjs?localized-correction-provenance=${Date.now()}`);
+  await import(`../../static/income/income.mjs?localized-correction-provenance=${Date.now()}`);
   await tick(); await tick();
   document.querySelector('[data-correct-concept="employment_income"]').click();
   await tick();
@@ -475,7 +475,7 @@ test('income screen rejects a document for a person who is not configured', asyn
     }
     throw new Error(`Unexpected URL ${url}`);
   };
-  await import(`../../static/income.mjs?mismatch=${Date.now()}`);
+  await import(`../../static/income/income.mjs?mismatch=${Date.now()}`);
   await tick(); await tick();
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
@@ -499,7 +499,7 @@ test('income screen selects the person identified by the PDF', async () => {
     }
     throw new Error(`Unexpected URL ${url}`);
   };
-  await import(`../../static/income.mjs?identified=${Date.now()}`);
+  await import(`../../static/income/income.mjs?identified=${Date.now()}`);
   await tick(); await tick();
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
@@ -559,7 +559,7 @@ test('income screen reviews and saves an assessment with registered room', async
     throw new Error(`Unexpected URL ${url}`);
   };
 
-  await import(`../../static/income.mjs?assessment=${Date.now()}`);
+  await import(`../../static/income/income.mjs?assessment=${Date.now()}`);
   await tick(); await tick();
   assert.match(document.querySelector('#income-rooms').textContent, /58.?810/);
   assert.match(document.querySelector('#income-pension').textContent, /1.?012/);
@@ -643,7 +643,7 @@ test('income screen reviews and saves a public pension statement', async () => {
     throw new Error(`Unexpected URL ${url}`);
   };
 
-  await import(`../../static/income.mjs?pension=${Date.now()}`);
+  await import(`../../static/income/income.mjs?pension=${Date.now()}`);
   await tick(); await tick();
   document.querySelector('#income-import').click();
   document.querySelector('#ufile-form').dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
@@ -667,7 +667,7 @@ test('income screen handles missing people and request errors', async () => {
     return {ok: false, json: async () => ({error: 'Broken import'})};
   };
 
-  await import(`../../static/income.mjs?empty=${Date.now()}`);
+  await import(`../../static/income/income.mjs?empty=${Date.now()}`);
   await tick(); await tick();
   assert.match(document.querySelector('#income-message').textContent, /Add a person/);
   assert.equal(document.querySelector('#income-add').disabled, true);

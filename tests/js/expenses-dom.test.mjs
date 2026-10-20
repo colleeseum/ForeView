@@ -18,7 +18,7 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
   let yearSubmissions = 0;
   document.querySelector('#expense-year-form').requestSubmit = () => { yearSubmissions += 1; };
 
-  await import('../../static/expenses.mjs');
+  await import('../../static/expenses/expenses.mjs');
   const expenseDialog = document.querySelector('#expense-dialog-backdrop');
   const categoryDialog = document.querySelector('#category-dialog-backdrop');
   const categoryEditor = document.querySelector('#category-editor-backdrop');

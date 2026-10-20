@@ -89,7 +89,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
     return {ok: true, json: async () => ({saved: true})};
   };
 
-  const module = await import(`../../static/salary-projection.mjs?test=${Date.now()}`);
+  const module = await import(`../../static/projections/salary-projection.mjs?test=${Date.now()}`);
   await tick();
   assert.match(document.querySelector('#salary-table').innerHTML, /100,000/);
   assert.equal(document.querySelector('[name="default_raise"]').value, '4');
@@ -174,7 +174,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
 });
 
 test('salary projection helpers render actual and manual override states', async () => {
-  const module = await import('../../static/salary-projection.mjs');
+  const module = await import('../../static/projections/salary-projection.mjs');
   const actual = {...projection(2025), actual: true, source: 'Assessment'};
   const html = module.projectionTable([actual, projection(2026)], {
     editable: true,
@@ -220,7 +220,7 @@ test('salary projection explains missing scenarios without mutating data', async
   globalThis.URLSearchParams = dom.window.URLSearchParams;
   globalThis.fetch = async () => ({ok: true, json: async () => ({scenarios: [], people: [], household: [], selected_scenario_id: null, start_year: 2026, end_year: 2035})});
 
-  await import(`../../static/salary-projection.mjs?empty=${Date.now()}`);
+  await import(`../../static/projections/salary-projection.mjs?empty=${Date.now()}`);
   await tick();
   assert.match(document.querySelector('#salary-table').innerHTML, /Create a scenario/);
   assert.equal(document.querySelector('#salary-table a').getAttribute('href'), '/setup');
@@ -243,7 +243,7 @@ test('salary projection shows defaults and a per-person calculation error', asyn
     people: [{id: 9, name: 'No income', baseline: null, settings: null, salary_anchor: null, overrides: [], actuals: [], projection: [], error: 'Add a factual Income record'}], household: [],
   })});
 
-  await import(`../../static/salary-projection.mjs?defaults=${Date.now()}`);
+  await import(`../../static/projections/salary-projection.mjs?defaults=${Date.now()}`);
   await tick();
   assert.equal(document.querySelector('[name="default_raise"]').value, '0');
   assert.match(document.querySelector('#salary-message').textContent, /factual Income record/);

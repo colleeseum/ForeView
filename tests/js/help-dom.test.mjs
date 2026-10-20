@@ -52,7 +52,7 @@ function installDom(url = 'http://localhost/income', pageArticle = null, locale 
 test('help provides quick tooltips, searchable full help, and contextual articles', async () => {
   const dom = installDom();
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import(`../../static/help.mjs?help=${Date.now()}`);
+  await import(`../../static/help/help.mjs?help=${Date.now()}`);
   await tick();
 
   const fullHelp = document.querySelector('.full-help-button');
@@ -93,7 +93,7 @@ test('help provides quick tooltips, searchable full help, and contextual article
 test('full help opens the Expenses article from the Expenses page', async () => {
   const dom = installDom('http://localhost/expenses?year=2026', 'expenses');
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import(`../../static/help.mjs?expenses=${Date.now()}`);
+  await import(`../../static/help/help.mjs?expenses=${Date.now()}`);
 
   document.querySelector('.full-help-button').click();
   await tick();
@@ -109,7 +109,7 @@ test('full help opens the Expenses article from the Expenses page', async () => 
 test('full help reports a catalog loading failure', async () => {
   const dom = installDom('http://localhost/about', null, 'fr-CA');
   globalThis.fetch = async () => ({ok: false, json: async () => ({error: 'Unavailable'})});
-  await import(`../../static/help.mjs?failure=${Date.now()}`);
+  await import(`../../static/help/help.mjs?failure=${Date.now()}`);
   document.querySelector('.full-help-button').click();
   await tick();
   assert.equal(document.querySelector('.help-article h2').textContent, 'Aide indisponible');
@@ -122,7 +122,7 @@ test('full help reports a catalog loading failure', async () => {
 test('full help localizes its browser-generated controls', async () => {
   const dom = installDom('http://localhost/income', null, 'fr-CA');
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import(`../../static/help.mjs?french=${Date.now()}`);
+  await import(`../../static/help/help.mjs?french=${Date.now()}`);
 
   const fullHelp = document.querySelector('.full-help-button');
   assert.equal(fullHelp.title, 'Aide complète');
@@ -144,7 +144,7 @@ test('full help localizes its browser-generated controls', async () => {
 test('hierarchy expands the page and contextual branches, and search retains their paths', async () => {
   const dom = installDom('http://localhost/');
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import('../../static/help.mjs?hierarchy');
+  await import('../../static/help/help.mjs?hierarchy');
   document.querySelector('.full-help-button').click();
   await tick();
   assert.equal(document.querySelector('.help-article h2').textContent, 'Financial summary');
@@ -174,7 +174,7 @@ test('Escape restores focus only for open help and does not close an underlying 
   let underlyingEscapes = 0;
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') underlyingEscapes++; });
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import('../../static/help.mjs?focus');
+  await import('../../static/help/help.mjs?focus');
   const opener = document.querySelector('.full-help-button');
   opener.focus();
   opener.click();
@@ -204,7 +204,7 @@ test('closing help while its catalog loads does not reclaim focus after the resp
   const dom = installDom();
   let resolve;
   globalThis.fetch = () => new Promise((done) => { resolve = done; });
-  await import('../../static/help.mjs?delayed');
+  await import('../../static/help/help.mjs?delayed');
   const opener = document.querySelector('.full-help-button');
   opener.focus();
   opener.click();
@@ -226,7 +226,7 @@ test('article order and escaping apply inside category branches', async () => {
     {key: 'income', category: 'income', title: attack, summary: attack, body: attack, order: 1},
   ]};
   globalThis.fetch = async () => ({ok: true, json: async () => ordered});
-  await import('../../static/help.mjs?ordered');
+  await import('../../static/help/help.mjs?ordered');
   document.querySelector('.full-help-button').click();
   await tick();
   assert.deepEqual([...document.querySelectorAll('[data-help-result]')].map((button) => button.dataset.helpResult), ['income', 'later']);
@@ -248,7 +248,7 @@ test('a newer context request wins over an older pending open', async () => {
   const dom = installDom();
   let resolve;
   globalThis.fetch = () => new Promise((done) => { resolve = done; });
-  await import('../../static/help.mjs?newer-request');
+  await import('../../static/help/help.mjs?newer-request');
   document.querySelector('.full-help-button').focus();
   document.querySelector('.full-help-button').click();
   window.openContextHelp('income-source-ufile');
@@ -264,7 +264,7 @@ test('search during a pending failed catalog shows the localized error', async (
   const dom = installDom();
   let resolve;
   globalThis.fetch = () => new Promise((done) => { resolve = done; });
-  await import('../../static/help.mjs?search-failure');
+  await import('../../static/help/help.mjs?search-failure');
   document.querySelector('.full-help-button').click();
   const search = document.querySelector('#help-search');
   search.value = 'income';
@@ -278,7 +278,7 @@ test('search during a pending failed catalog shows the localized error', async (
 test('Connections page opens connection help rather than statement imports', async () => {
   const dom = installDom('http://localhost/connections');
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});
-  await import('../../static/help.mjs?connections-page');
+  await import('../../static/help/help.mjs?connections-page');
   document.querySelector('.full-help-button').click();
   await tick();
   assert.equal(document.querySelector('.help-article h2').textContent, 'Institution connections');
@@ -305,7 +305,7 @@ test('unmapped pages select the first rendered financial topic, not the lowest g
   for (const page of ['/salary-projection', '/setup', '/application-settings', '/about', '/disclaimer']) {
     const dom = installDom(`http://localhost${page}`);
     globalThis.fetch = async () => ({ok: true, json: async () => hierarchyCatalog});
-    await import(`../../static/help.mjs?unmapped=${page}`);
+    await import(`../../static/help/help.mjs?unmapped=${page}`);
     document.querySelector('.full-help-button').click();
     await tick();
     const first = document.querySelector('[data-help-result]');
@@ -341,7 +341,7 @@ test('mixed-language help attributes each field in the hierarchy, search, articl
       field_languages: {title: 'fr-CA', body: 'en-CA'}}],
   };
   globalThis.fetch = async () => ({ok: true, json: async () => mixed});
-  await import('../../static/help.mjs?mixed-language-fields');
+  await import('../../static/help/help.mjs?mixed-language-fields');
   document.querySelector('.full-help-button').click();
   await tick();
   const assertLanguages = () => {

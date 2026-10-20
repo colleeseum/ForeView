@@ -113,7 +113,8 @@ A dependency-based organization plan for ARCH-01A (#69) is accepted and document
 ARCH-01B-1 (#76), batch 70-1, has landed: the six shared browser modules are under `static/shared/`,
 with updated consumers and recursive syntax/coverage checks.
 ARCH-01B-2 (#77), batch 70-2, has landed: accounts, dashboard and setup use feature directories.
-ARCH-01B-3 (#78), batch 70-3, relocates transactions and connections modules with updated imports,
-template URLs and canonical-path tests. The final browser batch (#79), service and synthetic-tool
-batches are not implemented. The maintainer approved internal path changes
+ARCH-01B-3 (#78), batch 70-3, has landed: transactions and connections use feature directories.
+ARCH-01B-4 (#79), batch 70-4, relocates the final five browser modules under income, projections,
+expenses and help, with updated consumers and canonical-path tests. Service and synthetic-tool
+batches remain unimplemented. The maintainer approved internal path changes
 without compatibility aliases; deployment requires a full browser reload.

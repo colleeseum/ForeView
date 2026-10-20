@@ -76,7 +76,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
     };
   };
 
-  const module = await import(`../../static/expenses.mjs?import=${Date.now()}`);
+  const module = await import(`../../static/expenses/expenses.mjs?import=${Date.now()}`);
   const completionUrl = module.importCompletionUrl(12, new Set([2026, 2024, 2025]), 2026, 'http://localhost');
   assert.equal(completionUrl.pathname, '/expenses');
   assert.equal(completionUrl.searchParams.get('year'), '2026');

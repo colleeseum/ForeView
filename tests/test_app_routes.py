@@ -802,10 +802,11 @@ class AppRouteTests(unittest.TestCase):
             "/": "dashboard/dashboard.mjs",
             "/setup": "setup/setup.mjs",
             "/accounts": "accounts/accounts.mjs",
-            "/expenses": "expenses.mjs",
+            "/income": "income/income.mjs",
+            "/expenses": "expenses/expenses.mjs",
             "/connections": "connections/connections.mjs",
             "/transactions": "transactions/transactions.mjs",
-            "/salary-projection": "salary-projection.mjs",
+            "/salary-projection": "projections/salary-projection.mjs",
         }
         for path, filename in expected_entries.items():
             with self.subTest(path=path):
@@ -836,7 +837,11 @@ class AppRouteTests(unittest.TestCase):
             "shared/form-state.mjs",
             "accounts/gic-dialog.mjs",
             "accounts/ownership-fields.mjs",
-            "salary-projection.mjs",
+            "projections/salary-projection.mjs",
+            "income/income.mjs",
+            "income/income-corrections.mjs",
+            "expenses/expenses.mjs",
+            "help/help.mjs",
         ):
             with self.subTest(filename=filename):
                 response = self.client.get(f"/static/{filename}")
@@ -883,6 +888,10 @@ class AppRouteTests(unittest.TestCase):
             ),
             "dashboard": ("dashboard",),
             "setup": ("setup-values", "setup"),
+            "income": ("income", "income-corrections"),
+            "expenses": ("expenses",),
+            "projections": ("salary-projection",),
+            "help": ("help",),
             "connections": ("button-action", "connections"),
             "transactions": (
                 "latest-request",
@@ -905,6 +914,40 @@ class AppRouteTests(unittest.TestCase):
                         self.assertEqual(old_response.status_code, 404)
                     finally:
                         old_response.close()
+
+    def test_primary_pages_share_one_canonical_help_module_url(self):
+        module_urls = set()
+        for path in (
+            "/",
+            "/setup",
+            "/accounts",
+            "/transactions",
+            "/connections",
+            "/income",
+            "/expenses",
+            "/salary-projection",
+        ):
+            with self.subTest(path=path):
+                page = self.client.get(path)
+                self.assertEqual(page.status_code, 200)
+                help_urls = re.findall(rb'src="([^"]*help\.mjs(?:\?[^"]*)?)"', page.data)
+                self.assertTrue(help_urls)
+                self.assertEqual(len(set(help_urls)), 1)
+                self.assertEqual(help_urls[0].partition(b"?")[0], b"/static/help/help.mjs")
+                module_urls.update(help_urls)
+        self.assertEqual(len(module_urls), 1)
+
+    def test_browser_modules_are_nested_and_classic_assets_keep_root_urls(self):
+        static_root = Path(__file__).parents[1] / "static"
+        self.assertEqual(list(static_root.glob("*.mjs")), [])
+        for name, content_type in (("csrf.js", "javascript"), ("style.css", "text/css")):
+            with self.subTest(asset=name):
+                response = self.client.get(f"/static/{name}")
+                try:
+                    self.assertEqual(response.status_code, 200)
+                    self.assertIn(content_type, response.content_type)
+                finally:
+                    response.close()
 
     def test_setup_exposes_browser_localization_before_its_module(self):
         self.app.extensions["localization"].select("fr-CA")

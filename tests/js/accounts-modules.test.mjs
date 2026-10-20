@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {saveJson} from '../../static/accounts-api.mjs';
+import {saveJson} from '../../static/accounts/accounts-api.mjs';
 import {
   escapeHtml,
   htmlWithLanguageSpans,
@@ -12,9 +12,9 @@ import {
 } from '../../static/shared/html.mjs';
 import {createLatestRequestGate} from '../../static/latest-request.mjs';
 
-import {isSecurityAccount, money, ownerDetails} from '../../static/accounts-format.mjs';
+import {isSecurityAccount, money, ownerDetails} from '../../static/accounts/accounts-format.mjs';
 import {formSignature, showError} from '../../static/shared/form-state.mjs';
-import {editableAccountValues} from '../../static/setup-values.mjs';
+import {editableAccountValues} from '../../static/setup/setup-values.mjs';
 import {runButtonAction} from '../../static/button-action.mjs';
 
 test('API adapter preserves resolved message language and defaults raw diagnostics to English', async () => {

@@ -799,9 +799,9 @@ class AppRouteTests(unittest.TestCase):
 
     def test_pages_load_native_javascript_modules(self):
         expected_entries = {
-            "/": "dashboard.mjs",
-            "/setup": "setup.mjs",
-            "/accounts": "accounts.mjs",
+            "/": "dashboard/dashboard.mjs",
+            "/setup": "setup/setup.mjs",
+            "/accounts": "accounts/accounts.mjs",
             "/expenses": "expenses.mjs",
             "/connections": "connections.mjs",
             "/transactions": "transactions.mjs",
@@ -811,28 +811,31 @@ class AppRouteTests(unittest.TestCase):
             with self.subTest(path=path):
                 page = self.client.get(path)
                 self.assertIn(b'type="module"', page.data)
-                self.assertIn(filename.encode(), page.data)
+                self.assertRegex(
+                    page.data,
+                    rb'src="/static/' + re.escape(filename.encode()) + rb'(?:\?[^" ]*)?"',
+                )
         for filename in (
             "button-action.mjs",
             "connections.mjs",
-            "dashboard.mjs",
+            "dashboard/dashboard.mjs",
             "shared/html.mjs",
             "latest-request.mjs",
-            "setup-values.mjs",
-            "setup.mjs",
+            "setup/setup-values.mjs",
+            "setup/setup.mjs",
             "transactions-render.mjs",
             "transaction-import-message.mjs",
             "transactions.mjs",
-            "accounts.mjs",
-            "account-dialog.mjs",
-            "accounts-api.mjs",
-            "accounts-format.mjs",
-            "accounts-real-estate.mjs",
-            "accounts-render.mjs",
-            "accounts-state.mjs",
+            "accounts/accounts.mjs",
+            "accounts/account-dialog.mjs",
+            "accounts/accounts-api.mjs",
+            "accounts/accounts-format.mjs",
+            "accounts/accounts-real-estate.mjs",
+            "accounts/accounts-render.mjs",
+            "accounts/accounts-state.mjs",
             "shared/form-state.mjs",
-            "gic-dialog.mjs",
-            "ownership-fields.mjs",
+            "accounts/gic-dialog.mjs",
+            "accounts/ownership-fields.mjs",
             "salary-projection.mjs",
         ):
             with self.subTest(filename=filename):
@@ -864,6 +867,37 @@ class AppRouteTests(unittest.TestCase):
                     self.assertEqual(old_response.status_code, 404)
                 finally:
                     old_response.close()
+
+    def test_feature_browser_modules_use_only_canonical_nested_urls(self):
+        modules = {
+            "accounts": (
+                "account-dialog",
+                "accounts-api",
+                "accounts-format",
+                "accounts-real-estate",
+                "accounts-render",
+                "accounts-state",
+                "accounts",
+                "gic-dialog",
+                "ownership-fields",
+            ),
+            "dashboard": ("dashboard",),
+            "setup": ("setup-values", "setup"),
+        }
+        for feature, names in modules.items():
+            for name in names:
+                with self.subTest(module=name):
+                    response = self.client.get(f"/static/{feature}/{name}.mjs")
+                    try:
+                        self.assertEqual(response.status_code, 200)
+                        self.assertIn("javascript", response.content_type)
+                    finally:
+                        response.close()
+                    old_response = self.client.get(f"/static/{name}.mjs")
+                    try:
+                        self.assertEqual(old_response.status_code, 404)
+                    finally:
+                        old_response.close()
 
     def test_setup_exposes_browser_localization_before_its_module(self):
         self.app.extensions["localization"].select("fr-CA")

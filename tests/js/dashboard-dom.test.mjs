@@ -33,7 +33,7 @@ test('synthetic RTL dashboard uses registered fallback and preserves source evid
   const original = JSON.stringify(data);
   globalThis.fetch = async () => ({ok: true, json: async () => data});
   try {
-    await import('../../static/dashboard.mjs?synthetic-rtl');
+    await import('../../static/dashboard/dashboard.mjs?synthetic-rtl');
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(document.documentElement.dir, 'rtl');
     assert.match(document.querySelector('#dashboard-metrics').textContent, /RTL gross assets/);
@@ -83,7 +83,7 @@ test('dashboard renders escaped financial summaries', async () => {
     }),
   });
 
-  await import('../../static/dashboard.mjs');
+  await import('../../static/dashboard/dashboard.mjs');
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.match(document.querySelector('#dashboard-metrics').textContent, /Gross assets/);
@@ -114,7 +114,7 @@ test('dashboard renders empty activity states', async () => {
       categories: [{label: 'Empty', count: 2, total: 0}], maturities: [], recent_transactions: [],
     }),
   });
-  await import('../../static/dashboard.mjs?empty');
+  await import('../../static/dashboard/dashboard.mjs?empty');
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(document.querySelector('#dashboard-categories').textContent, /2 accounts/);
   assert.match(document.querySelector('#dashboard-maturities').textContent, /No maturity dates/);
@@ -145,7 +145,7 @@ test('dashboard preserves malformed legacy dates without aborting rendering', as
     }),
   });
 
-  await import(`../../static/dashboard.mjs?legacy-date=${Date.now()}`);
+  await import(`../../static/dashboard/dashboard.mjs?legacy-date=${Date.now()}`);
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.match(document.querySelector('#dashboard-metrics').textContent, /Gross assets/);
@@ -172,7 +172,7 @@ test('dashboard renders browser-generated content in French', async () => {
       categories: [{type: 'tfsa', label: 'TFSA', count: 1, total: 0}], maturities: [], recent_transactions: [],
     }),
   });
-  await import('../../static/dashboard.mjs?french');
+  await import('../../static/dashboard/dashboard.mjs?french');
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(document.querySelector('#dashboard-metrics').textContent, /Actif brut/);
   assert.match(
@@ -201,7 +201,7 @@ test('dashboard preserves raw API error language inside a localized failure', as
     json: async () => ({error: 'Database unavailable'}),
   });
 
-  await import(`../../static/dashboard.mjs?failure=${Date.now()}`);
+  await import(`../../static/dashboard/dashboard.mjs?failure=${Date.now()}`);
   await new Promise((resolve) => setTimeout(resolve, 0));
   const message = document.querySelector('#dashboard-metrics .form-message');
   assert.match(message.textContent, /Impossible de charger le tableau de bord/);
@@ -242,7 +242,7 @@ test('dashboard rejects unsafe amounts before rendering any financial panels', a
     else if (target === 'transaction') data.recent_transactions[0].amount = amount;
     else data[target] = amount;
     globalThis.fetch = async () => ({ok: true, json: async () => data});
-    await import(`../../static/dashboard.mjs?unsafe=${index}`);
+    await import(`../../static/dashboard/dashboard.mjs?unsafe=${index}`);
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(document.querySelector('#dashboard-metrics .form-message').textContent,
       index % 2 ? /précision fiable/ : /reliable cent precision/);
@@ -267,7 +267,7 @@ test('dashboard preserves cents near its compatibility precision boundary', asyn
     categories: [], maturities: [],
     recent_transactions: [{transaction_date: '2026-01-01', amount: -17592186044415.99}],
   })});
-  await import('../../static/dashboard.mjs?precision-boundary');
+  await import('../../static/dashboard/dashboard.mjs?precision-boundary');
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(document.querySelector('#dashboard-metrics strong').textContent, '$17,592,186,044,415.99');
   assert.equal(document.querySelector('#dashboard-transactions td:last-child').textContent, '-$17,592,186,044,415.99');

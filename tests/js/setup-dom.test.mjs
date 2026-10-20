@@ -61,7 +61,7 @@ test('setup renders safely and submits each configuration form', async () => {
     return {ok: true, json: async () => ({})};
   };
 
-  await import('../../static/setup.mjs');
+  await import('../../static/setup/setup.mjs');
   await wait();
   await wait();
 

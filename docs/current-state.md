@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-14
+Updated: 2026-10-20
 
 ## Development focus
 
@@ -108,8 +108,11 @@ The authoritative priorities, execution order, and progress are maintained in th
 [GitHub Project](https://github.com/users/colleeseum/projects/3). This document records the current
 implementation state and intentional limitations without duplicating the changing roadmap.
 
-A dependency-based organization proposal for ARCH-01A (#69) is documented in
-[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). ARCH-01B-1 (#76), batch 70-1, moves the six
-shared browser modules under `static/shared/` and updates consumers and recursive syntax/coverage checks.
-Remaining browser, service and synthetic-tool batches are not implemented. The maintainer approved
-internal path changes without compatibility aliases; deployment requires a full browser reload.
+A dependency-based organization plan for ARCH-01A (#69) is accepted and documented in
+[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its planning delivery is complete.
+ARCH-01B-1 (#76), batch 70-1, has landed: the six shared browser modules are under `static/shared/`,
+with updated consumers and recursive syntax/coverage checks.
+ARCH-01B-2 (#77), batch 70-2, relocates accounts, dashboard and setup modules to feature directories
+with updated imports, template URLs and canonical-path tests. Later browser, service and
+synthetic-tool batches are not implemented. The maintainer approved internal path changes
+without compatibility aliases; deployment requires a full browser reload.

@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {formatNumber, formatPercent, formatDisplayDate} from './shared/locale-format.mjs';
+import {formatNumber, formatPercent, formatDisplayDate} from '../shared/locale-format.mjs';
 
 import {saveJson} from './accounts-api.mjs';
-import {t} from './shared/i18n.mjs';
+import {t} from '../shared/i18n.mjs';
 import {money} from './accounts-format.mjs';
 import {assetState} from './accounts-state.mjs';
-import {formSignature, showError} from './shared/form-state.mjs';
-import {escapeHtml} from './shared/html.mjs';
+import {formSignature, showError} from '../shared/form-state.mjs';
+import {escapeHtml} from '../shared/html.mjs';
 import {
   ownershipSignature,
   ownershipTotal,

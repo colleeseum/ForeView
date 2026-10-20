@@ -83,7 +83,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
     throw new Error(`Unexpected fetch: ${url}`);
   };
 
-  await import('../../static/accounts.mjs');
+  await import('../../static/accounts/accounts.mjs');
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   const content = document.querySelector('#accounts-table-content');
@@ -176,8 +176,8 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.equal(document.querySelector('#real-estate-dialog-message').lang, 'en-CA');
   assert.equal(realEstateForm.querySelector('button[type="submit"]').disabled, false);
 
-  const {renderAssets} = await import('../../static/accounts-render.mjs');
-  const {assetState} = await import('../../static/accounts-state.mjs');
+  const {renderAssets} = await import('../../static/accounts/accounts-render.mjs');
+  const {assetState} = await import('../../static/accounts/accounts-state.mjs');
   assetState.view = 'non_registered';
   assetState.accounts = [];
   renderAssets({openAccount: () => {}, openGic: () => {}});
@@ -232,8 +232,8 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
 test('account dates, units and percentages follow the selected locale without modifying values', async () => {
   const dom = new JSDOM('<div id="accounts-table-content"></div>');
   globalThis.document = dom.window.document;
-  const {renderAssets} = await import('../../static/accounts-render.mjs');
-  const {assetState} = await import('../../static/accounts-state.mjs');
+  const {renderAssets} = await import('../../static/accounts/accounts-render.mjs');
+  const {assetState} = await import('../../static/accounts/accounts-state.mjs');
   assetState.view = 'non_registered';
   assetState.accounts = [
     {id: 1, asset_kind: 'account', account_type: 'non_registered', institution: 'Questrade', name: 'Parent', rollup_amount: 2000, latest_amount: 1500, interest_rate: 0.025},

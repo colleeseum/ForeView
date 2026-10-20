@@ -3,10 +3,11 @@
 This document describes the architecture currently implemented in the repository. It is not a
 target-state design.
 
-The proposed repository organization work is analyzed separately in
-[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). That inventory and move map require
-maintainer approval for each batch. The six shared browser modules have moved under
-`static/shared/`; other proposed moves remain unimplemented.
+The accepted repository organization plan is recorded separately in
+[`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
+PRs still require review and maintainer merge approval. Shared browser modules live under
+`static/shared/`, and account, dashboard and setup modules use their feature directories.
+The remaining proposed moves are unimplemented.
 
 ## System shape
 
@@ -94,9 +95,11 @@ projection.
 `templates/` contains server-rendered HTML. `static/` contains framework-free browser modules,
 with reusable modules for API calls, rendering, form state, dialogs, ownership, and help. Browser
 tests use Node's test runner and jsdom. Shared localization, value formatting, HTML, form state,
-account-type labels and income-source labels live under `static/shared/`. Feature modules still
-remain at the static root until their respective relocation batches land. Syntax and coverage
-checks traverse browser modules recursively and verify executed coverage for every module.
+account-type labels and income-source labels live under `static/shared/`. The accounts workspace
+uses `static/accounts/`, the dashboard uses `static/dashboard/`, and household setup uses
+`static/setup/`. Other feature modules remain at the static root until their batches land.
+Syntax and coverage checks traverse browser modules recursively and verify executed coverage
+for every module.
 
 The shared help API combines core articles and provider contributions under stable category IDs.
 The help drawer renders expandable category ancestry, preserves category paths in search, and

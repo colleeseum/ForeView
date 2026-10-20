@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {escapeHtml} from './shared/html.mjs';
-import {t, locale} from './shared/i18n.mjs';
-import {accountTypeLabel} from './shared/account-types.mjs';
+import {escapeHtml} from '../shared/html.mjs';
+import {t, locale} from '../shared/i18n.mjs';
+import {accountTypeLabel} from '../shared/account-types.mjs';
 import {editableAccountValues} from './setup-values.mjs';
 
 const message = document.querySelector('#setup-message');

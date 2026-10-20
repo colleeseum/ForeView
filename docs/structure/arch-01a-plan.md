@@ -3,7 +3,10 @@
 Issue: [#69](https://github.com/colleeseum/ForeView/issues/69), parent
 [#68](https://github.com/colleeseum/ForeView/issues/68).
 
-Status: proposal for maintainer review. This document does not approve or perform any code moves.
+Status: accepted implementation plan as of 2026-10-20. Planning delivery landed in PR #74;
+the maintainer accepted the remaining scope/sign-off in #69. Each implementation batch still
+requires its own reviewed PR and explicit merge authorization. This document is not a claim
+that all proposed moves have been implemented.
 Baseline: `cba77584e68084ccbaf3ac068e59bed3bff4add7`, 2026-10-14. Uncommitted restart-script, Makefile and README work
 is explicitly excluded from the measurements and this change.
 
@@ -14,7 +17,8 @@ capability. Keep the existing layers, filenames, public identifiers and provider
 Do not replace vanilla JavaScript, introduce a build system, consolidate small domain types,
 rename financial concepts or merge unrelated provider interfaces.
 
-Approve the exact move map and compatibility policy before starting #70, #71 or #75.
+The exact move map and batch boundaries are accepted for #70, #71 and #75, using compatibility
+policy 2 below. Changes to that scope require separate agreement before implementation.
 For #72, the current recommendation is a documented no-relocation/no-unified-registry outcome,
 subject to its focused review. This is not an already-made architectural decision.
 
@@ -343,7 +347,7 @@ GitHub. Add every leaf issue to the authoritative Project and verify membership.
 
 | Batch | Boundary | Prerequisites / focused evidence |
 | --- | --- | --- |
-| 69 | inventory, graph, exact map, risks and approval questions only | no code moves; maintainer plan approval still required |
+| 69 | inventory, graph, exact map, risks and approval questions only | completed in PR #74; plan accepted; no code moves in that planning PR |
 | 70-1 | six shared ES modules; recursive JS tooling and consumers | catalog/key audit, locale formatter, account-type and module-state tests |
 | 70-2 | accounts (9), dashboard (1), setup (2) | assets/GIC/ownership tests, unchanged API requests and factual state |
 | 70-3 | transactions (4), connections (2) | reconciliation/import prompt/error tests, preserved async request guards and connection actions |
@@ -354,8 +358,8 @@ GitHub. Add every leaf issue to the authoritative Project and verify membership.
 | 75-1 | four synthetic tools under `devtools/synthetic/`; CLI, imports and tooling updates | after #69 scope agreement; coordinate with landed #71 imports; preserve generated facts, refusal/overwrite guards, idempotency, resource lookup and browser fixture setup |
 | 72 | provider decision record first; no relocation recommended | approve any counterproposal separately before implementation |
 
-If compatibility aliases are approved, include them and their tests in the same batch as their
-implementation move. Do not create alias-only follow-up work that temporarily breaks callers.
+The accepted policy does not retain compatibility aliases. If that requirement changes, record
+and approve a revised policy before the affected batch; do not silently introduce duplicate paths.
 
 ## Risks and acceptance checks
 
@@ -388,14 +392,17 @@ on a new reviewed fix branch; rerun `make qa` and smoke checks before landing th
 Do not reset shared main or rewrite unrelated commits. Revert later dependent move batches first,
 in reverse order, when their imports depend on the batch being rolled back.
 Restore the matching old assets/templates together and restart using the existing operational
-procedure; keep runtime paths and private data untouched. Keep compatibility aliases until their
-removal has been separately approved.
+procedure; keep runtime paths and private data untouched. Restore the matching pre-move paths
+as part of the revert rather than adding compatibility aliases under the selected policy.
 
-## Maintainer decisions required
+## Accepted scope and remaining review boundaries
 
-- Approve or amend the exact target paths and batch boundaries in `move-map.csv`.
-- Choose the compatibility policy above; no evidence can safely infer external consumer usage.
-- Confirm the provider no-relocation recommendation as the starting position for #72.
-- Approve the synthetic-tool batch in #75, including old import/CLI compatibility expectations.
-- Approve implementation scope before proceeding to #70/#71/#75. Issue #69 should remain open until
-  the plan is reviewed/agreed and its planning PR is merged, not merely because this proposal exists.
+- The target paths and batch boundaries in `move-map.csv`, including the four synthetic tools
+  under #75, are accepted. Evidence snapshots remain pinned to the original baseline.
+- Compatibility policy 2 is selected: canonical internal paths, atomic tracked-consumer updates,
+  no legacy import/CLI aliases and a full browser reload after deployment.
+- No provider relocation or universal registry is approved. The no-change recommendation is the
+  starting position for #72's separate evidence-based review; that issue can conclude no change
+  or propose a separately approved implementation.
+- ARCH-01A is complete. Remaining implementation and provider-review issues stay open; completion
+  of the plan does not authorize merging their PRs without review and maintainer approval.

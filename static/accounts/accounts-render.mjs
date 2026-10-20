@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {isSecurityAccount, money} from './accounts-format.mjs';
-import {accountTypeLabel} from './shared/account-types.mjs';
+import {accountTypeLabel} from '../shared/account-types.mjs';
 import {renderRealEstate} from './accounts-real-estate.mjs';
 import {assetGroups, assetState} from './accounts-state.mjs';
-import {escapeHtml, sourceTextSpan} from './shared/html.mjs';
-import {t} from './shared/i18n.mjs';
-import {formatDisplayDate, formatNumber, formatPercent} from './shared/locale-format.mjs';
+import {escapeHtml, sourceTextSpan} from '../shared/html.mjs';
+import {t} from '../shared/i18n.mjs';
+import {formatDisplayDate, formatNumber, formatPercent} from '../shared/locale-format.mjs';
 
 function renderHoldings(accountId) {
   const accountHoldings = assetState.holdings.filter((item) => Number(item.account_id) === Number(accountId));

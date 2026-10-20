@@ -6,7 +6,7 @@ target-state design.
 The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
-`static/shared/`, and account, dashboard and setup modules use their feature directories.
+`static/shared/`, and accounts, dashboard, setup, transactions and connections use feature directories.
 The remaining proposed moves are unimplemented.
 
 ## System shape
@@ -97,7 +97,9 @@ with reusable modules for API calls, rendering, form state, dialogs, ownership, 
 tests use Node's test runner and jsdom. Shared localization, value formatting, HTML, form state,
 account-type labels and income-source labels live under `static/shared/`. The accounts workspace
 uses `static/accounts/`, the dashboard uses `static/dashboard/`, and household setup uses
-`static/setup/`. Other feature modules remain at the static root until their batches land.
+`static/setup/`. Transactions and reconciliation UI modules use `static/transactions/`;
+connection controls and their button-action helper use `static/connections/`. Income, expenses,
+projection and help modules remain at the static root until their batch lands.
 Syntax and coverage checks traverse browser modules recursively and verify executed coverage
 for every module.
 

@@ -27,7 +27,7 @@ test('connections uses the clicked sync controls and restores failures', async (
     throw new Error(`Unexpected fetch: ${url}`);
   };
 
-  await import('../../static/connections.mjs');
+  await import('../../static/connections/connections.mjs');
   await waitForTasks();
   const list = document.querySelector('#connection-list');
   assert.match(list.textContent, /last successful sync never/);
@@ -76,7 +76,7 @@ test('connections handles an installation with no configured logins', async () =
     if (url === '/api/institutions') return {ok: true, json: async () => ({institutions: [{key: 'broker', display_name: 'Broker', connection: {status_path: '/status'}}]})};
     return {ok: true, json: async () => ({configured_connections: []})};
   };
-  await import('../../static/connections.mjs?empty');
+  await import('../../static/connections/connections.mjs?empty');
   await waitForTasks();
   assert.match(document.querySelector('#connection-list').textContent, /No institutions are configured/);
   assert.equal(document.querySelector('#sync-all').disabled, true);
@@ -91,7 +91,7 @@ test('connections renders an authorization callback for a disconnected login', a
     if (url === '/api/institutions') return {ok: true, json: async () => ({institutions: [{key: 'broker', display_name: 'Broker', connection: {status_path: '/status', connect_path: '/connect'}}]})};
     return {ok: true, json: async () => ({configured_connections: ['Secondary'], authorizations: []})};
   };
-  await import('../../static/connections.mjs?disconnected');
+  await import('../../static/connections/connections.mjs?disconnected');
   await waitForTasks();
   assert.match(document.body.textContent, /Broker connection saved/);
   assert.match(document.querySelector('#connection-list').textContent, /Not connected/);
@@ -129,7 +129,7 @@ test('connections preserve English boundaries inside the French interface', asyn
     throw new Error(`Unexpected fetch: ${url}`);
   };
 
-  await import(`../../static/connections.mjs?language-boundaries=${Date.now()}`);
+  await import(`../../static/connections/connections.mjs?language-boundaries=${Date.now()}`);
   await waitForTasks();
   const status = document.querySelector('.connection-status');
   assert.match(status.textContent, /dernière tentative échouée/);

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {t} from './shared/i18n.mjs';
-import {formatMoneyDollars} from './shared/locale-format.mjs';
+import {t} from '../shared/i18n.mjs';
+import {formatMoneyDollars} from '../shared/locale-format.mjs';
 
 export function importMessage(data) {
   const reconciliation = (data.results || []).find((item) => item.reconciliation_status);

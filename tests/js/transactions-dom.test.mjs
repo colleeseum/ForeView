@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
-import {transactionsTableHtml} from '../../static/transactions-render.mjs';
+import {transactionsTableHtml} from '../../static/transactions/transactions-render.mjs';
 import {formatDate, formatMoneyDollars} from '../../static/shared/locale-format.mjs';
 
 test('transaction table keeps canonical openings and malformed evidence in semantic order', () => {
@@ -85,7 +85,7 @@ test('transactions module loads filters and reconciles the selected account', as
     throw new Error(`Unexpected fetch: ${url}`);
   };
 
-  await import('../../static/transactions.mjs');
+  await import('../../static/transactions/transactions.mjs');
   await wait();
   await wait();
 

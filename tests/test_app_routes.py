@@ -803,8 +803,8 @@ class AppRouteTests(unittest.TestCase):
             "/setup": "setup/setup.mjs",
             "/accounts": "accounts/accounts.mjs",
             "/expenses": "expenses.mjs",
-            "/connections": "connections.mjs",
-            "/transactions": "transactions.mjs",
+            "/connections": "connections/connections.mjs",
+            "/transactions": "transactions/transactions.mjs",
             "/salary-projection": "salary-projection.mjs",
         }
         for path, filename in expected_entries.items():
@@ -816,16 +816,16 @@ class AppRouteTests(unittest.TestCase):
                     rb'src="/static/' + re.escape(filename.encode()) + rb'(?:\?[^" ]*)?"',
                 )
         for filename in (
-            "button-action.mjs",
-            "connections.mjs",
+            "connections/button-action.mjs",
+            "connections/connections.mjs",
             "dashboard/dashboard.mjs",
             "shared/html.mjs",
-            "latest-request.mjs",
+            "transactions/latest-request.mjs",
             "setup/setup-values.mjs",
             "setup/setup.mjs",
-            "transactions-render.mjs",
-            "transaction-import-message.mjs",
-            "transactions.mjs",
+            "transactions/transactions-render.mjs",
+            "transactions/transaction-import-message.mjs",
+            "transactions/transactions.mjs",
             "accounts/accounts.mjs",
             "accounts/account-dialog.mjs",
             "accounts/accounts-api.mjs",
@@ -883,6 +883,13 @@ class AppRouteTests(unittest.TestCase):
             ),
             "dashboard": ("dashboard",),
             "setup": ("setup-values", "setup"),
+            "connections": ("button-action", "connections"),
+            "transactions": (
+                "latest-request",
+                "transaction-import-message",
+                "transactions-render",
+                "transactions",
+            ),
         }
         for feature, names in modules.items():
             for name in names:

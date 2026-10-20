@@ -10,12 +10,12 @@ import {
   languageSpan,
   sourceTextSpan,
 } from '../../static/shared/html.mjs';
-import {createLatestRequestGate} from '../../static/latest-request.mjs';
+import {createLatestRequestGate} from '../../static/transactions/latest-request.mjs';
 
 import {isSecurityAccount, money, ownerDetails} from '../../static/accounts/accounts-format.mjs';
 import {formSignature, showError} from '../../static/shared/form-state.mjs';
 import {editableAccountValues} from '../../static/setup/setup-values.mjs';
-import {runButtonAction} from '../../static/button-action.mjs';
+import {runButtonAction} from '../../static/connections/button-action.mjs';
 
 test('API adapter preserves resolved message language and defaults raw diagnostics to English', async () => {
   for (const [payload, language] of [
@@ -34,8 +34,8 @@ import {
   cashFlowCategoryLabel,
   importHistoryHtml,
   transactionsTableHtml,
-} from '../../static/transactions-render.mjs';
-import {importMessage} from '../../static/transaction-import-message.mjs';
+} from '../../static/transactions/transactions-render.mjs';
+import {importMessage} from '../../static/transactions/transaction-import-message.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
 import {formatMoneyDollars} from '../../static/shared/locale-format.mjs';
 

@@ -110,6 +110,10 @@ For substantial tasks, do not work silently for long periods.
   `INC-10 (#10): Use consolidated snapshot as projection input`.
 - Reference the issue from the pull request. Use `Closes #10` only when the pull request completes
   the entire issue; use `Refs #10` for partial work.
+- When pushing a task branch, create a pull request as part of the same workflow if one does not
+  already exist, unless the maintainer explicitly requests otherwise. Subsequent pushes update
+  the existing PR; do not create duplicates. Include the issue links, scope and verification
+  results, and report the PR URL. Opening or updating a PR does not authorize merging it.
 - Keep the issue and Project status aligned with the implementation. Do not rewrite established
   history solely to retrofit this convention to older branches or commits.
 

@@ -7,6 +7,10 @@
     "qpip": "RQAP"
   },
   "dashboard": {
+    "unavailable": "Indisponible",
+    "no_accounts": "Aucun compte enregistré.",
+    "history": "Historique des transactions enregistrées",
+    "scroll_hint": "D’autres colonnes peuvent être disponibles. Activez la région du tableau et utilisez les flèches pour défiler.",
     "gross": "Actif brut",
     "gross_note": "Actifs financiers et immobiliers · REER avant impôt au retrait",
     "immovable": "Actifs immobiliers",

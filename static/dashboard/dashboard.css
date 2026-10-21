@@ -1,0 +1,20 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ */
+.fv-dashboard .summary-pill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--fv-space-4); }
+.fv-dashboard .summary-pill { display: grid; align-content: start; gap: var(--fv-space-3); margin: 0; min-width: 0; padding: var(--fv-space-6); border: 1px solid var(--fv-border); border-radius: var(--fv-radius-panel); color: var(--fv-text); background: var(--fv-surface); box-shadow: var(--fv-shadow-panel); text-decoration: none; }
+.fv-dashboard .summary-pill p { margin: 0; color: var(--fv-muted); font: 650 var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-dashboard .summary-pill strong { display: block; font: 700 var(--fv-type-heading)/1.4 var(--fv-font); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fv-dashboard .summary-pill small { color: var(--fv-muted); font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-dashboard .summary-pill-alert { border-inline-start: 4px solid var(--fv-warning); background: var(--fv-warning-surface); }
+.fv-dashboard .summary-pill-alert p, .fv-dashboard .summary-pill-alert small { color: var(--fv-warning); }
+.fv-dashboard .summary-pill-alert:hover { text-decoration: underline; }
+.fv-dashboard .dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--fv-space-4); margin-block: var(--fv-space-6); }
+.fv-dashboard .dashboard-panel { min-width: 0; }
+.fv-dashboard .dashboard-line { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--fv-space-2) var(--fv-space-4); padding-block: var(--fv-space-3); border-block-end: 1px solid var(--fv-border); font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-dashboard .dashboard-line span { min-width: 0; overflow-wrap: anywhere; }
+.fv-dashboard .dashboard-line strong { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fv-dashboard .dashboard-line small { display: block; color: var(--fv-muted); font: var(--fv-type-caption)/1.5 var(--fv-font); }
+.fv-dashboard .dashboard-note, .fv-dashboard .dashboard-empty { color: var(--fv-muted); font: var(--fv-type-detail)/1.5 var(--fv-font); margin-block: var(--fv-space-4); }
+.fv-dashboard .dashboard-panel h2 { font: 650 var(--fv-type-heading)/1.3 var(--fv-font); }
+.fv-dashboard .fv-feedback { grid-column: 1 / -1; }

@@ -273,3 +273,47 @@ test('dashboard preserves cents near its compatibility precision boundary', asyn
   assert.equal(document.querySelector('#dashboard-transactions td:last-child').textContent, '-$17,592,186,044,415.99');
   dom.window.close();
 });
+
+test('missing dashboard facts remain unavailable while explicit zero stays zero', async () => {
+  for (const locale of ['en-CA', 'fr-CA']) {
+    configureTestLocalization(locale);
+    const dom = new JSDOM('<div id="dashboard-metrics"></div><div id="dashboard-categories"></div><div id="dashboard-liquidity"></div><div id="dashboard-maturities"></div><div id="dashboard-transactions"></div>');
+    Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+    const data = {
+      gross_assets: null, immovable_value: 0, invested_value: 0, gic_value: 0,
+      liquidity_value: null, liquidity_by_type: {}, rrsp_uninvested: null,
+      uninvested_security_value: null, savings_threshold: .025, low_rate_value: null,
+      categories: [], maturities: [], recent_transactions: [],
+    };
+    globalThis.fetch = async () => ({ok: true, json: async () => data});
+    await import(`../../static/dashboard/dashboard.mjs?missing=${locale}`);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const amounts = [...document.querySelectorAll('#dashboard-metrics strong')];
+    assert.equal(amounts[0].textContent, locale === 'en-CA' ? 'Unavailable' : 'Indisponible');
+    assert.match(amounts[1].textContent, /0[.,]00/);
+    assert.match(document.querySelector('#dashboard-categories').textContent, locale === 'en-CA' ? /No accounts/ : /Aucun compte/);
+    assert.equal(document.querySelectorAll('[aria-busy="false"]').length, 5);
+    dom.window.close();
+  }
+  configureTestLocalization();
+});
+
+test('HTTP, network and malformed responses clear all stale loading panels', async () => {
+  for (const [index, fetcher] of [
+    async () => ({ok: false, status: 503, json: async () => ({error: 'Synthetic unavailable'})}),
+    async () => {throw new Error('Synthetic network failure');},
+    async () => ({ok: true, json: async () => {throw new SyntaxError('Synthetic malformed JSON');}}),
+  ].entries()) {
+    configureTestLocalization();
+    const dom = new JSDOM(['metrics', 'categories', 'liquidity', 'maturities', 'transactions'].map(name => `<div id="dashboard-${name}" aria-busy="true">Loading</div>`).join(''));
+    Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+    globalThis.fetch = fetcher;
+    await import(`../../static/dashboard/dashboard.mjs?all-panel-error=${index}`);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(document.querySelectorAll('[role="alert"]').length, 1);
+    assert.equal(document.querySelectorAll('[aria-busy="true"]').length, 0);
+    assert.doesNotMatch(document.body.textContent, /Loading/);
+    assert.equal([...document.querySelectorAll('.dashboard-empty')].filter(node => node.textContent === 'Unavailable').length, 4);
+    dom.window.close();
+  }
+});

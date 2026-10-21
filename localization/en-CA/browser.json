@@ -7,6 +7,10 @@
     "qpip": "QPIP"
   },
   "dashboard": {
+    "unavailable": "Unavailable",
+    "no_accounts": "No accounts recorded.",
+    "history": "Recorded transaction history",
+    "scroll_hint": "More columns may be available. Focus the table region and use the arrow keys to scroll.",
     "gross": "Gross assets",
     "gross_note": "Financial + immovable assets · RRSP before withdrawal tax",
     "immovable": "Immovable assets",

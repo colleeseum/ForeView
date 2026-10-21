@@ -9,7 +9,9 @@ design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation an
 helper are implemented with a disposable bilingual component reference under `docs/design/ux-03b/`;
 usage is documented in `docs/design/ui-foundation.md`. UX-03C adopts the foundation for a wider,
 collapsible shared navigation disclosure with wrapped narrow-screen groups and active-page semantics.
-Feature workspace adoption remains separate work. No retirement functionality is added.
+UX-03D adopts Sage cards, panels and readable transaction history for the financial overview,
+with explicit missing/empty/error states and unchanged dashboard read-model calculations.
+Other feature workspace adoption remains separate work. No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income
 and tax records feeding an employment and disposable-income projection. The application can retain

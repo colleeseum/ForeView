@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import json
+import re
 import sqlite3
 import tempfile
 import unittest
@@ -175,7 +176,15 @@ class RuntimeProfileTests(unittest.TestCase):
             self.assertIn(b"Montreal property tax", expenses_response.data)
             self.assertIn(b"$4,293.00", expenses_response.data)
             self.assertIn(b"Seasonal estimate", expenses_response.data)
-            self.assertNotIn(b"Unavailable", expenses_response.data)
+            # The shared JSON catalog includes messages for other pages. Check the
+            # rendered expense markup, not hidden script/translation metadata.
+            rendered_expenses = re.sub(
+                rb"<script\b[^>]*>.*?</script\s*>",
+                b"",
+                expenses_response.data,
+                flags=re.DOTALL | re.IGNORECASE,
+            )
+            self.assertNotIn(b"Unavailable", rendered_expenses)
             accounts = accounts_response.get_json()["accounts"]
             account_totals = {
                 item["type"]: item for item in accounts_response.get_json()["category_totals"]

@@ -128,7 +128,13 @@ The shared side-menu partial adopts those tokens through `static/shared/navigati
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;
 expansion is not persisted. Narrow layouts place the navigation above the workspace, with wrapped
-groups instead of a horizontally scrolling strip. Feature content keeps its legacy styling.
+groups instead of a horizontally scrolling strip. Navigation adoption does not itself restyle
+feature content.
+
+The financial overview adopts the shared foundation through the scoped
+`static/dashboard/dashboard.css`. Its browser adapter retains the existing dashboard API;
+missing amounts remain unavailable, and failed loads clear every dependent panel rather than
+leaving partial results or loading labels. Other workspaces are not implicitly restyled.
 
 The shared help API combines core articles and provider contributions under stable category IDs.
 The help drawer renders expandable category ancestry, preserves category paths in search, and

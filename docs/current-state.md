@@ -5,8 +5,10 @@ Updated: 2026-10-21
 ## Development focus
 
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
-design brief are under `docs/design/ux-03a/`; the shared primitives and workspace adoption remain
-unimplemented. No retirement functionality is added by the design choice.
+design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog
+helper are implemented with a disposable bilingual component reference under `docs/design/ux-03b/`;
+usage is documented in `docs/design/ui-foundation.md`. Workspace adoption and responsive navigation
+remain separate work. No retirement functionality is added by this foundation.
 
 The current development focus, rather than the permanent product boundary, is factual annual income
 and tax records feeding an employment and disposable-income projection. The application can retain

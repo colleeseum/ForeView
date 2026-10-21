@@ -1,0 +1,108 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ * Opt-in Sage foundation. Load after style.css; never override legacy globals.
+ */
+.fv-ui {
+  --fv-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --fv-type-body: 1rem;
+  --fv-type-detail: .875rem;
+  --fv-type-caption: .75rem;
+  --fv-type-heading: 1.25rem;
+  --fv-control-min: 44px;
+  --fv-text: #20312c;
+  --fv-muted: #52655b;
+  --fv-canvas: #edf1ed;
+  --fv-surface: #ffffff;
+  --fv-surface-subtle: #f7f9f6;
+  --fv-navigation: #e4eee7;
+  --fv-border: #d8e2da;
+  --fv-control-border: #71877a;
+  --fv-primary: #326858;
+  --fv-primary-hover: #254d41;
+  --fv-focus: #315da8;
+  --fv-danger: #a52a2a;
+  --fv-danger-hover: #822020;
+  --fv-danger-surface: #fff0ef;
+  --fv-success: #315b43;
+  --fv-success-surface: #ebf4ee;
+  --fv-warning: #843e1e;
+  --fv-warning-surface: #fff0de;
+  --fv-info: #204f77;
+  --fv-info-surface: #eaf1f6;
+  --fv-disabled: #e3e8e4;
+  --fv-space-1: .25rem;
+  --fv-space-2: .5rem;
+  --fv-space-3: .75rem;
+  --fv-space-4: 1rem;
+  --fv-space-6: 1.5rem;
+  --fv-space-8: 2rem;
+  --fv-radius-control: .5625rem;
+  --fv-radius-panel: 1rem;
+  --fv-shadow-panel: 0 4px 16px #1731240a;
+  --fv-shadow-dialog: 0 14px 45px #20382e30;
+  color: var(--fv-text);
+  color-scheme: light;
+  font: var(--fv-type-body)/1.5 var(--fv-font);
+  background: var(--fv-canvas);
+}
+.fv-ui :where(*, *::before, *::after) { box-sizing: border-box; }
+.fv-ui :where([hidden]) { display: none !important; }
+.fv-ui :where(h1, h2, h3, p) { margin-block: 0 var(--fv-space-4); overflow-wrap: anywhere; }
+.fv-ui :where(h1) { font: 700 clamp(1.75rem, 4vw, 2.25rem)/1.2 var(--fv-font); }
+.fv-ui :where(h2) { font: 650 var(--fv-type-heading)/1.3 var(--fv-font); }
+.fv-ui :where(h3) { font: 650 var(--fv-type-body)/1.4 var(--fv-font); }
+.fv-ui :where(a) { color: var(--fv-primary); text-underline-offset: .2em; }
+.fv-ui :where(button, input, select, textarea) { font: inherit; }
+.fv-ui :where(:focus-visible) { outline: 3px solid var(--fv-focus); outline-offset: 3px; }
+.fv-ui.fv-stack, .fv-ui .fv-stack { display: grid; gap: var(--fv-space-4); min-width: 0; }
+.fv-ui .fv-row { display: flex; flex-wrap: wrap; gap: var(--fv-space-3); align-items: center; }
+.fv-ui .fv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--fv-space-4); }
+.fv-ui .fv-card { min-width: 0; padding: var(--fv-space-6); border: 1px solid var(--fv-border); border-radius: var(--fv-radius-panel); background: var(--fv-surface); box-shadow: var(--fv-shadow-panel); }
+.fv-ui .fv-muted, .fv-ui .fv-help { color: var(--fv-muted); }
+.fv-ui .fv-help { font-size: var(--fv-type-detail); font-weight: 400; }
+.fv-ui .fv-number { font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
+.fv-ui .fv-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--fv-space-2);
+  min-height: var(--fv-control-min); min-width: var(--fv-control-min); max-width: 100%; padding: var(--fv-space-2) var(--fv-space-4);
+  border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control);
+  background: var(--fv-surface); color: var(--fv-text); font-weight: 650;
+  line-height: 1.4; text-align: center; text-decoration: none; overflow-wrap: anywhere; cursor: pointer;
+}
+.fv-ui .fv-button:hover { background: var(--fv-navigation); }
+.fv-ui .fv-button--primary { color: var(--fv-surface); background: var(--fv-primary); border-color: var(--fv-primary); }
+.fv-ui .fv-button--primary:hover { background: var(--fv-primary-hover); }
+.fv-ui .fv-button--danger { color: var(--fv-surface); background: var(--fv-danger); border-color: var(--fv-danger); }
+.fv-ui .fv-button--danger:hover { background: var(--fv-danger-hover); }
+.fv-ui .fv-button:disabled { color: var(--fv-muted); background: var(--fv-disabled); border-color: var(--fv-control-border); cursor: not-allowed; }
+.fv-ui .fv-button[aria-busy="true"] { cursor: wait; }
+.fv-ui .fv-field { display: grid; gap: var(--fv-space-2); min-width: 0; align-content: start; font-size: var(--fv-type-detail); font-weight: 650; }
+.fv-ui .fv-input { width: 100%; min-width: 0; min-height: var(--fv-control-min); border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control); background: var(--fv-surface); color: var(--fv-text); padding: var(--fv-space-2) var(--fv-space-3); }
+.fv-ui .fv-input:disabled { color: var(--fv-muted); background: var(--fv-disabled); }
+.fv-ui .fv-input[readonly] { background: var(--fv-surface-subtle); }
+.fv-ui .fv-input[aria-invalid="true"] { border: 2px solid var(--fv-danger); }
+.fv-ui .fv-feedback { padding: var(--fv-space-3) var(--fv-space-4); border-inline-start: 4px solid var(--fv-info); border-radius: var(--fv-radius-control); background: var(--fv-info-surface); color: var(--fv-info); overflow-wrap: anywhere; }
+.fv-ui .fv-feedback--success { color: var(--fv-success); border-color: var(--fv-success); background: var(--fv-success-surface); }
+.fv-ui .fv-feedback--warning { color: var(--fv-warning); border-color: var(--fv-warning); background: var(--fv-warning-surface); }
+.fv-ui .fv-feedback--error { color: var(--fv-danger); border-color: var(--fv-danger); background: var(--fv-danger-surface); }
+.fv-ui .fv-badge { display: inline-block; padding: var(--fv-space-1) var(--fv-space-2); border: 1px solid currentColor; border-radius: var(--fv-radius-control); color: var(--fv-info); background: var(--fv-info-surface); font-size: var(--fv-type-caption); font-weight: 650; }
+.fv-ui .fv-badge--assumption { color: var(--fv-warning); background: var(--fv-warning-surface); }
+.fv-ui .fv-badge--source { color: var(--fv-success); background: var(--fv-success-surface); }
+.fv-ui .fv-tabs { display: flex; gap: var(--fv-space-2); overflow-x: auto; padding: var(--fv-space-1); border-block-end: 1px solid var(--fv-border); }
+.fv-ui .fv-tabs .fv-button { flex-shrink: 0; border-color: transparent; background: transparent; }
+.fv-ui .fv-tabs [aria-current="page"], .fv-ui .fv-tabs [aria-selected="true"] { color: var(--fv-primary); background: var(--fv-navigation); border-block-end-color: var(--fv-primary); }
+.fv-ui .fv-table-scroll { min-width: 0; max-width: 100%; overflow: auto; padding: var(--fv-space-1); border: 1px solid var(--fv-border); border-radius: var(--fv-radius-control); background: var(--fv-surface); }
+.fv-ui .fv-table { width: 100%; min-width: 38rem; border-collapse: collapse; font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-ui .fv-table caption { text-align: start; color: var(--fv-muted); padding: var(--fv-space-3); }
+.fv-ui .fv-table :where(th, td) { position: static; min-width: 0; max-width: none; white-space: normal; overflow: visible; text-overflow: clip; padding: var(--fv-space-4) var(--fv-space-3); border-inline-end: 0; border-block-end: 1px solid var(--fv-border); text-align: start; }
+.fv-ui .fv-table th { color: var(--fv-muted); font-weight: 650; background: var(--fv-surface-subtle); }
+.fv-ui .fv-table .fv-number { text-align: end; }
+.fv-ui .fv-table--compact :where(th, td) { padding-block: var(--fv-space-2); }
+.fv-ui .fv-dialog { width: min(44rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; padding: var(--fv-space-6); border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-panel); color: var(--fv-text); background: var(--fv-surface); box-shadow: var(--fv-shadow-dialog); font: 1rem/1.5 var(--fv-font); }
+.fv-ui .fv-dialog::backdrop { background: #20312c80; }
+.fv-ui .fv-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--fv-space-3); padding-block-start: var(--fv-space-4); border-block-start: 1px solid var(--fv-border); }
+.fv-ui .fv-tooltip { position: relative; display: inline-flex; }
+.fv-ui .fv-tooltip [role="tooltip"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--fv-space-2)); inset-inline-end: 0; width: min(16rem, 70vw); padding: var(--fv-space-3); border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control); background: var(--fv-surface); color: var(--fv-text); box-shadow: var(--fv-shadow-panel); font-size: .875rem; }
+@media (forced-colors: active) {
+  .fv-ui .fv-button:disabled { color: GrayText; }
+  .fv-ui .fv-feedback, .fv-ui .fv-badge { border: 1px solid CanvasText; }
+}

@@ -118,6 +118,12 @@ at the static root. There are no legacy ES-module URL aliases.
 Syntax and coverage checks traverse browser modules recursively and verify executed coverage
 for every module.
 
+The opt-in Sage foundation lives in `static/shared/ui.css`, loaded after the legacy stylesheet
+by adopting surfaces. Its `fv-ui` scope and `fv-` components do not restyle unmigrated pages.
+`static/shared/dialog.mjs` wraps native modal dialogs for explicit invoker/fallback focus return;
+existing legacy dialogs are not automatically migrated. Component usage and the disposable
+synthetic reference are documented in `docs/design/ui-foundation.md`.
+
 The shared help API combines core articles and provider contributions under stable category IDs.
 The help drawer renders expandable category ancestry, preserves category paths in search, and
 expands the branch selected by page-level or contextual help. Provider hierarchy metadata is

@@ -1,0 +1,97 @@
+<!-- SPDX-FileCopyrightText: 2026 Mindstep Corporation -->
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+<!doctype html>
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ t('ui_examples.title') }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/shared/ui.css">
+</head>
+<body>
+<!-- Legacy sibling deliberately remains outside the opt-in scope. -->
+<p id="legacy" hidden>Legacy reference</p>
+<main class="fv-ui fv-stack" style="max-width:1100px;margin:auto;padding:24px">
+  <header><h1>{{ t('ui_examples.title') }}</h1><p>{{ t('ui_examples.notice') }}</p>
+    <a href="/application-settings">{{ t('pages.settings.heading') }}</a>
+  </header>
+  <section class="fv-card fv-stack">
+    <h2>{{ t('ui_examples.actions') }}</h2>
+    <nav class="fv-tabs" aria-label="{{ t('ui_examples.table') }}">
+      <a class="fv-button" href="#standard" aria-current="page">{{ t('ui_examples.standard') }}</a>
+      <a class="fv-button" href="#compact">{{ t('ui_examples.compact') }}</a>
+    </nav>
+    <div class="fv-row">
+      <button class="fv-button fv-button--primary" type="button">{{ t('ui_examples.primary') }}</button>
+      <button class="fv-button" type="button">{{ t('ui_examples.secondary') }}</button>
+      <button class="fv-button fv-button--danger" type="button">{{ t('ui_examples.danger') }}</button>
+      <button class="fv-button fv-button--primary" type="button" disabled>{{ t('ui_examples.disabled') }}</button>
+      <button class="fv-button" type="button" aria-busy="true" disabled>{{ t('ui_examples.busy') }}</button>
+    </div>
+    <div class="fv-row">
+      <span class="fv-tooltip"><button id="quick-help" class="fv-button" type="button" aria-label="{{ t('ui_examples.quick') }}" aria-describedby="quick-tip">?</button><span id="quick-tip" role="tooltip" hidden>{{ t('ui_examples.tooltip') }}</span></span>
+      <button class="fv-button" type="button" data-help-article="expenses">? {{ t('ui_examples.context') }}</button>
+      <button class="fv-button" type="button" data-open-help>? {{ t('ui_examples.full') }}</button>
+    </div>
+  </section>
+  <section class="fv-card fv-stack"><h2>{{ t('ui_examples.form') }}</h2>
+    <div class="fv-grid">
+      <label class="fv-field">{{ t('ui_examples.name') }}<input class="fv-input" value="Synthetic record" aria-describedby="name-hint"><small id="name-hint" class="fv-help">{{ t('ui_examples.hint') }}</small></label>
+      <label class="fv-field">{{ t('ui_examples.type') }}<select class="fv-input"><option>{{ t('ui_examples.source') }}</option><option>{{ t('ui_examples.corrected') }}</option></select></label>
+      <label class="fv-field">{{ t('ui_examples.readonly') }}<input class="fv-input" value="SYN-001" readonly></label>
+      <label class="fv-field">{{ t('ui_examples.disabled') }}<input class="fv-input" disabled></label>
+      <label class="fv-field">{{ t('ui_examples.name') }}<input class="fv-input" aria-invalid="true" aria-describedby="field-error"><span id="field-error" class="fv-help">{{ t('ui_examples.error') }}</span></label>
+    </div>
+    <div class="fv-row"><span class="fv-badge fv-badge--source">{{ t('ui_examples.source') }}</span><span class="fv-badge">{{ t('ui_examples.corrected') }}</span><span class="fv-badge fv-badge--assumption">{{ t('ui_examples.assumption') }}</span></div>
+    <p class="fv-feedback">{{ t('ui_examples.info') }}</p>
+    <p class="fv-feedback fv-feedback--warning">{{ t('ui_examples.warning') }}</p>
+    <p class="fv-feedback fv-feedback--error" role="alert">{{ t('ui_examples.error') }}</p>
+    <p id="preview-status" class="fv-feedback fv-feedback--success" role="status" aria-live="polite"></p>
+    <p class="fv-muted">{{ t('ui_examples.empty') }}</p>
+    <button id="open-dialog" class="fv-button fv-button--primary" type="button">{{ t('ui_examples.open') }}</button>
+  </section>
+  {% for density in ['standard', 'compact'] %}
+  <section id="{{ density }}" class="fv-card fv-stack"><h2>{{ t('ui_examples.' ~ density) }}</h2>
+    <p id="{{ density }}-hint" class="fv-help">{{ t('ui_examples.scroll') }}</p>
+    <div class="fv-table-scroll" tabindex="0" role="region" aria-label="{{ t('ui_examples.' ~ density) }}" aria-describedby="{{ density }}-hint">
+      <table class="fv-table{% if density == 'compact' %} fv-table--compact{% endif %}">
+        <caption>{{ t('ui_examples.table') }}</caption><thead><tr><th scope="col">{{ t('ui_examples.name') }}</th><th scope="col">{{ t('ui_examples.date') }}</th><th scope="col" class="fv-number">{{ t('ui_examples.amount') }}</th><th scope="col">{{ t('ui_examples.source') }}</th></tr></thead>
+        <tbody>{% for amount in ['1234.56', '98765.43'] %}<tr><th scope="row">{{ t('ui_examples.account') }}</th><td>{{ format_date('2026-01-31') }}</td><td class="fv-number">{{ format_money(amount) }}</td><td>SYN-00{{ loop.index }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+  {% endfor %}
+  <dialog id="preview-dialog" class="fv-dialog" aria-labelledby="dialog-title">
+    <form id="preview-form" class="fv-stack">
+      <h2 id="dialog-title">{{ t('ui_examples.dialog') }}</h2>
+      <p>{{ t('ui_examples.notice') }}</p>
+      <label class="fv-field">{{ t('ui_examples.name') }}<input id="dialog-name" class="fv-input" name="name" required autofocus aria-describedby="dialog-hint"></label>
+      <p id="dialog-hint" class="fv-help">{{ t('ui_examples.hint') }}</p>
+      <div class="fv-dialog-actions"><button id="cancel-dialog" class="fv-button" type="button" data-dialog-close>{{ t('ui_examples.cancel') }}</button><button id="preview" class="fv-button fv-button--primary" type="submit">{{ t('ui_examples.preview') }}</button></div>
+    </form>
+  </dialog>
+  {% include '_browser_localization.html' %}
+</main>
+<script type="module">
+  import {createDialog} from '/static/shared/dialog.mjs';
+  import '/static/help/help.mjs';
+  const trigger = document.querySelector('#open-dialog');
+  const dialog = createDialog(document.querySelector('#preview-dialog'), {fallbackFocus: trigger});
+  trigger.addEventListener('click', () => dialog.open(trigger));
+  document.querySelector('#preview-form').addEventListener('submit', event => {
+    event.preventDefault();
+    document.querySelector('#preview-status').textContent = {{ t('ui_examples.success') | tojson }};
+    dialog.close();
+  });
+  const help = document.querySelector('#quick-help');
+  const tip = document.querySelector('#quick-tip');
+  help.addEventListener('focus', () => {tip.hidden = false;});
+  help.addEventListener('mouseenter', () => {tip.hidden = false;});
+  help.addEventListener('blur', () => {tip.hidden = true;});
+  help.parentElement.addEventListener('mouseleave', () => {tip.hidden = true;});
+  help.addEventListener('keydown', event => {if (event.key === 'Escape') tip.hidden = true;});
+  document.querySelector('[data-open-help]').addEventListener('click', () => window.openContextHelp(null));
+</script>
+</body>
+</html>

@@ -63,6 +63,19 @@ financial scope or dense-data workflows. This selects a visual direction, not ne
 calculations, historical-chart APIs, routes, retirement engines or legal requirements. Shared
 primitives and feature adoption must still be implemented and verified in their scoped UX-03 issues.
 
+Shared Sage components are opt-in under `fv-ui`, with prefixed component classes and a single
+token source in `static/shared/ui.css`. Load it after legacy styles only on adopting surfaces.
+Native modal dialogs use the shared lifecycle helper; legacy backdrop workflows remain unchanged
+until their own feature migrations. The component reference is development-only and creates a
+disposable synthetic runtime rather than registering a production demo route.
+
+The planned text-size preference is Small / Normal / Large, separate from table density.
+The current component showcase is the Large reference; final sizes and the default remain
+undecided. Persisted preference controls belong to UX-03J (#104), not this foundation.
+
+Reason: establish predictable styling and interaction contracts without an unreviewed global
+restyle or simultaneous changes to every feature's workflows.
+
 ## Repository organization uses canonical internal paths
 
 The ARCH-01 move batches use the agreed internal module and asset paths without temporary

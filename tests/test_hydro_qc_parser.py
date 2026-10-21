@@ -11,9 +11,9 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+from devtools.synthetic.synthetic_documents import create_synthetic_hydro_qc_statement
 from domain.calver import is_calver
 from expense_sources.hydro_qc import HydroQuebecParser, provider
-from synthetic_documents import create_synthetic_hydro_qc_statement
 
 STATEMENT_TEXT = """Hydro-Québec
 Facture d'électricité du 2 février 2026

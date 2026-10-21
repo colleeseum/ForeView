@@ -65,12 +65,11 @@ from institutions.sunlife import import_service as sunlife_import
 from institutions.manulife import import_service as manulife_import
 from institutions.rbc import deposit_import_service, gic_history_import_service, tfsa_import_service
 import runtime_backup
-import synthetic_expenses
-import synthetic_questrade
+from devtools.synthetic import synthetic_expenses, synthetic_questrade
 from income_sources import income_source_registry
 from tax_notices import tax_notice_registry
 from public_pension_sources import public_pension_source_registry
-import synthetic_runtime
+from devtools.synthetic import synthetic_runtime
 from tests import support
 
 bindings = (

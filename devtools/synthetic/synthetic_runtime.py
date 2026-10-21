@@ -36,8 +36,9 @@ from services.imports.document_import_account_resolver import DocumentImportAcco
 from services.projections.public_rule_catalog import PublicRuleCatalog
 from services.runtime.database_initialization import ensure_domain_schema
 from services.transactions.transaction_service import TransactionService
-from synthetic_documents import create_synthetic_fixture_set
-from synthetic_expenses import seed_synthetic_expenses
+
+from .synthetic_documents import create_synthetic_fixture_set
+from .synthetic_expenses import seed_synthetic_expenses
 
 
 def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
@@ -139,7 +140,7 @@ def create_synthetic_runtime(data_dir: Path) -> tuple[Path, Path]:
             source="synthetic assessment",
         )
         approvals = PublicRuleApprovalRepository(connection)
-        catalog = PublicRuleCatalog(Path(__file__).parent / "public_rules")
+        catalog = PublicRuleCatalog(Path(__file__).resolve().parents[2] / "public_rules")
         for rule_set_id in (
             "ca-2026-official",
             "ca-qc-2026-official",

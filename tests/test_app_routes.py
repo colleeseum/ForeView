@@ -18,6 +18,8 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import app as application
+from devtools.synthetic.synthetic_questrade import SyntheticQuestradeAPI
+from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from domain.parsed_public_pension_statement import ParsedPublicPensionStatement
 from domain.parsed_tax_assessment import ParsedTaxAssessment
 from domain.parsed_tax_value import ParsedTaxValue
@@ -37,8 +39,6 @@ from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from repositories.real_estate_projection_repository import RealEstateProjectionRepository
 from repositories.scenario_assumption_repository import ScenarioAssumptionRepository
 from services.projections.public_rule_catalog import PublicRuleCatalog
-from synthetic_questrade import SyntheticQuestradeAPI
-from synthetic_runtime import create_synthetic_runtime
 
 
 class AppRouteTests(unittest.TestCase):

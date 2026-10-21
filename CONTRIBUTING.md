@@ -231,6 +231,9 @@ This includes, among other things:
 Tests, examples, screenshots, fixtures, and bug reproductions should use
 synthetic data unless there is a compelling and safe reason otherwise.
 
+Reusable synthetic generators live in `devtools/synthetic/`. Production modules must not import
+this development-only package. Use the repository-root module commands in `README.md` for loaders.
+
 If a parser or import workflow needs a regression case, create the
 smallest synthetic document or fixture that reproduces the relevant
 behaviour without exposing personal or confidential information.

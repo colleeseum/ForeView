@@ -9,10 +9,10 @@ from contextlib import closing
 from pathlib import Path
 
 import app as application
+from devtools.synthetic.synthetic_expenses import load_synthetic_expenses
+from devtools.synthetic.synthetic_questrade import load_synthetic_questrade
+from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
-from synthetic_expenses import load_synthetic_expenses
-from synthetic_questrade import load_synthetic_questrade
-from synthetic_runtime import create_synthetic_runtime
 
 
 class RuntimeProfileTests(unittest.TestCase):

@@ -10,11 +10,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from devtools.synthetic.synthetic_documents import create_synthetic_fixture_set
 from infrastructure.runtime_config import RuntimeConfig
 from institution_support.document_detection import detect_importer
 from institutions.questrade.sync import sync_questrade_connection
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
-from synthetic_documents import create_synthetic_fixture_set
 from tests.support import (
     create_account,
     create_person,

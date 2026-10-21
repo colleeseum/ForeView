@@ -13,10 +13,10 @@ from reportlab.pdfgen.canvas import Canvas
 from werkzeug.serving import make_server
 
 import app as application
+from devtools.synthetic.synthetic_documents import create_synthetic_hydro_qc_statement
+from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
 from localization import LocalizationService
-from synthetic_documents import create_synthetic_hydro_qc_statement
-from synthetic_runtime import create_synthetic_runtime
 
 
 def test_primary_workflows_and_rtl_in_real_browser(tmp_path: Path) -> None:

@@ -12,8 +12,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import app as application
+from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
-from synthetic_runtime import create_synthetic_runtime
 
 
 class RuntimeConfigTests(unittest.TestCase):

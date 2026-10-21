@@ -223,6 +223,10 @@ Tests and development runtimes use generated people, accounts, statements, PDFs,
 responses. Real financial documents and extracted personal details are not test fixtures and are
 not committed.
 
+Generators belong to the development-only `devtools/synthetic/` package, not the production import
+graph. Invoke loader CLIs as modules from the repository root. Public-rule and fixture resources
+resolve relative to the checkout; explicit runtime destinations keep their existing path semantics.
+
 Reason: parser and integration behavior must be reproducible without leaking private information.
 
 ## Public use is noncommercial and commercial licensing is separate

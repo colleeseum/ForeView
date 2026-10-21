@@ -12,12 +12,12 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+from devtools.synthetic.synthetic_documents import create_synthetic_hydro_qc_statement
 from ingestion.statement_import import content_hash
 from repositories.expense_repository import ExpenseRepository
 from repositories.import_batch_repository import ImportBatchRepository
 from services.expenses.expense_import_service import ExpenseImportService
 from services.runtime.database_initialization import ensure_domain_schema
-from synthetic_documents import create_synthetic_hydro_qc_statement
 from tests.support import create_person
 
 

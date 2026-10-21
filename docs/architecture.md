@@ -7,8 +7,8 @@ The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
 `static/shared/`, and all browser feature implementations use capability directories.
-All application service implementations use capability packages. Synthetic-tool moves are not
-yet implemented.
+All application service implementations use capability packages. Synthetic development tools
+live under `devtools/synthetic/`, outside the production dependency graph.
 
 ## System shape
 
@@ -260,8 +260,11 @@ code for localized API guidance and subsequent status reads.
 ## Test and quality architecture
 
 Python unit and integration tests live under `tests/`. Browser behavior tests live under
-`tests/js/`. Synthetic runtime and document generators exercise imports without committing private
-documents. The project enforces branch-aware Python and JavaScript coverage floors of at least 80
+`tests/js/`. Development-only generators under `devtools/synthetic/` exercise imports without
+committing private documents. Their package initializers are non-eager; production modules do not
+import them. Resource lookup is repository-relative, while runtime destinations retain caller-relative
+path semantics. See `README.md` for repository-root module commands.
+The project enforces branch-aware Python and JavaScript coverage floors of at least 80
 percent, plus Ruff, mypy, Bandit, dependency audits, and dedicated integration-coverage targets.
 The exact commands are maintained in `Makefile` and summarized in `README.md`.
 Service coverage filters include nested packages. The service coverage sentinel reads the main
@@ -273,3 +276,6 @@ use the canonical implementations and that dependency patches reach those retain
 The integration run includes backup/restore tests, including the root CLI round trip. Its existing
 backup-specific aggregate coverage exclusion names the canonical runtime service path; the
 executed-coverage sentinel still verifies every grouped service in both reports.
+The synthetic-tool coverage sentinel uses the same executed-function/branch checks for all four
+relocated generators in both reports. CLI and fresh-process tests cover unrelated working
+directories, import side effects, no-overwrite/private-runtime guards and repeatable seeding.

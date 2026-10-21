@@ -130,8 +130,11 @@ python3 -m venv .venv
 
 Generate the fictional runtime and start the development server:
 
+Run these module commands from the repository root. Synthetic tooling lives under
+`devtools/synthetic/`; the old root imports and script paths are not retained.
+
 ```sh
-.venv/bin/python synthetic_runtime.py .runtime/dev
+.venv/bin/python -m devtools.synthetic.synthetic_runtime .runtime/dev
 .venv/bin/python app.py --profile dev
 ```
 
@@ -157,7 +160,7 @@ The loader refuses to run unless the selected runtime identifies itself as synth
 idempotent. An updated synchronization can be simulated with:
 
 ```sh
-.venv/bin/python synthetic_questrade.py .runtime/dev --scenario updated
+.venv/bin/python -m devtools.synthetic.synthetic_questrade .runtime/dev --scenario updated
 ```
 
 ## Runtime profiles and private data

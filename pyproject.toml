@@ -39,7 +39,7 @@ output = "coverage.xml"
 
 [tool.mypy]
 python_version = "3.14"
-files = ["app.py", "runtime_backup.py", "synthetic_documents.py", "synthetic_questrade.py", "synthetic_runtime.py", "update_public_rules.py", "domain", "infrastructure", "ingestion", "institution_support", "institutions", "projection", "repositories", "services", "web"]
+files = ["app.py", "runtime_backup.py", "update_public_rules.py", "devtools", "domain", "infrastructure", "ingestion", "institution_support", "institutions", "projection", "repositories", "services", "web"]
 check_untyped_defs = true
 ignore_missing_imports = true
 no_implicit_optional = true

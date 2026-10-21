@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from devtools.synthetic.synthetic_documents import SYNTHETIC_NOTICE, create_synthetic_fixture_set
 from institution_support.document_detection import detect_importer
-from synthetic_documents import SYNTHETIC_NOTICE, create_synthetic_fixture_set
 from tests.support import (
     add_balance_snapshot,
     create_account,

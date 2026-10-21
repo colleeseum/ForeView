@@ -129,6 +129,6 @@ packages, with canonical provider/parser bindings, updated patch targets and ext
 checks.
 ARCH-01C-3 (#82), batch 71-3, groups the remaining six transaction and runtime services, including
 startup repairs and backup/restore, with canonical institution/CLI consumers and extended
-fresh-process identity checks. All 27 service implementations now use capability packages;
-synthetic-tool relocation remains unimplemented. The maintainer approved internal path changes
+fresh-process identity checks. All 27 service implementations now use capability packages, and
+synthetic generators live under `devtools/synthetic/`. The maintainer approved internal path changes
 without compatibility aliases; deployment requires a full browser reload.

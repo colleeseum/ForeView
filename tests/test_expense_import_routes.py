@@ -11,11 +11,11 @@ import unittest
 from pathlib import Path
 
 import app as application
+from devtools.synthetic.synthetic_documents import create_synthetic_hydro_qc_statement
+from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
 from repositories.expense_repository import ExpenseRepository
 from repositories.person_repository import PersonRepository
-from synthetic_documents import create_synthetic_hydro_qc_statement
-from synthetic_runtime import create_synthetic_runtime
 
 
 class ExpenseImportRouteTest(unittest.TestCase):

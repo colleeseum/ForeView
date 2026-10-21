@@ -124,6 +124,12 @@ by adopting surfaces. Its `fv-ui` scope and `fv-` components do not restyle unmi
 existing legacy dialogs are not automatically migrated. Component usage and the disposable
 synthetic reference are documented in `docs/design/ui-foundation.md`.
 
+The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
+A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
+with semantic navigation groups and `aria-current` links. It starts expanded on each page load;
+expansion is not persisted. Narrow layouts place the navigation above the workspace, with wrapped
+groups instead of a horizontally scrolling strip. Feature content keeps its legacy styling.
+
 The shared help API combines core articles and provider contributions under stable category IDs.
 The help drawer renders expandable category ancestry, preserves category paths in search, and
 expands the branch selected by page-level or contextual help. Provider hierarchy metadata is

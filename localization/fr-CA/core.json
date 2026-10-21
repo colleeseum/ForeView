@@ -5,7 +5,7 @@
     "transactions": "Transactions", "income": "Revenus", "expenses": "Dépenses",
     "projection": "Projection", "employment": "Emploi", "administration": "Administration",
     "people": "Personnes", "connections": "Connexions", "tax_rules": "Règles fiscales",
-    "settings": "Paramètres", "about": "À propos"
+    "settings": "Paramètres", "about": "À propos", "menu": "Menu"
   },
   "language": {"label": "Langue", "save": "Appliquer la langue"}
 }

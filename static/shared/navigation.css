@@ -1,0 +1,24 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ * Adopt the shared foundation only for navigation, not feature content.
+ */
+.page-shell:has(> .fv-navigation) { grid-template-columns: 14rem minmax(0, 1fr); gap: 1.5rem; }
+.page-shell:has(> .fv-navigation:not([open])) { grid-template-columns: 9rem minmax(0, 1fr); }
+.page-shell:has(> .fv-navigation) > .page-content { min-width: 0; overflow-x: auto; }
+.fv-ui.fv-navigation { position: sticky; top: 1rem; min-width: 0; max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--fv-border); border-radius: var(--fv-radius-panel); background: var(--fv-navigation); padding: var(--fv-space-2); }
+.fv-navigation .fv-navigation-toggle { min-height: var(--fv-control-min); padding: var(--fv-space-3) var(--fv-space-2); color: var(--fv-text); font-weight: 700; cursor: pointer; overflow-wrap: anywhere; }
+.fv-navigation .fv-navigation-toggle span { font-size: var(--fv-type-detail); font-weight: 400; }
+.fv-navigation .fv-navigation-toggle:focus-visible { outline-offset: -3px; }
+.fv-navigation .fv-navigation-links { display: grid; gap: var(--fv-space-2); overflow: visible; padding-block: var(--fv-space-2); }
+.fv-navigation .side-menu-group { display: grid; gap: var(--fv-space-1); margin: 0; }
+.fv-navigation .side-menu-heading { display: block; color: var(--fv-muted); font: 700 var(--fv-type-caption)/1.5 var(--fv-font); padding: var(--fv-space-2); margin: 0; letter-spacing: .04em; }
+.fv-navigation a { display: flex; align-items: center; min-height: var(--fv-control-min); min-width: 0; padding: var(--fv-space-2); border-radius: var(--fv-radius-control); color: var(--fv-text); font: 500 var(--fv-type-detail)/1.5 var(--fv-font); text-decoration: none; white-space: normal; overflow-wrap: anywhere; }
+.fv-navigation a.side-menu-sub { margin-inline-start: var(--fv-space-3); border-inline-start: 1px solid var(--fv-control-border); }
+.fv-navigation a.section-active { font-weight: 700; }
+.fv-navigation a:hover { background: var(--fv-surface); }
+.fv-navigation a.active { color: var(--fv-surface); background: var(--fv-primary); font-weight: 700; }
+@media (max-width: 900px) {
+  .page-shell:has(> .fv-navigation), .page-shell:has(> .fv-navigation:not([open])) { grid-template-columns: minmax(0, 1fr); }
+  .fv-ui.fv-navigation { position: static; max-height: none; }
+  .fv-navigation .fv-navigation-links { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+}

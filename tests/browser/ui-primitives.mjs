@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {chromium, expect} from '@playwright/test';
+import {verifyNavigation} from './navigation.mjs';
 
 const [baseURL, locale, output] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -238,6 +239,8 @@ try {
     await page.locator('#cancel-dialog').click();
     await expect(trigger).toBeFocused();
   }
+  assert.deepEqual(errors, []);
+  await verifyNavigation(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

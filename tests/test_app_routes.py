@@ -1649,6 +1649,9 @@ class AppRouteTests(unittest.TestCase):
 
         disclaimer = self.client.get("/disclaimer")
         self.assertEqual(disclaimer.status_code, 200)
+        self.assertNotIn(b'aria-current="page"', disclaimer.data)
+        self.assertRegex(disclaimer.data, rb'<a class="section-active" href="/about">')
+        self.assertRegex(about.data, rb'<a class="active" aria-current="page" href="/about">')
         self.assertIn(b"informational, planning, and modelling purposes only", disclaimer.data)
         self.assertIn(b"without warranty of any kind", disclaimer.data)
 

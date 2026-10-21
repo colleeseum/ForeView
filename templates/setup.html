@@ -20,6 +20,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
       <p class="lede">{{ t('pages_server.setup.lede') }}</p>
       <p><a class="setup-link" href="{{ url_for('index') }}">{{ t('pages_server.setup.back') }}</a></p>
     </header>
+    <div class="page-shell">
+    {% set active_page = 'people' %}{% include '_side_menu.html' %}
+    <div class="page-content">
     <div id="setup-message" lang="{{ current_locale }}" class="form-message" role="status"></div>
     <nav class="setup-tabs" aria-label="{{ t('pages_server.setup.sections') }}">
       <button class="setup-tab active" data-tab="people-panel" type="button">{{ t('pages_server.setup.people') }}</button>
@@ -83,10 +86,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         </form>
       </article>
     </section>
+    </div></div>
   </main>
-  {% include '_browser_localization.html' %}
   <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
   <script type="module" src="{{ url_for('static', filename='setup/setup.mjs', v='20260928-1') }}"></script>
-  <script type="module" src="{{ url_for('static', filename='help/help.mjs', v='20261006-1') }}"></script>
 </body>
 </html>

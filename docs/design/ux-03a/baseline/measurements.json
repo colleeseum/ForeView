@@ -1,0 +1,7653 @@
+{
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1000
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "captures": [
+    {
+      "name": "en-CA-desktop-dashboard",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 416,
+          "scrollWidth": 900
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-assets",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 107,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Real estate"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 64,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1198,
+          "height": 237,
+          "scrollWidth": 1198
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-account-details",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 107,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Real estate"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 64,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-account-dialog",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Close"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "Non-registered savingsTFSARRSPRESP"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "cancel-account-dialog",
+          "width": 65,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Cancel"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 110,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Save account"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1198,
+          "height": 237,
+          "scrollWidth": 1198
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-transactions",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "SELECT",
+          "id": "transaction-account-filter",
+          "width": 471,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "All99999-8888888 · RBC CSV + PDF reconciliationSYN-CALC-001 · Generic "
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-reconcile-button",
+          "width": 94,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Reconcile"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-import-button",
+          "width": 71,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Import"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1135,
+          "height": 480,
+          "scrollWidth": 1135
+        },
+        {
+          "width": 911,
+          "height": 192,
+          "scrollWidth": 911
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-income",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 169,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add annual record"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 199,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load tax or pension PDF"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 88,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 48,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Edit"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2454,
+          "height": 77,
+          "scrollWidth": 2454
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-import-disabled",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 169,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add annual record"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 199,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load tax or pension PDF"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 88,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 48,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "ufile-dialog-close",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Close"
+        },
+        {
+          "tag": "INPUT",
+          "id": "income-import-file",
+          "width": 508,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 115,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? How to get UFile T1 PDF"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 212,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? CRA notice of assessment"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 282,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Revenu Québec notice of assessment"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 337,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Retraite Québec Statement of Participation"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import-preview",
+          "width": 508,
+          "height": 39,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Analyse document"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2454,
+          "height": 77,
+          "scrollWidth": 2454
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-expenses",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "expense-year-select",
+          "width": 81,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-add",
+          "width": 124,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add expense"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-import",
+          "width": 191,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load expense statement"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-categories",
+          "width": 154,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Manage categories"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 261,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? How the seasonal estimate works"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 96,
+          "scrollWidth": 900
+        },
+        {
+          "width": 1344,
+          "height": 128,
+          "scrollWidth": 1344
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-employment",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "salary-scenario",
+          "width": 206,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Synthetic salary baseline"
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-start-year",
+          "width": 59,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-end-year",
+          "width": 59,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-view",
+          "width": 48,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "View"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-discard",
+          "width": 69,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": true,
+          "label": "Discard"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save",
+          "width": 56,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Save"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save-as",
+          "width": 79,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Save As"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 92,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Household"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-expense-save",
+          "width": 214,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Save spending assumptions"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        }
+      ],
+      "tables": [
+        {
+          "width": 1963,
+          "height": 608,
+          "scrollWidth": 1963
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-dashboard",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 416,
+          "scrollWidth": 900
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-assets",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 73,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Real estate"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 64,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        }
+      ],
+      "tables": [
+        {
+          "width": 760,
+          "height": 237,
+          "scrollWidth": 760
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-account-details",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 73,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Real estate"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 64,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-account-dialog",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Close"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "Non-registered savingsTFSARRSPRESP"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "cancel-account-dialog",
+          "width": 65,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Cancel"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 110,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Save account"
+        }
+      ],
+      "tables": [
+        {
+          "width": 760,
+          "height": 237,
+          "scrollWidth": 760
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-transactions",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "SELECT",
+          "id": "transaction-account-filter",
+          "width": 471,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "All99999-8888888 · RBC CSV + PDF reconciliationSYN-CALC-001 · Generic "
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-reconcile-button",
+          "width": 94,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Reconcile"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-import-button",
+          "width": 71,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Import"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1135,
+          "height": 480,
+          "scrollWidth": 1135
+        },
+        {
+          "width": 911,
+          "height": 192,
+          "scrollWidth": 911
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-income",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 169,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add annual record"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 199,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load tax or pension PDF"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 88,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 48,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Edit"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2454,
+          "height": 77,
+          "scrollWidth": 2454
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-import-disabled",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 169,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add annual record"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 199,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load tax or pension PDF"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 88,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 47,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Correct"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 48,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "ufile-dialog-close",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Close"
+        },
+        {
+          "tag": "INPUT",
+          "id": "income-import-file",
+          "width": 298,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 115,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? How to get UFile T1 PDF"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 212,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? CRA notice of assessment"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 282,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Revenu Québec notice of assessment"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Retraite Québec Statement of Participation"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import-preview",
+          "width": 298,
+          "height": 39,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Analyse document"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2454,
+          "height": 77,
+          "scrollWidth": 2454
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-expenses",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "expense-year-select",
+          "width": 320,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-add",
+          "width": 124,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add expense"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-import",
+          "width": 191,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load expense statement"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-categories",
+          "width": 154,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Manage categories"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 261,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? How the seasonal estimate works"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 96,
+          "scrollWidth": 900
+        },
+        {
+          "width": 1344,
+          "height": 128,
+          "scrollWidth": 1344
+        }
+      ]
+    },
+    {
+      "name": "en-CA-mobile-employment",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "salary-scenario",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Synthetic salary baseline"
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-start-year",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-end-year",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-view",
+          "width": 48,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "View"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-discard",
+          "width": 69,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": true,
+          "label": "Discard"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save",
+          "width": 56,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Save"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save-as",
+          "width": 79,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Save As"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 92,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Household"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-expense-save",
+          "width": 166,
+          "height": 48,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Save spending assumptions"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        }
+      ],
+      "tables": [
+        {
+          "width": 1963,
+          "height": 608,
+          "scrollWidth": 1963
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-dashboard",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 416,
+          "scrollWidth": 900
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-assets",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Immobilier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 94,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1198,
+          "height": 237,
+          "scrollWidth": 1198
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-account-details",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Immobilier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 94,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-account-dialog",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Fermer"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "Épargne non enregistréeCELIREERREEE"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "cancel-account-dialog",
+          "width": 76,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Annuler"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 171,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Enregistrer le compte"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1198,
+          "height": 237,
+          "scrollWidth": 1198
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-transactions",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "SELECT",
+          "id": "transaction-account-filter",
+          "width": 471,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Tous99999-8888888 · RBC CSV + PDF reconciliationSYN-CALC-001 · Generic"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-reconcile-button",
+          "width": 101,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Rapprocher"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-import-button",
+          "width": 86,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Importer"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1222,
+          "height": 480,
+          "scrollWidth": 1222
+        },
+        {
+          "width": 903,
+          "height": 192,
+          "scrollWidth": 903
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-income",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une donnée annuelle"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 289,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un PDF fiscal ou de pension"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 196,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Modifier"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2535,
+          "height": 77,
+          "scrollWidth": 2535
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-import-disabled",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une donnée annuelle"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 289,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un PDF fiscal ou de pension"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 196,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "ufile-dialog-close",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Fermer"
+        },
+        {
+          "tag": "INPUT",
+          "id": "income-import-file",
+          "width": 508,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 150,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Comment obtenir PDF T1 UFile"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 233,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Avis de cotisation de l’ARC"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 289,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Avis de cotisation de Revenu Québec"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 337,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Relevé de participation de Retraite Québec"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import-preview",
+          "width": 508,
+          "height": 39,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Analyser le document"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2535,
+          "height": 77,
+          "scrollWidth": 2535
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-expenses",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "SELECT",
+          "id": "expense-year-select",
+          "width": 108,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-add",
+          "width": 184,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une dépense"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-import",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un relevé de dépenses"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-categories",
+          "width": 176,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Gérer les catégories"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 289,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Comprendre l’estimation saisonnière"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 96,
+          "scrollWidth": 900
+        },
+        {
+          "width": 1444,
+          "height": 128,
+          "scrollWidth": 1444
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-desktop-employment",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "SELECT",
+          "id": "salary-scenario",
+          "width": 206,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Synthetic salary baseline"
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-start-year",
+          "width": 59,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-end-year",
+          "width": 59,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-view",
+          "width": 76,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Afficher"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-discard",
+          "width": 180,
+          "height": 33,
+          "fontSize": "11.52px",
+          "disabled": true,
+          "label": "Annuler les changements"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save",
+          "width": 109,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Enregistrer"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save-as",
+          "width": 146,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Enregistrer sous"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 69,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Ménage"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 39,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 187,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-expense-save",
+          "width": 312,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Enregistrer les hypothèses de dépenses"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        }
+      ],
+      "tables": [
+        {
+          "width": 2025,
+          "height": 608,
+          "scrollWidth": 2025
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-dashboard",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 416,
+          "scrollWidth": 900
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-assets",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Immobilier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 94,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        }
+      ],
+      "tables": [
+        {
+          "width": 760,
+          "height": 237,
+          "scrollWidth": 777
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-account-details",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Immobilier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 94,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-account-dialog",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Fermer"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "Épargne non enregistréeCELIREERREEE"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 268,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "cancel-account-dialog",
+          "width": 76,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Annuler"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 171,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Enregistrer le compte"
+        }
+      ],
+      "tables": [
+        {
+          "width": 760,
+          "height": 237,
+          "scrollWidth": 777
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-transactions",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "SELECT",
+          "id": "transaction-account-filter",
+          "width": 471,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Tous99999-8888888 · RBC CSV + PDF reconciliationSYN-CALC-001 · Generic"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-reconcile-button",
+          "width": 101,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Rapprocher"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "open-import-button",
+          "width": 86,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Importer"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1222,
+          "height": 480,
+          "scrollWidth": 1222
+        },
+        {
+          "width": 903,
+          "height": 192,
+          "scrollWidth": 903
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-income",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une donnée annuelle"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 289,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un PDF fiscal ou de pension"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 196,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Modifier"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2535,
+          "height": 77,
+          "scrollWidth": 2535
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-import-disabled",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une donnée annuelle"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 289,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un PDF fiscal ou de pension"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 196,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "ufile-dialog-close",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Fermer"
+        },
+        {
+          "tag": "INPUT",
+          "id": "income-import-file",
+          "width": 298,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 150,
+          "height": 72,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Comment obtenir PDF T1 UFile"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 233,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Avis de cotisation de l’ARC"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 289,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Avis de cotisation de Revenu Québec"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 298,
+          "height": 38,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Relevé de participation de Retraite Québec"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import-preview",
+          "width": 298,
+          "height": 39,
+          "fontSize": "16px",
+          "disabled": true,
+          "label": "Analyser le document"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2535,
+          "height": 77,
+          "scrollWidth": 2535
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-expenses",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "SELECT",
+          "id": "expense-year-select",
+          "width": 320,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-add",
+          "width": 184,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une dépense"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-import",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un relevé de dépenses"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-categories",
+          "width": 176,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Gérer les catégories"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 289,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Comprendre l’estimation saisonnière"
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 96,
+          "scrollWidth": 900
+        },
+        {
+          "width": 1444,
+          "height": 128,
+          "scrollWidth": 1444
+        }
+      ]
+    },
+    {
+      "name": "fr-CA-mobile-employment",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "fr-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "SELECT",
+          "id": "salary-scenario",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Synthetic salary baseline"
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-start-year",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "salary-end-year",
+          "width": 332,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-view",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Afficher"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-discard",
+          "width": 180,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": true,
+          "label": "Annuler les changements"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save",
+          "width": 109,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Enregistrer"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-save-as",
+          "width": 146,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Enregistrer sous"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 69,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Ménage"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 328,
+          "height": 32,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "salary-expense-save",
+          "width": 176,
+          "height": 63,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Enregistrer les hypothèses de dépenses"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 112,
+          "height": 31,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": ""
+        }
+      ],
+      "tables": [
+        {
+          "width": 2025,
+          "height": 608,
+          "scrollWidth": 2025
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-people",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 75,
+          "height": 42,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": "People"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 91,
+          "height": 42,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": "Accounts"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 162,
+          "height": 42,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": "Balances and GICs"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 91,
+          "height": 42,
+          "fontSize": "13.12px",
+          "disabled": false,
+          "label": "Scenario"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 714,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 714,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 714,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Add person"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 124,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 124,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": ""
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "en-CA-desktop-connections",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "sync-all",
+          "width": 86,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Sync all"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "en-CA-desktop-rules",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "public-rule-year",
+          "width": 83,
+          "height": 34,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 56,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "View"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 136,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? Approval help"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1170,
+          "height": 192,
+          "scrollWidth": 1170
+        },
+        {
+          "width": 1170,
+          "height": 256,
+          "scrollWidth": 1170
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-settings",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "locale",
+          "width": 102,
+          "height": 19,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "English\n          \n          Français\n          \n          Synthetic R"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 108,
+          "height": 21,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Apply language"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "en-CA-desktop-about",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1162,
+          "height": 64,
+          "scrollWidth": 1162
+        },
+        {
+          "width": 1162,
+          "height": 96,
+          "scrollWidth": 1162
+        },
+        {
+          "width": 1162,
+          "height": 64,
+          "scrollWidth": 1162
+        },
+        {
+          "width": 1162,
+          "height": 64,
+          "scrollWidth": 1162
+        },
+        {
+          "width": 1162,
+          "height": 224,
+          "scrollWidth": 1162
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-disclaimer",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "en-CA-desktop-invalid-form",
+      "note": "Synthetic incomplete account form; native constraint validation, no save.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non-registered"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "TFSA"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RRSP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "RESP"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 107,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Real estate"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 64,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 41,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Edit"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 105,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Add subaccount"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-account-dialog",
+          "width": 26,
+          "height": 30,
+          "fontSize": "24px",
+          "disabled": false,
+          "label": "Close"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 508,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": "Non-registered savingsTFSARRSPRESP"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 478,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 13,
+          "height": 13,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "width": 82,
+          "height": 38,
+          "fontSize": "12px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "cancel-account-dialog",
+          "width": 65,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Cancel"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 110,
+          "height": 38,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": "Save account"
+        }
+      ],
+      "tables": [
+        {
+          "width": 1198,
+          "height": 237,
+          "scrollWidth": 1198
+        }
+      ]
+    },
+    {
+      "name": "en-CA-desktop-contextual-help",
+      "note": "Current application, synthetic data; viewport capture, not full-page.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "SELECT",
+          "id": "expense-year-select",
+          "width": 81,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "20262025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-add",
+          "width": 124,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Add expense"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-import",
+          "width": 191,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Load expense statement"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "expense-categories",
+          "width": 154,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Manage categories"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 261,
+          "height": 30,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "? How the seasonal estimate works"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 27,
+          "height": 31,
+          "fontSize": "25.6px",
+          "disabled": false,
+          "label": "Close help"
+        },
+        {
+          "tag": "INPUT",
+          "id": "help-search",
+          "width": 872,
+          "height": 40,
+          "fontSize": "16px",
+          "disabled": false,
+          "label": ""
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Financial summaryReview the latest available household financial facts"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Assets and accountsUnderstand account categories, balances, and owners"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Employment income recordsRecord factual annual employment and tax-retu"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 85,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Loading Retraite Québec Statement of ParticipationImport public-pensio"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Loading a T1 from UFile T1 PDFHow to obtain and load a UFile T1 PDF do"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 85,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Loading CRA notice of assessmentImport authoritative assessed tax valu"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 85,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Loading Revenu Québec notice of assessmentImport authoritative assesse"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 100,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Correcting a factual income or tax valueOverride an inaccurate retaine"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "ExpensesRecord and review factual household spending."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 85,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Loading Hydro-Québec electricity billImport household expense statemen"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Seasonal expense estimatesEstimate an incomplete year without assuming"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "TransactionsReview imported cash-flow history by account category."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Achieva importsHelp supplied by the Achieva module."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "EQ Bank importsHelp supplied by the EQ Bank module."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Manulife importsHelp supplied by the Manulife module."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 218,
+          "height": 55,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "RBC importsHelp supplied by the RBC module."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Sun Life importsHelp supplied by the Sun Life module."
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 85,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Importing bank documentsSupported statements, exports, deduplication, "
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 230,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Reconciling a statementCompare ledger activity with a known account ba"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Approving public rulesWhat approval confirms and what must still be re"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 252,
+          "height": 70,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Institution connectionsManage supported live connections separately fr"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 250,
+          "height": 55,
+          "fontSize": "13.3333px",
+          "disabled": false,
+          "label": "Questrade connectionHelp supplied by the Questrade module."
+        }
+      ],
+      "tables": [
+        {
+          "width": 900,
+          "height": 96,
+          "scrollWidth": 900
+        },
+        {
+          "width": 1344,
+          "height": 128,
+          "scrollWidth": 1344
+        }
+      ]
+    },
+    {
+      "name": "synthetic-RTL-desktop-income",
+      "note": "Registered synthetic RTL locale using French fallback, not an Arabic translation.",
+      "lang": "ar-XB",
+      "dir": "rtl",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 114,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Alex Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 129,
+          "height": 34,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Jordan Example"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 244,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter une donnée annuelle"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 289,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Charger un PDF fiscal ou de pension"
+        },
+        {
+          "tag": "SELECT",
+          "id": "",
+          "width": 196,
+          "height": 32,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "2025"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 18,
+          "fontSize": "11.2px",
+          "disabled": false,
+          "label": "Corriger"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 76,
+          "height": 28,
+          "fontSize": "11.52px",
+          "disabled": false,
+          "label": "Modifier"
+        }
+      ],
+      "tables": [
+        {
+          "width": 2568,
+          "height": 77,
+          "scrollWidth": 2568
+        }
+      ]
+    },
+    {
+      "name": "synthetic-RTL-mobile-assets",
+      "note": "Registered synthetic RTL locale using French fallback, not an Arabic translation.",
+      "lang": "ar-XB",
+      "dir": "rtl",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Ouvrir l’aide complète"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Non enregistré"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "CELI"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REER"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 54,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "REEE"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 99,
+          "height": 49,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "Immobilier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 94,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": false,
+          "label": "+ Ajouter"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 67,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Modifier"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 156,
+          "height": 24,
+          "fontSize": "10.56px",
+          "disabled": false,
+          "label": "Ajouter un sous-compte"
+        }
+      ],
+      "tables": [
+        {
+          "width": 760,
+          "height": 237,
+          "scrollWidth": 777
+        }
+      ]
+    },
+    {
+      "name": "fixture-dashboard-error",
+      "note": "Deliberately injected HTTP 503 in the browser only; not an observed server failure.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "fixture-dashboard-loading",
+      "note": "Dashboard request deliberately paused in the browser; not a performance measurement.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "empty-runtime-income",
+      "note": "Separate initialized runtime with no people or financial records.",
+      "lang": "en-CA",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "documentWidth": 1440,
+      "bodyFont": "Georgia, \"Times New Roman\", serif",
+      "visibleControls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "width": 32,
+          "height": 32,
+          "fontSize": "14.4px",
+          "disabled": false,
+          "label": "Open full help"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-add",
+          "width": 169,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "+ Add annual record"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "income-import",
+          "width": 199,
+          "height": 33,
+          "fontSize": "12.48px",
+          "disabled": true,
+          "label": "Load tax or pension PDF"
+        }
+      ],
+      "tables": []
+    }
+  ],
+  "errors": [],
+  "checks": {
+    "en-CA-desktop-importRequiresFile": true,
+    "en-CA-mobile-importRequiresFile": true,
+    "fr-CA-desktop-importRequiresFile": true,
+    "fr-CA-mobile-importRequiresFile": true,
+    "accountFocusEnters": false,
+    "invalidFormBlocked": true,
+    "accountEscapeCloses": true,
+    "accountFocusReturned": false,
+    "accountReverseTabContained": false,
+    "helpEscapeCloses": true,
+    "rtlDirection": "rtl",
+    "financialReadModelsUnchanged": true
+  }
+}

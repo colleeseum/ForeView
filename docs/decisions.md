@@ -51,6 +51,18 @@ duplicating message text.
 Reason: server-rendered and dynamically generated interface text must not diverge in language or
 fallback behavior, and additional locales should not require feature-specific code changes.
 
+## UI modernization follows the selected Sage direction
+
+On 2026-10-21, the maintainer selected A / Sage from the UX-03A design review: light sage
+navigation, warm surfaces, readable sans-serif typography and rounded components, while retaining
+optional compact financial tables. The evidence, candidates and interaction requirements live in
+`docs/design/ux-03a/index.html`; B / Analyst is a reference alternative, not a second theme.
+
+Reason: improve readability and information hierarchy without losing the application's broad
+financial scope or dense-data workflows. This selects a visual direction, not new financial
+calculations, historical-chart APIs, routes, retirement engines or legal requirements. Shared
+primitives and feature adoption must still be implemented and verified in their scoped UX-03 issues.
+
 ## Repository organization uses canonical internal paths
 
 The ARCH-01 move batches use the agreed internal module and asset paths without temporary

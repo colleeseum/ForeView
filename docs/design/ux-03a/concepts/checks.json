@@ -1,0 +1,87 @@
+{
+  "captures": [
+    {
+      "direction": "sage",
+      "size": "desktop",
+      "screen": "overview"
+    },
+    {
+      "direction": "sage",
+      "size": "desktop",
+      "screen": "account"
+    },
+    {
+      "direction": "sage",
+      "size": "desktop",
+      "screen": "form"
+    },
+    {
+      "direction": "sage",
+      "size": "desktop",
+      "screen": "retirement"
+    },
+    {
+      "direction": "sage",
+      "size": "desktop",
+      "screen": "comparison"
+    },
+    {
+      "direction": "sage",
+      "size": "mobile",
+      "screen": "overview"
+    },
+    {
+      "direction": "sage",
+      "size": "mobile",
+      "screen": "account"
+    },
+    {
+      "direction": "sage",
+      "size": "mobile",
+      "screen": "form"
+    },
+    {
+      "direction": "analyst",
+      "size": "desktop",
+      "screen": "overview"
+    },
+    {
+      "direction": "analyst",
+      "size": "desktop",
+      "screen": "account"
+    },
+    {
+      "direction": "analyst",
+      "size": "desktop",
+      "screen": "form"
+    },
+    {
+      "direction": "analyst",
+      "size": "desktop",
+      "screen": "retirement"
+    },
+    {
+      "direction": "analyst",
+      "size": "desktop",
+      "screen": "comparison"
+    },
+    {
+      "direction": "analyst",
+      "size": "mobile",
+      "screen": "overview"
+    },
+    {
+      "direction": "analyst",
+      "size": "mobile",
+      "screen": "account"
+    },
+    {
+      "direction": "analyst",
+      "size": "mobile",
+      "screen": "form"
+    }
+  ],
+  "pageErrors": [],
+  "mobileOverflow": false,
+  "prototypeControls": "passed"
+}

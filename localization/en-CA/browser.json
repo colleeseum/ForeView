@@ -343,6 +343,13 @@
     "request_failed_status": "Request failed ({status})"
   },
   "accounts": {
+    "ownership_share": "{name} ownership (%)",
+    "table_region": "Asset details table",
+    "unavailable": "Unavailable",
+    "saved": "Asset changes saved.",
+    "saving": "Saving asset…",
+    "loading": "Loading assets…",
+    "retry_load": "Retry loading assets",
     "gic": "GIC",
     "cash": "Cash",
     "types": {

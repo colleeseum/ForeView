@@ -1,0 +1,38 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ */
+.fv-assets .asset-section { min-width: 0; overflow: hidden; border: 1px solid var(--fv-border); border-radius: var(--fv-radius-panel); background: var(--fv-surface); box-shadow: var(--fv-shadow-panel); }
+.fv-assets .section-heading { padding: var(--fv-space-4); flex-wrap: wrap; gap: var(--fv-space-3); }
+.fv-assets .section-heading h2 { font: 650 var(--fv-type-heading)/1.3 var(--fv-font); margin: 0; }
+.fv-assets .section-total { color: var(--fv-muted); font: var(--fv-type-detail)/1.5 var(--fv-font); margin-block: var(--fv-space-2); overflow-wrap: anywhere; }
+.fv-assets .asset-sections { gap: var(--fv-space-6); }
+.fv-assets .assets-toolbar { margin-block: var(--fv-space-4); }
+.fv-assets .view-tabs { flex-wrap: wrap; overflow: visible; }
+.fv-assets .fv-tabs .view-tab.active { color: var(--fv-surface); background: var(--fv-primary); border-color: var(--fv-primary); border-block-end: 3px solid var(--fv-primary-hover); }
+.fv-assets .table-card { max-width: 100%; overflow-x: auto; border: 0; padding: var(--fv-space-1); }
+.fv-assets .table-card table { width: 100%; min-width: 58rem; table-layout: auto; border-collapse: collapse; font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-assets .table-card :is(th, td) { position: static; min-width: 0; max-width: none; padding: var(--fv-space-4) var(--fv-space-3); text-align: start; white-space: normal; overflow: visible; text-overflow: clip; border-color: var(--fv-border); font-variant-numeric: tabular-nums; }
+.fv-assets .table-card th { color: var(--fv-muted); background: var(--fv-surface-subtle); }
+.fv-assets .table-card thead th { color: var(--fv-surface); background: var(--fv-primary); font-weight: 700; }
+.fv-assets .table-card tfoot th { color: var(--fv-text); background: var(--fv-navigation); font-weight: 700; }
+.fv-assets .table-card tfoot tr:first-child th { border-block-start: 3px solid var(--fv-primary); }
+.fv-assets[data-table-density="compact"] .table-card :is(th, td) { padding-block: var(--fv-space-2); }
+.fv-assets .table-card td:last-child { min-width: 12rem; }
+.fv-assets .table-card .table-action, .fv-assets .asset-section .table-card td:last-child .table-action { min-height: var(--fv-control-min); min-width: var(--fv-control-min); border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control); background: var(--fv-surface); color: var(--fv-primary); padding: var(--fv-space-2); margin: var(--fv-space-1); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); cursor: pointer; }
+.fv-assets .section-add-account { min-height: var(--fv-control-min); margin: 0; border-color: var(--fv-primary); border-radius: var(--fv-radius-control); color: var(--fv-surface); background: var(--fv-primary); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); }
+.fv-assets .fv-dialog { width: min(56rem, calc(100% - 2rem)); }
+.fv-assets .fv-dialog h2 { padding-inline-end: var(--fv-space-8); }
+.fv-assets .asset-close { float: inline-end; }
+.fv-assets fieldset { min-width: 0; border: 1px solid var(--fv-border); border-radius: var(--fv-radius-control); padding: var(--fv-space-4); }
+.fv-assets legend { font-weight: 650; }
+.fv-assets .owner-field { display: grid; grid-template-columns: minmax(0, 1fr) 5rem auto; gap: var(--fv-space-2); align-items: center; margin-block: var(--fv-space-2); }
+.fv-assets .owner-field input[type="number"] { width: 100%; min-height: var(--fv-control-min); font: inherit; border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control); padding: var(--fv-space-2); }
+.fv-assets .owner-field input[type="checkbox"], .fv-assets .checkbox input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--fv-primary); }
+.fv-assets .owner-field label { overflow-wrap: anywhere; }
+.fv-assets .form-message { color: var(--fv-danger); font: var(--fv-type-detail)/1.5 var(--fv-font); margin-block: var(--fv-space-3); }
+.fv-assets .empty-panel { padding: var(--fv-space-6); color: var(--fv-muted); }
+.fv-assets .asset-section tr.subaccount-row td { background: var(--fv-surface-subtle); }
+.fv-assets .asset-section tr.subaccount-row td:first-child { border-inline-start-color: var(--fv-border); }
+.fv-assets .tree-branch { width: auto; min-width: 2ch; margin-inline-end: var(--fv-space-2); color: var(--fv-primary); font-family: ui-monospace, monospace; }
+.fv-assets #subaccount-parent-description { margin: 0; overflow-wrap: anywhere; }
+.fv-assets .eyebrow { color: var(--fv-primary); font-family: var(--fv-font); }

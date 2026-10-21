@@ -15,6 +15,7 @@ configureTestLocalization();
     <button class="view-tab" data-view="rrsp">RRSP</button>
     <button class="view-tab" data-view="real_estate">Real estate</button>
     <button id="reload-assets"></button>
+    <button id="retry-assets" hidden></button><p id="assets-message" hidden></p>
     <section id="accounts-table" class="view-panel"><div id="accounts-table-content"></div></section>
     <div id="account-dialog" hidden><button id="close-account-dialog"></button><h2 id="account-dialog-title" data-add-text="Ajouter un compte" data-edit-text="Modifier le compte"></h2><p id="account-dialog-message"></p>
       <form id="account-dialog-form">
@@ -25,6 +26,7 @@ configureTestLocalization();
       </form>
     </div>
     <div id="subaccount-dialog" hidden><button id="close-subaccount-dialog"></button><h2 id="subaccount-dialog-title" data-add-text="Ajouter un CPG" data-edit-text="Modifier le CPG"></h2><p id="subaccount-dialog-message"></p>
+      <p id="subaccount-parent-description"></p>
       <form id="subaccount-dialog-form">
         <select id="subaccount-parent" name="parent_account_id"></select><input name="account_number"><input name="name">
         <input name="start_date"><input name="maturity_date"><input name="principal"><input name="maturity_value">
@@ -40,6 +42,20 @@ configureTestLocalization();
       </form>
     </div>
   `, {url: 'http://localhost/accounts?tab=non_registered'});
+  // The application now uses native dialogs. jsdom needs a user-agent shim;
+  // real autofocus, inertness, Escape and Tab behavior are checked in Chromium.
+  for (const id of ['account-dialog', 'subaccount-dialog', 'real-estate-dialog']) {
+    const old = dom.window.document.getElementById(id);
+    const dialog = dom.window.document.createElement('dialog');
+    for (const attribute of old.attributes) dialog.setAttribute(attribute.name, attribute.value);
+    dialog.append(...old.childNodes);
+    old.replaceWith(dialog);
+    dialog.showModal = () => {dialog.open = true;};
+    dialog.close = () => {dialog.open = false; dialog.dispatchEvent(new dom.window.Event('close'));};
+  }
+  dom.window.document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') dom.window.document.querySelector('dialog[open]')?.close();
+  });
   Object.assign(globalThis, {
     window: dom.window,
     document: dom.window.document,
@@ -63,17 +79,24 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   const attack = '<img src=x onerror=alert(1)>';
   const writes = [];
   let failNextWrite = false;
+  let failRead = true;
+  let failRefreshAfterWrite = false;
   const accounts = [
     {id: 1, asset_kind: 'account', account_type: 'non_registered', institution: 'Questrade', account_number: 'A1', name: attack, latest_amount: 120, rollup_amount: 120, owner_details: '1:1'},
     {id: 2, parent_account_id: 1, asset_kind: 'gic', account_type: 'non_registered', institution: 'Questrade', account_number: 'G1', name: 'Term deposit', latest_amount: 20, maturity_date: '2028-01-01', interest_rate: 0.04, redeemable: false},
   ];
   globalThis.fetch = async (url, options = {}) => {
+    if (!options.method && url === '/api/model/holdings' && failRead) return response({error: 'Synthetic read failure'}, false);
     if (url === '/api/model/accounts' && !options.method) return response({accounts, category_totals: [{type: 'non_registered', count: 1, gic_count: 1, total: 120}]});
     if (url === '/api/model/holdings' && !options.method) return response({holdings: [{account_id: 1, fund_code: attack, fund_name: 'Fund', asset_class: 'Security', units: 1, unit_price: 100, market_value: 100, allocation_pct: 100, valuation_date: '2026-09-28'}]});
     if (url === '/api/model/real-estate' && !options.method) return response({assets: [{id: 9, name: attack, property_type: 'Land', estimated_value: 50000, acb: 10000, principal_residence: false, valuation_date: '2026-01-01', owners: [{person_id: 1, name: attack, share: 1}]}]});
     if (url === '/api/model/people' && !options.method) return response({people: [{id: 1, name: attack}, {id: 2, name: 'Second owner'}]});
     if (options.method) {
       writes.push({url, options});
+      if (failRefreshAfterWrite) {
+        failRead = true;
+        failRefreshAfterWrite = false;
+      }
       if (failNextWrite) {
         failNextWrite = false;
         return response({error: 'Save failed'}, false);
@@ -87,6 +110,15 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   const content = document.querySelector('#accounts-table-content');
+  assert.equal(content.getAttribute('role'), 'alert');
+  for (const category of ['tfsa', 'real_estate', 'non_registered']) {
+    document.querySelector(`[data-view="${category}"]`).click();
+    assert.equal(content.getAttribute('role'), 'alert');
+    assert.equal(content.querySelector('[data-add-account-type], [data-add-real-estate]'), null);
+  }
+  failRead = false;
+  document.querySelector('#retry-assets').click();
+  await new Promise(resolve => setTimeout(resolve, 0));
   assert.match(content.textContent, /Questrade/);
   assert.equal(content.innerHTML.includes(attack), false);
   content.querySelector('[data-toggle-portfolio="1"]').click();
@@ -102,14 +134,26 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   accountForm.elements.name.value = 'Updated';
   accountForm.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
   assert.equal(accountForm.querySelector('button[type="submit"]').disabled, false);
+  failRefreshAfterWrite = true;
   accountForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(writes.some(({url, options}) => url === '/api/model/accounts/1' && options.method === 'PUT'), true);
+  assert.equal(document.querySelector('#account-dialog').hidden, true);
+  assert.equal(document.querySelector('#assets-message').hidden, false);
+  assert.equal(content.getAttribute('role'), 'alert');
+  const writeCount = writes.length;
+  failRead = false;
+  document.querySelector('#retry-assets').click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(writes.length, writeCount, 'Read retry never repeats a successful mutation');
 
   content.querySelector('[data-edit-account="2"]').click();
   const gicForm = document.querySelector('#subaccount-dialog-form');
   assert.equal(document.querySelector('#subaccount-dialog-title').textContent, 'Modifier le CPG');
   assert.equal(gicForm.elements.account_number.value, 'G1');
+  assert.equal(document.querySelector('#subaccount-parent-description').textContent, document.querySelector('#subaccount-parent option:checked').textContent);
+  document.querySelector('#subaccount-parent').dispatchEvent(new dom.window.Event('change'));
+  assert.equal(document.querySelector('#subaccount-parent-description').textContent, document.querySelector('#subaccount-parent option:checked').textContent);
   gicForm.dispatchEvent(new dom.window.Event('submit', {bubbles: true, cancelable: true}));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(writes.some(({url, options}) => url === '/api/model/accounts/2' && options.method === 'PUT'), true);
@@ -182,6 +226,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assetState.accounts = [];
   renderAssets({openAccount: () => {}, openGic: () => {}});
   assert.match(content.textContent, /No accounts yet/);
+  assert(content.querySelector('[data-add-account-type="non_registered"]'), 'Empty workspaces retain an Add action');
 
   configureTestLocalization('fr-CA');
   assetState.view = 'real_estate';
@@ -218,6 +263,7 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assetState.view = 'tfsa';
   let openedAccount = null;
   renderAssets({openAccount: (id) => { openedAccount = id; }, openGic: () => {}});
+  assert.match(content.textContent, /Unavailable/, 'Missing balances are not shown as zero');
   content.querySelector('[data-edit-account="3"]').click();
   assert.equal(openedAccount, 3);
 

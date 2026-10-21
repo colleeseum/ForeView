@@ -103,7 +103,9 @@ policy; do not make dismissal impossible.
 Never mix this controller and a legacy backdrop controller on the same dialog.
 Use normal DOM tab order, not positive `tabindex` values. Composite widgets must
 retain their own keyboard behavior and be verified in the adopting workflow.
-Legacy account/help dialogs are not silently migrated by this foundation.
+The foundation itself does not migrate existing modal workflows. Account/GIC/property
+adoption is documented in [Assets](assets.md); other legacy modal families, including
+full help, remain separate adoption work.
 
 References: [native dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog),
 [W3C dialog interaction](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/),

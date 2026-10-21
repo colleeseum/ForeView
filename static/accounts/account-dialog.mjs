@@ -6,8 +6,10 @@ import {ownerDetails} from './accounts-format.mjs';
 import {assetState} from './accounts-state.mjs';
 import {formSignature, showError} from '../shared/form-state.mjs';
 import {ownershipSignature, renderOwnershipFields, selectedOwners} from './ownership-fields.mjs';
+import {createAssetDialog} from './asset-dialog.mjs';
 
 const dialog = document.querySelector('#account-dialog');
+const modal = createAssetDialog(dialog);
 const form = document.querySelector('#account-dialog-form');
 const title = document.querySelector('#account-dialog-title');
 const message = document.querySelector('#account-dialog-message');
@@ -19,7 +21,7 @@ let editingId = null;
 let saved = async () => {};
 
 function closeDialog() {
-  dialog.hidden = true;
+  modal.close();
 }
 
 function signature() {
@@ -51,35 +53,36 @@ export function openAccountDialog(accountId = null, category = 'non_registered')
   renderOwnershipFields(ownerFields, assetState.people, account ? ownerDetails(account) : [], updateSaveButton);
   baseline = signature();
   updateSaveButton();
-  dialog.hidden = false;
+  modal.open();
 }
 
 export function initializeAccountDialog(onSaved) {
   saved = onSaved;
   document.querySelector('#close-account-dialog').addEventListener('click', closeDialog);
   document.querySelector('#cancel-account-dialog')?.addEventListener('click', closeDialog);
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !dialog.hidden) closeDialog();
-  });
   form.addEventListener('input', updateSaveButton);
   form.addEventListener('change', updateSaveButton);
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    saveButton.disabled = true;
+    if (modal.busy) return;
     const values = Object.fromEntries(new FormData(form));
     const payload = {...values, owners: selectedOwners(ownerFields)};
     if (!editingId) payload.asset_kind = 'account';
+    modal.setBusy(true);
     try {
       await saveJson(
         editingId ? `/api/model/accounts/${editingId}` : '/api/model/accounts',
         editingId ? 'PUT' : 'POST',
         payload,
       );
-      dialog.hidden = true;
       await saved();
+      modal.setBusy(false);
+      modal.close();
     } catch (error) {
       showError(message, error);
       updateSaveButton();
+    } finally {
+      modal.setBusy(false);
     }
   });
 }

@@ -124,6 +124,18 @@ by adopting surfaces. Its `fv-ui` scope and `fv-` components do not restyle unmi
 existing legacy dialogs are not automatically migrated. Component usage and the disposable
 synthetic reference are documented in `docs/design/ui-foundation.md`.
 
+Assets adopts that foundation through `static/accounts/accounts.css` and the shared native-dialog
+helper. `static/accounts/asset-dialog.mjs` coordinates existing hidden-state consumers and restores
+focus to replacement Add/Edit controls after refreshed tables. Field templates are grouped in
+`templates/_asset_dialogs.html`; payload construction, ownership and balance calculations remain
+in their existing modules. Other legacy modal families are unchanged.
+The shared `static/shared/table-density.mjs` adapter restores and saves Assets density
+in browser-origin local storage, independently of runtime financial records or text size.
+Storage denial falls back safely without preventing current-page interaction.
+Assets distinguishes loading/error state from successfully loaded empty data. Its
+post-save callback reports read-refresh failures independently of committed mutations,
+with read-only recovery rather than resubmitting the save.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

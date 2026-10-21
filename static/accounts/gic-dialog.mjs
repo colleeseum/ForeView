@@ -4,14 +4,21 @@
 import {saveJson} from './accounts-api.mjs';
 import {assetState} from './accounts-state.mjs';
 import {showError} from '../shared/form-state.mjs';
+import {createAssetDialog} from './asset-dialog.mjs';
 
 const dialog = document.querySelector('#subaccount-dialog');
+const modal = createAssetDialog(dialog);
 const form = document.querySelector('#subaccount-dialog-form');
 const title = document.querySelector('#subaccount-dialog-title');
 const message = document.querySelector('#subaccount-dialog-message');
 const parentField = document.querySelector('#subaccount-parent');
 
 let saved = async () => {};
+
+function describeParent() {
+  const description = document.querySelector('#subaccount-parent-description');
+  if (description) description.textContent = parentField.selectedOptions[0]?.textContent || '';
+}
 
 function loadParents(selectedId) {
   parentField.replaceChildren();
@@ -44,16 +51,18 @@ export function openGicDialog(accountId = null, parentId = null) {
     form.interest_rate.value = account.interest_rate == null ? '' : (Number(account.interest_rate) * 100).toFixed(2);
   }
   form.dataset.editingId = accountId || '';
-  dialog.hidden = false;
+  describeParent();
+  modal.open();
 }
 
 export function initializeGicDialog(onSaved) {
   saved = onSaved;
-  document.querySelector('#close-subaccount-dialog').addEventListener('click', () => { dialog.hidden = true; });
+  parentField.addEventListener('change', describeParent);
+  document.querySelector('#close-subaccount-dialog').addEventListener('click', () => modal.close());
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (modal.busy) return;
     const saveButton = form.querySelector('button[type="submit"]');
-    saveButton.disabled = true;
     const values = Object.fromEntries(new FormData(form));
     const parent = assetState.accounts.find((item) => item.id === Number(values.parent_account_id));
     const editingId = Number(form.dataset.editingId || 0);
@@ -64,17 +73,21 @@ export function initializeGicDialog(onSaved) {
       category: parent.account_type,
       institution: parent.institution,
     };
+    modal.setBusy(true);
     try {
       await saveJson(
         editingId ? `/api/model/accounts/${editingId}` : '/api/model/accounts',
         editingId ? 'PUT' : 'POST',
         payload,
       );
-      dialog.hidden = true;
       await saved();
+      modal.setBusy(false);
+      modal.close();
     } catch (error) {
       showError(message, error);
       saveButton.disabled = false;
+    } finally {
+      modal.setBusy(false);
     }
   });
 }

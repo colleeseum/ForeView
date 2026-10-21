@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Mindstep Corporation
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import {isSecurityAccount, money} from './accounts-format.mjs';
+import {isSecurityAccount, factualMoney as money} from './accounts-format.mjs';
 import {accountTypeLabel} from '../shared/account-types.mjs';
 import {renderRealEstate} from './accounts-real-estate.mjs';
 import {assetGroups, assetState} from './accounts-state.mjs';
@@ -50,11 +50,8 @@ function accountTable(items, hasMaturity, hasNotInvested, totalText) {
 }
 
 function renderAccountGroups(target) {
-  if (!assetState.accounts.length) {
-    target.textContent = t('accounts.none');
-    return;
-  }
-  target.innerHTML = assetGroups.filter((type) => type === assetState.view).map((type) => {
+  const emptyNotice = !assetState.accounts.length ? `<p class="empty-panel">${t('accounts.none')}</p>` : '';
+  target.innerHTML = emptyNotice + assetGroups.filter((type) => type === assetState.view).map((type) => {
     const items = assetState.accounts.filter((account) => account.account_type === type);
     const ordered = items.filter((account) => !account.parent_account_id).flatMap((parent) => [
       parent,

@@ -5,10 +5,11 @@ import {formatNumber, formatPercent, formatDisplayDate} from '../shared/locale-f
 
 import {saveJson} from './accounts-api.mjs';
 import {t} from '../shared/i18n.mjs';
-import {money} from './accounts-format.mjs';
+import {factualMoney as money} from './accounts-format.mjs';
 import {assetState} from './accounts-state.mjs';
 import {formSignature, showError} from '../shared/form-state.mjs';
 import {escapeHtml} from '../shared/html.mjs';
+import {createAssetDialog} from './asset-dialog.mjs';
 import {
   ownershipSignature,
   ownershipTotal,
@@ -17,6 +18,7 @@ import {
 } from './ownership-fields.mjs';
 
 const dialog = document.querySelector('#real-estate-dialog');
+const modal = createAssetDialog(dialog);
 const form = document.querySelector('#real-estate-dialog-form');
 const title = document.querySelector('#real-estate-dialog-title');
 const message = document.querySelector('#real-estate-dialog-message');
@@ -60,7 +62,7 @@ function openRealEstateDialog(assetId = null) {
   renderOwnershipFields(ownerFields, assetState.people, asset?.owners || [], updateSaveButton);
   baseline = signature();
   updateSaveButton();
-  dialog.hidden = false;
+  modal.open();
 }
 
 export function renderRealEstate(target) {
@@ -85,11 +87,12 @@ export function renderRealEstate(target) {
 
 export function initializeRealEstate(onSaved) {
   saved = onSaved;
-  document.querySelector('#close-real-estate-dialog').addEventListener('click', () => { dialog.hidden = true; });
+  document.querySelector('#close-real-estate-dialog').addEventListener('click', () => modal.close());
   form.addEventListener('input', updateSaveButton);
   form.addEventListener('change', updateSaveButton);
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (modal.busy) return;
     const values = Object.fromEntries(new FormData(form));
     const existing = assetState.realEstateAssets.find((item) => item.id === editingId);
     const payload = {
@@ -98,18 +101,21 @@ export function initializeRealEstate(onSaved) {
       effective_tax_rate: existing?.effective_tax_rate ?? null,
       principal_residence: form.principal_residence.checked,
     };
-    saveButton.disabled = true;
+    modal.setBusy(true);
     try {
       await saveJson(
         editingId ? `/api/model/real-estate/${editingId}` : '/api/model/real-estate',
         editingId ? 'PUT' : 'POST',
         payload,
       );
-      dialog.hidden = true;
       await saved();
+      modal.setBusy(false);
+      modal.close();
     } catch (error) {
       showError(message, error);
       saveButton.disabled = false;
+    } finally {
+      modal.setBusy(false);
     }
   });
 }

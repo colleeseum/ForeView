@@ -6,6 +6,7 @@ import {mkdir} from 'node:fs/promises';
 import {chromium, expect} from '@playwright/test';
 import {verifyNavigation} from './navigation.mjs';
 import {verifyDashboard} from './dashboard.mjs';
+import {verifyAssets} from './assets.mjs';
 
 const [baseURL, locale, output] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -243,6 +244,7 @@ try {
   assert.deepEqual(errors, []);
   await verifyNavigation(page, baseURL, locale, output);
   await verifyDashboard(page, baseURL, locale, output);
+  await verifyAssets(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

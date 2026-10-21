@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {escapeHtml} from '../shared/html.mjs';
+import {t} from '../shared/i18n.mjs';
 
 function shareInput(container, ownerId) {
   return container.querySelector(`[data-owner-share="${ownerId}"]`);
@@ -24,10 +25,10 @@ function adjustDefaultShares(container) {
 export function renderOwnershipFields(container, people, selected = [], onChange = () => {}) {
   const selectedById = new Map(selected.map((item) => [Number(item.person_id), Number(item.share) * 100]));
   container.replaceChildren(...people.map((person) => {
-    const label = document.createElement('label');
+    const label = document.createElement('div');
     const share = selectedById.get(person.id) || 100;
     label.className = 'owner-field';
-    label.innerHTML = `<input type="checkbox" data-owner-id="${Number(person.id)}" ${selectedById.has(person.id) ? 'checked' : ''}> <span>${escapeHtml(person.name)}</span><input type="number" data-owner-share="${Number(person.id)}" value="${share}" min="0.01" max="100" step="0.01">%`;
+    label.innerHTML = `<label class="checkbox"><input type="checkbox" data-owner-id="${Number(person.id)}" ${selectedById.has(person.id) ? 'checked' : ''}> <span>${escapeHtml(person.name)}</span></label><input type="number" aria-label="${escapeHtml(t('accounts.ownership_share', {name: person.name}))}" data-owner-share="${Number(person.id)}" value="${share}" min="0.01" max="100" step="0.01">%`;
     label.querySelector('input[type="checkbox"]').addEventListener('change', () => {
       adjustDefaultShares(container);
       onChange();

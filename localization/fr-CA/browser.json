@@ -343,6 +343,13 @@
     "request_failed_status": "Échec de la demande ({status})"
   },
   "accounts": {
+    "ownership_share": "Part de propriété de {name} (%)",
+    "table_region": "Tableau des détails des actifs",
+    "unavailable": "Indisponible",
+    "saved": "Modifications de l’actif enregistrées.",
+    "saving": "Enregistrement de l’actif…",
+    "loading": "Chargement des actifs…",
+    "retry_load": "Réessayer le chargement des actifs",
     "gic": "CPG",
     "cash": "Encaisse",
     "types": {

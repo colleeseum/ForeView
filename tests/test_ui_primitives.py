@@ -10,6 +10,7 @@ import subprocess
 import threading
 from pathlib import Path
 
+import pytest
 from werkzeug.serving import make_server
 
 import app
@@ -18,10 +19,11 @@ from infrastructure.runtime_config import RuntimeConfig
 from localization import LocalizationService
 
 
-def test_component_reference_catalogs_match() -> None:
+@pytest.mark.parametrize("namespace", ["ui_examples", "assets_ui"])
+def test_component_reference_catalogs_match(namespace: str) -> None:
     root = Path(__file__).resolve().parents[1] / "localization"
     catalogs = [
-        json.loads((root / locale / "ui_examples.json").read_text(encoding="utf-8"))
+        json.loads((root / locale / f"{namespace}.json").read_text(encoding="utf-8"))
         for locale in ("en-CA", "fr-CA")
     ]
     assert catalogs[0].keys() == catalogs[1].keys()
@@ -72,7 +74,7 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
                 cwd=root,
                 capture_output=True,
                 text=True,
-                timeout=90,
+                timeout=150,
                 check=False,
             )
             assert result.returncode == 0, result.stdout + result.stderr

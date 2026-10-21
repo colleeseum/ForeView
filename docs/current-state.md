@@ -11,7 +11,10 @@ usage is documented in `docs/design/ui-foundation.md`. UX-03C adopts the foundat
 collapsible shared navigation disclosure with wrapped narrow-screen groups and active-page semantics.
 UX-03D adopts Sage cards, panels and readable transaction history for the financial overview,
 with explicit missing/empty/error states and unchanged dashboard read-model calculations.
-Other feature workspace adoption remains separate work. No retirement functionality is added.
+UX-03E adopts Sage styling and standard/compact financial tables for Assets and migrates account,
+GIC and property editors to shared native dialogs, with labelled ownership shares, in-context save
+feedback and focus return after table refresh. Other workspaces remain separate work.
+No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income
 and tax records feeding an employment and disposable-income projection. The application can retain

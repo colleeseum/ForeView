@@ -1,0 +1,77 @@
+{#
+SPDX-FileCopyrightText: 2026 Mindstep Corporation
+SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+#}
+{% macro field(key, name, type='text', required=false, placeholder='') -%}
+<label class="fv-field">{{ t(key) }}<input class="fv-input" name="{{ name }}" type="{{ type }}"{% if required %} required{% endif %}{% if placeholder %} placeholder="{{ t(placeholder) }}"{% endif %}{% if type == 'number' %} min="0" step="0.01"{% endif %}></label>
+{%- endmacro %}
+{% macro close(id) -%}
+<button id="close-{{ id }}-dialog" class="fv-button asset-close" type="button" data-dialog-close aria-label="{{ t('pages_server.common.close') }}">×</button>
+{%- endmacro %}
+{% macro heading(id, eyebrow, add, edit) -%}
+<p class="eyebrow">{{ t(eyebrow) }}</p><h2 id="{{ id }}-dialog-title" data-add-text="{{ t(add) }}" data-edit-text="{{ t(edit) }}">{{ t(add) }}</h2>
+{%- endmacro %}
+{% macro actions(id, save) -%}
+<div class="fv-dialog-actions"><button id="cancel-{{ id }}-dialog" class="fv-button" type="button" data-dialog-close>{{ t('pages_server.common.cancel') }}</button><button class="fv-button fv-button--primary" type="submit">{{ t(save) }}</button></div>
+{%- endmacro %}
+<dialog id="account-dialog" class="fv-dialog" hidden aria-labelledby="account-dialog-title">
+  {{ close('account') }}{{ heading('account', 'pages_server.common.account', 'pages_server.assets.add_account', 'pages_server.assets.edit_account') }}
+  <form id="account-dialog-form" class="fv-stack">
+    <div class="fv-grid">
+      {{ field('pages_server.assets.account_number', 'account_number', required=true) }}
+      {{ field('pages_server.common.institution', 'institution', required=true) }}
+      {{ field('pages_server.common.name', 'name', placeholder='pages_server.common.optional_description') }}
+      <label class="fv-field">{{ t('pages_server.common.category') }}<select class="fv-input" name="category">{% for value, key in [('non_registered', 'pages_server.setup.non_registered'), ('tfsa', 'pages_server.common.account_types.tfsa'), ('rrsp', 'pages_server.common.account_types.rrsp'), ('resp', 'pages_server.common.account_types.resp')] %}<option value="{{ value }}">{{ t(key) }}</option>{% endfor %}</select></label>
+    </div>
+    <fieldset class="fv-grid"><legend>{{ t('pages_server.assets.latest_balance') }}</legend>
+      {{ field('pages_server.common.date', 'balance_date', 'date') }}
+      {{ field('pages_server.common.balance', 'balance_amount', 'number', placeholder='pages_server.common.optional') }}
+      {{ field('pages_server.assets.annual_rate', 'interest_rate', 'number', placeholder='pages_server.common.optional') }}
+      <small class="fv-help">{{ t('pages_server.assets.snapshot_help') }}</small>
+    </fieldset>
+    <fieldset><legend>{{ t('pages_server.common.ownership') }}</legend><div id="dialog-owner-fields" lang="{{ current_locale }}"></div></fieldset>
+    {{ actions('account', 'pages_server.assets.save_account') }}
+  </form>
+  <p id="account-dialog-message" lang="{{ current_locale }}" class="form-message" role="alert"></p>
+</dialog>
+<dialog id="subaccount-dialog" class="fv-dialog" hidden aria-labelledby="subaccount-dialog-title">
+  {{ close('subaccount') }}{{ heading('subaccount', 'pages_server.assets.subaccount', 'pages_server.assets.add_gic', 'pages_server.assets.edit_gic') }}
+  <form id="subaccount-dialog-form" class="fv-stack">
+    <label class="fv-field">{{ t('pages_server.assets.parent_account') }}<select class="fv-input" name="parent_account_id" id="subaccount-parent" aria-describedby="subaccount-parent-description" required></select></label>
+    <p id="subaccount-parent-description" class="fv-help" aria-live="polite"></p>
+    <div class="fv-grid">
+      {{ field('pages_server.assets.reference', 'account_number', placeholder='pages_server.assets.subaccount_reference_placeholder') }}
+      {{ field('pages_server.common.name', 'name', required=true, placeholder='pages_server.assets.subaccount_name_example') }}
+    </div>
+    <fieldset class="fv-grid"><legend>{{ t('pages_server.assets.gic_details') }}</legend>
+      {{ field('pages_server.setup.start_date', 'start_date', 'date', true) }}
+      {{ field('pages_server.setup.maturity_date', 'maturity_date', 'date', true) }}
+      {{ field('pages_server.assets.principal', 'principal', 'number') }}
+      {{ field('pages_server.assets.maturity_value', 'maturity_value', 'number') }}
+      <label class="checkbox"><input name="redeemable" type="checkbox">{{ t('pages_server.setup.redeemable') }}</label>
+    </fieldset>
+    <fieldset class="fv-grid"><legend>{{ t('pages_server.assets.latest_value') }}</legend>
+      {{ field('pages_server.common.date', 'balance_date', 'date') }}
+      {{ field('pages_server.common.balance', 'balance_amount', 'number', placeholder='pages_server.common.optional') }}
+      {{ field('pages_server.assets.annual_rate', 'interest_rate', 'number', placeholder='pages_server.common.optional') }}
+    </fieldset>
+    {{ actions('subaccount', 'pages_server.assets.save_subaccount') }}
+  </form>
+  <p id="subaccount-dialog-message" lang="{{ current_locale }}" class="form-message" role="alert"></p>
+</dialog>
+<dialog id="real-estate-dialog" class="fv-dialog" hidden aria-labelledby="real-estate-dialog-title">
+  {{ close('real-estate') }}{{ heading('real-estate', 'pages_server.assets.real_estate', 'pages_server.assets.add_real_estate', 'pages_server.assets.edit_real_estate') }}
+  <form id="real-estate-dialog-form" class="fv-stack">
+    <div class="fv-grid">
+      {{ field('pages_server.common.name', 'name', required=true, placeholder='pages_server.assets.property_name_example') }}
+      {{ field('pages_server.assets.property_type', 'property_type', placeholder='pages_server.assets.property_type_examples') }}
+      {{ field('pages_server.assets.estimated_value', 'estimated_value', 'number', true) }}
+      {{ field('pages_server.assets.valuation_date', 'valuation_date', 'date', true) }}
+      {{ field('pages_server.assets.acb', 'acb', 'number', placeholder='pages_server.common.optional') }}
+      <label class="checkbox"><input name="principal_residence" type="checkbox">{{ t('pages_server.assets.principal_residence') }}</label>
+    </div>
+    <fieldset><legend>{{ t('pages_server.common.ownership') }}</legend><div id="real-estate-owner-fields" lang="{{ current_locale }}"></div><p id="real-estate-owner-total" class="field-note" data-total-text="{{ t('pages_server.assets.selected_ownership', percentage='{percentage}') }}" data-invalid-text="{{ t('pages_server.assets.ownership_must_equal') }}">{{ t('pages_server.assets.selected_ownership', percentage=format_number(0, digits=2)) }}</p></fieldset>
+    {{ actions('real-estate', 'pages_server.assets.save_real_estate') }}
+  </form>
+  <p id="real-estate-dialog-message" lang="{{ current_locale }}" class="form-message" role="alert"></p>
+</dialog>

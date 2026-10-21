@@ -2,12 +2,17 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {formatMoneyDollars} from '../shared/locale-format.mjs';
+import {t} from '../shared/i18n.mjs';
 
 const securityInstitutions = new Set(['questrade', 'sunlife', 'sun life', 'manulife']);
 
 export function money(value, blankForNull = false) {
   if (blankForNull && value == null) return '';
   return formatMoneyDollars(value ?? 0);
+}
+
+export function factualMoney(value) {
+  return value == null ? t('accounts.unavailable') : money(value);
 }
 
 export function isSecurityAccount(account) {

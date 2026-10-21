@@ -130,6 +130,10 @@ For substantial tasks, do not work silently for long periods.
 - Do not use GitHub's merge, squash, or rebase buttons. After review and successful checks, land
   the accepted commit from a correctly configured local checkout and push it to `main`. GitHub can
   otherwise source committer identity from account profile metadata instead of local Git config.
+- For a local squash landing, keep the PR open and align its task branch with the accepted
+  locally created squash commit, using an explicit force-with-lease against the verified old
+  branch head. Push that same commit to `main`, then verify GitHub reports the PR as `MERGED`.
+  Do not substitute manually closing the PR for merged tracking. Never rewrite `main` for this.
 
 ## Maintaining shared project context
 

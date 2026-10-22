@@ -13,7 +13,11 @@ UX-03D adopts Sage cards, panels and readable transaction history for the financ
 with explicit missing/empty/error states and unchanged dashboard read-model calculations.
 UX-03E adopts Sage styling and standard/compact financial tables for Assets and migrates account,
 GIC and property editors to shared native dialogs, with labelled ownership shares, in-context save
-feedback and focus return after table refresh. Other workspaces remain separate work.
+feedback and focus return after table refresh. UX-03F adopts Sage transaction tables,
+saved density, account filters and native import/reconciliation confirmations, retaining
+existing ingestion contracts and adding explicit selection review and busy/error recovery.
+The import selection review is not a parsed-data preview; the existing endpoint analyses
+and imports in one operation. Other workspaces remain separate work.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income

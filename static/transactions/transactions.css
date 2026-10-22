@@ -1,0 +1,22 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ */
+.fv-transactions .view-tabs { flex-wrap: wrap; overflow: visible; }
+.fv-transactions .fv-tabs .view-tab.active { color: var(--fv-surface); background: var(--fv-primary); border-color: var(--fv-primary); border-block-end: 3px solid var(--fv-primary-hover); }
+.fv-transactions .transaction-toolbar { align-items: end; }
+.fv-transactions .account-filter { flex: 1 1 18rem; }
+.fv-transactions .breadcrumbs { flex-wrap: wrap; overflow-wrap: anywhere; font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-transactions .breadcrumbs a { color: var(--fv-primary); }
+.fv-transactions .fv-table-scroll { max-width: 100%; }
+.fv-transactions #import-history-content { min-width: 0; }
+.fv-transactions .fv-table { min-width: 58rem; table-layout: auto; }
+.fv-transactions .fv-table :is(th, td) { position: static; min-width: 0; max-width: none; padding: var(--fv-space-4) var(--fv-space-3); white-space: normal; overflow: visible; text-overflow: clip; text-align: start; border-color: var(--fv-border); font-variant-numeric: tabular-nums; }
+.fv-transactions .fv-table thead th { color: var(--fv-surface); background: var(--fv-primary); }
+.fv-transactions[data-table-density="compact"] .fv-table :is(th, td) { padding-block: var(--fv-space-2); }
+.fv-transactions .fv-table .opening-balance-row td { color: var(--fv-muted); background: var(--fv-navigation); }
+.fv-transactions .fv-dialog { width: min(56rem, calc(100% - 2rem)); }
+.fv-transactions .dialog-dismiss { float: inline-end; }
+.fv-transactions .eyebrow { color: var(--fv-primary); font-family: var(--fv-font); }
+.fv-transactions .fv-feedback.error { color: var(--fv-danger); background: var(--fv-danger-surface); border-color: var(--fv-danger); }
+.fv-transactions #import-file-review { padding-inline-start: var(--fv-space-6); overflow-wrap: anywhere; }
+.fv-transactions #transaction-import-form { margin-block-start: var(--fv-space-4); }

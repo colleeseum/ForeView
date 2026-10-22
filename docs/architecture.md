@@ -136,6 +136,13 @@ Assets distinguishes loading/error state from successfully loaded empty data. It
 post-save callback reports read-refresh failures independently of committed mutations,
 with read-only recovery rather than resubmitting the save.
 
+Transactions adopts the same foundation through `static/transactions/transactions.css`,
+with an independent density preference and shared native dialogs. Selection review and
+server-requested confirmation remain client presentation around the existing import endpoint;
+there is no separate dry-run parser API. Busy mutation guards prevent concurrent submits,
+and successful writes are reported independently of subsequent read refresh failures.
+See `docs/design/transactions.md` for the lifecycle and acceptance boundary.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

@@ -43,6 +43,30 @@ function installDom() {
     document: dom.window.document,
     FormData: dom.window.FormData,
   });
+  // Match the production native dialog structure; only user-agent methods are shimmed.
+  for (const [id, form, close] of [
+    ['income-dialog-backdrop', 'income-form', 'income-dialog-close'],
+    ['ufile-dialog-backdrop', 'ufile-form', 'ufile-dialog-close'],
+    ['income-correction-backdrop', 'income-correction-form', 'income-correction-close'],
+  ]) {
+    const old = document.getElementById(id);
+    const dialog = document.createElement('dialog');
+    dialog.id = id;
+    dialog.hidden = true;
+    dialog.append(...old.childNodes);
+    old.replaceWith(dialog);
+    for (const name of [form, close]) {
+      const node = document.getElementById(name);
+      if (!dialog.contains(node)) dialog.append(node);
+    }
+    dialog.showModal = () => {dialog.open = true;};
+    dialog.close = () => {dialog.open = false; dialog.dispatchEvent(new dom.window.Event('close'));};
+  }
+  for (const id of ['income-editor-message', 'income-import-message', 'income-load-error', 'income-retry']) {
+    const node = document.createElement(id === 'income-retry' ? 'button' : 'p');
+    node.id = id;
+    document.body.append(node);
+  }
   return dom;
 }
 
@@ -58,6 +82,57 @@ function annualRecord(overrides = {}) {
     disposable_income: '60700.00', source: 'UFile T1', ...overrides,
   };
 }
+
+test('income saves lock pending requests, retain rejected input and separate committed writes from read failures', async () => {
+  const dom = installDom();
+  let failRead = false;
+  let rejectWrite = false;
+  let release;
+  let writes = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    if (url === '/api/model/people') return {ok: true, json: async () => ({people: [{id: 1, name: 'Alex'}]})};
+    if (String(url).startsWith('/api/income?')) return {ok: !failRead, json: async () => failRead ? {error: 'Synthetic read unavailable'} : {records: [annualRecord()], snapshot: latestSnapshot()}};
+    writes++;
+    if (!rejectWrite) await new Promise(resolve => {release = resolve;});
+    return {ok: !rejectWrite, json: async () => rejectWrite ? {error: 'Synthetic validation failure', error_language: 'fr-CA'} : {}};
+  };
+  await import(`../../static/income/income.mjs?busy=${Date.now()}`);
+  await tick(); await tick();
+  document.querySelector('#income-add').click();
+  const form = document.querySelector('#income-form');
+  form.elements.employment_income.value = '120000';
+  const submit = () => form.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  submit(); submit();
+  await tick();
+  assert.equal(writes, 1);
+  const dialog = document.querySelector('#income-dialog-backdrop');
+  assert([...form.elements].every(node => node.disabled));
+  const cancel = new dom.window.Event('cancel', {cancelable: true});
+  dialog.dispatchEvent(cancel);
+  assert(cancel.defaultPrevented);
+  failRead = true;
+  release();
+  await tick(); await tick();
+  assert(dialog.hidden);
+  assert.match(document.querySelector('#income-message').textContent, /saved/);
+  assert.match(document.querySelector('#income-load-error').textContent, /read unavailable/);
+  assert.equal(document.querySelector('#income-history').textContent, '');
+  failRead = false;
+  document.querySelector('#income-retry').click();
+  await tick(); await tick();
+  assert.equal(writes, 1, 'Read retry must never repeat the committed write');
+  rejectWrite = true;
+  document.querySelector('#income-add').click();
+  form.elements.employment_income.value = '123000';
+  submit();
+  await tick(); await tick();
+  assert(dialog.open);
+  assert.equal(form.elements.employment_income.value, '123000');
+  assert.equal(document.querySelector('#income-editor-message').getAttribute('role'), 'alert');
+  assert.equal(document.querySelector('#income-editor-message').lang, 'fr-CA');
+  assert.equal(form.querySelector('button[type="submit"]').disabled, false);
+  dom.window.close();
+});
 
 function latestSnapshot() {
   return {

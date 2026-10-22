@@ -201,6 +201,10 @@
     "scenario_created": "Scenario \"{name}\" created."
   },
   "income": {
+    "people": "People",
+    "retry": "Retry loading income",
+    "analysing": "Analysing PDF. Please wait before closing.",
+    "saving": "Saving income record. Please wait before closing.",
     "concepts": {
       "employment_income": "Employment income",
       "oas_income": "OAS income",

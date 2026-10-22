@@ -5,6 +5,7 @@ import {formSignature} from '../shared/form-state.mjs';
 import {escapeHtml, htmlWithLanguageSpans} from '../shared/html.mjs';
 import {t, locale} from '../shared/i18n.mjs';
 import {incomeSourceLabel} from '../shared/income-source-label.mjs';
+import {createIncomeDialog} from './income-dialog.mjs';
 
 let elements = null;
 
@@ -20,6 +21,8 @@ let requestJson = null;
 let reload = null;
 let notify = null;
 let formatMoney = null;
+let modal = null;
+let historyReady = false;
 
 const LOCALIZED_CONCEPTS = new Set([
   'employment_income',
@@ -95,13 +98,11 @@ function signature() {
 function updateSaveButton() {
   const amount = elements.form.elements.correct_amount.value;
   const reason = elements.form.elements.reason.value.trim();
-  elements.save.disabled = !amount || !reason || signature() === baseline;
+  elements.save.disabled = modal.busy || !historyReady || !amount || !reason || signature() === baseline;
 }
 
 function setBusy(busy) {
-  for (const button of [elements.save, elements.remove, elements.confirm]) {
-    button.disabled = busy;
-  }
+  modal.setBusy(busy);
   if (!busy) updateSaveButton();
 }
 
@@ -109,6 +110,8 @@ function showDialogMessage(message, error = false, language = locale) {
   elements.message.textContent = message;
   elements.message.classList.toggle('error', error);
   elements.message.lang = language;
+  elements.message.hidden = !message;
+  elements.message.setAttribute('role', error ? 'alert' : 'status');
 }
 
 function revisionLabel(kind) {
@@ -145,7 +148,8 @@ async function loadHistory() {
 }
 
 function closeDialog() {
-  elements.dialog.hidden = true;
+  if (modal.busy) return;
+  modal.close();
   activeValue = null;
   activeCorrection = null;
 }
@@ -170,6 +174,8 @@ export function configureIncomeCorrections(context) {
 }
 
 export async function openIncomeCorrection(concept) {
+  if (modal.busy) return;
+  historyReady = false;
   activeValue = snapshot?.values.find((value) => value.concept === concept) || null;
   if (!activeValue) return;
   activeCorrection = corrections.get(concept) || null;
@@ -195,26 +201,33 @@ export async function openIncomeCorrection(concept) {
   elements.confirm.hidden = !activeCorrection?.review_required;
   showDialogMessage('');
   elements.history.innerHTML = `<p class="field-note">${t('income_corrections.loading_history')}</p>`;
-  elements.dialog.hidden = false;
+  modal.open();
   baseline = signature();
   updateSaveButton();
+  setBusy(true);
   try {
     await loadHistory();
+    historyReady = true;
   } catch (error) {
     showDialogMessage(error.message, true, error.language || 'en-CA');
+  } finally {
+    setBusy(false);
   }
 }
 
 async function mutation(url, method, payload, successMessage) {
+  if (modal.busy) return;
   setBusy(true);
+  showDialogMessage(t('income.saving'));
   try {
     await requestJson(url, {
       method,
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload),
     });
-    closeDialog();
     await reload();
+    setBusy(false);
+    closeDialog();
     notify(successMessage, false, locale, true);
   } catch (error) {
     showDialogMessage(error.message, true, error.language || 'en-CA');
@@ -246,14 +259,13 @@ export function initializeIncomeCorrections(options) {
   reload = options.reload;
   notify = options.notify;
   formatMoney = options.money;
+  modal = createIncomeDialog(elements.dialog, document.querySelector('#income-add'));
 
   elements.close.addEventListener('click', closeDialog);
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !elements.dialog.hidden) closeDialog();
-  });
   elements.form.addEventListener('input', updateSaveButton);
   elements.form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (modal.busy || !historyReady || !activeValue) return;
     const values = Object.fromEntries(new FormData(elements.form));
     if (activeCorrection) {
       await mutation(

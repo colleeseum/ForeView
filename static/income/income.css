@@ -1,0 +1,34 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+ */
+.fv-income .dashboard-panel { padding: var(--fv-space-4); border-radius: var(--fv-radius-panel); background: var(--fv-surface); }
+.fv-income .view-tabs { flex-wrap: wrap; overflow: visible; }
+.fv-income .fv-tabs .view-tab.active { color: var(--fv-surface); background: var(--fv-primary); border-block-end: 3px solid var(--fv-primary-hover); }
+.fv-income .income-summary-panel { background: var(--fv-navigation); border-color: var(--fv-border); border-radius: var(--fv-radius-panel); }
+.fv-income .income-summary-heading { flex-wrap: wrap; }
+.fv-income .income-summary-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.fv-income .income-summary-grid .income-summary-value { background: var(--fv-surface); border-color: var(--fv-primary); border-radius: var(--fv-radius-control); min-width: 0; overflow-wrap: anywhere; }
+.fv-income .income-summary-grid .corrected { background: var(--fv-info-surface); border-color: var(--fv-info); }
+.fv-income .income-summary-grid .review-required { background: var(--fv-warning-surface); border-color: var(--fv-warning); }
+.fv-income .income-summary-grid :is(span, small), .fv-income .field-note { color: var(--fv-muted); font: var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-income .income-correction-badge { color: var(--fv-info) !important; background: var(--fv-info-surface); }
+.fv-income .review-required .income-correction-badge { color: var(--fv-warning) !important; background: var(--fv-warning-surface); }
+.fv-income .income-source-details > summary, .fv-income .income-correction-history > summary { color: var(--fv-primary); }
+.fv-income .income-record-section { margin-block: var(--fv-space-4); padding: var(--fv-space-3); border: 1px solid var(--fv-border); border-radius: var(--fv-radius-control); }
+.fv-income .income-record-section > summary { color: var(--fv-primary); font-weight: 650; cursor: pointer; }
+.fv-income .income-correction-action { min-height: 44px; padding: var(--fv-space-2); font: 650 var(--fv-type-detail)/1.5 var(--fv-font); color: var(--fv-primary); }
+.fv-income .review-required .income-correction-action { color: var(--fv-warning); }
+.fv-income .fv-dialog { width: min(62rem, calc(100% - 2rem)); }
+.fv-income .dialog-close { position: static; float: inline-end; }
+.fv-income .income-actual-form { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.fv-income .income-actual-form label { grid-template-rows: auto auto auto; }
+.fv-income .income-correction-comparison { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.fv-income .income-correction-comparison section, .fv-income .income-correction-revision { background: var(--fv-surface-subtle); border-color: var(--fv-border); }
+.fv-income .income-correction-comparison :is(span, small), .fv-income .income-correction-revision :is(small, time, span) { font-family: var(--fv-font); }
+.fv-income .income-correction-status { color: var(--fv-warning); background: var(--fv-warning-surface); border-color: var(--fv-warning); font: 650 var(--fv-type-detail)/1.5 var(--fv-font); }
+.fv-income .income-year-filter select { min-height: var(--fv-control-min); font: inherit; padding-inline: var(--fv-space-3); }
+.fv-income .fv-feedback.error { color: var(--fv-danger); background: var(--fv-danger-surface); border-color: var(--fv-danger); }
+.fv-income .fv-table { min-width: 45rem; table-layout: auto; }
+.fv-income .fv-table :is(th, td) { position: static; min-width: 0; max-width: none; white-space: normal; overflow: visible; text-overflow: clip; text-align: start; padding: var(--fv-space-3); }
+.fv-income .fv-table thead th { color: var(--fv-surface); background: var(--fv-primary); }
+.fv-income .fv-table-scroll { max-width: 100%; }

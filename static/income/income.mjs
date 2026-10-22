@@ -5,6 +5,7 @@ import {escapeHtml, htmlWithLanguageSpans, languageSpan} from '../shared/html.mj
 import {t, locale} from '../shared/i18n.mjs';
 import {formatMoneyDollars, formatDisplayDate} from '../shared/locale-format.mjs';
 import {incomeSourceLabel} from '../shared/income-source-label.mjs';
+import {createIncomeDialog} from './income-dialog.mjs';
 import {
   configureIncomeCorrections,
   correctionPresentation,
@@ -12,7 +13,7 @@ import {
   incomeConceptLabel,
   initializeIncomeCorrections,
   openIncomeCorrection,
-} from './income-corrections.mjs';
+} from './income-corrections.mjs?v=20261022-1';
 
 const elements = {
   tabs: document.querySelector('#income-tabs'),
@@ -49,6 +50,21 @@ let latestSnapshotYear = null;
 let pendingImport = null;
 let pendingTaxReturn = null;
 const defaultTaxYear = elements.form.elements.tax_year.value;
+const editor = createIncomeDialog(elements.editor, elements.add);
+const importer = createIncomeDialog(elements.importDialog, elements.importButton);
+let loadGeneration = 0;
+const sourceSections = [elements.summary, elements.history, elements.taxReturns, elements.assessments, elements.rooms, elements.pension, elements.normalized];
+document.querySelectorAll('.fv-income button').forEach(node => node.classList.add('fv-button'));
+document.querySelectorAll('.fv-income .primary-action, .fv-income #income-correction-save').forEach(node => node.classList.add('fv-button--primary'));
+document.querySelectorAll('.fv-income input, .fv-income select, .fv-income textarea').forEach(node => node.classList.add('fv-input'));
+
+function dialogMessage(target, message, error = false, language = locale) {
+  target.textContent = message;
+  target.hidden = !message;
+  target.lang = language;
+  target.setAttribute('role', error ? 'alert' : 'status');
+  target.classList.toggle('error', error);
+}
 
 function money(value) {
   return formatMoneyDollars(value ?? 0);
@@ -63,6 +79,9 @@ function showMessage(message, error = false, language = locale, html = false) {
 
 function showError(error) {
   showMessage(error.message, true, error.language || 'en-CA');
+  const target = elements.editor.open ? document.querySelector('#income-editor-message')
+    : elements.importDialog.open ? document.querySelector('#income-import-message') : null;
+  if (target) dialogMessage(target, error.message, true, error.language || 'en-CA');
 }
 
 function selectedPerson() {
@@ -71,7 +90,7 @@ function selectedPerson() {
 
 function updateImportAction() {
   if (elements.importPreview && elements.importFile) {
-    elements.importPreview.disabled = elements.importFile.files.length === 0;
+    elements.importPreview.disabled = importer.busy || elements.importFile.files.length === 0;
   }
 }
 
@@ -85,6 +104,7 @@ function resetImportReview() {
 }
 
 function setImportBusy(busy) {
+  importer.setBusy(busy);
   if (elements.importProgress) elements.importProgress.hidden = !busy;
   if (elements.importFile) elements.importFile.disabled = busy;
   if (elements.importPreview) {
@@ -138,7 +158,7 @@ async function json(response) {
 
 function renderTabs() {
   elements.tabs.innerHTML = people.map((person) =>
-    `<button class="view-tab${person.id === selectedPersonId ? ' active' : ''}" type="button" data-person-id="${person.id}">${escapeHtml(person.name)}</button>`
+    `<button class="view-tab fv-button${person.id === selectedPersonId ? ' active' : ''}" type="button" aria-pressed="${person.id === selectedPersonId}" data-person-id="${person.id}">${escapeHtml(person.name)}</button>`
   ).join('');
 }
 
@@ -348,48 +368,88 @@ function openEditor(record = {}) {
     const personName = record.taxpayer_name || selectedPerson()?.name;
     elements.editorPerson.textContent = personName ? t('income.person', {name: personName}) : '';
   }
-  elements.editor.hidden = false;
+  dialogMessage(document.querySelector('#income-editor-message'), '');
+  editor.open();
 }
 
 async function load() {
-  if (!selectedPersonId) {
-    const result = await fetch('/api/model/people').then(json);
-    people = result.people;
-    selectedPersonId = people[0]?.id || null;
+  const generation = ++loadGeneration;
+  elements.add.disabled = true;
+  elements.importButton.disabled = true;
+  const failure = document.querySelector('#income-load-error');
+  const retry = document.querySelector('#income-retry');
+  failure.hidden = true;
+  retry.hidden = true;
+  for (const section of sourceSections) {
+    section.replaceChildren();
+    section.setAttribute('aria-busy', 'true');
   }
-  renderTabs();
-  if (!selectedPersonId) {
-    showMessage(t('income.add_person_first'), true);
-    elements.add.disabled = true;
-    elements.importButton.disabled = true;
-    records = [];
+  try {
+    if (!selectedPersonId) {
+      const result = await fetch('/api/model/people').then(json);
+      if (generation !== loadGeneration) return false;
+      people = result.people;
+      selectedPersonId = people[0]?.id || null;
+    }
+    renderTabs();
+    if (!selectedPersonId) {
+      showMessage(t('income.add_person_first'), true);
+      records = [];
+      renderHistory();
+      return false;
+    }
+    const yearQuery = selectedSnapshotYear ? `&year=${selectedSnapshotYear}` : '';
+    const result = await fetch(`/api/income?person_id=${selectedPersonId}${yearQuery}`).then(json);
+    if (generation !== loadGeneration) return false;
+    if (!selectedSnapshotYear) records = result.records;
+    latestSnapshotYear = result.snapshot?.available_years?.[0] || null;
+    configureIncomeCorrections({
+      personId: selectedPersonId,
+      personName: selectedPerson()?.name,
+      snapshot: result.snapshot,
+      corrections: result.corrections || [],
+    });
+    renderSummary(result.snapshot, selectedSnapshotYear ? [] : result.registered_rooms || []);
     renderHistory();
-    return;
+    renderSupplementary(
+      result.assessments || [], result.registered_rooms || [], result.public_pension,
+      result.tax_values || [],
+    );
+    showMessage(records.length
+      ? t(records.length === 1 ? 'income.record_count' : 'income.record_count_plural', {count: records.length})
+      : t('income.no_employment_records'));
+    decorateTables();
+    elements.add.disabled = false;
+    elements.importButton.disabled = false;
+    return true;
+  } catch (error) {
+    if (generation !== loadGeneration) return false;
+    dialogMessage(failure, error.message, true, error.language || 'en-CA');
+    retry.hidden = false;
+    return false;
+  } finally {
+    if (generation === loadGeneration) {
+      for (const section of sourceSections) section.setAttribute('aria-busy', 'false');
+    }
   }
-  const yearQuery = selectedSnapshotYear ? `&year=${selectedSnapshotYear}` : '';
-  const result = await fetch(`/api/income?person_id=${selectedPersonId}${yearQuery}`).then(json);
-  if (!selectedSnapshotYear) records = result.records;
-  latestSnapshotYear = result.snapshot?.available_years?.[0] || null;
-  configureIncomeCorrections({
-    personId: selectedPersonId,
-    personName: selectedPerson()?.name,
-    snapshot: result.snapshot,
-    corrections: result.corrections || [],
-  });
-  renderSummary(
-    result.snapshot,
-    selectedSnapshotYear ? [] : result.registered_rooms || [],
-  );
-  renderHistory();
-  // renderSupplementary() handles all other sections including assessments, rooms, pension, normalized
-  renderSupplementary(
-    result.assessments || [], result.registered_rooms || [], result.public_pension,
-    result.tax_values || [],
-  );
-  showMessage(records.length
-    ? t(records.length === 1 ? 'income.record_count' : 'income.record_count_plural', {count: records.length})
-    : t('income.no_employment_records'));
 }
+
+function decorateTables() {
+  for (const container of [elements.history, elements.taxReturns, elements.assessments, elements.rooms, elements.pension, elements.normalized]) {
+    container.querySelectorAll('table').forEach(table => {
+      table.classList.add('fv-table');
+      table.createCaption().textContent = container.closest('.income-record-section')?.querySelector('summary')?.textContent || t('income.source');
+      table.querySelectorAll('thead th').forEach(cell => {cell.scope = 'col';});
+      const region = table.parentElement;
+      region.classList.add('fv-table-scroll');
+      region.tabIndex = 0;
+      region.setAttribute('role', 'region');
+      region.setAttribute('aria-label', table.caption.textContent);
+      region.setAttribute('aria-describedby', 'income-scroll-hint');
+    });
+  }
+}
+document.querySelector('#income-retry').addEventListener('click', load);
 
 elements.tabs.addEventListener('click', (event) => {
   const tab = event.target.closest('[data-person-id]');
@@ -423,18 +483,21 @@ elements.add.addEventListener('click', () => {
   pendingTaxReturn = null;
   openEditor();
 });
-elements.editorClose.addEventListener('click', () => { elements.editor.hidden = true; });
+elements.editorClose.addEventListener('click', () => editor.close());
 elements.form.addEventListener('input', updateSalaryRate);
 elements.importButton.addEventListener('click', () => {
   resetImportReview();
-  elements.importDialog.hidden = false;
+  dialogMessage(document.querySelector('#income-import-message'), '');
+  importer.open();
 });
-elements.importClose.addEventListener('click', () => { elements.importDialog.hidden = true; });
+elements.importClose.addEventListener('click', () => importer.close());
 elements.importFile?.addEventListener('change', resetImportReview);
 elements.importForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (importer.busy) return;
   const data = new FormData(elements.importForm);
   setImportBusy(true);
+  dialogMessage(document.querySelector('#income-import-message'), t('income.analysing'));
   try {
     const preview = await fetch('/api/income/import/preview', {
       method: 'POST', body: data,
@@ -449,10 +512,12 @@ elements.importForm.addEventListener('submit', async (event) => {
         throw error;
       }
       selectedPersonId = taxpayer.id;
-      renderTabs();
+      selectedSnapshotYear = null;
+      await load();
     }
     if (preview.kind === 'tax_return') {
-      elements.importDialog.hidden = true;
+      setImportBusy(false);
+      importer.close();
       elements.importForm.reset();
       updateImportAction();
       pendingTaxReturn = preview;
@@ -479,6 +544,7 @@ elements.importForm.addEventListener('submit', async (event) => {
     const identity = preview.taxpayer_name
       ? t('income.pdf_taxpayer', {name: preview.taxpayer_name})
       : t('income.no_pdf_taxpayer');
+    dialogMessage(document.querySelector('#income-import-message'), identity);
     const loaded = htmlWithLanguageSpans(
       ({source}) => t('income.loaded_for_review', {source}),
       {source: preview.source_name || 'T1'},
@@ -491,20 +557,22 @@ elements.importForm.addEventListener('submit', async (event) => {
   }
 });
 elements.importConfirm.addEventListener('click', async () => {
-  if (!pendingImport) return;
+  if (!pendingImport || importer.busy) return;
   const endpoint = pendingImport.kind === 'tax_assessment'
     ? `/api/income/people/${selectedPersonId}/assessments`
     : `/api/income/people/${selectedPersonId}/public-pension-statements`;
+  setImportBusy(true);
+  dialogMessage(document.querySelector('#income-import-message'), t('income.saving'));
   try {
     await fetch(endpoint, {
       method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(pendingImport),
     }).then(json);
     const sourceName = pendingImport.source_name;
     pendingImport = null;
-    elements.importDialog.hidden = true;
     elements.importForm.reset();
-    updateImportAction();
     await load();
+    setImportBusy(false);
+    importer.close();
     showMessage(
       htmlWithLanguageSpans(({source}) => t('income.source_saved', {source}), {source: sourceName}),
       false,
@@ -512,9 +580,11 @@ elements.importConfirm.addEventListener('click', async () => {
       true,
     );
   } catch (error) { showError(error); }
+  finally {setImportBusy(false);}
 });
 elements.form.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (editor.busy) return;
   const values = Object.fromEntries(new FormData(elements.form));
   if (pendingTaxReturn) {
     values.tax_values = pendingTaxReturn.tax_values || [];
@@ -522,16 +592,20 @@ elements.form.addEventListener('submit', async (event) => {
     values.document_hash = pendingTaxReturn.document_hash;
   }
   const year = Number(elements.form.elements.tax_year.value);
+  editor.setBusy(true);
+  dialogMessage(document.querySelector('#income-editor-message'), t('income.saving'));
   try {
     await fetch(
       `/api/income/people/${selectedPersonId}/years/${year}`,
       {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(values)},
     ).then(json);
-    elements.editor.hidden = true;
     pendingTaxReturn = null;
-    showMessage(t('income.annual_saved', {year}));
     await load();
+    editor.setBusy(false);
+    editor.close();
+    showMessage(t('income.annual_saved', {year}));
   } catch (error) { showError(error); }
+  finally {editor.setBusy(false);}
 });
 
 initializeIncomeCorrections({

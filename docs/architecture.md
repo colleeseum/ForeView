@@ -143,6 +143,12 @@ there is no separate dry-run parser API. Busy mutation guards prevent concurrent
 and successful writes are reported independently of subsequent read refresh failures.
 See `docs/design/transactions.md` for the lifecycle and acceptance boundary.
 
+Income adopts Sage styles through `static/income/income.css`. Its feature-local
+`income-dialog.mjs` adapter wraps the shared native controller for pending-state
+locking, refreshed-action focus return and in-modal help from the existing help API.
+The snapshot and corrections keep their existing APIs and financial contracts.
+Read-refresh failures are separate from committed saves. See `docs/design/income.md`.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

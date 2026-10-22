@@ -201,6 +201,10 @@
     "scenario_created": "Scénario « {name} » créé."
   },
   "income": {
+    "people": "Personnes",
+    "retry": "Réessayer de charger les revenus",
+    "analysing": "Analyse du PDF. Veuillez patienter avant de fermer.",
+    "saving": "Enregistrement des revenus. Veuillez patienter avant de fermer.",
     "concepts": {
       "employment_income": "Revenu d’emploi",
       "oas_income": "Pension de la Sécurité de la vieillesse",

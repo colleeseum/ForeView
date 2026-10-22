@@ -11,6 +11,7 @@ import threading
 from pathlib import Path
 
 import pytest
+from reportlab.pdfgen.canvas import Canvas
 from werkzeug.serving import make_server
 
 import app
@@ -55,6 +56,20 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
     )
     (catalogs / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
     (catalogs / "ar-XB").mkdir()
+    tax = tmp_path / "synthetic-income.pdf"
+    document = Canvas(str(tax))
+    document.drawString(40, 780, "Taxpayer: Alex Example")
+    document.drawString(40, 760, "Tax return Summary for 2024 taxation year")
+    for index, (line, amount) in enumerate(
+        [("10100", "123,456.78"), ("30800", "3,200.00"), ("42000", "18,000.00")]
+    ):
+        document.drawString(400, 720 - 25 * index, line)
+        document.drawString(490, 720 - 25 * index, amount)
+    document.showPage()
+    document.drawString(40, 780, "Quebec return CPP contribution")
+    document.drawString(400, 720, "432")
+    document.drawString(490, 720, "15,000.00")
+    document.save()
     service = LocalizationService(catalogs, runtime_dir)
     application.extensions["localization"] = service
     server = make_server("127.0.0.1", 0, application, threaded=True)
@@ -70,6 +85,7 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
                     f"http://127.0.0.1:{server.server_port}",
                     locale,
                     str(tmp_path / "evidence"),
+                    str(tax),
                 ],
                 cwd=root,
                 capture_output=True,

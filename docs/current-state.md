@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-21
+Updated: 2026-10-22
 
 ## Development focus
 
@@ -17,7 +17,11 @@ feedback and focus return after table refresh. UX-03F adopts Sage transaction ta
 saved density, account filters and native import/reconciliation confirmations, retaining
 existing ingestion contracts and adding explicit selection review and busy/error recovery.
 The import selection review is not a parsed-data preview; the existing endpoint analyses
-and imports in one operation. Other workspaces remain separate work.
+and imports in one operation. UX-03G adopts Sage snapshot cards and peer source groups
+for Income, with native annual-record, PDF review and correction dialogs, in-modal
+help, guarded pending requests and read-only recovery after committed saves.
+Source precedence, fingerprints and append-only correction semantics are unchanged.
+Other workspaces remain separate work.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income

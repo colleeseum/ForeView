@@ -149,6 +149,13 @@ locking, refreshed-action focus return and in-modal help from the existing help 
 The snapshot and corrections keep their existing APIs and financial contracts.
 Read-refresh failures are separate from committed saves. See `docs/design/income.md`.
 
+Expenses adopts the shared foundation through `static/expenses/expenses.css` and
+native dialogs in the existing feature module. Server-rendered summaries retain the
+repository's factual/estimated distinction. Manual/category edits use existing JSON
+validation endpoints before read navigation; category-management context is retained.
+Statement previews and confirmations retain their provider-neutral service contracts.
+See `docs/design/expenses.md` for queue, overlap and recovery behavior.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

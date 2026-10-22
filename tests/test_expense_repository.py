@@ -86,6 +86,45 @@ def test_missing_year_is_not_reported_as_zero(repo: ExpenseRepository) -> None:
     assert summary["total"] is None
 
 
+def test_manual_edit_preserves_category_snapshot_unless_category_changes(
+    repo: ExpenseRepository,
+) -> None:
+    category = repo.create_category("Original", "required")
+    record = repo.create_manual_expense(
+        name="Evidence",
+        category_id=category.id,
+        amount="77.13",
+        period_start=date(2026, 1, 1),
+        period_end=date(2026, 2, 7),
+    )
+    repo.rename_category(category.id, "Renamed")
+    repo.reclassify_category(category.id, "discretionary")
+    repo.set_category_active(category.id, False)
+    edited = repo.update_expense(
+        record.id,
+        name="Name only",
+        category_id=category.id,
+        amount=record.amount,
+        period_start=date.fromisoformat(record.period_start),
+        period_end=date.fromisoformat(record.period_end),
+    )
+    assert edited.category_name == "Original"
+    assert edited.classification == "required"
+    assert repo.totals_for_year(2026)["required"] == Decimal("77.13")
+    target = repo.create_category("New category", "discretionary")
+    moved = repo.update_expense(
+        record.id,
+        name=edited.name,
+        category_id=target.id,
+        amount=record.amount,
+        period_start=date.fromisoformat(record.period_start),
+        period_end=date.fromisoformat(record.period_end),
+    )
+    assert moved.category_name == "New category"
+    assert moved.classification == "discretionary"
+    assert repo.totals_for_year(2026)["discretionary"] == Decimal("77.13")
+
+
 def test_multi_year_record_is_prorated_by_days(repo: ExpenseRepository) -> None:
     category = repo.create_category("Utilities", "required")
     repo.create_manual_expense(

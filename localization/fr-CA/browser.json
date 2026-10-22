@@ -350,6 +350,10 @@
     "removed": "Correction de {label} supprimée. La priorité des sources est rétablie."
   },
   "expenses": {
+    "edit_expense": "Modifier une dépense factuelle",
+    "table_label": "Données et catégories de dépenses",
+    "saved": "Modifications des dépenses enregistrées.",
+    "view_saved": "Voir les données enregistrées",
     "edit_category": "Modifier la catégorie",
     "save_category": "Enregistrer la catégorie",
     "add_category": "Ajouter une catégorie",

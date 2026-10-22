@@ -591,7 +591,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b'id="expense-add"', page.data)
         self.assertIn(b'id="expense-categories"', page.data)
         self.assertIn(b'class="dashboard-panel expense-record-details" open', page.data)
-        self.assertIn(b'id="expense-dialog-backdrop" class="dialog-backdrop" hidden', page.data)
+        self.assertIn(b'<dialog id="expense-dialog-backdrop" class="fv-dialog" hidden', page.data)
 
         first_id = first.get_json()["id"]
         second_id = second.get_json()["id"]
@@ -638,7 +638,10 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn("dialog=categories", response.headers["Location"])
 
         category_list = self.client.get(response.headers["Location"])
-        self.assertIn(b'id="category-dialog-backdrop" class="dialog-backdrop">', category_list.data)
+        self.assertIn(
+            b'<dialog id="category-dialog-backdrop" class="fv-dialog expense-category-dialog" open aria-labelledby=',
+            category_list.data,
+        )
         self.assertIn(b"Expense category created.", category_list.data)
         self.assertIn(b"Travel", category_list.data)
 

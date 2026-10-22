@@ -7,6 +7,7 @@ import test from 'node:test';
 import {JSDOM} from 'jsdom';
 import {formatDate} from '../../static/shared/locale-format.mjs';
 import {configureTestLocalization} from './localization-fixture.mjs';
+import {installExpenseDialogs} from './expense-dialog-fixture.mjs';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -18,9 +19,9 @@ test('expense import reviews parser evidence and displays confirmation errors', 
     <div id="category-dialog-backdrop" hidden><section><button id="category-dialog-close" class="dialog-close"></button><button id="category-add"></button></section></div>
     <div id="category-editor-backdrop" hidden><section><button id="category-editor-close" class="dialog-close"></button><h2 id="category-editor-title"></h2><form id="category-editor-form" data-create-action="/expenses/categories"><input name="name"><select name="classification"><option value="required">Required</option></select><label id="category-status-field"><select name="active"><option value="true">Active</option></select></label><button id="category-editor-cancel"></button><button id="category-editor-save"></button></form></section></div>
     <button id="expense-import"></button>
-    <div id="expense-import-dialog-backdrop" hidden><section><button id="expense-import-close" class="dialog-close"></button>
+    <div id="expense-import-dialog-backdrop" hidden><section><button id="expense-import-close" class="dialog-close"></button><button data-help-article="synthetic-provider" type="button">Help</button>
       <form id="expense-import-form">
-        <div id="import-step-file"><input id="expense-import-file" type="file" multiple><button id="import-preview-btn" type="button" disabled></button></div>
+        <div id="import-step-file"><input id="expense-import-file" type="file" multiple><ul id="expense-file-review"></ul><button id="import-preview-btn" type="button" disabled></button></div>
         <p id="expense-import-queue-status" hidden></p>
         <div id="expense-import-progress" hidden><span></span></div><p id="expense-import-message" hidden></p>
         <div id="import-step-preview" hidden><span id="import-provider"></span><span id="import-amount"></span><span id="import-period-start"></span><span id="import-period-end"></span><input id="import-name" required><select id="import-category"><option value="8">Electricity</option></select><select id="import-association"><option value="household">Household</option><option value="person:3">Person</option></select></div>
@@ -34,9 +35,12 @@ test('expense import reviews parser evidence and displays confirmation errors', 
     document: dom.window.document,
     FormData: dom.window.FormData,
   });
+  installExpenseDialogs(dom);
   const calls = [];
+  let helpMode = 'success';
   globalThis.fetch = async (url, options) => {
     calls.push({url: String(url), options});
+    if (url === '/api/help') return {ok: helpMode !== 'failure', json: async () => ({articles: helpMode === 'missing' ? [] : [{key: 'synthetic-provider', title: 'Synthetic help', summary: 'Summary', body: '<b>Original source</b>', field_languages: {body: 'fr-CA'}}]})};
     if (String(url).endsWith('/preview')) {
       const filename = options.body.get('file').name;
       const second = filename.includes('hydro-february');
@@ -77,12 +81,31 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   };
 
   const module = await import(`../../static/expenses/expenses.mjs?import=${Date.now()}`);
+  for (const [start, end, selected, expected] of [
+    ['2027-01-01', '2027-02-01', '2026', 2027],
+    ['2024-12-01', '2025-02-01', '2026', 2025],
+    ['2025-12-01', '2026-02-01', '2026', '2026'],
+  ]) assert.equal(module.expenseResultYear({period_start: start, period_end: end}, selected), expected);
+  assert.equal(module.expenseResultYear({}, '2026'), '2026');
   const completionUrl = module.importCompletionUrl(12, new Set([2026, 2024, 2025]), 2026, 'http://localhost');
   assert.equal(completionUrl.pathname, '/expenses');
   assert.equal(completionUrl.searchParams.get('year'), '2026');
   assert.equal(completionUrl.searchParams.get('imported'), '12');
   assert.equal(completionUrl.searchParams.get('imported_years'), '2024,2025,2026');
   document.querySelector('#expense-import').click();
+  const helpButton = document.querySelector('[data-help-article]');
+  helpButton.click();
+  await tick();
+  const help = document.querySelector('[data-import-help]');
+  assert.match(help.textContent, /Original source/);
+  assert.equal(help.querySelector('b'), null);
+  assert.equal(help.querySelector('p:last-child').lang, 'fr-CA');
+  for (const mode of ['missing', 'failure']) {
+    helpMode = mode;
+    helpButton.click();
+    await tick();
+    assert.match(help.textContent, /unavailable/i);
+  }
   const fileInput = document.querySelector('#expense-import-file');
   Object.defineProperty(fileInput, 'files', {
     configurable: true,
@@ -94,11 +117,38 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   });
   fileInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
   const previewButton = document.querySelector('#import-preview-btn');
+  assert.equal(document.querySelector('#expense-file-review').children.length, 3);
+  document.querySelector('#import-cancel').click();
+  document.querySelector('#expense-import').click();
+  assert.equal(document.querySelector('#expense-file-review').children.length, 0);
+  assert.equal(previewButton.disabled, true);
+  fileInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  const originalFetch = globalThis.fetch;
+  configureTestLocalization('fr-CA');
+  for (const json of [async () => {throw new SyntaxError('HTML response');}, async () => ({}), async () => null]) {
+    globalThis.fetch = async () => ({ok: false, status: 502, json});
+    previewButton.click();
+    await tick();
+    assert.equal(document.querySelector('#expense-import-message').lang, 'fr-CA');
+    assert.match(document.querySelector('#expense-import-message').textContent, /502/);
+  }
+  globalThis.fetch = originalFetch;
+  configureTestLocalization();
+  document.querySelector('#import-cancel').click();
+  document.querySelector('#expense-import').click();
+  fileInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
   assert.equal(previewButton.disabled, false);
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /1 of 3/);
   previewButton.click();
+  previewButton.dispatchEvent(new dom.window.Event('click'));
+  assert.equal(calls.filter(call => call.url.endsWith('/preview')).length, 1);
+  const cancel = new dom.window.Event('cancel', {cancelable: true});
+  document.querySelector('#expense-import-dialog-backdrop').dispatchEvent(cancel);
+  assert(cancel.defaultPrevented);
+  assert.equal(fileInput.disabled, true);
   assert.equal(document.querySelector('#expense-import-progress').hidden, false);
   await tick();
+  assert.equal(fileInput.disabled, false);
 
   assert.equal(document.querySelector('#expense-import-progress').hidden, true);
   assert.equal(document.querySelector('#import-step-preview').hidden, false);

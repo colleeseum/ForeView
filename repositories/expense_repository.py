@@ -481,8 +481,10 @@ class ExpenseRepository:
             (
                 name.strip(),
                 category_id,
-                category.name,
-                category.classification,
+                current.category_name if category_id == current.category_id else category.name,
+                current.classification
+                if category_id == current.category_id
+                else category.classification,
                 amount_cents,
                 period_start.isoformat(),
                 period_end.isoformat(),

@@ -777,7 +777,7 @@ def test_expense_errors_translate_typed_failures_and_preserve_raw_language_bound
         follow_redirects=True,
     )
     page = response.get_data(as_text=True)
-    assert 'id="category-dialog-backdrop" class="dialog-backdrop"' in page
+    assert '<dialog id="category-dialog-backdrop" class="fv-dialog expense-category-dialog"' in page
     assert '<p class="connection-notice error" lang="fr-CA" role="alert">' in page
     assert "Classification de dépenses invalide" in page
     raw = client.get("/expenses", query_string={"error": "External provider diagnostic"})

@@ -15,6 +15,7 @@ from reportlab.pdfgen.canvas import Canvas
 from werkzeug.serving import make_server
 
 import app
+from devtools.synthetic.synthetic_documents import create_synthetic_hydro_qc_statement
 from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
 from localization import LocalizationService
@@ -57,6 +58,7 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
     (catalogs / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
     (catalogs / "ar-XB").mkdir()
     tax = tmp_path / "synthetic-income.pdf"
+    hydro = create_synthetic_hydro_qc_statement(tmp_path / "synthetic-hydro.pdf")
     document = Canvas(str(tax))
     document.drawString(40, 780, "Taxpayer: Alex Example")
     document.drawString(40, 760, "Tax return Summary for 2024 taxation year")
@@ -86,6 +88,7 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
                     locale,
                     str(tmp_path / "evidence"),
                     str(tax),
+                    str(hydro),
                 ],
                 cwd=root,
                 capture_output=True,

@@ -9,8 +9,9 @@ import {verifyDashboard} from './dashboard.mjs';
 import {verifyAssets} from './assets.mjs';
 import {verifyTransactions} from './transactions.mjs';
 import {verifyIncome} from './income.mjs';
+import {verifyExpenses} from './expenses.mjs';
 
-const [baseURL, locale, output, taxPath] = process.argv.slice(2);
+const [baseURL, locale, output, taxPath, hydroPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
 const browser = await chromium.launch();
 const page = await browser.newPage({viewport: {width: 1280, height: 1000}});
@@ -249,6 +250,7 @@ try {
   await verifyAssets(page, baseURL, locale, output);
   await verifyTransactions(page, baseURL, locale, output);
   await verifyIncome(page, baseURL, locale, output, taxPath);
+  await verifyExpenses(page, baseURL, locale, output, hydroPath);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

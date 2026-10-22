@@ -4,6 +4,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {JSDOM} from 'jsdom';
+import {installExpenseDialogs} from './expense-dialog-fixture.mjs';
+import {configureTestLocalization} from './localization-fixture.mjs';
 
 test('expense actions use closable dialogs without backdrop-click dismissal', async () => {
   const dom = new JSDOM(`<!doctype html><body>
@@ -13,7 +15,8 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
     <div id="category-dialog-backdrop" hidden><section><button id="category-dialog-close" class="dialog-close"></button><button id="category-add"></button><button data-category-edit data-action="/expenses/categories/7" data-name="Utilities" data-classification="required" data-active="true"></button></section></div>
     <div id="category-editor-backdrop" hidden><section><button id="category-editor-close" class="dialog-close"></button><h2 id="category-editor-title" data-add-text="Ajouter une catégorie" data-edit-text="Modifier la catégorie"></h2><form id="category-editor-form" action="/expenses/categories" data-create-action="/expenses/categories"><input name="name"><select name="classification"><option value="required">Required</option><option value="discretionary">Discretionary</option></select><label id="category-status-field" hidden><select name="active"><option value="true">Active</option><option value="false">Archived</option></select></label><button id="category-editor-cancel" type="button"></button><button id="category-editor-save" type="submit" data-create-text="Créer une catégorie" data-save-text="Enregistrer la catégorie"></button></form></section></div>
   </body>`, {url: 'http://localhost/expenses'});
-  Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+  Object.assign(globalThis, {window: dom.window, document: dom.window.document, FormData: dom.window.FormData});
+  installExpenseDialogs(dom);
 
   let yearSubmissions = 0;
   document.querySelector('#expense-year-form').requestSubmit = () => { yearSubmissions += 1; };
@@ -66,12 +69,12 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
   assert.equal(categoryDialog.hidden, false);
   document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Enter'}));
   assert.equal(categoryDialog.hidden, false);
-  document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
+  categoryDialog.close();
   assert.equal(categoryDialog.hidden, true);
 
   document.querySelector('#expense-categories').click();
   document.querySelector('#category-add').click();
-  document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
+  categoryEditor.dispatchEvent(new dom.window.Event('cancel', {cancelable: true}));
   assert.equal(categoryEditor.hidden, true);
   assert.equal(categoryDialog.hidden, false);
   document.querySelector('#category-dialog-close').click();
@@ -79,5 +82,49 @@ test('expense actions use closable dialogs without backdrop-click dismissal', as
   document.querySelector('#expense-add').click();
   document.querySelector('#expense-dialog-close').click();
   assert.equal(expenseDialog.hidden, true);
+  document.querySelector('#expense-categories').click();
+  document.querySelector('#category-add').click();
+  const form = document.querySelector('#category-editor-form');
+  form.elements.name.value = 'Retained category';
+  let writes = 0;
+  let release;
+  globalThis.fetch = async (url, options) => {
+    writes++;
+    assert.equal(url, '/api/expenses/categories');
+    assert.equal(options.body.get('name'), 'Retained category');
+    await new Promise(resolve => {release = resolve;});
+    return {ok: false, json: async () => ({error: 'Synthetic category rejection', error_language: 'fr-CA'})};
+  };
+  form.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  form.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  assert.equal(writes, 1);
+  assert.equal(categoryEditor.getAttribute('aria-busy'), 'true');
+  const pendingCancel = new dom.window.Event('cancel', {cancelable: true});
+  categoryEditor.dispatchEvent(pendingCancel);
+  assert(pendingCancel.defaultPrevented);
+  assert(categoryEditor.open);
+  document.querySelector('#category-editor-close').click();
+  assert(categoryEditor.open, 'Busy close action cannot dismiss the editor');
+  release();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(form.elements.name.value, 'Retained category');
+  const message = categoryEditor.querySelector('[data-form-message]');
+  assert.equal(message.getAttribute('role'), 'alert');
+  assert.equal(message.lang, 'fr-CA');
+  assert.equal(document.querySelector('#category-editor-save').disabled, false);
+  configureTestLocalization('fr-CA');
+  globalThis.fetch = async () => {
+    await new Promise(resolve => {release = resolve;});
+    return {ok: false, json: async () => ({error: 'Raw diagnostic'})};
+  };
+  form.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  release();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(message.lang, 'en-CA');
+  form.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  assert.equal(message.lang, 'fr-CA', 'Retry resets feedback to the active locale');
+  release();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  configureTestLocalization();
   dom.window.close();
 });

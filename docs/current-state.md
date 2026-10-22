@@ -21,6 +21,9 @@ and imports in one operation. UX-03G adopts Sage snapshot cards and peer source 
 for Income, with native annual-record, PDF review and correction dialogs, in-modal
 help, guarded pending requests and read-only recovery after committed saves.
 Source precedence, fingerprints and append-only correction semantics are unchanged.
+UX-03H adopts Sage expense tables and native evidence/category/import dialogs,
+with retained category-management context, manual evidence editing through the existing
+API, guarded sequential Hydro previews and preserved overlap/seasonal calculations.
 Other workspaces remain separate work.
 No retirement functionality is added.
 

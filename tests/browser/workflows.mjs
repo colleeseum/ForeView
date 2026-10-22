@@ -165,7 +165,7 @@ try {
   await expect(page.locator('.full-help-button')).toBeFocused();
   await page.locator('#expense-add').click();
   const close = await page.locator('#expense-dialog-close').boundingBox();
-  const modal = await page.locator('#expense-dialog-backdrop .dialog').boundingBox();
+  const modal = await page.locator('#expense-dialog-backdrop').boundingBox();
   assert(close && modal && close.x < modal.x + modal.width / 2, 'RTL close control must mirror to inline end');
   await page.keyboard.press('Escape');
   await expect(page.locator('#expense-dialog-backdrop')).toBeHidden();

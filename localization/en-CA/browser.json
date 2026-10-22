@@ -350,6 +350,10 @@
     "removed": "{label} correction removed. Source precedence restored."
   },
   "expenses": {
+    "edit_expense": "Edit factual expense",
+    "table_label": "Expense facts and categories",
+    "saved": "Expense changes saved.",
+    "view_saved": "View saved records",
     "edit_category": "Edit category",
     "save_category": "Save category",
     "add_category": "Add category",

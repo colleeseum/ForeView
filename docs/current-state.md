@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-22
+Updated: 2026-10-23
 
 ## Development focus
 
@@ -24,6 +24,9 @@ Source precedence, fingerprints and append-only correction semantics are unchang
 UX-03H adopts Sage expense tables and native evidence/category/import dialogs,
 with retained category-management context, manual evidence editing through the existing
 API, guarded sequential Hydro previews and preserved overlap/seasonal calculations.
+UX-03I adopts Sage employment-projection controls, factual anchors and scrollable result
+tables, with native scenario cloning, guarded separate personal/spending drafts and
+read-only recovery after committed saves. Projection APIs and calculations are unchanged.
 Other workspaces remain separate work.
 No retirement functionality is added.
 
@@ -106,6 +109,9 @@ independently of other logins' failures.
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
 - Scenario comparison is not implemented even though scenarios can be saved and cloned.
+- Employment projection rate edits currently pass through cents-rounded HTTP conversion,
+  so fractional-percent assumptions can lose precision. Issue #116 tracks the separate
+  rate-input fix. An unchanged UI clone preserves stored settings without resubmitting them.
 - Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec is the
   only implemented expense-statement source; Énergir and property-tax imports remain future work.
 - Account-type providers describe classification and presentation behavior but do not yet supply

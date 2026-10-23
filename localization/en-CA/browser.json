@@ -154,6 +154,11 @@
     "account_reconciled": "Account reconciled."
   },
   "salary": {
+    "annual_field": "{year}: {field}",
+    "override": "Override",
+    "results": "Employment projection: factual history and calculated estimates",
+    "refresh_failed": "The save succeeded, but results could not be refreshed. Retry loading, not saving.",
+    "retry": "Reload projection",
     "household": "Household",
     "reset": "Reset to the calculated default",
     "actual": "Actual",

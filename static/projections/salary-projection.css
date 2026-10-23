@@ -1,0 +1,35 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 */
+.fv-salary .salary-projection-page { min-inline-size: 0; }
+.fv-salary .salary-toolbar, .fv-salary .public-rule-card, .fv-salary .salary-table-panel {
+  background: var(--fv-surface); border: 1px solid var(--fv-border);
+  border-radius: var(--fv-radius-panel); padding: var(--fv-space-6); margin-block-end: var(--fv-space-4);
+}
+.fv-salary .salary-toolbar { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--fv-space-4); align-items: end; }
+.fv-salary label { display: grid; gap: var(--fv-space-2); min-inline-size: 0; font: inherit; color: var(--fv-text); }
+.fv-salary .salary-toolbar label:first-child { flex: 1 1 16rem; }
+.fv-salary .salary-toolbar input { inline-size: 8rem; max-inline-size: 100%; }
+.fv-salary .salary-toolbar-actions { display: flex; flex-wrap: wrap; gap: var(--fv-space-2); }
+.fv-salary .salary-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--fv-space-4); }
+.fv-salary .salary-readonly-field { background: var(--fv-surface-subtle); border-inline-start: 3px solid var(--fv-primary); padding: var(--fv-space-3); display: grid; gap: var(--fv-space-2); font: inherit; color: var(--fv-text); }
+.fv-salary .salary-readonly-field output { font-weight: 700; font-variant-numeric: tabular-nums; }
+.fv-salary .salary-readonly-field small, .fv-salary .field-note, .fv-salary .dashboard-note { color: var(--fv-muted); }
+.fv-salary .view-tabs { display: flex; flex-wrap: wrap; gap: var(--fv-space-2); margin-block: var(--fv-space-4); }
+.fv-salary .view-tab[aria-pressed="true"] { background: var(--fv-primary); color: var(--fv-surface); border-color: var(--fv-primary); box-shadow: inset 0 -3px 0 currentColor; }
+.fv-salary .salary-projection-table { min-inline-size: 100rem; }
+.fv-salary .salary-projection-table thead th { background: var(--fv-primary); color: var(--fv-surface); }
+.fv-salary .salary-section-row th { background: var(--fv-navigation); border-block-start: 2px solid var(--fv-control-border); }
+.fv-salary .salary-history-body td { background: var(--fv-surface-subtle); }
+.fv-salary .salary-input-cell { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fv-space-1); }
+.fv-salary .salary-input-cell { min-inline-size: 10rem; }
+.fv-salary .salary-year-input { width: 10rem; min-width: 10rem; flex: 0 0 10rem; }
+.fv-salary .salary-projection-table td { font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
+.fv-salary .salary-projection-table td:last-child { white-space: normal; }
+.fv-salary .manual-override { border: 2px solid var(--fv-primary); background: var(--fv-info-surface); }
+.fv-salary .pending-change, .fv-salary .pending-reset { border: 2px dashed var(--fv-warning); background: var(--fv-warning-surface); }
+.fv-salary .salary-use-default { min-inline-size: 44px; min-block-size: 44px; }
+.fv-salary .projection-disclaimer { background: var(--fv-info-surface); color: var(--fv-text); border-inline-start: 3px solid var(--fv-info); padding: var(--fv-space-4); }
+.fv-salary .salary-expense-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fv-space-2); }
+.fv-salary .dialog-close { float: inline-end; }
+.fv-salary .salary-annual-actions { margin-block: var(--fv-space-4); }
+.fv-salary .error { color: var(--fv-danger); }

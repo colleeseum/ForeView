@@ -156,6 +156,12 @@ validation endpoints before read navigation; category-management context is reta
 Statement previews and confirmations retain their provider-neutral service contracts.
 See `docs/design/expenses.md` for queue, overlap and recovery behavior.
 
+Employment projection adopts the same foundation through
+`static/projections/salary-projection.css`, retaining its existing APIs and financial
+service. The feature module uses the shared native dialog for scenario cloning and
+separates mutation failures from read-refresh recovery. Personal and spending drafts
+are edited separately to preserve unsaved inputs. See `docs/design/employment.md`.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

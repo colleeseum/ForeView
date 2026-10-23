@@ -154,6 +154,11 @@
     "account_reconciled": "Compte rapproché."
   },
   "salary": {
+    "annual_field": "{year} : {field}",
+    "override": "Valeur imposée",
+    "results": "Projection d’emploi : historique factuel et estimations calculées",
+    "refresh_failed": "L’enregistrement a réussi, mais les résultats n’ont pas pu être actualisés. Rechargez les résultats sans enregistrer de nouveau.",
+    "retry": "Recharger la projection",
     "household": "Ménage",
     "reset": "Rétablir la valeur calculée",
     "actual": "Réel",

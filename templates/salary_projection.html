@@ -11,8 +11,10 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{{ t('pages_server.salary.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='shared/ui.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='projections/salary-projection.css') }}">
 </head>
-<body><main>
+<body><main class="fv-ui fv-salary">
   <header>
     <p class="eyebrow">{{ t('pages_server.common.projection') }}</p>
     <h1>{{ t('pages_server.salary.heading') }}</h1>
@@ -37,7 +39,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         </div>
       </section>
       <p id="salary-message" lang="{{ current_locale }}" class="connection-status" role="status"></p>
-      <nav id="salary-tabs" lang="{{ current_locale }}" class="view-tabs" aria-label="{{ t('pages_server.salary.person_tabs') }}" role="tablist"></nav>
+      <div id="salary-tabs" lang="{{ current_locale }}" class="view-tabs" aria-label="{{ t('pages_server.salary.person_tabs') }}" role="group"></div>
       <section id="salary-setup" class="public-rule-card" hidden>
         <h2>{{ t('pages_server.salary.employment_inputs') }}</h2>
         <p id="salary-source-note" lang="{{ current_locale }}" class="dashboard-note"></p>
@@ -79,24 +81,24 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
               class="field-note">{{ t('pages_server.salary.saved_status') }}</span>
       </div>
       <section class="dashboard-panel salary-table-panel">
+        <p id="salary-scroll-hint" class="fv-help">{{ t('assets_ui.scroll_hint') }}</p>
         <div id="salary-table" lang="{{ current_locale }}"><p class="empty-panel">{{ t('pages_server.salary.loading') }}</p></div>
       </section>
     </div>
   </div>
-</main>
-<div id="salary-save-as-backdrop" class="dialog-backdrop" hidden>
-  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="salary-save-as-title">
+<dialog id="salary-save-as-backdrop" class="fv-dialog" hidden aria-labelledby="salary-save-as-title">
     <button id="salary-save-as-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.common.close') }}">×</button>
     <p class="eyebrow">{{ t('pages_server.salary.scenario_eyebrow') }}</p>
     <h2 id="salary-save-as-title">{{ t('pages_server.salary.save_as_title') }}</h2>
     <p class="field-note">{{ t('pages_server.salary.save_as_help') }}</p>
     <form id="salary-save-as-form" class="setup-form">
-      <label>{{ t('pages_server.salary.scenario_name') }}<input name="name" required autocomplete="off"></label>
+      <label>{{ t('pages_server.salary.scenario_name') }}<input name="name" required autocomplete="off" autofocus></label>
       <button type="submit">{{ t('pages_server.salary.save_new') }}</button>
+      <button type="button" data-dialog-close>{{ t('pages_server.common.cancel') }}</button>
     </form>
     <p id="salary-save-as-message" lang="{{ current_locale }}" class="form-message" role="status"></p>
-  </section>
-</div>
+</dialog>
+</main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20260929-8') }}"></script>
+<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20261023-1') }}"></script>
 </body></html>

@@ -6,6 +6,7 @@ import {t, locale} from '../shared/i18n.mjs';
 import {formatMoneyDollars, formatPercent} from '../shared/locale-format.mjs';
 import {formSignature} from '../shared/form-state.mjs';
 import {incomeSourceLabel} from '../shared/income-source-label.mjs';
+import {createDialog} from '../shared/dialog.mjs';
 
 const elements = {
   scenario: document.querySelector('#salary-scenario'),
@@ -45,6 +46,23 @@ let savedFormSignature = '';
 let savedExpenseSignature = '';
 const pendingAnnualChanges = new Map();
 const pendingAnnualResets = new Set();
+let busy = false;
+let readScenario = null;
+let readGeneration = 0;
+const root = document.querySelector('.fv-salary') || document.body;
+const cloneDialog = elements.saveAsBackdrop ? createDialog(elements.saveAsBackdrop, {fallbackFocus: elements.saveAs}) : null;
+elements.saveAsBackdrop?.addEventListener('close', () => {if (!elements.saveAsBackdrop.open) elements.saveAsBackdrop.hidden = true;});
+elements.saveAsBackdrop?.addEventListener('cancel', event => {if (busy) event.preventDefault();});
+root.querySelectorAll('button').forEach(node => node.classList.add('fv-button'));
+root.querySelectorAll('input, select').forEach(node => node.classList.add('fv-input'));
+for (const button of [elements.save, elements.expenseSave, elements.saveAsForm?.querySelector('[type="submit"]')]) button?.classList.add('fv-button--primary');
+
+function lock(value) {
+  busy = value;
+  root.setAttribute('aria-busy', String(value));
+  root.querySelectorAll('input, select, button').forEach(node => {node.disabled = value;});
+  if (!value) updateSaveState();
+}
 
 export function money(value) {
   return formatMoneyDollars(value ?? 0);
@@ -61,12 +79,12 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
       ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
       : Number(value || 0).toFixed(2);
     const reset = hasOverride
-      ? `<button class="salary-use-default" data-year="${row.year}" data-field="${field}" type="button" title="${t('salary.reset')}" aria-label="${t('salary.reset')}">×</button>`
+      ? `<span class="fv-badge">${escapeHtml(t('salary.override'))}</span><button class="salary-use-default fv-button" data-year="${row.year}" data-field="${field}" type="button" title="${t('salary.reset')}" aria-label="${escapeHtml(t('salary.annual_field', {year: row.year, field: t('salary.reset')}))}">×</button>`
       : '';
-    return `<span class="salary-input-cell"><input class="salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
+    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(t('salary.annual_field', {year: row.year, field: t(`salary.${field === 'salary' ? 'annual_salary' : field === 'raise_rate' ? 'raise' : field === 'rrsp_contribution' ? 'rrsp_cash' : field === 'rrsp_deduction' ? 'rrsp_deduction' : 'other_income'}`)}))}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
   };
   const rowMarkup = (row) => `<tr class="${row.actual ? 'historical-row' : ''}">
-    <th>${escapeHtml(String(row.year))}${row.actual ? ` ${t('salary.actual')}` : ''}</th>
+    <th scope="row">${escapeHtml(String(row.year))}${row.actual ? ` ${t('salary.actual')}` : ''}</th>
     <td>${row.age ?? '—'}</td>
     <td>${row.actual ? '—' : input(row, 'raise_rate', row.raise_rate, '%')}</td>
     <td>${row.actual ? money(row.annual_salary_rate) : input(row, 'salary', row.annual_salary_rate)}</td>
@@ -85,7 +103,7 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
   const section = (label, sectionRows, className) => sectionRows.length
     ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="${household ? 18 : 16}">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
     : '';
-  return `<div class="table-wrap"><table class="salary-projection-table"><thead><tr>
+  return `<div class="table-wrap fv-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(t('salary.results'))}" aria-describedby="salary-scroll-hint"><table class="salary-projection-table fv-table"><caption>${escapeHtml(t('salary.results'))}</caption><thead><tr>
     <th>${t('salary.year')}</th><th>${t('salary.age')}</th><th>${t('salary.raise')}</th><th>${t('salary.annual_salary')}</th>
     <th>${t('salary.other_income')}</th><th>${t('salary.gross')}</th>
     <th>${t('salary.rrsp_cash')}</th><th>${t('salary.rrsp_deduction')}</th><th>${t('financial.cpp_qpp')}</th>
@@ -104,6 +122,7 @@ function showMessage(value, error = false, language = locale) {
   elements.message.textContent = value;
   elements.message.classList.toggle('error', error);
   elements.message.lang = language;
+  elements.message.setAttribute('role', error ? 'alert' : 'status');
 }
 
 function showError(error) {
@@ -126,11 +145,12 @@ function expenseDirty() {
 }
 
 function updateSaveState() {
+  if (busy) return;
   const assumptionsDirty = Boolean(selectedPerson()) && formSignature(elements.form) !== savedFormSignature;
   const dirty = isDirty() || expenseDirty();
-  if (elements.save) elements.save.disabled = !dirty;
+  if (elements.save) elements.save.disabled = !isDirty();
   if (elements.discard) elements.discard.disabled = !dirty;
-  if (elements.saveAs) elements.saveAs.disabled = !model?.selected_scenario_id;
+  if (elements.saveAs) elements.saveAs.disabled = !model?.selected_scenario_id || expenseDirty();
   if (elements.expenseSave) elements.expenseSave.disabled = !expenseDirty();
   if (elements.changeStatus) {
     const changes = [];
@@ -159,6 +179,9 @@ function updateSaveState() {
     if (control) control.disabled = dirty;
   }
   elements.tabs?.querySelectorAll('button').forEach((button) => { button.disabled = dirty; });
+  elements.form?.querySelectorAll('input').forEach(node => {node.disabled = expenseDirty() || !selectedPerson();});
+  elements.table?.querySelectorAll('input, button').forEach(node => {node.disabled = expenseDirty();});
+  elements.expenseForm?.querySelectorAll('input').forEach(node => {node.disabled = isDirty();});
 }
 
 function renderControls() {
@@ -166,7 +189,7 @@ function renderControls() {
   elements.startYear.value = model.start_year;
   elements.endYear.value = model.end_year;
   elements.tabs.innerHTML = [...model.people.map((person) => ({key: String(person.id), label: person.name})), {key: 'household', label: t('salary.household')}]
-    .map((item) => `<button class="view-tab${item.key === selectedKey ? ' active' : ''}" role="tab" aria-selected="${item.key === selectedKey}" data-person-key="${item.key}" type="button">${escapeHtml(item.label)}</button>`).join('');
+    .map((item) => `<button class="view-tab fv-button${item.key === selectedKey ? ' active' : ''}" aria-pressed="${item.key === selectedKey}" data-person-key="${item.key}" type="button">${escapeHtml(item.label)}</button>`).join('');
 }
 
 function fillForm(person) {
@@ -217,10 +240,13 @@ function render() {
   if (!model.scenarios.length) {
     elements.tabs.innerHTML = '';
     elements.setup.hidden = true;
+    if (elements.expenseSetup) elements.expenseSetup.hidden = true;
+    elements.scenario.replaceChildren();
     elements.table.innerHTML = `<p class="empty-panel"><span>${escapeHtml(t('salary.no_scenario'))}</span> <a href="/setup">${escapeHtml(t('salary.go_to_setup'))}</a>.</p>`;
     updateSaveState();
     return;
   }
+  if (selectedKey !== 'household' && !model.people.some(person => String(person.id) === selectedKey)) selectedKey = null;
   if (!selectedKey) selectedKey = model.people[0] ? String(model.people[0].id) : 'household';
   renderControls();
   const person = selectedPerson();
@@ -233,39 +259,81 @@ function render() {
     showMessage(t('salary.household_note'));
     elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true});
   }
+  elements.table.querySelectorAll('thead th').forEach(node => {node.scope = 'col';});
   updateSaveState();
 }
 
 async function api(url, options) {
   const response = await fetch(url, {headers: {'Content-Type': 'application/json'}, ...options});
-  const result = await response.json();
+  let result;
+  try {result = await response.json();}
+  catch {
+    const error = new Error(t('salary.request_failed'));
+    error.language = locale;
+    throw error;
+  }
   if (!response.ok) {
-    const error = new Error(result.error || t('salary.request_failed'));
-    error.language = result.error ? (result.error_language || 'en-CA') : locale;
+    const error = new Error(result?.error || t('salary.request_failed'));
+    error.language = result?.error ? (result.error_language || 'en-CA') : locale;
     throw error;
   }
   return result;
 }
 
 export async function loadProjection(scenarioId = elements.scenario.value) {
+  const generation = ++readGeneration;
+  readScenario = scenarioId;
   const query = new URLSearchParams();
   if (scenarioId) query.set('scenario_id', scenarioId);
   if (elements.startYear.value) query.set('start_year', elements.startYear.value);
   if (elements.endYear.value) query.set('end_year', elements.endYear.value);
-  model = await api(`/api/salary-projection?${query}`);
+  const result = await api(`/api/salary-projection?${query}`);
+  if (generation !== readGeneration) return model;
+  model = result;
   render();
   return model;
 }
 
+async function readProjection(scenarioId = readScenario ?? elements.scenario.value, savedMessage = '') {
+  lock(true);
+  try {
+    await loadProjection(scenarioId);
+    if (savedMessage) {
+      showMessage(savedMessage);
+      const person = selectedPerson();
+      if (person?.error) {
+        const warning = document.createElement('span');
+        warning.lang = person.error_language || 'en-CA';
+        warning.textContent = person.error;
+        elements.message.append(' ', warning);
+        elements.message.setAttribute('role', 'alert');
+      }
+    }
+  } catch (error) {
+    model = null;
+    elements.setup.hidden = true;
+    if (elements.expenseSetup) elements.expenseSetup.hidden = true;
+    elements.tabs.replaceChildren();
+    elements.table.replaceChildren();
+    showMessage(savedMessage ? `${savedMessage} ${t('salary.refresh_failed')}` : error.message, true, savedMessage ? locale : error.language || 'en-CA');
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'fv-button';
+    retry.textContent = t('salary.retry');
+    retry.addEventListener('click', () => {if (!busy) readProjection(scenarioId, savedMessage);});
+    elements.message.append(' ', retry);
+  } finally {lock(false);}
+}
+
 elements.tabs?.addEventListener('click', (event) => {
   const tab = event.target.closest('[data-person-key]');
-  if (!tab) return;
+  if (!tab || busy || isDirty() || expenseDirty()) return;
   selectedKey = tab.dataset.personKey;
   render();
 });
 
-elements.view?.addEventListener('click', () => loadProjection().catch(showError));
-elements.scenario?.addEventListener('change', () => loadProjection().catch(showError));
+elements.view?.addEventListener('click', () => {if (!busy && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
+elements.scenario?.addEventListener('change', () => {if (!busy && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
 elements.form?.addEventListener('input', updateSaveState);
 elements.form?.addEventListener('change', updateSaveState);
 elements.expenseForm?.addEventListener('input', updateSaveState);
@@ -302,14 +370,16 @@ function draftPayload(person) {
 
 async function saveCurrentScenario() {
   const person = selectedPerson();
-  if (!person) return;
+  if (!person || busy || expenseDirty() || !isDirty() || !elements.form.reportValidity()) return;
+  const payload = draftPayload(person);
+  const scenarioId = model.selected_scenario_id;
+  lock(true);
   try {
-    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/people/${person.id}/draft`, {
-      method: 'PUT', body: JSON.stringify(draftPayload(person)),
+    await api(`/api/salary-projection/scenarios/${scenarioId}/people/${person.id}/draft`, {
+      method: 'PUT', body: JSON.stringify(payload),
     });
-    await loadProjection();
-    showMessage(t('salary.scenario_saved'));
-  } catch (error) { showError(error); }
+  } catch (error) {lock(false); showError(error); return;}
+  await readProjection(scenarioId, t('salary.scenario_saved'));
 }
 
 elements.form?.addEventListener('submit', (event) => {
@@ -320,9 +390,12 @@ elements.save?.addEventListener('click', saveCurrentScenario);
 
 async function saveExpenses(event) {
   event?.preventDefault();
+  if (busy || isDirty() || !model?.selected_scenario_id || !elements.expenseForm.reportValidity()) return;
+  const scenarioId = model.selected_scenario_id;
+  const values = Object.fromEntries(new FormData(elements.expenseForm));
+  lock(true);
   try {
-    const values = Object.fromEntries(new FormData(elements.expenseForm));
-    await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/expenses`, {
+    await api(`/api/salary-projection/scenarios/${scenarioId}/expenses`, {
       method: 'PUT', body: JSON.stringify({
         start_year: Number(values.start_year),
         required_annual_amount: values.required_annual_amount,
@@ -331,9 +404,8 @@ async function saveExpenses(event) {
         discretionary_annual_growth: Number(values.discretionary_annual_growth || 0) / 100,
       }),
     });
-    await loadProjection();
-    showMessage(t('salary.spending_saved'));
-  } catch (error) { showError(error); }
+  } catch (error) {lock(false); showError(error); return;}
+  await readProjection(scenarioId, t('salary.spending_saved'));
 }
 
 elements.expenseForm?.addEventListener('submit', saveExpenses);
@@ -341,7 +413,7 @@ elements.expenseForm?.addEventListener('submit', saveExpenses);
 elements.table?.addEventListener('input', (event) => {
   const input = event.target.closest('.salary-year-input');
   const person = selectedPerson();
-  if (!input || !person) return;
+  if (!input || !person || busy || expenseDirty()) return;
   const key = `${input.dataset.year}:${input.dataset.field}`;
   const hasOverride = input.dataset.hasOverride === 'true';
   const unchanged = (!hasOverride && input.value === '')
@@ -364,7 +436,7 @@ elements.table?.addEventListener('input', (event) => {
 
 elements.table?.addEventListener('click', (event) => {
   const reset = event.target.closest('.salary-use-default');
-  if (!reset) return;
+  if (!reset || busy || expenseDirty()) return;
   const input = elements.table.querySelector(
     `.salary-year-input[data-year="${reset.dataset.year}"][data-field="${reset.dataset.field}"]`,
   );
@@ -380,10 +452,10 @@ elements.table?.addEventListener('click', (event) => {
   updateSaveState();
 });
 
-elements.discard?.addEventListener('click', () => render());
+elements.discard?.addEventListener('click', () => {if (!busy && model) render();});
 
 function openSaveAs() {
-  if (!elements.saveAsBackdrop || !elements.saveAsForm || !model?.selected_scenario_id) return;
+  if (!elements.saveAsBackdrop || !elements.saveAsForm || !model?.selected_scenario_id || busy || expenseDirty()) return;
   const current = model.scenarios.find((item) => item.id === model.selected_scenario_id);
   elements.saveAsForm.elements.name.value = t('salary.scenario_copy', {name: current?.name || t('salary.scenario')});
   if (elements.saveAsMessage) {
@@ -391,30 +463,39 @@ function openSaveAs() {
     elements.saveAsMessage.lang = locale;
   }
   elements.saveAsBackdrop.hidden = false;
+  cloneDialog.open();
   elements.saveAsForm.elements.name.focus();
   elements.saveAsForm.elements.name.select();
 }
 
 elements.saveAs?.addEventListener('click', openSaveAs);
-elements.saveAsClose?.addEventListener('click', () => { elements.saveAsBackdrop.hidden = true; });
+elements.saveAsClose?.addEventListener('click', () => {if (!busy) cloneDialog.close();});
+elements.saveAsBackdrop?.addEventListener('click', event => {if (busy && event.target.closest('[data-dialog-close]')) event.stopImmediatePropagation();}, true);
 elements.saveAsForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (busy || !model?.selected_scenario_id || expenseDirty() || !elements.saveAsForm.reportValidity()) return;
   const person = selectedPerson();
-  const payload = person ? draftPayload(person) : {overrides: []};
+  const payload = person && isDirty() ? draftPayload(person) : {overrides: []};
   payload.name = elements.saveAsForm.elements.name.value;
+  const scenarioId = model.selected_scenario_id;
+  lock(true);
+  let result;
   try {
-    const result = await api(`/api/salary-projection/scenarios/${model.selected_scenario_id}/clone`, {
+    result = await api(`/api/salary-projection/scenarios/${scenarioId}/clone`, {
       method: 'POST', body: JSON.stringify(payload),
     });
-    elements.saveAsBackdrop.hidden = true;
-    await loadProjection(result.id);
-    showMessage(t('salary.scenario_created', {name: result.name}));
   } catch (error) {
+    lock(false);
     if (elements.saveAsMessage) {
       elements.saveAsMessage.textContent = error.message;
       elements.saveAsMessage.lang = error.language || 'en-CA';
+      elements.saveAsMessage.setAttribute('role', 'alert');
     }
+    return;
   }
+  cloneDialog.close();
+  await readProjection(result.id, t('salary.scenario_created', {name: result.name}));
+  elements.saveAs?.focus();
 });
 
-if (elements.table) loadProjection().catch(showError);
+if (elements.table) readProjection(elements.scenario.value);

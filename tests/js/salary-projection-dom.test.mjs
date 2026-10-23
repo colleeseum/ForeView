@@ -6,6 +6,7 @@ import test from 'node:test';
 
 import {JSDOM} from 'jsdom';
 import {configureTestLocalization} from './localization-fixture.mjs';
+import {installExpenseDialogs} from './expense-dialog-fixture.mjs';
 
 configureTestLocalization();
 
@@ -68,6 +69,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   globalThis.document = dom.window.document;
   globalThis.FormData = dom.window.FormData;
   globalThis.URLSearchParams = dom.window.URLSearchParams;
+  installExpenseDialogs(dom);
   const calls = [];
   let projectionError = false;
   globalThis.fetch = async (url, options = {}) => {
@@ -171,6 +173,81 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   await tick();
   assert.match(document.querySelector('#salary-message').textContent, /Projection range is too long/);
   assert.equal(document.querySelector('#salary-message').lang, 'en-CA');
+  assert.equal(document.querySelector('#salary-table table'), null, 'A failed read clears stale results');
+  projectionError = false;
+  document.querySelector('#salary-message button').click();
+  await tick(); await tick();
+  const originalFetch = globalThis.fetch;
+  let release;
+  let writes = 0;
+  let failRefresh = false;
+  let rejectWrite = false;
+  globalThis.fetch = async (url, options = {}) => {
+    if (options.method === 'PUT') {
+      writes++;
+      await new Promise(resolve => {release = resolve;});
+      return {ok: !rejectWrite, json: async () => rejectWrite ? {error: 'Rejected draft', error_language: 'fr-CA'} : {saved: true}};
+    }
+    if (failRefresh) return {ok: false, json: async () => {throw new SyntaxError('Synthetic HTML response');}};
+    return originalFetch(url, options);
+  };
+  const raise = document.querySelector('[name="default_raise"]');
+  raise.value = '5';
+  raise.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#salary-save').click();
+  document.querySelector('#salary-save').dispatchEvent(new dom.window.Event('click'));
+  assert.equal(writes, 1);
+  assert.equal(raise.disabled, true);
+  failRefresh = true;
+  release();
+  await tick(); await tick();
+  assert.match(document.querySelector('#salary-message').textContent, /save succeeded/);
+  assert.equal(document.querySelector('#salary-save').disabled, true);
+  failRefresh = false;
+  document.querySelector('#salary-message button').click();
+  await tick(); await tick();
+  assert.equal(writes, 1, 'Recovery only repeats the read');
+  rejectWrite = true;
+  raise.value = '6';
+  raise.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  document.querySelector('#salary-save').click();
+  release();
+  await tick(); await tick();
+  assert.equal(raise.value, '6');
+  assert.equal(document.querySelector('#salary-message').lang, 'fr-CA');
+  assert.equal(document.querySelector('#salary-discard').disabled, false);
+  document.querySelector('#salary-discard').click();
+  globalThis.fetch = originalFetch;
+  document.querySelector('#salary-save-as').click();
+  const dialog = document.querySelector('#salary-save-as-backdrop');
+  dialog.dispatchEvent(new dom.window.Event('cancel', {cancelable: true}));
+  dialog.close();
+  assert.equal(dialog.hidden, true);
+  let cloneWrites = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    assert.match(url, /\/clone$/);
+    cloneWrites++;
+    assert.equal(JSON.parse(options.body).settings, undefined, 'Clean clones do not resubmit stored rates');
+    await new Promise(resolve => {release = resolve;});
+    return {ok: false, json: async () => ({error: 'Synthetic clone rejected', error_language: 'fr-CA'})};
+  };
+  document.querySelector('#salary-save-as').click();
+  const cloneForm = document.querySelector('#salary-save-as-form');
+  cloneForm.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  cloneForm.dispatchEvent(new dom.window.Event('submit', {cancelable: true}));
+  assert.equal(cloneWrites, 1);
+  const busyCancel = new dom.window.Event('cancel', {cancelable: true});
+  dialog.dispatchEvent(busyCancel);
+  assert(busyCancel.defaultPrevented);
+  document.querySelector('#salary-save-as-close').dispatchEvent(new dom.window.Event('click'));
+  assert.equal(dialog.open, true);
+  release();
+  await tick(); await tick();
+  assert.equal(document.querySelector('#salary-save-as-message').lang, 'fr-CA');
+  assert.equal(dialog.open, true, 'Rejected clone retains the name and modal');
+  document.querySelector('#salary-save-as-close').click();
+  globalThis.fetch = originalFetch;
+  dom.window.close();
 });
 
 test('salary projection helpers render actual and manual override states', async () => {

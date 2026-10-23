@@ -10,6 +10,7 @@ import {verifyAssets} from './assets.mjs';
 import {verifyTransactions} from './transactions.mjs';
 import {verifyIncome} from './income.mjs';
 import {verifyExpenses} from './expenses.mjs';
+import {verifyEmployment} from './employment.mjs';
 
 const [baseURL, locale, output, taxPath, hydroPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -251,6 +252,7 @@ try {
   await verifyTransactions(page, baseURL, locale, output);
   await verifyIncome(page, baseURL, locale, output, taxPath);
   await verifyExpenses(page, baseURL, locale, output, hydroPath);
+  await verifyEmployment(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

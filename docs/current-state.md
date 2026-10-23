@@ -27,6 +27,10 @@ API, guarded sequential Hydro previews and preserved overlap/seasonal calculatio
 UX-03I adopts Sage employment-projection controls, factual anchors and scrollable result
 tables, with native scenario cloning, guarded separate personal/spending drafts and
 read-only recovery after committed saves. Projection APIs and calculations are unchanged.
+UX-03J adopts shared Sage administration panels, forms, section controls and reference
+tables for Setup, Connections, public rules, application settings, About and Disclaimer.
+Connection status retry remains read-only. Legal content, language persistence and hash
+approval contracts are unchanged. The planned text-size setting is separate work in #118.
 Other workspaces remain separate work.
 No retirement functionality is added.
 

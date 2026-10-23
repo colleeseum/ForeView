@@ -71,7 +71,8 @@ disposable synthetic runtime rather than registering a production demo route.
 
 The planned text-size preference is Small / Normal / Large, separate from table density.
 The current component showcase is the Large reference; final sizes and the default remain
-undecided. Persisted preference controls belong to UX-03J (#104), not this foundation.
+undecided. The maintainer separated persisted preference controls into UX-03M (#118),
+outside UX-03J's administration-page modernization and this foundation.
 
 Reason: establish predictable styling and interaction contracts without an unreviewed global
 restyle or simultaneous changes to every feature's workflows.

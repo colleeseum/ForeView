@@ -42,7 +42,8 @@ density. The current showcase is the Large reference, not an approved final pixe
 scale. Exact sizes and the default will be decided during adoption. Retain relative
 typography and browser zoom; smaller text must not shrink control hit targets.
 
-The saved Appearance / Text size setting belongs to UX-03J (#104). This foundation
+The saved Appearance / Text size setting belongs to UX-03M (#118), separated from
+UX-03J by maintainer decision. This foundation
 does not implement a selector or persist a text-size preference. Subsequent adopters
 must scale headings, labels, tables, dialogs and help consistently rather than
 introducing per-feature size constants.

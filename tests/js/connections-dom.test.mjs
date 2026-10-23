@@ -173,6 +173,12 @@ test('connections isolates unavailable providers and preserves recovery after lo
     await waitForTasks();
     assert.equal(document.querySelectorAll('.connection-card').length, 3);
     assert.equal(posts, 0);
+    const retry = document.querySelector('[data-reload-connections]');
+    retry.click();
+    retry.dispatchEvent(new dom.window.Event('click', {bubbles: true}));
+    await waitForTasks(); await waitForTasks();
+    assert.equal(posts, 0, 'Retrying status never refreshes or synchronizes credentials');
+    assert.equal(document.activeElement.dataset.provider, 'offline', 'Focus follows the replaced retry control');
     assert.doesNotMatch(document.body.textContent, /private upstream/);
     assert.equal(document.querySelector('.connection-status span').lang, language);
     assert.equal(document.querySelector('secret'), null);

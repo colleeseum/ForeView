@@ -1,4 +1,8 @@
 {
+  "administration": {
+    "scroll_hint": "More columns may be available. Focus this table region and use the arrow keys to scroll.",
+    "reference": "Reference data"
+  },
   "financial": {
     "cpp_qpp": "CPP/QPP",
     "cpp": "CPP",
@@ -74,6 +78,8 @@
     "request_failed": "Request failed"
   },
   "connections": {
+    "retry_status": "Retry status",
+    "loading_status": "Loading status…",
     "saved_authorization": "Authorization saved; synchronization checks access",
     "reconnect": "Reconnect {provider} {name}",
     "none": "No institutions are configured yet.",

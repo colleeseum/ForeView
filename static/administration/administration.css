@@ -1,0 +1,40 @@
+/* SPDX-FileCopyrightText: 2026 Mindstep Corporation
+ * SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 */
+.fv-admin .page-content { min-inline-size: 0; }
+.fv-admin :is(.dashboard-panel, .public-rule-card, .connection-card, .empty-panel, .setup-panel, .connection-toolbar) {
+  background: var(--fv-surface); border: 1px solid var(--fv-border);
+  border-radius: var(--fv-radius-panel); padding: var(--fv-space-6); margin-block-end: var(--fv-space-4);
+  max-inline-size: 100%; min-inline-size: 0;
+}
+.fv-admin label, .fv-admin legend { font: inherit; color: var(--fv-text); }
+.fv-admin label:not(.owner-field):not(.checkbox) { display: grid; gap: var(--fv-space-2); min-inline-size: 0; }
+.fv-admin .setup-form, .fv-admin .empty-panel form { display: grid; gap: var(--fv-space-4); }
+.fv-admin .setup-tabs, .fv-admin .public-rule-tabs { display: flex; flex-wrap: wrap; gap: var(--fv-space-2); overflow: visible; }
+.fv-admin .setup-tab.active, .fv-admin .view-tab[aria-current="page"] { background: var(--fv-primary); color: var(--fv-surface); border-color: var(--fv-primary); box-shadow: inset 0 -3px 0 currentColor; }
+.fv-admin .setup-tab { font: inherit; letter-spacing: normal; }
+.fv-admin .fv-button, .fv-admin .view-tab, .fv-admin .public-rule-year-filter { font-family: var(--fv-font); }
+.fv-admin .setup-panel { inline-size: 100%; max-inline-size: none; }
+.fv-admin .record-list { padding: 0; list-style: none; }
+.fv-admin .record-list li, .fv-admin .account-row { padding: var(--fv-space-4); border-block-end: 1px solid var(--fv-border); display: flex; flex-wrap: wrap; gap: var(--fv-space-4); align-items: end; }
+.fv-admin .record-list label { flex: 1 1 12rem; }
+.fv-admin .owner-field { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fv-space-2); }
+.fv-admin .owner-field input[type="number"] { inline-size: 7rem; }
+.fv-admin .connection-toolbar, .fv-admin .connection-card, .fv-admin .public-rule-heading { display: flex; flex-wrap: wrap; gap: var(--fv-space-4); align-items: start; }
+.fv-admin .connection-card > div { min-inline-size: 0; flex: 1 1 16rem; }
+.fv-admin .connection-actions, .fv-admin .refetch-controls, .fv-admin .public-rule-approval-actions { display: flex; flex-wrap: wrap; gap: var(--fv-space-3); align-items: center; }
+.fv-admin .connection-actions { min-inline-size: 0; max-inline-size: 100%; }
+.fv-admin .connection-card .view-action { white-space: normal; }
+.fv-admin .connection-status, .fv-admin .field-note, .fv-admin .form-message { font: inherit; overflow-wrap: anywhere; }
+.fv-admin .connection-notice { border-inline-start: 4px solid var(--fv-info); background: var(--fv-info-surface); color: var(--fv-info); padding: var(--fv-space-4); border-radius: var(--fv-radius-control); }
+.fv-admin .connection-notice.error, .fv-admin .form-message.error { color: var(--fv-danger); background: var(--fv-danger-surface); }
+.fv-admin .connection-advanced { padding: var(--fv-space-2); }
+.fv-admin :is(code, p, li, .approval-badge) { overflow-wrap: anywhere; }
+.fv-admin .approval-badge { white-space: normal; }
+.fv-admin .public-rule-heading > div { min-inline-size: 0; max-inline-size: 100%; }
+.fv-admin .public-rule-year-filter { display: flex; flex-wrap: wrap; gap: var(--fv-space-3); align-items: center; margin-block: var(--fv-space-4); }
+.fv-admin .public-rule-year-filter select { inline-size: auto; }
+.fv-admin .fv-table thead th { background: var(--fv-primary); color: var(--fv-surface); }
+.fv-admin .table-wrap { overflow: visible; }
+.fv-admin .legal-document { max-inline-size: 84ch; line-height: 1.7; }
+.fv-admin .empty-panel { text-align: start; }
+.fv-admin .empty-panel form { max-inline-size: 32rem; }

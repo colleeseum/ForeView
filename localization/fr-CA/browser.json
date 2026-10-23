@@ -1,4 +1,8 @@
 {
+  "administration": {
+    "scroll_hint": "D’autres colonnes peuvent être disponibles. Activez cette zone de tableau et utilisez les flèches pour défiler.",
+    "reference": "Données de référence"
+  },
   "financial": {
     "cpp_qpp": "RPC/RRQ",
     "cpp": "RPC",
@@ -74,6 +78,8 @@
     "request_failed": "Échec de la demande"
   },
   "connections": {
+    "retry_status": "Réessayer l’état",
+    "loading_status": "Chargement de l’état…",
     "saved_authorization": "Autorisation enregistrée; la synchronisation vérifie l’accès",
     "reconnect": "Reconnecter {provider} {name}",
     "none": "Aucune institution n’est encore configurée.",

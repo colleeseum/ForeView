@@ -50,7 +50,7 @@ async function loadConnections() {
     }
   }));
   const unavailable = states.filter(({status}) => status.unavailable).map(({institution}) =>
-    `<article class="connection-card"><h2>${escapeHtml(institution.display_name)}</h2><p role="alert">${escapeHtml(t('connections.status_error', {provider: institution.display_name}))}</p></article>`).join('');
+    `<article class="connection-card"><h2>${escapeHtml(institution.display_name)}</h2><p role="alert">${escapeHtml(t('connections.status_error', {provider: institution.display_name}))}</p><button type="button" data-reload-connections data-provider="${escapeHtml(institution.key)}">${escapeHtml(t('connections.retry_status'))}</button></article>`).join('');
   syncableInstitutions = states
     .filter(({status}) => !status.unavailable && status.configured_connections?.length)
     .map(({institution}) => institution);
@@ -188,6 +188,17 @@ syncAllButton?.addEventListener('click', async () => {
 });
 
 connectionList.addEventListener('click', async (event) => {
+  const retry = event.target.closest('[data-reload-connections]');
+  if (retry && !retry.disabled) {
+    try {await runButtonAction(retry, t('connections.loading_status'), loadConnections);}
+    catch (error) {showError(error);}
+    const replacement = [...connectionList.querySelectorAll('[data-reload-connections]')]
+      .find(button => button.dataset.provider === retry.dataset.provider);
+    const target = replacement || connectionList.querySelector('.sync-connection') || syncAllButton;
+    if (!target.disabled) target.focus();
+    else {connectionList.tabIndex = -1; connectionList.focus();}
+    return;
+  }
   const button = event.target.closest('.sync-connection');
   if (button) {
     try {

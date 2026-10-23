@@ -11,8 +11,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title lang="en-CA">{{ title }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include '_administration_head.html' %}
 </head>
-<body><main>
+<body><main class="fv-ui fv-admin">
   <header>
     <p class="eyebrow">{{ t('pages_server.disclaimer.eyebrow') }}</p>
     <h1 lang="en-CA">{{ title }}</h1>

@@ -36,13 +36,16 @@ const resetScenarioFormState = trackFormChanges(document.querySelector('#scenari
 
 document.querySelectorAll('.setup-tab').forEach((tab) => tab.addEventListener('click', () => {
   document.querySelectorAll('.setup-tab').forEach((item) => item.classList.toggle('active', item === tab));
+  document.querySelectorAll('.setup-tab').forEach(item => item.setAttribute('aria-pressed', String(item === tab)));
   document.querySelectorAll('.setup-panel').forEach((panel) => panel.classList.toggle('active', panel.id === tab.dataset.tab));
 }));
+document.querySelectorAll('.setup-tab').forEach(tab => tab.setAttribute('aria-pressed', String(tab.classList.contains('active'))));
 
 function showMessage(text, error = false, language = locale) {
   message.textContent = text;
   message.className = `form-message${error ? ' error' : ''}`;
   message.lang = language;
+  message.setAttribute('role', error ? 'alert' : 'status');
 }
 
 function showError(error) {
@@ -63,7 +66,7 @@ async function api(url, options = {}) {
 function renderPeople() {
   peopleList.replaceChildren(...people.map((person) => {
     const item = document.createElement('li');
-    item.innerHTML = `<strong>${escapeHtml(person.name)}</strong><label class="inline-date">${t('setup.birth_date')}<input type="date" data-birth-date="${Number(person.id)}" data-original-date="${escapeHtml(person.birth_date)}" value="${escapeHtml(person.birth_date)}" required></label><button type="button" data-save-person="${Number(person.id)}" hidden>${t('setup.save')}</button>`;
+    item.innerHTML = `<strong>${escapeHtml(person.name)}</strong><label class="fv-field">${t('setup.birth_date')}<input type="date" data-birth-date="${Number(person.id)}" data-original-date="${escapeHtml(person.birth_date)}" value="${escapeHtml(person.birth_date)}" required></label><button type="button" data-save-person="${Number(person.id)}" hidden>${t('setup.save')}</button>`;
     return item;
   }));
   peopleList.querySelectorAll('[data-birth-date]').forEach((input) => input.addEventListener('input', () => {

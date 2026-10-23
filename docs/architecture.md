@@ -162,6 +162,13 @@ service. The feature module uses the shared native dialog for scenario cloning a
 separates mutation failures from read-refresh recovery. Personal and spending drafts
 are edited separately to preserve unsaved inputs. See `docs/design/employment.md`.
 
+Administration and reference pages opt in through `fv-admin` and the shared
+`_administration_head.html` partial. `static/administration/administration.mjs` adds
+component classes and labelled table-scroll regions, including dynamically rendered
+controls, without making HTTP requests. Setup and Connections retain their existing
+controllers. An unavailable provider's Retry status action only repeats discovery and
+status reads. See `docs/design/administration.md` for the acceptance boundary.
+
 The shared side-menu partial adopts those tokens through `static/shared/navigation.css`.
 A native `details`/`summary` disclosure provides collapse/expand semantics without JavaScript,
 with semantic navigation groups and `aria-current` links. It starts expanded on each page load;

@@ -47,7 +47,18 @@ def settings():
         ),
     )
     jurisdictions = [
-        {"code": code, "label": _JURISDICTION_LABELS.get(code, code)} for code in jurisdiction_codes
+        {
+            "code": code,
+            "label": _JURISDICTION_LABELS.get(code, code),
+            "label_key": (
+                "pages_server.tax_rules.federal"
+                if code == "CA"
+                else f"pages_server.provinces.{code.removeprefix('CA-')}"
+                if code in _JURISDICTION_LABELS
+                else None
+            ),
+        }
+        for code in jurisdiction_codes
     ]
     requested_jurisdiction = request.args.get("jurisdiction")
     selected_jurisdiction = (

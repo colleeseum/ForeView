@@ -109,8 +109,8 @@ adoption, but should be reported in provider QA. Document source strings,
 transaction descriptions and provenance remain in their original language.
 
 The help API, document import guidance, provider discovery presentation and About income,
-tax-notice, public-pension and expense module labels consume this contract through shared
-presentation adapters. About institution module labels still render the original `display_name`
-directly and do not yet resolve provider translations. Identity and original evidence remain
+tax-notice, public-pension, expense and institution module labels consume this contract through
+shared presentation adapters. About institution names carry the resolved language and preserve
+the original brand when no usable display-name translation exists. Identity and original evidence remain
 separate from the localized display fields. Contributed translations can be incomplete and use
 the declared per-field fallback; external diagnostics are not translated by matching their text.

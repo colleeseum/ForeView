@@ -91,6 +91,13 @@ export async function verifyAdministration(page, baseURL, locale, output) {
       await page.screenshot({path: `${output}/${locale}-${width}-admin-${name}.png`, fullPage: true});
     }
     if (name === 'rules') {
+      const federal = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA"]');
+      const quebec = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA-QC"]');
+      const bc = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA-BC"]');
+      await expect(federal).toHaveText(locale === 'en-CA' ? 'Federal' : 'Fédéral');
+      await expect(quebec).toHaveText(locale === 'en-CA' ? 'Quebec' : 'Québec');
+      await expect(bc).toHaveText(locale === 'en-CA' ? 'British Columbia' : 'Colombie-Britannique');
+      await page.locator('.public-rule-tabs').screenshot({path: `${output}/${locale}-jurisdiction-labels.png`});
       const approval = page.locator('form[action$="/approve"]').first();
       if (await approval.count()) {
         const hash = await approval.locator('[name="content_hash"]').inputValue();
@@ -112,6 +119,14 @@ export async function verifyAdministration(page, baseURL, locale, output) {
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
     }
     if (name === 'about') {
+      const institutions = page.locator('[aria-labelledby="institution-modules-heading"] tbody tr');
+      assert(await institutions.count() > 0, 'Institution references are populated');
+      for (const row of await institutions.all()) {
+        await expect(row.locator('td').first()).toHaveAttribute('lang', /.+/);
+        await expect(row.locator('td').first()).not.toBeEmpty();
+        await expect(row.locator('td').nth(1)).not.toBeEmpty();
+      }
+      await page.locator('[aria-labelledby="institution-modules-heading"]').screenshot({path: `${output}/${locale}-institution-labels.png`});
       await expect(page.locator('a[href="mailto:info@mindstep.ca"]')).toBeVisible();
       await expect(page.locator('.legal-summary a[href="/disclaimer"]')).toBeVisible();
       assert((await page.locator('.legal-summary').innerText()).includes('PolyForm Noncommercial'));

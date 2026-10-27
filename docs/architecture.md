@@ -209,9 +209,11 @@ fallback, and visible missing-key markers. The browser catalogs cover the primar
 workflows; core help navigation, tooltips, and guidance use locale catalogs with per-field
 fallback and resolved-language metadata. Provider help uses optional per-provider locale
 dictionaries through the same resolver. Import guidance, display labels and About income,
-tax-notice, public-pension and expense module names reuse that presentation adapter without
-replacing original provider identity or provenance. About institution module names still render
-the provider's original display name directly, without resolving its translations.
+tax-notice, public-pension, expense and institution module names reuse that presentation adapter
+without replacing original provider identity or provenance. About names carry the resolved field
+language, including when a blank or partial translation falls back to the original name.
+Public-rule jurisdiction tabs reuse the province catalog and a federal label, while stable
+jurisdiction codes, navigation destinations and verified rule packages remain unchanged.
 Owned validation exceptions carry stable codes and interpolation values to HTTP adapters, which
 resolve localized messages and language metadata. Non-HTTP callers retain original diagnostic text.
 Financial browser displays use shared Intl-based value helpers. Server-rendered expenses and

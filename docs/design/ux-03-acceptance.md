@@ -91,9 +91,10 @@ Functional state coverage remains executable rather than inferred from captures:
 - Fractional rate-input precision remains the independently tracked financial
   defect [#116](https://github.com/colleeseum/ForeView/issues/116). UI validation
   does not certify that conversion path or authorize a hidden calculation fix.
-- Remaining jurisdiction-label localization and About institution display-name
-  language handling are tracked in [#121](https://github.com/colleeseum/ForeView/issues/121),
-  added to the Project under parent #94. The missing-key check does not prove
+- Jurisdiction-label localization and About institution display-name language handling
+  are the separate [#121](https://github.com/colleeseum/ForeView/issues/121) follow-up,
+  tracked in the Project under parent #94. Its presentation paths now use existing
+  catalogs and provider fallback rather than changing source identities. The missing-key check does not prove
   that every raw reference label has been localized. This validation does not
   silently change provider identity or public-rule packages to address them.
 - Retirement baselines, benefit/withdrawal strategies, scenario comparison and

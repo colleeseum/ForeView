@@ -34,7 +34,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         {% for jurisdiction in jurisdictions %}
         <a class="view-tab{% if jurisdiction.code == selected_jurisdiction %} active{% endif %}"
            {% if jurisdiction.code == selected_jurisdiction %}aria-current="page"{% endif %}
-           href="{{ url_for('public_rules.settings', jurisdiction=jurisdiction.code) }}">{{ jurisdiction.label }}</a>
+           href="{{ url_for('public_rules.settings', jurisdiction=jurisdiction.code) }}">{{ t(jurisdiction.label_key) if jurisdiction.label_key else jurisdiction.label }}</a>
         {% endfor %}
       </nav>
 

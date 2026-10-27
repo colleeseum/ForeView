@@ -339,6 +339,7 @@
     "jurisdiction": "Rule jurisdiction",
     "tax_year": "Tax year",
     "federal_prefix": "Federal +",
+    "federal": "Federal",
     "effective": "Effective combined marginal tax",
     "effective_help": "Ordinary taxable income using the basic personal amount. Includes the federal BPA phaseout and applicable jurisdiction rules such as the Quebec abatement, Manitoba BPA phaseout, and Ontario surtaxes. Excludes the Ontario Health Premium and income-specific treatment for capital gains and dividends.",
     "taxable_up_to": "Taxable income up to",

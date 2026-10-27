@@ -339,6 +339,7 @@
     "jurisdiction": "Juridiction des règles",
     "tax_year": "Année d’imposition",
     "federal_prefix": "Fédéral +",
+    "federal": "Fédéral",
     "effective": "Taux marginal combiné effectif",
     "effective_help": "Revenu imposable ordinaire utilisant le montant personnel de base. Inclut la réduction graduelle du MPB fédéral et les règles applicables de la juridiction, comme l’abattement du Québec, la réduction graduelle du MPB du Manitoba et les surtaxes de l’Ontario. Exclut la prime-santé de l’Ontario et le traitement propre aux gains en capital et aux dividendes.",
     "taxable_up_to": "Revenu imposable jusqu’à",

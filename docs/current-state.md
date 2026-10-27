@@ -43,6 +43,9 @@ Settings > Appearance, persisted per runtime independently of language and table
 density. Small preserves the original typography and is the default; Normal and
 Large use 112.5% and 125% of that scale. Browser zoom and 44px minimum control
 targets are retained.
+UX-03N localizes public-rule jurisdiction navigation using the shared province
+catalog and resolves About institution names through the existing provider
+presentation contract, preserving stable codes, hashes, identities and source text.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income
@@ -138,11 +141,7 @@ independently of other logins' failures.
   removed, or structurally changed government concepts.
 - The application has no authentication or tenant isolation and is suitable only for a trusted
   local environment.
-- Localization is not yet application-wide. Some user-facing labels remain English-only,
-  including jurisdiction tabs in public-rule Settings. About institution module names also
-  bypass provider translation resolution.
-  The remaining administration reference-label paths are tracked in #121.
-  Contributed provider translations may be incomplete and use explicit per-field fallback.
+- Contributed provider translations may be incomplete and use explicit per-field fallback.
   External diagnostics and authoritative legal/source text retain their original language.
   Localization browser acceptance covers representative Chromium workflows, not certification of
   every browser, assistive technology or contributed locale.

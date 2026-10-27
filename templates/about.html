@@ -59,11 +59,11 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <tbody>{% for source in expense_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ source.key }}</td><td>{{ source.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
-      <section class="dashboard-panel">
-        <h2>{{ t('pages_server.about.institution_modules') }}</h2>
+      <section class="dashboard-panel" aria-labelledby="institution-modules-heading">
+        <h2 id="institution-modules-heading">{{ t('pages_server.about.institution_modules') }}</h2>
         <div class="table-wrap"><table>
           <thead><tr><th>{{ t('pages_server.common.module') }}</th><th>{{ t('pages_server.common.key') }}</th><th>{{ t('pages_server.common.version') }}</th></tr></thead>
-          <tbody>{% for institution in institutions %}<tr><td>{{ institution.display_name }}</td><td>{{ institution.key }}</td><td>{{ institution.version }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for institution in institutions %}{% set ui = provider_presentation(institution.display_name, institution.translations) %}<tr><td lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</td><td>{{ institution.key }}</td><td>{{ institution.version }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </section>
       <p class="field-note">{{ t('pages_server.about.version_note') }}</p>

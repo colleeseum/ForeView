@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-23
+Updated: 2026-10-27
 
 ## Development focus
 
@@ -34,6 +34,10 @@ approval contracts are unchanged. The planned text-size setting is separate work
 UX-03K adopts Sage full help, category navigation, search status and quick-reference
 tooltips, with native modal stacking, keyboard focus return and retained contextual
 destinations and per-field language fallback. Help remains read-only.
+UX-03L integrates the workspace acceptance matrix, read-only cross-page invariance
+checks, approved viewport dimensions, rendered contrast/control samples and
+synthetic stress-value/reflow evidence. The coverage index and outstanding manual
+acceptance boundaries are recorded in `docs/design/ux-03-acceptance.md`.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income
@@ -132,6 +136,7 @@ independently of other logins' failures.
 - Localization is not yet application-wide. Some user-facing labels remain English-only,
   including jurisdiction tabs in public-rule Settings. About institution module names also
   bypass provider translation resolution.
+  The remaining administration reference-label paths are tracked in #121.
   Contributed provider translations may be incomplete and use explicit per-field fallback.
   External diagnostics and authoritative legal/source text retain their original language.
   Localization browser acceptance covers representative Chromium workflows, not certification of

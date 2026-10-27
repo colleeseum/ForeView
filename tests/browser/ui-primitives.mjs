@@ -13,6 +13,7 @@ import {verifyExpenses} from './expenses.mjs';
 import {verifyEmployment} from './employment.mjs';
 import {verifyAdministration} from './administration.mjs';
 import {verifyHelp} from './help.mjs';
+import {verifyAcceptance, verifyAcceptanceGuards} from './acceptance.mjs';
 
 const [baseURL, locale, output, taxPath, hydroPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -36,6 +37,8 @@ async function goto(path) {
   await page.waitForLoadState('networkidle');
 }
 try {
+  await verifyAcceptanceGuards(page);
+  await page.setViewportSize({width: 1280, height: 1000});
   await goto('/accounts');
   const original = await snapshot();
   const legacyFont = await page.locator('body').evaluate(node => getComputedStyle(node).fontFamily);
@@ -262,6 +265,7 @@ try {
   await verifyEmployment(page, baseURL, locale, output);
   await verifyAdministration(page, baseURL, locale, output);
   await verifyHelp(page, baseURL, locale, output);
+  await verifyAcceptance(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

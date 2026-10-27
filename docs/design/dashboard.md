@@ -28,7 +28,7 @@ This avoids leaving stale Loading text or apparently valid partial results.
 `static/dashboard/dashboard.css` scopes feature styling beneath `fv-dashboard`
 and uses the shared semantic tokens rather than duplicating theme constants.
 The shared navigation remains independently collapsible. Text-size selection
-is still deferred to UX-03J; the current showcase scale is not a final size policy.
+is separate work in UX-03M (#118); the current showcase scale is not a final size policy.
 
 Node regression tests cover English/French, source escaping/language, monetary
 precision, explicit zero versus missing facts and all-panel failure states.

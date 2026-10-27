@@ -187,6 +187,10 @@ expands the branch selected by page-level or contextual help. Provider hierarchy
 adapted in the help route; browser rendering does not contain institution-specific branches.
 When no valid contextual article is supplied, selection follows the first article in the rendered
 category hierarchy, not the lowest article order across unrelated categories.
+Full help adopts Sage styling and the shared native-dialog controller, including
+top-layer stacking and invoker focus return. Search and article navigation preserve
+the existing catalog and per-field language metadata. Feature-owned inline import
+help stays within its dialog. See `docs/design/help.md` for the interaction boundary.
 
 `localization/` provides a registry-backed presentation service with JSON message catalogs,
 deterministic locale fallback chains, and a per-runtime language preference. Flask exposes the

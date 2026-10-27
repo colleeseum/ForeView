@@ -31,7 +31,9 @@ UX-03J adopts shared Sage administration panels, forms, section controls and ref
 tables for Setup, Connections, public rules, application settings, About and Disclaimer.
 Connection status retry remains read-only. Legal content, language persistence and hash
 approval contracts are unchanged. The planned text-size setting is separate work in #118.
-Other workspaces remain separate work.
+UX-03K adopts Sage full help, category navigation, search status and quick-reference
+tooltips, with native modal stacking, keyboard focus return and retained contextual
+destinations and per-field language fallback. Help remains read-only.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income

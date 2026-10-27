@@ -12,6 +12,7 @@ import {verifyIncome} from './income.mjs';
 import {verifyExpenses} from './expenses.mjs';
 import {verifyEmployment} from './employment.mjs';
 import {verifyAdministration} from './administration.mjs';
+import {verifyHelp} from './help.mjs';
 
 const [baseURL, locale, output, taxPath, hydroPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -43,7 +44,7 @@ try {
   await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar-XB' ? 'rtl' : 'ltr');
   assert(!(await page.locator('body').innerText()).includes('⟦'), 'All fixture messages must resolve');
   assert.equal(await page.locator('body').evaluate(node => getComputedStyle(node).fontFamily), legacyFont, 'Opt-in CSS must not restyle body');
-  assert.match(await page.locator('.fv-ui').evaluate(node => getComputedStyle(node).fontFamily), /system-ui/);
+  assert.match(await page.locator('main.fv-ui').evaluate(node => getComputedStyle(node).fontFamily), /system-ui/);
   for (const button of await page.locator('.fv-ui .fv-button').all()) {
     if (!await button.isVisible()) continue;
     const box = await button.boundingBox();
@@ -59,7 +60,7 @@ try {
   await expect(page.locator('[aria-invalid="true"]')).toHaveAttribute('aria-describedby', 'field-error');
 
   // Verify actual rendered normal text, control boundaries, status pairs and focus.
-  const colors = await page.locator('.fv-ui').evaluate(node => {
+  const colors = await page.locator('main.fv-ui').evaluate(node => {
     const style = getComputedStyle(node);
     return Object.fromEntries(['text', 'muted', 'surface', 'primary', 'primary-hover', 'danger', 'danger-hover', 'success', 'success-surface', 'warning', 'warning-surface', 'info', 'info-surface', 'danger-surface', 'focus', 'control-border', 'navigation'].map(key => [key, style.getPropertyValue(`--fv-${key}`).trim()]));
   });
@@ -89,6 +90,11 @@ try {
   await page.locator('[data-help-article]').click();
   await expect(page.locator('.help-drawer-backdrop')).toBeVisible();
   await expect(page.locator('.help-article h2')).not.toBeEmpty();
+  assert(await page.locator('.help-drawer-backdrop').evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return Math.abs(box.width - innerWidth) < 1 && Math.abs(box.height - innerHeight) < 1
+      && getComputedStyle(node.querySelector('.help-drawer')).display === 'flex';
+  }), 'Showcase loads the native help layout, not legacy div or user-agent dialog sizing');
   await page.keyboard.press('Escape');
   await page.locator('[data-open-help]').click();
   await expect(page.locator('#help-search')).toBeFocused();
@@ -255,6 +261,7 @@ try {
   await verifyExpenses(page, baseURL, locale, output, hydroPath);
   await verifyEmployment(page, baseURL, locale, output);
   await verifyAdministration(page, baseURL, locale, output);
+  await verifyHelp(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

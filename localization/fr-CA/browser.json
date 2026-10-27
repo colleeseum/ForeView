@@ -44,6 +44,7 @@
     "money_precision_error": "Un montant ne peut pas être affiché avec une précision fiable au cent près. Les résultats du tableau de bord ne sont pas affichés."
   },
   "help": {
+    "results_count": "Rubriques d’aide : {count}",
     "load_error": "Impossible de charger l’aide.",
     "close": "Fermer l’aide",
     "reference": "Référence",

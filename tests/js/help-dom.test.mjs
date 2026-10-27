@@ -46,6 +46,8 @@ function installDom(url = 'http://localhost/income', pageArticle = null, locale 
     <button data-help-tooltip="salary-rate">?</button>
     <button data-help-article="income-source-ufile">UFile help</button></body>`, {url});
   Object.assign(globalThis, {window: dom.window, document: dom.window.document});
+  dom.window.HTMLDialogElement.prototype.showModal = function () {this.open = true;};
+  dom.window.HTMLDialogElement.prototype.close = function () {this.open = false; this.dispatchEvent(new dom.window.Event('close'));};
   return dom;
 }
 
@@ -103,6 +105,73 @@ test('full help opens the Expenses article from the Expenses page', async () => 
     document.querySelector('[data-help-result="expenses"]').classList.contains('active'),
     true,
   );
+  dom.window.close();
+});
+
+test('native help exposes current selection and status, cancels, and falls back after a removed invoker', async () => {
+  const dom = installDom();
+  globalThis.fetch = async () => ({ok: true, json: async () => catalog});
+  await import('../../static/help/help.mjs?native-state');
+  const trigger = document.querySelector('[data-help-article]');
+  trigger.focus();
+  trigger.click();
+  await tick();
+  const modal = document.querySelector('dialog.help-drawer-backdrop');
+  assert.equal(modal.open, true);
+  assert.equal(modal.getAttribute('aria-labelledby'), 'full-help-title');
+  assert.match(document.querySelector('.help-status').textContent, /6/);
+  assert.equal(document.querySelector('[aria-current="true"]').dataset.helpResult, 'income-source-ufile');
+  document.querySelector('[data-help-result="income"]').click();
+  await tick();
+  assert.equal(document.activeElement, document.querySelector('.help-article'));
+  assert.equal(document.querySelector('[aria-current="true"]').dataset.helpResult, 'income');
+  for (const node of modal.querySelectorAll('.help-article, .help-drawer-close, #help-search')) node.getClientRects = () => [{}];
+  const next = new dom.window.KeyboardEvent('keydown', {key: 'Tab', bubbles: true, cancelable: true});
+  document.activeElement.dispatchEvent(next);
+  assert.equal(next.defaultPrevented, true, 'The controller contains Tab immediately after topic selection');
+  assert.equal(document.activeElement, document.querySelector('.help-drawer-close'));
+  trigger.remove();
+  const cancel = new dom.window.Event('cancel', {cancelable: true});
+  modal.dispatchEvent(cancel);
+  assert.equal(cancel.defaultPrevented, true);
+  assert.equal(modal.open, false);
+  assert.equal(modal.hidden, true);
+  assert.equal(document.activeElement, document.querySelector('.full-help-button'));
+  dom.window.close();
+});
+
+test('tooltip focus preserves descriptions and dismissing pending content prevents a late popup', async () => {
+  const dom = installDom();
+  let resolve;
+  globalThis.fetch = () => new Promise(done => {resolve = done;});
+  await import('../../static/help/help.mjs?tooltip-lifecycle');
+  const trigger = document.querySelector('[data-help-tooltip]');
+  trigger.setAttribute('aria-describedby', 'existing-description');
+  trigger.focus();
+  document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
+  resolve({ok: true, json: async () => catalog});
+  await tick();
+  assert.equal(document.querySelector('.help-tooltip').hidden, true);
+  trigger.click();
+  await tick();
+  assert.equal(trigger.getAttribute('aria-describedby'), 'existing-description help-quick-reference');
+  assert.equal(document.querySelector('.help-tooltip').style.left, '8px');
+  document.dispatchEvent(new dom.window.Event('scroll'));
+  assert.equal(document.querySelector('.help-tooltip').hidden, false);
+  trigger.getBoundingClientRect = () => ({top: -200, bottom: -100, left: 0});
+  document.dispatchEvent(new dom.window.Event('scroll'));
+  assert.equal(document.querySelector('.help-tooltip').hidden, true);
+  assert.equal(trigger.getAttribute('aria-describedby'), 'existing-description');
+  trigger.getBoundingClientRect = () => ({top: 0, bottom: 0, left: 0});
+  trigger.click();
+  await tick();
+  window.dispatchEvent(new dom.window.Event('resize'));
+  assert.equal(trigger.getAttribute('aria-describedby'), 'existing-description');
+  assert.equal(document.querySelector('.help-tooltip').hidden, true);
+  trigger.click();
+  await tick();
+  document.querySelector('.full-help-button').focus();
+  assert.equal(document.querySelector('.help-tooltip').hidden, true);
   dom.window.close();
 });
 

@@ -3,6 +3,7 @@
 
 import {escapeHtml} from '../shared/html.mjs';
 import {t, locale} from '../shared/i18n.mjs';
+import {createDialog} from '../shared/dialog.mjs';
 
 const catalogPromise = fetch('/api/help').then(async (response) => {
   const catalog = await response.json();
@@ -17,37 +18,44 @@ const catalogPromise = fetch('/api/help').then(async (response) => {
 catalogPromise.catch(() => {});
 
 const tooltip = document.createElement('section');
-tooltip.className = 'help-tooltip';
+tooltip.className = 'help-tooltip fv-ui';
+tooltip.id = 'help-quick-reference';
 tooltip.hidden = true;
 tooltip.setAttribute('role', 'tooltip');
 tooltip.innerHTML = '<strong></strong><p></p>';
 document.body.append(tooltip);
 
-const backdrop = document.createElement('div');
-backdrop.className = 'help-drawer-backdrop';
+const backdrop = document.createElement('dialog');
+backdrop.className = 'help-drawer-backdrop fv-ui';
+backdrop.setAttribute('aria-labelledby', 'full-help-title');
 backdrop.hidden = true;
-backdrop.innerHTML = `<aside class="help-drawer" role="dialog" aria-modal="true" aria-labelledby="full-help-title">
-  <button class="help-drawer-close" type="button" aria-label="${t('help.close')}">×</button>
+backdrop.innerHTML = `<section class="help-drawer">
+  <div class="help-controls">
+  <button class="help-drawer-close fv-button" type="button" aria-label="${t('help.close')}">×</button>
   <p class="eyebrow">${t('help.reference')}</p>
   <h1 id="full-help-title">${t('help.title')}</h1>
   <label class="help-search-label" for="help-search">${t('help.search')}</label>
-  <input id="help-search" class="help-search" type="search" placeholder="${t('help.search_placeholder')}" autocomplete="off">
-  <div class="help-layout">
-    <nav class="help-results" aria-label="${t('help.topics')}"></nav>
-    <article class="help-article"><h2></h2><p class="help-article-summary"></p><div class="help-article-body"></div></article>
+  <input id="help-search" class="help-search fv-input" type="search" placeholder="${t('help.search_placeholder')}" autocomplete="off" autofocus aria-controls="help-results">
+  <p class="help-status fv-help" role="status" aria-live="polite"></p>
   </div>
-</aside>`;
+  <div class="help-layout">
+    <nav id="help-results" class="help-results" aria-label="${t('help.topics')}"></nav>
+    <article class="help-article" tabindex="0" aria-labelledby="help-article-title"><h2 id="help-article-title"></h2><p class="help-article-summary"></p><div class="help-article-body"></div></article>
+  </div>
+</section>`;
 document.body.append(backdrop);
 
-const drawer = backdrop.querySelector('.help-drawer');
 const search = backdrop.querySelector('#help-search');
+const status = backdrop.querySelector('.help-status');
 const results = backdrop.querySelector('.help-results');
 const articleTitle = backdrop.querySelector('.help-article h2');
 const articleSummary = backdrop.querySelector('.help-article-summary');
 const articleBody = backdrop.querySelector('.help-article-body');
 let selectedArticleKey = null;
-let lastFocus = null;
 let renderVersion = 0;
+let tooltipVersion = 0;
+let tooltipAnchor = null;
+let controller;
 
 function pageArticleKey() {
   const declaredKey = document.querySelector('main > header')?.dataset.helpArticle;
@@ -65,15 +73,34 @@ function pageArticleKey() {
 }
 
 function closeTooltip() {
+  tooltipVersion += 1;
   tooltip.hidden = true;
+  if (tooltipAnchor) {
+    const descriptions = (tooltipAnchor.getAttribute('aria-describedby') || '').split(/\s+/)
+      .filter(id => id && id !== tooltip.id);
+    if (descriptions.length) tooltipAnchor.setAttribute('aria-describedby', descriptions.join(' '));
+    else tooltipAnchor.removeAttribute('aria-describedby');
+  }
+  tooltipAnchor = null;
+}
+
+function positionTooltip() {
+  if (tooltip.hidden || !tooltipAnchor) return;
+  const box = tooltipAnchor.getBoundingClientRect();
+  if (box.bottom < 0 || box.top > window.innerHeight) {closeTooltip(); return;}
+  const size = tooltip.getBoundingClientRect();
+  const top = box.bottom + size.height + 16 <= window.innerHeight
+    ? box.bottom + 8 : box.top - size.height - 8;
+  tooltip.style.top = `${Math.max(8, Math.min(top, window.innerHeight - size.height - 8))}px`;
+  tooltip.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - size.width - 8))}px`;
 }
 
 function closeFullHelp() {
   if (backdrop.hidden) return;
   renderVersion += 1;
+  closeTooltip();
   backdrop.hidden = true;
-  if (lastFocus?.isConnected) lastFocus.focus();
-  lastFocus = null;
+  controller.close();
 }
 
 function showArticle(article, language = 'en-CA') {
@@ -96,6 +123,8 @@ function showArticle(article, language = 'en-CA') {
   articleBody.lang = article.field_languages?.body || article.language || language;
   results.querySelectorAll('[data-help-result]').forEach((button) => {
     button.classList.toggle('active', button.dataset.helpResult === article.key);
+    if (button.dataset.helpResult === article.key) button.setAttribute('aria-current', 'true');
+    else button.removeAttribute('aria-current');
   });
 }
 
@@ -125,7 +154,7 @@ function renderResults(articles, preferredKey = null, language = 'en-CA', catego
   articles = [...articles].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   results.lang = language;
   const articleButton = (article, path = '') =>
-    `<button type="button" data-help-result="${escapeHtml(article.key)}">${path}<strong lang="${escapeHtml(article.field_languages?.title || article.language || language)}">${escapeHtml(article.title)}</strong><span lang="${escapeHtml(article.field_languages?.summary || article.language || language)}">${escapeHtml(article.summary)}</span></button>`;
+    `<button class="fv-button" type="button" data-help-result="${escapeHtml(article.key)}">${path}<strong lang="${escapeHtml(article.field_languages?.title || article.language || language)}">${escapeHtml(article.title)}</strong><span lang="${escapeHtml(article.field_languages?.summary || article.language || language)}">${escapeHtml(article.summary)}</span></button>`;
   if (searching) {
     results.innerHTML = articles.map((article) => {
       const path = categoryPath(article.category, categories).map((part) =>
@@ -152,9 +181,11 @@ function renderResults(articles, preferredKey = null, language = 'en-CA', catego
     branch = branch.parentElement.closest('.help-category');
   }
   showArticle(articles.find((article) => article.key === selectedButton?.dataset.helpResult), language);
+  status.textContent = articles.length ? t('help.results_count', {count: articles.length}) : t('help.no_match');
 }
 
 function showCatalogFailure(error) {
+  status.textContent = t('help.unavailable');
   articleTitle.textContent = t('help.unavailable');
   articleTitle.lang = locale;
   articleBody.textContent = error.message;
@@ -162,10 +193,11 @@ function showCatalogFailure(error) {
 }
 
 async function openFullHelp(key = null) {
-  if (backdrop.hidden) lastFocus = document.activeElement;
+  const invoker = document.activeElement;
   const version = ++renderVersion;
   closeTooltip();
   backdrop.hidden = false;
+  controller.open(invoker);
   results.textContent = '';
   search.value = '';
   articleTitle.textContent = t('help.loading');
@@ -174,6 +206,7 @@ async function openFullHelp(key = null) {
   articleSummary.lang = locale;
   articleBody.textContent = '';
   articleBody.lang = locale;
+  status.textContent = t('help.loading');
   search.focus();
   try {
     const catalog = await catalogPromise;
@@ -186,8 +219,11 @@ async function openFullHelp(key = null) {
 }
 
 async function openTooltip(key, anchor) {
+  closeTooltip();
+  const version = tooltipVersion;
   try {
     const catalog = await catalogPromise;
+    if (version !== tooltipVersion || !anchor.isConnected) return;
     const content = catalog.tooltips.find((item) => item.key === key);
     if (!content) return;
     tooltip.querySelector('strong').textContent = content.title;
@@ -195,10 +231,11 @@ async function openTooltip(key, anchor) {
     tooltip.querySelector('strong').lang = content.field_languages?.title || content.language || catalog.language || 'en-CA';
     tooltip.querySelector('p').lang = content.field_languages?.body || content.language || catalog.language || 'en-CA';
     tooltip.lang = content.language || catalog.language || 'en-CA';
+    tooltipAnchor = anchor;
+    anchor.setAttribute('aria-describedby', [anchor.getAttribute('aria-describedby'), tooltip.id].filter(Boolean).join(' '));
+    (anchor.closest('dialog[open]') || document.body).append(tooltip);
     tooltip.hidden = false;
-    const box = anchor.getBoundingClientRect();
-    tooltip.style.top = `${Math.min(box.bottom + 8, window.innerHeight - 160)}px`;
-    tooltip.style.left = `${Math.min(Math.max(16, box.left), window.innerWidth - 340)}px`;
+    positionTooltip();
   } catch (_error) {
     closeTooltip();
   }
@@ -207,7 +244,7 @@ async function openTooltip(key, anchor) {
 const pageHeader = document.querySelector('main > header');
 if (pageHeader) {
   const fullHelpButton = document.createElement('button');
-  fullHelpButton.className = 'full-help-button';
+  fullHelpButton.className = 'full-help-button fv-ui';
   fullHelpButton.type = 'button';
   fullHelpButton.setAttribute('aria-label', t('help.open'));
   fullHelpButton.title = t('help.full_help');
@@ -215,8 +252,18 @@ if (pageHeader) {
   pageHeader.append(fullHelpButton);
   fullHelpButton.addEventListener('click', () => openFullHelp());
 }
+controller = createDialog(backdrop, {fallbackFocus: document.querySelector('.full-help-button')});
 
 window.openContextHelp = (key) => openFullHelp(key);
+
+// Existing in-modal income/expense help remains owned by its feature controller.
+document.addEventListener('focusin', event => {
+  const button = event.target.closest('[data-help-tooltip]');
+  if (button && !button.closest('dialog')) openTooltip(button.dataset.helpTooltip, button);
+  else if (!tooltip.contains(event.target)) closeTooltip();
+});
+window.addEventListener('resize', closeTooltip);
+document.addEventListener('scroll', positionTooltip, true);
 
 document.addEventListener('click', (event) => {
   const tooltipButton = event.target.closest('[data-help-tooltip]');
@@ -244,6 +291,8 @@ results.addEventListener('click', async (event) => {
     catalog.articles.find((article) => article.key === button.dataset.helpResult),
     catalog.language || 'en-CA',
   );
+  // Keep the selected reading surface in the dialog controller's Tab order.
+  backdrop.querySelector('.help-article').focus();
 });
 
 search.addEventListener('input', async () => {
@@ -259,6 +308,7 @@ search.addEventListener('input', async () => {
 });
 
 backdrop.querySelector('.help-drawer-close').addEventListener('click', closeFullHelp);
+backdrop.addEventListener('cancel', event => {event.preventDefault(); closeFullHelp();});
 backdrop.addEventListener('click', (event) => {
   if (event.target === backdrop) closeFullHelp();
 });
@@ -271,15 +321,3 @@ document.addEventListener('keydown', (event) => {
   closeTooltip();
   closeFullHelp();
 }, true);
-
-// Keep keyboard focus within the modal help drawer.
-drawer.addEventListener('keydown', (event) => {
-  if (event.key !== 'Tab') return;
-  const focusable = [...drawer.querySelectorAll('button:not([disabled]), input:not([disabled]), summary')]
-    .filter((element) => element.getClientRects().length);
-  if (!focusable.length) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-});

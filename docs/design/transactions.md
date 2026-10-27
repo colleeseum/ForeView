@@ -17,8 +17,8 @@ Missing balances retain the existing blank-cell semantics rather than becoming z
 The native modal dialogs use the shared controller for focus return, Escape and Tab
 containment. Users can review the complete file selection, including directory paths,
 before submitting. Provider instructions remain available inside the import dialog;
-full contextual help is also reachable from the workspace. Inline instructions avoid
-opening the legacy help drawer behind a native modal's inert background.
+full contextual help is also reachable from the workspace. Inline instructions retain
+the import context; the shared full-help browser separately uses a native dialog.
 
 The selection review is not a parsed-transaction preview; that separately approved
 follow-up is [IMP-01 (#112)](https://github.com/colleeseum/ForeView/issues/112).

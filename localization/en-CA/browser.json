@@ -44,6 +44,7 @@
     "money_precision_error": "An amount cannot be displayed with reliable cent precision. Dashboard results have not been shown."
   },
   "help": {
+    "results_count": "Help topics: {count}",
     "load_error": "Help could not be loaded.",
     "close": "Close help",
     "reference": "Reference",

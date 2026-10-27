@@ -8,6 +8,14 @@
     "eyebrow": "Administration", "heading": "Settings",
     "lede": "Application-wide preferences are managed here.",
     "section": "Application settings",
-    "language_help": "Choose the language used by ForeView-owned interface text. Imported evidence remains unchanged."
+    "language_help": "Choose the language used by ForeView-owned interface text. Imported evidence remains unchanged.",
+    "appearance": {
+      "heading": "Appearance", "label": "Text size",
+      "small": "Small", "normal": "Normal", "large": "Large",
+      "help": "Applies throughout ForeView. Small preserves the original size; Normal and Large increase it. Table density and browser zoom remain independent.",
+      "save": "Save text size", "saved": "Text size saved.",
+      "invalid": "Choose Small, Normal, or Large.",
+      "failed": "Text size could not be saved. Your previous setting is unchanged. Try again."
+    }
   }
 }

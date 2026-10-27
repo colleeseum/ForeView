@@ -108,7 +108,7 @@ class AppRouteTests(unittest.TestCase):
                 response = self.client.get("/about")
                 self.assertEqual(response.status_code, 200)
                 text = unescape(self._visible_html(response).decode("utf-8"))
-                self.assertIn(f'<html lang="{code}" dir="ltr">', text)
+                self.assertIn(f'<html lang="{code}" dir="ltr" data-text-size="small">', text)
                 self.assertIn(
                     f"<h1>{localization.translate(code, 'pages_server.about.heading')}</h1>",
                     text,
@@ -174,7 +174,9 @@ class AppRouteTests(unittest.TestCase):
                     response = self.client.get(path)
                     self.assertEqual(response.status_code, 200, path)
                     html = response.get_data(as_text=True)
-                    self.assertIn(f'<html lang="{locale}" dir="{direction}">', html)
+                    self.assertIn(
+                        f'<html lang="{locale}" dir="{direction}" data-text-size="small">', html
+                    )
                     self.assertNotIn("⟦", self._visible_html(response).decode("utf-8"))
                 if locale == "ar-XB":
                     page = self.client.get("/").get_data(as_text=True)

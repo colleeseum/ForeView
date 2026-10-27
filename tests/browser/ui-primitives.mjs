@@ -14,6 +14,7 @@ import {verifyEmployment} from './employment.mjs';
 import {verifyAdministration} from './administration.mjs';
 import {verifyHelp} from './help.mjs';
 import {verifyAcceptance, verifyAcceptanceGuards} from './acceptance.mjs';
+import {verifyTextSize} from './text-size.mjs';
 
 const [baseURL, locale, output, taxPath, hydroPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
@@ -266,6 +267,7 @@ try {
   await verifyAdministration(page, baseURL, locale, output);
   await verifyHelp(page, baseURL, locale, output);
   await verifyAcceptance(page, baseURL, locale, output);
+  await verifyTextSize(page, baseURL, locale, output);
   assert.deepEqual(errors, []);
   console.log('SAGE_PRIMITIVES_PASSED');
 } finally {

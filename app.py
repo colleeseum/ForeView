@@ -12,6 +12,7 @@ from pathlib import Path
 
 from flask import Flask, abort, request, session
 
+from infrastructure.appearance_preferences import AppearancePreferences
 from infrastructure.runtime_config import RuntimeConfig
 from institution_support.connection_provider import ConnectionProvider
 from institution_support.registry import institution_registry
@@ -79,6 +80,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
     app.secret_key = runtime.setting("RETIREMENT_APP_SECRET") or secrets.token_hex(32)
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
     app.extensions["finance_runtime"] = runtime
+    app.extensions["appearance"] = AppearancePreferences(runtime.data_dir)
     app.extensions["localization"] = LocalizationService(ROOT / "localization", runtime.data_dir)
 
     def csrf_token() -> str:
@@ -111,6 +113,8 @@ def create_app(runtime: RuntimeConfig) -> Flask:
         browser_locale_chain = localization.fallback_chain(locale)
         formatter = ValueFormatter(localization, locale)
         return {
+            "text_size": app.extensions["appearance"].text_size(),
+            "text_sizes": AppearancePreferences.text_sizes,
             "provider_presentation": provider_presentation,
             "format_money": formatter.money,
             "format_number": formatter.number,

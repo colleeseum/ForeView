@@ -525,7 +525,7 @@ def test_dashboard_server_rendered_text_is_localized(tmp_path):
     page = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert '<html lang="fr-CA" dir="ltr">' in page
+    assert '<html lang="fr-CA" dir="ltr" data-text-size="small">' in page
     assert "Par catégorie de compte" in page
     assert "Détail des liquidités" in page
     assert "Recent transactions" not in page
@@ -572,7 +572,7 @@ def test_representative_server_pages_render_in_french(tmp_path, path, expected):
     page = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert '<html lang="fr-CA" dir="ltr">' in page
+    assert '<html lang="fr-CA" dir="ltr" data-text-size="small">' in page
     assert expected in page
 
 

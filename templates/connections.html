@@ -4,7 +4,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
-<html lang="{{ current_locale }}" dir="{{ locale_direction }}">
+<html lang="{{ current_locale }}" dir="{{ locale_direction }}" data-text-size="{{ text_size }}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>{{ t('pages_server.connections.title') }}</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">{% include '_administration_head.html' %}</head>
 <body><main class="fv-ui fv-admin">
   <header><p class="eyebrow">{{ t('core.app.name') }}</p><h1>{{ t('pages_server.connections.title') }}</h1><p class="lede">{{ t('pages_server.connections.lede') }}</p></header>

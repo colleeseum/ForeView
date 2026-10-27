@@ -29,7 +29,7 @@ async function api(url, method = 'GET', payload = undefined) {
 async function language(code) {
   await goto('/application-settings');
   await page.locator('#locale').selectOption(code);
-  await Promise.all([page.waitForNavigation(), page.locator('form button[type="submit"]').click()]);
+  await Promise.all([page.waitForNavigation(), page.locator('form[action="/application-settings/language"] button[type="submit"]').click()]);
   await expect(page.locator('html')).toHaveAttribute('lang', code);
 }
 async function snapshot() {

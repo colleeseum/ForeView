@@ -4,6 +4,10 @@
  */
 
 :root { color-scheme: light; --ink: #17221e; --muted: #69736d; --line: #d8dfda; --paper: #f6f7f2; --accent: #bd4b2f; --accent-soft: #f2ded6; }
+/* Relative to the browser's preferred font size; never disable native zoom. */
+html[data-text-size="small"] { font-size: 100%; --fv-text-scale: 1; }
+html[data-text-size="normal"] { font-size: 112.5%; --fv-text-scale: 1.125; }
+html[data-text-size="large"] { font-size: 125%; --fv-text-scale: 1.25; }
 * { box-sizing: border-box; }
 html, body { max-width: 100%; overflow-x: hidden; }
 body { margin: 0; color: var(--ink); background: radial-gradient(circle at 85% 0%, #e9eee5, transparent 34rem), var(--paper); font-family: Georgia, 'Times New Roman', serif; }

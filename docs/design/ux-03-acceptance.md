@@ -82,8 +82,9 @@ Functional state coverage remains executable rather than inferred from captures:
 
 - Small / Normal / Large text-size persistence is explicitly separate work in
   [#118](https://github.com/colleeseum/ForeView/issues/118), following the maintainer
-  decision during #104. Final sizes/default are not approved. It is not silently
-  waived, implemented or completed by this validation issue.
+  decision during #104. Its subsequently approved scale and preference contract
+  are recorded in the [foundation](ui-foundation.md#text-size-preference).
+  It is not waived, implemented or completed by this validation issue.
 - A genuine parsed transaction preview remains
   [#112](https://github.com/colleeseum/ForeView/issues/112). The current file-selection
   review must not be described as a non-mutating parsed-data preview.

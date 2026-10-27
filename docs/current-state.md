@@ -30,7 +30,7 @@ read-only recovery after committed saves. Projection APIs and calculations are u
 UX-03J adopts shared Sage administration panels, forms, section controls and reference
 tables for Setup, Connections, public rules, application settings, About and Disclaimer.
 Connection status retry remains read-only. Legal content, language persistence and hash
-approval contracts are unchanged. The planned text-size setting is separate work in #118.
+approval contracts are unchanged. Text-size controls are delivered separately by UX-03M (#118).
 UX-03K adopts Sage full help, category navigation, search status and quick-reference
 tooltips, with native modal stacking, keyboard focus return and retained contextual
 destinations and per-field language fallback. Help remains read-only.
@@ -38,6 +38,11 @@ UX-03L integrates the workspace acceptance matrix, read-only cross-page invarian
 checks, approved viewport dimensions, rendered contrast/control samples and
 synthetic stress-value/reflow evidence. The coverage index and outstanding manual
 acceptance boundaries are recorded in `docs/design/ux-03-acceptance.md`.
+UX-03M adds the approved Small / Normal / Large text-size preference under
+Settings > Appearance, persisted per runtime independently of language and table
+density. Small preserves the original typography and is the default; Normal and
+Large use 112.5% and 125% of that scale. Browser zoom and 44px minimum control
+targets are retained.
 No retirement functionality is added.
 
 The current development focus, rather than the permanent product boundary, is factual annual income

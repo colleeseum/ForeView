@@ -4,7 +4,7 @@
 from datetime import date
 from pathlib import Path
 
-from flask import Blueprint, current_app, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 
 from expense_sources import expense_source_registry
 from income_sources import income_source_registry
@@ -40,6 +40,22 @@ def setup():
 @blueprint.get("/application-settings")
 def application_settings():
     return render_template("application_settings.html")
+
+
+@blueprint.post("/application-settings/text-size")
+def set_application_text_size():
+    value = request.form.get("text_size", "")
+    appearance = current_app.extensions["appearance"]
+    try:
+        appearance.select_text_size(value)
+    except ValueError:
+        return render_template("application_settings.html", appearance_error="invalid"), 400
+    except OSError:
+        return render_template(
+            "application_settings.html", appearance_error="failed", requested_text_size=value
+        ), 503
+    flash("pages.settings.appearance.saved", "appearance")
+    return redirect(url_for("pages.application_settings"), code=303)
 
 
 @blueprint.post("/application-settings/language")

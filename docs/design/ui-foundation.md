@@ -37,16 +37,42 @@ usage rather than establish an independent theme definition:
 
 ### Text-size preference
 
-The intended preference is Small / Normal / Large, independently of compact table
-density. The current showcase is the Large reference, not an approved final pixel
-scale. Exact sizes and the default will be decided during adoption. Retain relative
-typography and browser zoom; smaller text must not shrink control hit targets.
+Settings > Appearance > Text size provides Small / Normal / Large independently
+of compact table density. On 2026-10-27 the maintainer revised the scale so the
+previous Large becomes Small: Small at 100%, Normal at 112.5% and Large at 125%
+of the original typography, with Small as the
+default. These are relative to the browser's preferred font size, not fixed pixels.
+At a 16px browser default, the body sizes are 16px, 18px and 20px respectively.
+The original showcase is now the Small reference.
 
-The saved Appearance / Text size setting belongs to UX-03M (#118), separated from
-UX-03J by maintainer decision. This foundation
-does not implement a selector or persist a text-size preference. Subsequent adopters
-must scale headings, labels, tables, dialogs and help consistently rather than
-introducing per-feature size constants.
+UX-03M (#118) persists the selection per runtime in `appearance.json`. The HTML root
+receives the validated preference before first paint, so navigation, rem-based
+shared typography, tables, native dialogs and top-layer help use the same scale.
+Rem-based spacing follows the root scale as well. Browser zoom remains available,
+and smaller text does not reduce the 44px minimum control hit targets. Language
+and browser-origin table density are separate preferences. Missing or malformed
+appearance files use Small without rewriting them; failed saves retain the prior
+setting and show a recoverable error rather than claiming success.
+
+`tests/test_text_size.py` covers validation, atomic save failures, runtime isolation,
+restart persistence, backup compatibility/checksums and unchanged financial reads.
+`tests/browser/text-size.mjs` checks twelve page routes at each size in English,
+French and synthetic RTL, along with desktop/intermediate headings, narrow
+layouts, keyboard saves, saved density, locale changes, dialog/help focus and
+200% text reflow. Text reflow is not native browser-zoom or screen-reader
+certification; verify native zoom manually when accepting the change.
+
+Synthetic narrow-screen references:
+[Small](ux-03m/evidence/en-CA-320-text-size-small.png),
+[Normal](ux-03m/evidence/en-CA-320-text-size-normal.png),
+[Large](ux-03m/evidence/en-CA-320-text-size-large.png),
+[French](ux-03m/evidence/fr-CA-320-text-size-normal.png),
+[synthetic RTL](ux-03m/evidence/ar-XB-320-text-size-normal.png).
+
+On 2026-10-27, full `make qa` passed for this change: 624 Python tests,
+167 integration tests and 112 JavaScript tests, with overall Python branch-aware
+coverage of 91.6%. No coverage thresholds were reduced. Native browser zoom and
+manual maintainer acceptance of the new size selector are not claimed by that run.
 
 ## Component contract
 

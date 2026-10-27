@@ -132,6 +132,14 @@ in their existing modules. Other legacy modal families are unchanged.
 The shared `static/shared/table-density.mjs` adapter restores and saves Assets density
 in browser-origin local storage, independently of runtime financial records or text size.
 Storage denial falls back safely without preventing current-page interaction.
+Application-wide text size is separate: `infrastructure/appearance_preferences.py`
+persists a validated Small / Normal / Large selection atomically in each runtime's
+`appearance.json`. Flask exposes it to all page roots before first paint. The
+CSRF-protected Settings form changes only that preference; relative CSS root sizing
+scales shared typography without changing financial records, locale or table density.
+Verified runtime backups include the optional appearance file; restoring an older
+backup without it returns to the Small default, with the prior preference retained
+in the normal pre-restore safety backup.
 Assets distinguishes loading/error state from successfully loaded empty data. Its
 post-save callback reports read-refresh failures independently of committed mutations,
 with read-only recovery rather than resubmitting the save.

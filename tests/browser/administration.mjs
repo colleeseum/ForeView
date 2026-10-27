@@ -108,7 +108,7 @@ export async function verifyAdministration(page, baseURL, locale, output) {
     }
     if (name === 'settings') {
       await page.locator('#locale').selectOption(locale);
-      await Promise.all([page.waitForNavigation(), page.locator('form button[type="submit"]').click()]);
+      await Promise.all([page.waitForNavigation(), page.locator('form[action="/application-settings/language"] button[type="submit"]').click()]);
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
     }
     if (name === 'about') {

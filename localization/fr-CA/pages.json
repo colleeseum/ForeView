@@ -8,6 +8,14 @@
     "eyebrow": "Administration", "heading": "Paramètres",
     "lede": "Les préférences générales de l’application sont gérées ici.",
     "section": "Paramètres de l’application",
-    "language_help": "Choisissez la langue du texte d’interface propre à ForeView. Les données probantes importées demeurent inchangées."
+    "language_help": "Choisissez la langue du texte d’interface propre à ForeView. Les données probantes importées demeurent inchangées.",
+    "appearance": {
+      "heading": "Apparence", "label": "Taille du texte",
+      "small": "Petite", "normal": "Normale", "large": "Grande",
+      "help": "S’applique dans tout ForeView. Petite conserve la taille d’origine; Normale et Grande l’augmentent. La densité des tableaux et le zoom du navigateur restent indépendants.",
+      "save": "Enregistrer la taille du texte", "saved": "Taille du texte enregistrée.",
+      "invalid": "Choisissez Petite, Normale ou Grande.",
+      "failed": "Impossible d’enregistrer la taille du texte. Le réglage précédent est conservé. Réessayez."
+    }
   }
 }

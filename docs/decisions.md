@@ -69,10 +69,14 @@ Native modal dialogs use the shared lifecycle helper; legacy backdrop workflows 
 until their own feature migrations. The component reference is development-only and creates a
 disposable synthetic runtime rather than registering a production demo route.
 
-The planned text-size preference is Small / Normal / Large, separate from table density.
-The current component showcase is the Large reference; final sizes and the default remain
-undecided. The maintainer separated persisted preference controls into UX-03M (#118),
-outside UX-03J's administration-page modernization and this foundation.
+The text-size preference is Small / Normal / Large, separate from table density.
+On 2026-10-27 the maintainer revised the scale to make the original typography
+the Small baseline: 100%, 112.5% and 125% respectively. Small is the default
+to preserve the original UI; Normal and Large increase it.
+The setting is persisted per runtime in `appearance.json` and rendered on the HTML
+root before first paint. Relative root sizing preserves browser font preferences
+and zoom; shared rem-based spacing follows the scale, while minimum control targets
+remain 44px. Language and table-density preferences are unchanged.
 
 Reason: establish predictable styling and interaction contracts without an unreviewed global
 restyle or simultaneous changes to every feature's workflows.

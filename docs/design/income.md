@@ -60,3 +60,19 @@ financial documents or databases are used.
 - [English desktop](ux-03g/evidence/en-CA-1280-income.png)
 - [French mobile](ux-03g/evidence/fr-CA-390-income.png)
 - [Synthetic RTL correction review](ux-03g/evidence/ar-XB-income-review.png)
+
+## Contextual icon actions (UX-05D, #136)
+
+Annual-history Edit uses the shared pencil with the person and year in its localized
+accessible name. Snapshot correction entry uses the pencil for an uncorrected value
+and the shared View icon for Details or Review. Its name retains that lifecycle
+action, concept, person and tax year; Corrected and Review required badges stay visible.
+Card actions sit at the bottom inline end (right in LTR, left in RTL), aligned
+independently of source-note length and correction badges. Glyphs inherit the shared
+button color. All three modal close controls use the shared Close icon and target-specific labels.
+Delegated tooltips cover refreshed rows and preserve existing action selectors and
+focus return. Add/import, Save, Cancel, source confirmation and correction removal
+retain explicit text. Provider-help choices retain their source labels.
+
+Only presentation changes: source amounts, revision guards, append-only history,
+provenance, request payloads and busy-state behavior retain their existing contracts.

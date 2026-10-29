@@ -5,6 +5,7 @@ import {escapeHtml, htmlWithLanguageSpans, languageSpan} from '../shared/html.mj
 import {t, locale} from '../shared/i18n.mjs';
 import {formatMoneyDollars, formatDisplayDate} from '../shared/locale-format.mjs';
 import {incomeSourceLabel} from '../shared/income-source-label.mjs';
+import {iconAction, initializeIconActions} from '../shared/icon-actions.mjs';
 import {createIncomeDialog} from './income-dialog.mjs';
 import {
   configureIncomeCorrections,
@@ -14,6 +15,8 @@ import {
   initializeIncomeCorrections,
   openIncomeCorrection,
 } from './income-corrections.mjs?v=20261022-1';
+
+initializeIconActions();
 
 const elements = {
   tabs: document.querySelector('#income-tabs'),
@@ -179,7 +182,7 @@ function renderHistory() {
     <td>${money(record.federal_tax)}</td><td>${money(record.provincial_tax)}</td>
     <td><strong>${money(record.disposable_income)}</strong></td>
     <td>${escapeHtml(incomeSourceLabel(record.source))}</td>
-    <td><button class="table-action" type="button" data-edit-year="${record.year}">${t('income.edit')}</button></td>
+    <td>${iconAction('edit', {label: t('actions.edit', {name: [people.find(person => person.id === selectedPersonId)?.name, record.year].filter(Boolean).join(' · ')}), attributes: {'data-edit-year': record.year}})}</td>
   </tr>`).join('');
   elements.history.innerHTML = `<div class="table-wrap"><table class="income-history-table">
     <thead><tr><th>${t('income.year')}</th><th>${t('income.residence')}</th><th>${t('income.employment')}</th><th>${t('income.bonus')}</th><th>${t('income.salary_rate')}</th>
@@ -224,7 +227,7 @@ function renderSummary(snapshot, rooms) {
       <strong class="income-summary-amount">${money(value.amount)}</strong>
       ${presentation ? `<span class="income-correction-badge">${escapeHtml(presentation.badge)}</span>` : ''}
       <small class="income-summary-note">${note}</small>
-      <button class="income-correction-action" type="button" data-correct-concept="${escapeHtml(value.concept)}">${presentation ? escapeHtml(presentation.action) : t('income.correct')}</button>
+      ${iconAction(presentation ? 'view' : 'edit', {label: [presentation ? presentation.action : t('income.correct'), incomeConceptLabel({concept: value.concept, label: value.description ?? value.label ?? value.concept}), people.find(person => person.id === selectedPersonId)?.name, snapshot.tax_year].filter(Boolean).join(' · '), attributes: {'data-correct-concept': value.concept}})}
     </div>`;
     });
   const latestRooms = new Map();

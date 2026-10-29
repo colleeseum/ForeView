@@ -33,6 +33,23 @@ export async function verifyIncome(page, baseURL, locale, output, taxPath) {
   for (const width of [1280, 390, 320]) {
     await page.setViewportSize({width, height: 1000});
     await goto();
+    const cardActions = await page.locator('.income-summary-value').evaluateAll(cards => cards.map(card => {
+      const button = card.querySelector('[data-icon-action]');
+      const cardBox = card.getBoundingClientRect();
+      const actionBox = button.getBoundingClientRect();
+      const style = getComputedStyle(card);
+      const rtl = style.direction === 'rtl';
+      const inlineGap = rtl ? actionBox.left - cardBox.left : cardBox.right - actionBox.right;
+      const border = parseFloat(rtl ? style.borderLeftWidth : style.borderRightWidth);
+      return {bottom: actionBox.bottom, expectedBottom: cardBox.bottom - parseFloat(style.paddingBottom) - parseFloat(style.borderBottomWidth),
+        inlineGap, expectedGap: parseFloat(style.paddingInlineEnd) + border,
+        color: getComputedStyle(button).color, iconColor: getComputedStyle(button.querySelector('.fv-icon')).color};
+    }));
+    for (const placement of cardActions) {
+      assert(Math.abs(placement.bottom - placement.expectedBottom) < 2, 'Card action aligns at the bottom');
+      assert(Math.abs(placement.inlineGap - placement.expectedGap) < 2, 'Card action aligns at the logical end');
+      assert.equal(placement.color, placement.iconColor, 'Glyph inherits the shared action color');
+    }
     const active = page.locator('#income-tabs [aria-pressed="true"]');
     await expect(active).toHaveCSS('background-color', 'rgb(50, 104, 88)');
     await page.locator('.income-source-details > summary').click();
@@ -49,7 +66,15 @@ export async function verifyIncome(page, baseURL, locale, output, taxPath) {
     await expect(editor.locator('[name="tax_year"]')).toBeFocused();
     const box = await editor.boundingBox();
     assert(box.x >= 0 && box.x + box.width <= width);
-    await page.locator('#income-dialog-close').focus();
+    const close = page.locator('#income-dialog-close');
+    await expect(close).toHaveAttribute('data-icon-action', 'close');
+    await close.focus();
+    const tip = editor.locator('[role="tooltip"]');
+    await expect(tip).toBeVisible();
+    await expect(tip).toHaveText(await close.getAttribute('aria-label'));
+    await page.keyboard.press('Escape');
+    await expect(tip).toHaveCount(0);
+    await expect(editor).toBeVisible();
     await page.keyboard.press('Shift+Tab');
     assert(await editor.evaluate(node => node.contains(document.activeElement)));
     await page.keyboard.press('Escape');
@@ -81,6 +106,10 @@ export async function verifyIncome(page, baseURL, locale, output, taxPath) {
   await expect(page.locator('#income-dialog-backdrop')).toBeHidden();
   const underlying = await api(`/api/income?person_id=${id}`);
   const action = page.locator('[data-correct-concept="employment_income"]');
+  await expect(action).toHaveAttribute('data-icon-action', 'edit');
+  await expect(action).toHaveAttribute('aria-label', new RegExp(String(year)));
+  const dimensions = await action.boundingBox();
+  assert(dimensions.width >= 44 && dimensions.height >= 44);
   await action.click();
   const correction = page.locator('#income-correction-backdrop');
   await expect(correction).toHaveAttribute('aria-busy', 'false');
@@ -89,6 +118,7 @@ export async function verifyIncome(page, baseURL, locale, output, taxPath) {
   await page.locator('#income-correction-save').click();
   await expect(correction).toBeHidden();
   await expect(action).toBeFocused();
+  await expect(action).toHaveAttribute('data-icon-action', 'view');
   let data = await api(`/api/income?person_id=${id}`);
   assert.equal(data.corrections.find(item => item.concept === 'employment_income').revision_number, 1);
   assert.deepEqual(data.records, underlying.records, 'Correction never rewrites the annual source');

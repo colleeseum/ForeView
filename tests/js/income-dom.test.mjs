@@ -213,7 +213,13 @@ test('income screen previews a UFile return and saves only after review', async 
   assert.match(document.querySelector('#income-message').textContent, /2 annual records/);
   assert.match(document.querySelector('#income-history').textContent, /2025 Latest/);
   assert.match(document.querySelector('#income-history').textContent, /2024/);
-  assert.match(document.querySelector('#income-history').textContent, /Edit/);
+  for (const button of document.querySelectorAll('#income-history [data-edit-year]')) {
+    assert.equal(button.dataset.iconAction, 'edit');
+    assert.equal(button.textContent, '');
+    assert.match(button.getAttribute('aria-label'), /Edit.*Alex/);
+    assert(button.getAttribute('aria-label').includes(button.dataset.editYear));
+    assert(button.querySelector('.fv-icon--edit[aria-hidden="true"]'));
+  }
   assert.match(document.querySelector('#income-tax-returns').textContent, /Another Tax App/);
   assert.match(document.querySelector('#income-summary').textContent, /Tax year 2025/);
   assert.match(document.querySelector('#income-summary').textContent, /Revenu Québec notice · assessed · CA-QC · line 101/);
@@ -347,6 +353,8 @@ test('income screen creates a correction and can select a historical snapshot', 
     expected_revision: 0,
   });
   assert.match(document.querySelector('#income-summary').textContent, /Corrected/);
+  assert.equal(document.querySelector('[data-correct-concept="employment_income"]').dataset.iconAction, 'view');
+  assert.match(document.querySelector('[data-correct-concept="employment_income"]').getAttribute('aria-label'), /Details.*Employment income.*2025/);
   assert.match(document.querySelector('#income-message').textContent, /correction saved/);
 
   const yearFilter = document.querySelector('[data-income-snapshot-year]');
@@ -438,6 +446,7 @@ test('income screen reviews, edits, confirms, and removes a correction', async (
   await import(`../../static/income/income.mjs?correction-lifecycle=${Date.now()}`);
   await tick(); await tick();
   assert.match(document.querySelector('#income-summary').textContent, /Review required/);
+  assert.match(document.querySelector('[data-correct-concept="employment_income"]').getAttribute('aria-label'), /Review.*Employment income/);
   document.querySelector('[data-correct-concept="employment_income"]').click();
   await tick(); await tick();
   assert.match(document.querySelector('#income-correction-status').textContent, /underlying value or provenance has changed/);

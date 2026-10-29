@@ -3,6 +3,7 @@
 
 import {formatNumber, formatPercent, formatDisplayDate} from '../shared/locale-format.mjs';
 
+import {iconAction} from '../shared/icon-actions.mjs';
 import {saveJson} from './accounts-api.mjs';
 import {t} from '../shared/i18n.mjs';
 import {factualMoney as money} from './accounts-format.mjs';
@@ -71,7 +72,7 @@ export function renderRealEstate(target) {
     const owners = (asset.owners || []).length
       ? asset.owners.map((owner) => `${escapeHtml(owner.name)} (${formatPercent(Number(owner.share), {maximumFractionDigits: 0})})`).join(', ')
       : t('real_estate.unassigned');
-    return `<tr class="real-estate-primary-row"><td>${escapeHtml(asset.name)}</td><td>${escapeHtml(asset.property_type)}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? t('real_estate.yes') : t('real_estate.no')}</td><td>${escapeHtml(formatDisplayDate(asset.valuation_date))}</td><td><button class="table-action" type="button" data-edit-real-estate="${Number(asset.id)}">${t('real_estate.edit')}</button></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>${t('real_estate.owners')}</strong> ${owners}</td></tr>`;
+    return `<tr class="real-estate-primary-row"><td>${escapeHtml(asset.name)}</td><td>${escapeHtml(asset.property_type)}</td><td>${money(asset.estimated_value, true)}</td><td>${money(asset.acb, true)}</td><td></td><td>${asset.principal_residence ? t('real_estate.yes') : t('real_estate.no')}</td><td>${escapeHtml(formatDisplayDate(asset.valuation_date))}</td><td class="asset-row-actions"><span class="asset-action-group">${iconAction('edit', {label: t('actions.edit', {name: asset.name}), attributes: {'data-edit-real-estate': Number(asset.id)}})}</span></td></tr><tr class="real-estate-owner-row"><td></td><td colspan="7"><strong>${t('real_estate.owners')}</strong> ${owners}</td></tr>`;
   }).join('');
   const total = assets.reduce((sum, asset) => sum + Number(asset.estimated_value || 0), 0);
   const content = assets.length

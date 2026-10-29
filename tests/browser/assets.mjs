@@ -20,6 +20,15 @@ export async function verifyAssets(page, baseURL, locale, output) {
     assert(!(await page.locator('main').innerText()).includes('⟦'), 'Asset labels resolve in the selected locale');
     await page.locator('.fv-navigation').evaluate(node => {node.open = false;});
   }
+  async function checkIconTooltip(action) {
+    await action.focus();
+    const tip = page.locator('.fv-icon-tooltip');
+    await expect(tip).toBeVisible();
+    await expect(tip).toHaveText(await action.getAttribute('aria-label'));
+    await page.keyboard.press('Escape');
+    await expect(tip).toHaveCount(0);
+    await expect(action).toBeFocused();
+  }
   async function dismissAndCheck(id, trigger) {
     const modal = page.locator(id);
     await expect(modal).toBeVisible();
@@ -106,6 +115,7 @@ export async function verifyAssets(page, baseURL, locale, output) {
     assert(box.x >= 0 && box.x + box.width <= width);
     await page.screenshot({path: `${output}/${locale}-${width}-account-dialog.png`});
     await dismissAndCheck('#account-dialog', edit);
+    await checkIconTooltip(edit);
     await page.locator('#asset-density').selectOption('standard');
     const header = page.locator('.table-card thead th').first();
     const total = page.locator('.table-card tfoot th').first();
@@ -118,8 +128,14 @@ export async function verifyAssets(page, baseURL, locale, output) {
     await page.locator('#asset-density').selectOption('compact');
     const compact = await page.locator('.table-card tbody tr').first().boundingBox();
     assert(compact.height < standard.height);
-    assert.equal(await page.locator('.table-action').first().evaluate(node => getComputedStyle(node).fontSize), '14px');
-    for (const action of await page.locator('.table-action').all()) assert((await action.boundingBox()).height >= 44);
+    for (const action of await page.locator('.fv-icon-action').all()) {
+      const target = await action.boundingBox();
+      assert(target.height >= 44 && target.width >= 44);
+      assert.equal((await action.innerText()).trim(), '');
+      assert((await action.getAttribute('aria-label')).trim());
+      await expect(action.locator('.fv-icon')).toHaveAttribute('aria-hidden', 'true');
+      assert(await action.locator('.fv-icon').evaluate(node => parseFloat(getComputedStyle(node).width) >= 20));
+    }
     const region = page.locator('.table-card').first();
     await region.focus();
     await expect(region).toBeFocused();

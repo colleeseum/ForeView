@@ -59,6 +59,8 @@ test('delegated tooltips follow keyboard, hover, Escape and refreshed controls w
   assert.equal(doc.activeElement, button);
   assert.equal(doc.querySelector('[role="tooltip"]'), null);
   assert.equal(button.getAttribute('aria-describedby'), 'existing');
+  button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
+  assert.equal(doc.querySelector('[role="tooltip"]'), null, 'Escape survives synthetic pointer entry when the popup disappears');
   doc.querySelector('#outside').focus();
   button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
   tip = doc.querySelector('[role="tooltip"]');

@@ -10,7 +10,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <title>{{ t('pages_server.assets.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/ui.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='accounts/accounts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='accounts/accounts.css', v='20261029-1') }}">
 </head>
 <body><main class="fv-ui fv-assets">
   <header><p class="eyebrow">{{ t('core.app.name') }}</p><h1>{{ t('pages_server.assets.title') }}</h1><p class="lede">{{ t('pages_server.assets.lede') }}</p></header>
@@ -34,5 +34,5 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   {% include '_asset_dialogs.html' %}
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='accounts/accounts.mjs', v='20261007-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='accounts/accounts.mjs', v='20261029-1') }}"></script>
 </body></html>

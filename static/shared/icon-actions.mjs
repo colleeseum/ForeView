@@ -87,10 +87,12 @@ export function initializeIconActions(root = document) {
     const button = control(event.target);
     if (!button || button.contains(event.relatedTarget)) return;
     if (event.type === 'pointerover') hovered = button;
-    suppressed = null;
     show(button);
   }
   function leave(event) {
+    // Removing a tooltip can synthesize pointer entry on its underlying anchor.
+    // Escape remains effective until an actual pointer/focus exit from that control.
+    if (suppressed?.contains(event.target) && !suppressed.contains(event.relatedTarget)) suppressed = null;
     if (!anchor || (!anchor.contains(event.target) && !tooltip.contains(event.target))) return;
     if (event.type === 'pointerout') {
       if (anchor.contains(event.relatedTarget) || tooltip.contains(event.relatedTarget)) {

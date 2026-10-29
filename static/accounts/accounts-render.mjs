@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 import {isSecurityAccount, factualMoney as money} from './accounts-format.mjs';
+import {iconAction} from '../shared/icon-actions.mjs';
 import {accountTypeLabel} from '../shared/account-types.mjs';
 import {renderRealEstate} from './accounts-real-estate.mjs';
 import {assetGroups, assetState} from './accounts-state.mjs';
@@ -33,7 +34,14 @@ function accountRow(account, items, hasMaturity, hasNotInvested) {
     : null;
   const notInvestedCell = notInvested == null ? '' : `<span class="attention-value">${money(notInvested)}</span>`;
   const displayedBalance = account.parent_account_id ? account.latest_amount : account.rollup_amount;
-  const row = `<tr class="${account.asset_kind === 'gic' ? 'subaccount-row' : 'parent-row'}">${account.asset_kind === 'gic' ? `<td colspan="2"><span class="tree-branch">└─</span>${escapeHtml(account.name)}</td>` : `<td>${escapeHtml(account.institution)} · ${escapeHtml(account.account_number)}</td><td>${escapeHtml(account.name)}</td>`}${hasMaturity ? `<td>${escapeHtml(formatDisplayDate(account.maturity_date))}</td>` : ''}<td>${money(displayedBalance, true)}</td>${hasNotInvested ? `<td>${notInvestedCell}</td>` : ''}<td>${account.interest_rate == null ? '' : formatPercent(Number(account.interest_rate), {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td><td>${account.asset_kind === 'gic' ? t(account.redeemable ? 'accounts.yes' : 'accounts.no') : ''}</td><td><button class="table-action" type="button" data-edit-account="${Number(account.id)}">${t('accounts.edit')}</button>${account.asset_kind !== 'gic' ? ` <button class="table-action" type="button" data-add-subaccount="${Number(account.id)}">${t('accounts.add_subaccount')}</button>` : ''}${isSecurityAccount(account) ? ` <button class="table-action" type="button" data-toggle-portfolio="${Number(account.id)}">${t('accounts.portfolio')}</button>` : ''}</td></tr>`;
+  const identity = [account.institution, account.account_number, account.name].filter(Boolean).join(' · ');
+  const actions = [iconAction('edit', {label: t('actions.edit', {name: identity}), attributes: {'data-edit-account': Number(account.id)}})];
+  if (account.asset_kind !== 'gic') actions.push(iconAction('add', {label: `${t('accounts.add_subaccount')} · ${identity}`, attributes: {'data-add-subaccount': Number(account.id)}}));
+  if (isSecurityAccount(account)) {
+    const target = `${t('accounts.portfolio')} · ${identity}`;
+    actions.push(iconAction('expand', {label: t('actions.expand', {name: target}), attributes: {'data-toggle-portfolio': Number(account.id), 'data-portfolio-target': target, 'aria-expanded': 'false', 'aria-controls': `portfolio-${Number(account.id)}`}}));
+  }
+  const row = `<tr class="${account.asset_kind === 'gic' ? 'subaccount-row' : 'parent-row'}">${account.asset_kind === 'gic' ? `<td colspan="2"><span class="tree-branch">└─</span>${escapeHtml(account.name)}</td>` : `<td>${escapeHtml(account.institution)} · ${escapeHtml(account.account_number)}</td><td>${escapeHtml(account.name)}</td>`}${hasMaturity ? `<td>${escapeHtml(formatDisplayDate(account.maturity_date))}</td>` : ''}<td>${money(displayedBalance, true)}</td>${hasNotInvested ? `<td>${notInvestedCell}</td>` : ''}<td>${account.interest_rate == null ? '' : formatPercent(Number(account.interest_rate), {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td><td>${account.asset_kind === 'gic' ? t(account.redeemable ? 'accounts.yes' : 'accounts.no') : ''}</td><td class="asset-row-actions"><span class="asset-action-group">${actions.join('')}</span></td></tr>`;
   const hasGicChildren = account.asset_kind !== 'gic'
     && items.some((child) => child.parent_account_id === account.id && child.asset_kind === 'gic');
   if (!hasGicChildren) return row;
@@ -42,7 +50,7 @@ function accountRow(account, items, hasMaturity, hasNotInvested) {
 }
 
 function accountTable(items, hasMaturity, hasNotInvested, totalText) {
-  const columns = [18, 11, ...(hasMaturity ? [13] : []), 14, ...(hasNotInvested ? [10] : []), 6, 6, 23];
+  const columns = [18, 11, ...(hasMaturity ? [13] : []), 14, ...(hasNotInvested ? [10] : []), 6, 6, 16];
   const width = columns.reduce((sum, value) => sum + value, 0);
   const colgroup = `<colgroup>${columns.map((value) => `<col style="width:${(value / width * 100).toFixed(2)}%">`).join('')}</colgroup>`;
   const rows = items.map((account) => accountRow(account, items, hasMaturity, hasNotInvested)).join('');
@@ -96,6 +104,10 @@ export function renderAssets({openAccount, openGic}) {
     const portfolio = target.querySelector(`#portfolio-${button.dataset.togglePortfolio}`);
     const visible = portfolio && !portfolio.hidden;
     if (portfolio) portfolio.hidden = visible;
-    button.textContent = visible ? t('accounts.portfolio') : t('accounts.hide_portfolio');
+    const action = visible ? 'expand' : 'collapse';
+    button.setAttribute('aria-expanded', String(!visible));
+    button.dataset.iconAction = action;
+    button.setAttribute('aria-label', t(`actions.${action}`, {name: button.dataset.portfolioTarget}));
+    button.querySelector('.fv-icon').className = `fv-icon fv-icon--${action}`;
   }));
 }

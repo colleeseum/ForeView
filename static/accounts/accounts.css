@@ -18,7 +18,8 @@
 .fv-assets .table-card tfoot tr:first-child th { border-block-start: 3px solid var(--fv-primary); }
 .fv-assets[data-table-density="compact"] .table-card :is(th, td) { padding-block: var(--fv-space-2); }
 .fv-assets .table-card td:last-child { min-width: 12rem; }
-.fv-assets .table-card .table-action, .fv-assets .asset-section .table-card td:last-child .table-action { min-height: var(--fv-control-min); min-width: var(--fv-control-min); border: 1px solid var(--fv-control-border); border-radius: var(--fv-radius-control); background: var(--fv-surface); color: var(--fv-primary); padding: var(--fv-space-2); margin: var(--fv-space-1); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); cursor: pointer; }
+.fv-assets .table-card td.asset-row-actions { min-width: 0; }
+.fv-assets .asset-action-group { display: inline-flex; align-items: center; gap: var(--fv-space-2); white-space: nowrap; }
 .fv-assets .section-add-account { min-height: var(--fv-control-min); margin: 0; border-color: var(--fv-primary); border-radius: var(--fv-radius-control); color: var(--fv-surface); background: var(--fv-primary); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); }
 .fv-assets .fv-dialog { width: min(56rem, calc(100% - 2rem)); }
 .fv-assets .fv-dialog h2 { padding-inline-end: var(--fv-space-8); }

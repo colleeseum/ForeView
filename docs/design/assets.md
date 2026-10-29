@@ -19,7 +19,8 @@ not font size or action targets. The last selection is saved in browser local st
 and restored on refresh or return to Assets. It is scoped to the browser origin
 (including host/port), not stored in financial records or synchronized across browsers.
 Invalid or unavailable storage falls back to Standard; a blocked write still allows
-the current-page choice. The Small/Normal/Large text preference remains deferred to #104.
+the current-page choice. Small/Normal/Large under Settings > Appearance independently
+scales text and controls.
 An empty workspace retains the active category's Add action.
 
 The account, GIC and property editors are native modal dialogs. The shared controller
@@ -80,3 +81,26 @@ Name grouped below it. The selected parent's complete identifier is repeated as
 wrapping text so native select truncation does not hide it on narrow screens.
 Child-row branches and rails use the Sage primary and neutral border tokens,
 not the legacy orange accents.
+
+## Contextual icon actions (UX-05B, #134)
+
+Account/GIC and property row edits, Add subaccount and portfolio expansion use the
+shared icon-action factory and delegated tooltips. Section-level Add and dialog
+Save/Cancel buttons retain visible labels. Accessible names identify the account
+(institution, account number and name) or property; user-entered names remain text.
+Portfolio controls pair the expand/collapse icon and localized name with
+`aria-expanded` and `aria-controls`. Their existing read-only toggle is unchanged.
+
+Action groups use the shared 44px minimum target and spacing instead of separate
+text-button styling. The action column is narrower; monetary and ownership columns
+retain their contents. Existing data hooks, dialog guards, save payloads and
+post-refresh focus restoration remain intact. Delegated tooltips support replacement
+rows, keyboard focus, RTL and larger text through the common UX-05A implementation.
+
+DOM and Chromium regressions retain factual read-model and mutation-payload checks,
+verify literal source names without injected elements, and exercise shared icon
+labels/targets, portfolio states and keyboard tooltips.
+
+Assets adoption also guards a shared-tooltip Escape race: removing the popup can
+synthesize pointer entry on its anchor. Dismissal now persists until a genuine
+pointer/focus exit, preventing immediate reopening over the still-focused action.

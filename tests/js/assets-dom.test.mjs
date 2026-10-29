@@ -120,13 +120,30 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   document.querySelector('#retry-assets').click();
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.match(content.textContent, /Questrade/);
-  assert.equal(content.innerHTML.includes(attack), false);
-  content.querySelector('[data-toggle-portfolio="1"]').click();
+  assert.equal(content.querySelector('img, [onerror]'), null);
+  assert(content.textContent.includes(attack), 'Source names remain literal visible text');
+  const portfolioToggle = content.querySelector('[data-toggle-portfolio="1"]');
+  assert.equal(portfolioToggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(portfolioToggle.getAttribute('aria-controls'), 'portfolio-1');
+  assert.equal(portfolioToggle.dataset.iconAction, 'expand');
+  for (const action of content.querySelectorAll('.fv-icon-action')) {
+    assert.equal(action.type, 'button');
+    assert(action.getAttribute('aria-label').trim());
+    assert.equal(action.textContent, '');
+    assert.equal(action.querySelector('.fv-icon').getAttribute('aria-hidden'), 'true');
+  }
+  assert(content.querySelector('[data-edit-account="1"]').getAttribute('aria-label').includes(attack));
+  portfolioToggle.click();
+  assert.equal(portfolioToggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(portfolioToggle.dataset.iconAction, 'collapse');
+  assert(portfolioToggle.getAttribute('aria-label').includes('Collapse'));
   assert.equal(content.querySelector('#portfolio-1').hidden, false);
   assert.equal(content.querySelector('#portfolio-1 tbody td:first-child span').lang, '');
   assert.equal(content.querySelector('#portfolio-1 tbody td:nth-child(2) span').lang, '');
   content.querySelector('[data-toggle-portfolio="1"]').click();
   assert.equal(content.querySelector('#portfolio-1').hidden, true);
+  assert.equal(portfolioToggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(portfolioToggle.dataset.iconAction, 'expand');
 
   content.querySelector('[data-edit-account="1"]').click();
   const accountForm = document.querySelector('#account-dialog-form');
@@ -188,7 +205,8 @@ test('assets module renders account, portfolio, GIC, and real-estate views', asy
   assert.match(content.textContent, /Land/);
   assert.match(content.textContent, /1 asset/);
   assert.doesNotMatch(content.textContent, /1 assets/);
-  assert.equal(content.innerHTML.includes(attack), false);
+  assert.equal(content.querySelector('img, [onerror]'), null);
+  assert(content.textContent.includes(attack), 'Source names remain literal visible text');
 
   content.querySelector('[data-edit-real-estate="9"]').click();
   assert.equal(document.querySelector('#real-estate-dialog').hidden, false);

@@ -7,8 +7,11 @@ import {initializeRealEstate} from './accounts-real-estate.mjs';
 import {renderAssets} from './accounts-render.mjs';
 import {assetState} from './accounts-state.mjs';
 import {initializeGicDialog, openGicDialog} from './gic-dialog.mjs';
+import {initializeIconActions} from '../shared/icon-actions.mjs';
 import {t} from '../shared/i18n.mjs';
 import {initializeTableDensity} from '../shared/table-density.mjs';
+
+initializeIconActions();
 
 const tabs = document.querySelectorAll('.view-tab');
 let loadState = 'loading';

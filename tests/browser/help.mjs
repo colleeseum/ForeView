@@ -50,15 +50,20 @@ export async function verifyHelp(page, baseURL, locale, output) {
   await expect(modal).toBeHidden();
   await expect(opener).toBeFocused();
 
-  // Import instructions stay readable inside the existing feature-owned dialog.
+  // The expense title button opens the generic topic in the main help surface.
   await page.locator('#expense-import').click();
   const importDialog = page.locator('#expense-import-dialog-backdrop');
-  const providerButton = importDialog.locator('[data-help-article]').first();
-  const providerKey = await providerButton.getAttribute('data-help-article');
+  const providerButton = importDialog.locator('[data-help-article="expense-import"]');
+  const providerKey = 'expense-import';
   const provider = catalog.articles.find(article => article.key === providerKey);
   await providerButton.click();
-  await expect(importDialog.locator('[data-import-help]')).toContainText(provider.body);
-  await expect(importDialog.locator('[data-import-help] p').last()).toHaveAttribute('lang', provider.field_languages?.body || provider.language || catalog.language);
+  await expect(modal).toBeVisible();
+  await expect(page.locator('.help-article-body')).toHaveText(provider.body);
+  await expect(page.locator('.help-article-body')).toHaveAttribute('lang', provider.field_languages?.body || provider.language || catalog.language);
+  await page.keyboard.press('Escape');
+  await expect(modal).toBeHidden();
+  await expect(importDialog).toBeVisible();
+  await expect(providerButton).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(importDialog).toBeHidden();
 

@@ -155,7 +155,6 @@ def _page(
             people=PersonRepository(connection).list_all(),
             accounts=AccountRepository(connection).summary_rows(),
             real_estate=RealEstateAssetRepository(connection).list_all(),
-            expense_sources=expense_source_registry.providers,
             error=error,
             error_language=error_language,
             message=message,

@@ -249,6 +249,7 @@
     "import_statement": "Importer un relevé de dépenses",
     "how_get": "Comment obtenir",
     "choose_pdfs": "Choisir des fichiers PDF",
+    "supported_sources": "Relevés pris en charge et aide à l’importation",
     "preview": "Aperçu",
     "analysing": "Analyse du PDF…",
     "detected_source": "Source détectée :",

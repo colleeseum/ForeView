@@ -42,6 +42,64 @@ def test_provider_fallback_per_field(tmp_path):
     assert languages == {"title": "fr-CA", "body": "en-CA"}
 
 
+@pytest.mark.parametrize("fallback", ["en-CA", "fr-CA"])
+@pytest.mark.parametrize(
+    "translated",
+    [
+        {"title": "Título"},
+        {"summary": "Resumen"},
+        {"title": "Título", "summary": "Resumen", "body": None},
+        {"title": "Título", "body": ""},
+        {"title": "Título", "body": "Información sin marcador."},
+        {"title": "Título", "body": "Información {soruces}."},
+        {"title": "Título", "body": "Información {sources}."},
+    ],
+)
+def test_expense_import_partial_translations_and_registry_list(tmp_path, fallback, translated):
+    import shutil
+
+    from expense_sources.registry import expense_source_registry
+
+    root = tmp_path / "catalogs"
+    shutil.copytree(Path(__file__).resolve().parents[1] / "localization", root)
+    registry = json.loads((root / "registry.json").read_text())
+    registry["locales"].append({"code": "es-MX", "native_name": "Español", "fallback": fallback})
+    (root / "registry.json").write_text(json.dumps(registry))
+    (root / "es-MX").mkdir()
+    (root / "es-MX" / "help.json").write_text(
+        json.dumps({"articles": {"expense-import": translated}})
+    )
+    service = LocalizationService(root, tmp_path / "runtime")
+    service.select("es-MX")
+    app = Flask(__name__)
+    app.extensions["localization"] = service
+    app.register_blueprint(blueprint)
+    article = next(
+        a
+        for a in app.test_client().get("/api/help").get_json()["articles"]
+        if a["key"] == "expense-import"
+    )
+    for field in ("title", "summary"):
+        if field in translated:
+            assert article[field] == translated[field]
+            assert article["field_languages"][field] == "es-MX"
+        else:
+            assert article["field_languages"][field] == fallback
+    body_language = "es-MX" if translated.get("body") else fallback
+    assert article["field_languages"]["body"] == body_language
+    expected = {
+        localized_fields({"display_name": p.display_name}, p.translations, body_language, service)[
+            0
+        ]["display_name"]
+        for p in expense_source_registry.providers
+    }
+    actual = {
+        line.removeprefix("• ") for line in article["body"].splitlines() if line.startswith("• ")
+    }
+    assert actual == expected
+    assert "{sources}" not in article["body"]
+
+
 def test_provider_additional_locale_uses_registry_without_core_changes(tmp_path):
     root = tmp_path / "localization"
     root.mkdir()
@@ -185,7 +243,7 @@ def test_french_seasonal_guidance_retains_stream_and_availability_constraints(tm
         ("tax-notice-cra-noa", "numéro d’assurance sociale"),
         ("tax-notice-revenu-quebec-noa", "RQAP"),
         ("public-pension-retraite-quebec-participation", "incomplètes"),
-        ("expense-source-hydro-quebec", "versements égaux"),
+        ("expense-import", "détecte automatiquement"),
     ],
 )
 def test_provider_help_text_translations_reach_full_help(tmp_path, key, fragment):

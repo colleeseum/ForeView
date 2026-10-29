@@ -5,17 +5,31 @@ import {escapeHtml} from '../shared/html.mjs';
 import {t, locale} from '../shared/i18n.mjs';
 import {createDialog} from '../shared/dialog.mjs';
 
-const catalogPromise = fetch('/api/help').then(async (response) => {
-  const catalog = await response.json();
-  if (!response.ok) {
-    const error = new Error(catalog.error || t('help.load_error'));
-    error.language = catalog.error ? 'en-CA' : locale;
+let catalogPromise;
+function loadCatalog() {
+  if (catalogPromise) return catalogPromise;
+  catalogPromise = fetch('/api/help').then(async (response) => {
+    const catalog = await response.json();
+    if (!response.ok) {
+      const error = new Error(catalog?.error || t('help.load_error'));
+      error.language = catalog?.error ? 'en-CA' : locale;
+      throw error;
+    }
+    if (!catalog || !Array.isArray(catalog.articles) || !Array.isArray(catalog.tooltips)
+        || (catalog.categories !== undefined && !Array.isArray(catalog.categories))) {
+      const error = new Error(t('help.load_error'));
+      error.language = locale;
+      throw error;
+    }
+    return catalog;
+  }).catch(error => {
+    catalogPromise = null;
     throw error;
-  }
-  return catalog;
-});
+  });
+  return catalogPromise;
+}
 // Help is fetched eagerly, but failures are presented when the user opens it.
-catalogPromise.catch(() => {});
+loadCatalog().catch(() => {});
 
 const tooltip = document.createElement('section');
 tooltip.className = 'help-tooltip fv-ui';
@@ -209,7 +223,7 @@ async function openFullHelp(key = null) {
   status.textContent = t('help.loading');
   search.focus();
   try {
-    const catalog = await catalogPromise;
+    const catalog = await loadCatalog();
     if (version !== renderVersion || backdrop.hidden) return;
     renderResults(catalog.articles, key || pageArticleKey(), catalog.language || 'en-CA', catalog.categories || []);
   } catch (error) {
@@ -222,7 +236,7 @@ async function openTooltip(key, anchor) {
   closeTooltip();
   const version = tooltipVersion;
   try {
-    const catalog = await catalogPromise;
+    const catalog = await loadCatalog();
     if (version !== tooltipVersion || !anchor.isConnected) return;
     const content = catalog.tooltips.find((item) => item.key === key);
     if (!content) return;
@@ -285,7 +299,7 @@ results.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-help-result]');
   if (!button) return;
   const version = renderVersion;
-  const catalog = await catalogPromise;
+  const catalog = await loadCatalog();
   if (version !== renderVersion || backdrop.hidden) return;
   showArticle(
     catalog.articles.find((article) => article.key === button.dataset.helpResult),
@@ -298,7 +312,7 @@ results.addEventListener('click', async (event) => {
 search.addEventListener('input', async () => {
   const version = ++renderVersion;
   try {
-    const catalog = await catalogPromise;
+    const catalog = await loadCatalog();
     if (version !== renderVersion || backdrop.hidden) return;
     const matches = matchingArticles(catalog.articles, search.value, catalog.categories || []);
     renderResults(matches, selectedArticleKey, catalog.language || 'en-CA', catalog.categories || [], Boolean(search.value.trim()));

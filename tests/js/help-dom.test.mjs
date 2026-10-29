@@ -188,6 +188,44 @@ test('full help reports a catalog loading failure', async () => {
   dom.window.close();
 });
 
+for (const failure of ['network', 'http', 'json', 'shape']) {
+  test(`context help retries after ${failure} failure and shares a pending retry`, async () => {
+    const dom = installDom();
+    let calls = 0;
+    let release;
+    globalThis.fetch = () => {
+      calls++;
+      if (calls === 1) {
+        if (failure === 'network') return Promise.reject(new TypeError('Network unavailable'));
+        if (failure === 'json') return Promise.resolve({ok: true, json: async () => {throw new SyntaxError('Invalid JSON');}});
+        if (failure === 'shape') return Promise.resolve({ok: true, json: async () => ({})});
+        return Promise.resolve({ok: false, json: async () => ({error: 'Unavailable'})});
+      }
+      return new Promise(resolve => {release = resolve;});
+    };
+    await import(`../../static/help/help.mjs?retry=${failure}`);
+    await tick();
+    const invoker = document.querySelector('[data-help-article]');
+    invoker.focus();
+    invoker.click();
+    await tick();
+    assert.equal(calls, 2);
+    document.querySelector('.help-drawer-close').click();
+    assert.equal(document.activeElement, invoker);
+    invoker.click();
+    await tick();
+    assert.equal(calls, 2, 'Reopening shares the pending retry');
+    release({ok: true, json: async () => catalog});
+    await tick();
+    assert.equal(document.querySelector('.help-article h2').textContent, 'Loading UFile');
+    document.querySelector('.help-drawer-close').click();
+    invoker.click();
+    await tick();
+    assert.equal(calls, 2, 'Successful catalogs remain cached');
+    dom.window.close();
+  });
+}
+
 test('full help localizes its browser-generated controls', async () => {
   const dom = installDom('http://localhost/income', null, 'fr-CA');
   globalThis.fetch = async () => ({ok: true, json: async () => catalog});

@@ -249,7 +249,11 @@ class AppRouteTests(unittest.TestCase):
         expenses = unescape(self.client.get("/expenses").get_data(as_text=True))
         self.assertIn('<span lang="fr-CA">PDF T1 UFile</span>', income)
         self.assertIn('<span lang="fr-CA">Avis de cotisation de l’ARC</span>', income)
-        self.assertIn('<span lang="fr-CA">Facture d’électricité d’Hydro-Québec</span>', expenses)
+        self.assertIn("Relevés pris en charge et aide à l’importation", expenses)
+        articles = self.client.get("/api/help").get_json()["articles"]
+        hydro = next(article for article in articles if article["key"] == "expense-import")
+        self.assertIn("Facture d’électricité d’Hydro-Québec", hydro["body"])
+        self.assertEqual(hydro["field_languages"]["title"], "fr-CA")
         source = self.client.get("/api/income/sources").get_json()["sources"][0]
         self.assertEqual(source["display_name"], "UFile T1 PDF")
         self.assertEqual(source["presentation"]["display_name"], "PDF T1 UFile")
@@ -1609,7 +1613,7 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(articles["institution-rbc-imports"]["category"], "imports")
         self.assertEqual(articles["institution-questrade-connection"]["category"], "connections")
         self.assertEqual(articles["income-source-ufile"]["category"], "tax-documents")
-        self.assertEqual(articles["expense-source-hydro-quebec"]["category"], "expense-imports")
+        self.assertEqual(articles["expense-import"]["category"], "expense-imports")
         provider = SimpleNamespace(
             key="synthetic",
             display_name="Synthetic",

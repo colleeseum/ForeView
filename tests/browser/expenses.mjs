@@ -21,6 +21,45 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
     await page.locator('.fv-navigation').evaluate(node => {node.open = false;});
     assert(!(await page.locator('main').innerText()).includes('⟦'));
   }
+  async function openImportHelp() {
+    const entry = page.locator('#expense-import-dialog-backdrop [data-help-article="expense-import"]');
+    await expect(entry).toHaveCount(1);
+    await expect(entry).toHaveAccessibleName(/.+/);
+    assert.equal((await entry.innerText()).trim(), '?');
+    assert(await entry.evaluate(node => {
+      const box = node.getBoundingClientRect();
+      return box.width >= 44 && box.height >= 44 && Math.abs(box.width - box.height) < 1
+        && getComputedStyle(node).borderRadius === getComputedStyle(document.querySelector('.full-help-button')).borderRadius
+        && node.previousElementSibling?.id === 'import-dialog-title';
+    }), 'Title help matches the main help shape and preserves a 44px target');
+    await entry.click();
+    await expect(page.locator('.help-drawer-backdrop')).toBeVisible();
+    await expect(page.locator('[data-help-result="expense-import"]')).toHaveAttribute('aria-current', 'true');
+    const importTopics = await page.evaluate(async () => (await (await fetch('/api/help')).json()).articles.filter(article => article.category === 'expense-imports').map(article => article.key));
+    assert.deepEqual(importTopics, ['expense-import']);
+    const expected = await page.evaluate(async () => {
+      const data = await (await fetch('/api/help')).json();
+      return data.articles.find(article => article.key === 'expense-import');
+    });
+    await expect(page.locator('.help-article-body')).toHaveText(expected.body);
+  }
+  async function returnToImport() {
+    await page.locator('.help-drawer-close').click();
+    await expect(page.locator('.help-drawer-backdrop')).toBeHidden();
+    await expect(page.locator('#expense-import-dialog-backdrop')).toBeVisible();
+    await expect(page.locator('.expense-import-help-button')).toBeFocused();
+  }
+  async function primaryAction(id) {
+    const action = page.locator(id);
+    await expect(action).toBeVisible();
+    assert(await action.evaluate(node => node.parentElement.classList.contains('fv-dialog-actions')));
+    const position = await action.evaluate(node => {
+      const cancel = document.querySelector('#import-cancel').getBoundingClientRect();
+      const primary = node.getBoundingClientRect();
+      return {cancel: {x: cancel.x, y: cancel.y}, primary: {x: primary.x, y: primary.y}, rtl: getComputedStyle(node).direction === 'rtl'};
+    });
+    assert(position.primary.y > position.cancel.y || (position.rtl ? position.primary.x < position.cancel.x : position.primary.x > position.cancel.x));
+  }
   await goto();
   const original = await api();
   const originalTotals = await page.locator('.expense-summary-grid').allTextContents();
@@ -116,10 +155,15 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   const files = ['first', 'duplicate'].map(part => ({name: `hydro-${locale}-${part}.pdf`, mimeType: 'application/pdf', buffer}));
   await page.locator('#expense-import').click();
   await expect(page.locator('#import-preview-btn')).toBeDisabled();
-  await page.locator('#expense-import-dialog-backdrop [data-help-article]').first().click();
-  await expect(page.locator('[data-import-help] strong')).toBeVisible();
+  await openImportHelp();
+  await returnToImport();
   await page.locator('#expense-import-file').setInputFiles(files);
   for (const file of files) await expect(page.locator('#expense-file-review')).toContainText(file.name);
+  await openImportHelp();
+  await returnToImport();
+  assert.equal(await page.locator('#expense-import-file').evaluate(node => node.files.length), files.length);
+  await primaryAction('#import-preview-btn');
+  await page.screenshot({path: `${output}/${locale}-import-selection.png`, fullPage: true});
   let release;
   const hold = new Promise(resolve => {release = resolve;});
   let previews = 0;
@@ -133,12 +177,21 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   await expect(page.locator('#expense-import-dialog-backdrop')).toBeVisible();
   release();
   await expect(page.locator('#import-step-preview')).toBeVisible();
+  await expect(page.locator('#import-preview-btn')).toBeHidden();
+  await primaryAction('#import-confirm');
+  await page.screenshot({path: `${output}/${locale}-import-review.png`, fullPage: true});
   assert.equal(previews, 1);
   await page.unroute('**/api/expenses/import/preview', delay);
   for (let index = 0; index < 2; index++) {
     await expect(page.locator('#import-confirm')).toBeEnabled();
     await page.locator('#import-name').fill(`Hydro identity ${locale}`);
     await page.locator('#import-category').selectOption(categoryId);
+    if (index === 0) {
+      await openImportHelp();
+      await returnToImport();
+      await expect(page.locator('#import-name')).toHaveValue(`Hydro identity ${locale}`);
+      await expect(page.locator('#import-category')).toHaveValue(categoryId);
+    }
     await page.locator('#import-confirm').click();
     if (index === 0) await expect(page.locator('#expense-import-queue-status')).toContainText(files[1].name);
   }
@@ -157,8 +210,8 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   const resolved = (await api()).filter(item => imports.some(record => record.id === item.id));
   assert.deepEqual(resolved.map(item => item.overlap_status).sort(), ['resolved_exclude', 'resolved_include']);
   await page.locator('#expense-import').click();
-  await page.locator('#expense-import-dialog-backdrop [data-help-article="expense-source-energir"]').click();
-  await expect(page.locator('[data-import-help] strong')).toContainText('Énergir');
+  await openImportHelp();
+  await returnToImport();
   await page.locator('#expense-import-file').setInputFiles(energirPath);
   await page.locator('#import-preview-btn').click();
   await expect(page.locator('#import-step-preview')).toBeVisible();
@@ -178,8 +231,8 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   assert.equal(gas[0].period_end, '2026-01-14');
   const beforeTaxPreview = await api();
   await page.locator('#expense-import').click();
-  await page.locator('#expense-import-dialog-backdrop [data-help-article="expense-source-montreal-tax"]').click();
-  await expect(page.locator('[data-import-help] strong')).toContainText('Montréal');
+  await openImportHelp();
+  await returnToImport();
   await page.locator('#expense-import-file').setInputFiles(montrealPath);
   await page.locator('#import-preview-btn').click();
   await expect(page.locator('#import-step-preview')).toBeVisible();
@@ -255,6 +308,9 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
     await goto();
     await page.locator('#expense-import').click();
     await expect(page.locator('#expense-import-form')).toHaveCount(0);
+    await openImportHelp();
+    await returnToImport();
+    await expect(page.locator('#import-preview-btn')).toHaveCount(0);
     await expect(page.locator('#import-open-categories')).toBeVisible();
     await page.locator('#import-open-categories').click();
     await expect(page.locator('#category-editor-backdrop')).toHaveJSProperty('open', true);

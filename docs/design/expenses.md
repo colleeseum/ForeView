@@ -18,6 +18,36 @@ explicitly adopts the new category's current name and classification.
 
 ## Dialog and save lifecycle
 
+UX-04 (#127) provides one **?** button immediately after the import title,
+using the same rounded-square shape and styling tokens as the main-page Help
+control. Its localized accessible label and tooltip identify import help, and
+its target remains at least 44px. It uses the existing contextual-help handler
+to open the main Help on **Import expense statements**, including before category
+setup. This generic topic explains automatic vendor/municipality detection from
+the PDF, preview and confirmation, rejection of unsupported PDFs, and lists the
+registered sources. The registry supplies that list automatically. There is no
+separate in-dialog directory or extra help navigation. Closing main Help restores
+focus to the title button without changing the file queue or draft values.
+Expense imports has only this one topic, without separate provider entries. It
+also notes that support for additional vendors and cities can be requested.
+The source list is appended independently of translated prose, after per-field
+fallback resolves the body and its language. Partial title/summary translations
+therefore remain usable even when a body falls back. Main Help shares pending and
+successful catalog requests, but discards failed requests so reopening can retry
+after network, HTTP, JSON or catalog-shape failures without reloading the page.
+
+The footer groups Cancel before the primary Preview action in logical reading
+order. On successful analysis, Confirm replaces Preview in the same position;
+analysis errors restore Preview. Busy guards and queue behavior are unchanged.
+The shared footer wraps on narrow screens and follows RTL direction.
+
+Regression checks cover main-Help stacking and focus return in
+English, French and synthetic RTL, preserved files and draft values, matching
+main-page/title-help shapes, primary-action placement and category setup. Route
+tests verify that expense imports has exactly one generic article, listing the
+registered sources and the request-support note in each supported locale.
+Narrow-screen selection/review screenshots were inspected.
+
 EXP-01C (#43) adds the verified English and French Montréal annual municipal-tax accounts
 through the same preview and confirmation workflow. The printed account total is
 an annual billed obligation over its stated January-December taxation period,

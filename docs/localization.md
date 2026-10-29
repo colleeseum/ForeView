@@ -64,7 +64,7 @@ expose a separate `presentation` object, including `field_languages`, while pres
 identity, source labels, help text and parser provenance. Providers may translate `display_name`
 and `help_text` independently; blank or absent fields fall back without hiding the button. Imported
 evidence and preview provenance continue to use the original values, not this presentation object.
-For tax, pension and expense help articles, translated `help_text` supplies the full-help body
+For tax and pension help articles, translated `help_text` supplies the full-help body
 unless the provider explicitly supplies `body`. Institution `HelpTopic` fields retain their
 existing title/body contract. The transaction import dialog resolves those topics independently
 and preserves their language-marked content when reopened, rather than flattening them into a

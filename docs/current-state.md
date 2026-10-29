@@ -104,7 +104,14 @@ synthetic RTL registration and browser fallback, unchanged financial read models
 inline layout rules. Real Chromium acceptance now exercises English/French create/edit/import
 workflows, calculated-result invariance, RTL placement, focus, Escape and mobile layout against
 an isolated synthetic runtime. See `docs/localization.md` for the acceptance scope and exclusions.
-Import-help buttons resolve provider display translations with per-field language metadata.
+Expense import has a rounded-square ? button matching the main-page Help control.
+It opens the main Help on a generic topic explaining automatic PDF source detection
+and listing supported vendors/municipalities from the registry.
+The topic replaces separate provider entries and notes that more vendors and
+cities can be requested. Closing Help
+preserves the selected file queue and draft fields. Cancel and primary Preview
+share the footer; Confirm replaces Preview during review, with logical RTL order.
+Other import-help buttons resolve provider display translations with per-field language metadata.
 Built-in tax, pension, expense and institution import instructions have French translations,
 shared with full help and retained as language-tagged fields in the transaction dialog.
 Explicit request validations now expose stable error codes, localized text and resolved language;

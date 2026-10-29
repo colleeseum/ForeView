@@ -43,6 +43,11 @@
     }
   },
   "articles": {
+    "expense-import": {
+      "title": "Importer des relevés de dépenses",
+      "summary": "Détection automatique des PDF et sources prises en charge.",
+      "body": "Choisissez un ou plusieurs PDF dans Dépenses > Charger un relevé de dépenses. ForeView détecte automatiquement le fournisseur ou la municipalité dans le PDF; vous n’avez pas à choisir une source. Vérifiez le montant et la période détectés, confirmez le nom, la catégorie et l’association, puis enregistrez. Si le PDF n’est pas pris en charge, aucune dépense n’est créée.\n\nVous pouvez demander la prise en charge d’autres fournisseurs et municipalités.\n\nFournisseurs et municipalités pris en charge :"
+    },
     "connections": {
       "title": "Connexions aux institutions",
       "summary": "Gérer les connexions directes séparément des importations de documents.",

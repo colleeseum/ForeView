@@ -19,7 +19,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
     <div id="category-dialog-backdrop" hidden><section><button id="category-dialog-close" class="dialog-close"></button><button id="category-add"></button></section></div>
     <div id="category-editor-backdrop" hidden><section><button id="category-editor-close" class="dialog-close"></button><h2 id="category-editor-title"></h2><form id="category-editor-form" data-create-action="/expenses/categories"><input name="name"><select name="classification"><option value="required">Required</option></select><label id="category-status-field"><select name="active"><option value="true">Active</option></select></label><button id="category-editor-cancel"></button><button id="category-editor-save"></button></form></section></div>
     <button id="expense-import"></button>
-    <div id="expense-import-dialog-backdrop" hidden><section><button id="expense-import-close" class="dialog-close"></button><button data-help-article="synthetic-provider" type="button">Help</button>
+    <div id="expense-import-dialog-backdrop" hidden><section><button id="expense-import-close" class="dialog-close"></button><button data-help-article="expense-import" type="button">?</button>
       <form id="expense-import-form">
         <div id="import-step-file"><input id="expense-import-file" type="file" multiple><ul id="expense-file-review"></ul><button id="import-preview-btn" type="button" disabled></button></div>
         <p id="expense-import-queue-status" hidden></p>
@@ -37,10 +37,8 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   });
   installExpenseDialogs(dom);
   const calls = [];
-  let helpMode = 'success';
   globalThis.fetch = async (url, options) => {
     calls.push({url: String(url), options});
-    if (url === '/api/help') return {ok: helpMode !== 'failure', json: async () => ({articles: helpMode === 'missing' ? [] : [{key: 'synthetic-provider', title: 'Synthetic help', summary: 'Summary', body: '<b>Original source</b>', field_languages: {body: 'fr-CA'}}]})};
     if (String(url).endsWith('/preview')) {
       const filename = options.body.get('file').name;
       const second = filename.includes('hydro-february');
@@ -94,19 +92,6 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.equal(completionUrl.searchParams.get('imported'), '12');
   assert.equal(completionUrl.searchParams.get('imported_years'), '2024,2025,2026');
   document.querySelector('#expense-import').click();
-  const helpButton = document.querySelector('[data-help-article]');
-  helpButton.click();
-  await tick();
-  const help = document.querySelector('[data-import-help]');
-  assert.match(help.textContent, /Original source/);
-  assert.equal(help.querySelector('b'), null);
-  assert.equal(help.querySelector('p:last-child').lang, 'fr-CA');
-  for (const mode of ['missing', 'failure']) {
-    helpMode = mode;
-    helpButton.click();
-    await tick();
-    assert.match(help.textContent, /unavailable/i);
-  }
   const fileInput = document.querySelector('#expense-import-file');
   Object.defineProperty(fileInput, 'files', {
     configurable: true,
@@ -159,7 +144,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-01-01'));
   assert.equal(document.querySelector('#import-period-start').tagName, 'SPAN');
   assert.equal(document.querySelector('#import-confirm').hidden, false);
-
+  assert.equal(previewButton.hidden, true);
   document.querySelector('#import-association').value = 'person:3';
   document.querySelector('#import-confirm').click();
   await tick(); await tick();
@@ -178,6 +163,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.equal(document.querySelector('#import-step-file').hidden, false);
   assert.equal(document.querySelector('#import-step-preview').hidden, true);
   assert.equal(document.querySelector('#import-confirm').hidden, true);
+  assert.equal(previewButton.hidden, false);
   assert.match(document.querySelector('#expense-import-message').textContent, /could not be analysed/);
   assert.equal(document.querySelector('#expense-import-message').lang, 'en-CA');
 

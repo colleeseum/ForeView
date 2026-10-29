@@ -293,6 +293,27 @@ def help_catalog():
         return result
 
     articles: list[dict[str, Any]] = list(_ARTICLES)
+    import_body = (
+        "Choose one or more statement PDFs in Expenses > Load expense statement. "
+        "ForeView automatically detects the vendor or municipality from the PDF; "
+        "you do not need to choose a source. Preview the detected amount and period, "
+        "confirm the name, category and association, then save. "
+        "If the PDF is unsupported, no expense is created.\n\n"
+        "You can request support for other vendors and cities.\n\n"
+        "Supported vendors and municipalities:"
+    )
+    import_translations = translated_section("articles", "expense-import")
+    articles.append(
+        {
+            "key": "expense-import",
+            "title": "Import expense statements",
+            "summary": "Automatic PDF detection and supported sources.",
+            "body": import_body,
+            "keywords": ("expense", "import", "PDF", "vendor", "municipality"),
+            "category": "expense-imports",
+            "_translations": import_translations,
+        }
+    )
     articles.extend(
         {
             "key": f"income-source-{source.key}",
@@ -331,18 +352,6 @@ def help_catalog():
     )
     articles.extend(
         {
-            "key": f"expense-source-{source.key}",
-            "title": f"Loading {source.display_name}",
-            "summary": "Import household expense statement from a supported source.",
-            "body": source.help_text,
-            "keywords": ("expense", "statement", "PDF", source.key, source.display_name),
-            "category": "expense-imports",
-            "_translations": source.translations,
-        }
-        for source in expense_source_registry.providers
-    )
-    articles.extend(
-        {
             "key": f"institution-{provider.key}-{topic.key}",
             "title": topic.title,
             "summary": f"Help supplied by the {provider.display_name} module.",
@@ -368,8 +377,6 @@ def help_catalog():
             prefix = "notice"
         elif key.startswith("public-pension-"):
             prefix = "pension"
-        elif key.startswith("expense-source-"):
-            prefix = "expense"
         elif key.startswith("institution-"):
             prefix = "institution"
         else:
@@ -426,6 +433,19 @@ def help_catalog():
             localization,
         )
         item.update(fields)
+        if item["key"] == "expense-import":
+            names = [
+                localized_fields(
+                    {"display_name": source.display_name},
+                    source.translations,
+                    languages["body"],
+                    localization,
+                )[0]["display_name"]
+                for source in expense_source_registry.providers
+            ]
+            source_list = "\n".join(f"• {name}" for name in names)
+            body = item["body"]
+            item["body"] = f"{body.replace('{sources}', '').rstrip()}\n\n{source_list}"
         item["field_languages"] = languages
         item["language"] = languages["title"]
         localized_articles.append(item)

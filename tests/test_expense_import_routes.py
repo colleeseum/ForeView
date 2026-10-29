@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import io
+import re
 import tempfile
 import unittest
 from datetime import date
@@ -19,6 +20,7 @@ from devtools.synthetic.synthetic_documents import (
     create_synthetic_montreal_tax_statement,
 )
 from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
+from expense_sources.registry import expense_source_registry
 from infrastructure.runtime_config import RuntimeConfig
 from ingestion.statement_import import content_hash
 from repositories.expense_repository import ExpenseRepository
@@ -138,6 +140,74 @@ class ExpenseImportRouteTest(unittest.TestCase):
         response = self.client.post("/api/expenses/import/preview", data={})
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.get_json())
+
+    def test_main_help_topic_footer_actions_and_registry_sources_before_category_setup(self):
+        for has_categories in (True, False):
+            if not has_categories:
+                with self.runtime.connect() as connection:
+                    repository = ExpenseRepository(connection)
+                    for category in repository.list_categories():
+                        repository.set_category_active(category.id, False)
+                    connection.commit()
+            for locale in ("en-CA", "fr-CA"):
+                with self.subTest(categories=has_categories, locale=locale):
+                    self.app.extensions["localization"].select(locale)
+                    before = self.runtime.database_path.read_bytes()
+                    page = self.client.get("/expenses").text
+                    dialog = page.split('id="expense-import-dialog-backdrop"', 1)[1].split(
+                        "</dialog>", 1
+                    )[0]
+                    self.assertEqual(dialog.count('data-help-article="expense-import"'), 1)
+                    self.assertNotIn("data-import-help", dialog)
+                    self.assertNotIn("⟦", dialog)
+                    footer = re.search(
+                        r'<div class="dialog-actions fv-dialog-actions">(.*?)</div>', dialog, re.S
+                    ).group(1)
+                    self.assertLess(
+                        footer.index('id="import-cancel"'), footer.index('id="import-confirm"')
+                    )
+                    if has_categories:
+                        self.assertLess(
+                            footer.index('id="import-cancel"'),
+                            footer.index('id="import-preview-btn"'),
+                        )
+                        self.assertLess(
+                            footer.index('id="import-preview-btn"'),
+                            footer.index('id="import-confirm"'),
+                        )
+                    else:
+                        self.assertNotIn('id="import-preview-btn"', dialog)
+                        self.assertIn('id="import-open-categories"', dialog)
+                    articles = self.client.get("/api/help").get_json()["articles"]
+                    generic = next(a for a in articles if a["key"] == "expense-import")
+                    self.assertEqual(generic["category"], "expense-imports")
+                    self.assertEqual(generic["field_languages"]["body"], locale)
+                    names = {
+                        p.translations.get(locale, {}).get("display_name", p.display_name)
+                        for p in expense_source_registry.providers
+                    }
+                    self.assertEqual(
+                        {
+                            line.removeprefix("• ")
+                            for line in generic["body"].splitlines()
+                            if line.startswith("• ")
+                        },
+                        names,
+                    )
+                    self.assertNotIn("{sources}", generic["body"])
+                    self.assertIn(
+                        "automatically detects" if locale == "en-CA" else "détecte automatiquement",
+                        generic["body"],
+                    )
+                    self.assertEqual(
+                        [a["key"] for a in articles if a["category"] == "expense-imports"],
+                        ["expense-import"],
+                    )
+                    self.assertIn(
+                        "request support" if locale == "en-CA" else "demander la prise en charge",
+                        generic["body"],
+                    )
+                    self.assertEqual(self.runtime.database_path.read_bytes(), before)
 
     def test_energir_preview_confirm_provenance_and_tampered_client_fields(self):
         content = create_synthetic_energir_statement(
@@ -418,8 +488,9 @@ class ExpenseImportRouteTest(unittest.TestCase):
             self.assertEqual(preview["amount"], "4000.03")
             self.assertIn("000001-00", preview["suggested_identity"])
             articles = self.client.get("/api/help").get_json()["articles"]
-            article = next(a for a in articles if a["key"] == "expense-source-montreal-tax")
+            article = next(a for a in articles if a["key"] == "expense-import")
             self.assertEqual(article["field_languages"]["body"], locale)
+            self.assertIn("Montréal", article["body"])
 
     def test_energir_help_is_discovered_and_translated(self):
         self.app.extensions["localization"].select("fr-CA")
@@ -434,9 +505,9 @@ class ExpenseImportRouteTest(unittest.TestCase):
         self.assertEqual(preview["provider_display_name"], "Facture de gaz naturel d’Énergir")
         self.assertEqual(preview["provider_display_language"], "fr-CA")
         articles = self.client.get("/api/help").get_json()["articles"]
-        source = next(article for article in articles if article["key"] == "expense-source-energir")
+        source = next(article for article in articles if article["key"] == "expense-import")
         self.assertEqual(source["category"], "expense-imports")
-        self.assertIn("Énergir", source["title"])
+        self.assertIn("Énergir", source["body"])
         self.assertEqual(source["field_languages"]["body"], "fr-CA")
 
 

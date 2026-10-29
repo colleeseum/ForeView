@@ -234,38 +234,6 @@ function initializeExpenseImport() {
   const openButton = document.querySelector('#expense-import');
   if (!dialog || !openButton) return;
   if (!dialogs.has(dialog)) initializeDialog(dialog);
-  let helpGeneration = 0;
-  dialog.addEventListener('click', async event => {
-    const button = event.target.closest('[data-help-article]');
-    if (!button) return;
-    event.stopPropagation();
-    const generation = ++helpGeneration;
-    let panel = dialog.querySelector('[data-import-help]');
-    if (!panel) {
-      panel = document.createElement('section');
-      panel.dataset.importHelp = '';
-      panel.className = 'fv-feedback';
-      panel.tabIndex = -1;
-      button.after(panel);
-    }
-    panel.textContent = t('help.loading');
-    panel.focus();
-    try {
-      const response = await fetch('/api/help');
-      if (!response.ok) throw new Error(t('help.unavailable'));
-      const data = await response.json();
-      if (generation !== helpGeneration) return;
-      const article = data.articles.find(item => item.key === button.dataset.helpArticle);
-      if (!article) throw new Error(t('help.unavailable'));
-      panel.replaceChildren(...['title', 'summary', 'body'].filter(field => article[field]).map(field => {
-        const node = document.createElement(field === 'title' ? 'strong' : 'p');
-        node.textContent = article[field];
-        node.lang = article.field_languages?.[field] || article.language || data.language || locale;
-        return node;
-      }));
-    } catch (error) {if (generation === helpGeneration) panel.textContent = error.message;}
-  });
-
   const form = document.querySelector('#expense-import-form');
   form?.addEventListener('submit', event => event.preventDefault());
   const fileInput = document.querySelector('#expense-import-file');
@@ -338,6 +306,7 @@ function initializeExpenseImport() {
     if (fileStep) fileStep.hidden = false;
     if (previewStep) previewStep.hidden = true;
     if (confirmButton) confirmButton.hidden = true;
+    if (previewButton) previewButton.hidden = false;
     updateQueueStatus();
     setBusy(false);
   }
@@ -416,6 +385,7 @@ function initializeExpenseImport() {
       fileStep.hidden = true;
       previewStep.hidden = false;
       confirmButton.hidden = false;
+      previewButton.hidden = true;
       replacingFailedFile = false;
       previewStep.tabIndex = -1;
       previewStep.focus();
@@ -424,6 +394,7 @@ function initializeExpenseImport() {
       if (fileStep) fileStep.hidden = false;
       if (previewStep) previewStep.hidden = true;
       if (confirmButton) confirmButton.hidden = true;
+      if (previewButton) previewButton.hidden = false;
       showError(error);
     } finally {
       setBusy(false);

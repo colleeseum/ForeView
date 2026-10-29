@@ -187,3 +187,70 @@ to recover the display. Hide stale calculated totals until fresh results arrive 
 provide an explicit refresh retry. Normal navigation remains an unenhanced fallback.
 This applies to new and touched edit/delete flows across the application; existing
 workflows can adopt it in separate scoped changes.
+
+## Shared icon actions (UX-05A, #133)
+
+The icon foundation is available for workspace adoption under parent UX-05 (#131).
+It does not migrate existing workspace controls. Use the same symbol for the same
+meaning in every workspace: `edit`, `delete`, `view`, `download`, `add`, `expand`,
+`collapse`, `close`, `help`, and `reset`. Expand/collapse use vertical chevrons in
+both text directions; do not mirror symbols merely because the locale is RTL.
+
+Use compact icons for familiar contextual/row actions. Keep visible labels on
+primary workflow actions, Save/Cancel and permanent-delete confirmations. An icon
+must not introduce or change a mutation, confirmation, navigation or permission.
+
+Server templates import the shared macro and supply a translated target-specific label:
+
+```jinja
+{% from '_icon_actions.html' import icon_action %}
+{{ icon_action('edit', t('browser.actions.edit', name=record.name),
+               attributes={'data-edit-record': record.id}) }}
+```
+
+Browser renderers use the equivalent escaped HTML factory:
+
+```javascript
+import {iconAction, initializeIconActions} from '/static/shared/icon-actions.mjs';
+const tooltips = initializeIconActions(document);
+const markup = iconAction('edit', {
+  label: t('actions.edit', {name: record.name}),
+  attributes: {'data-edit-record': record.id},
+});
+// On workspace teardown: tooltips.destroy();
+```
+
+Both reject unsupported actions and empty/non-string labels before rendering,
+then return ordinary `type="button"` controls, with decorative masked icons and
+localized accessible names. They accept ID/name/value, data workflow hooks and
+ARIA expanded/controls/pressed/describedby hooks. They do not accept HTML handlers,
+styles, alternate button types or overrides of the semantic `data-icon-action`.
+Callers own event handlers and localized label text. For links, keep native anchor
+semantics rather than attaching navigation to these mutation-oriented buttons.
+
+Load `static/shared/ui.css` after legacy styles in an `fv-ui` workspace. Controls
+use shared border, focus and destructive/disabled tokens; their target is at least
+44px and scales with text size. `disabled` and `busy` options preserve native
+button semantics; busy also sets `aria-busy="true"`. Existing asynchronous workflow
+guards must still own dismissal and repeated submission prevention.
+
+Initialize tooltips once per workspace. Delegated events cover newly rendered rows.
+Tooltips open on keyboard focus or hover, remain hoverable, and close on focus/hover
+exit, activation or Escape. Escape dismisses the tooltip before its enclosing modal.
+Focus and pointer hover independently retain a tooltip. Long labels are bounded
+to the viewport and scrollable; PageUp/PageDown scroll overflowing text while focus
+stays on the action. They join the native dialog top layer where applicable, reposition on scrolling or
+resizing, clamp to the viewport, and inherit the action's language, direction and
+style tokens. Removing or disabling an anchor dismisses its tooltip. Existing
+`aria-describedby` references survive tooltip teardown.
+
+The small SVG set is vendored from Feather v4.29.2. Its edit shape matches the
+Tracker pencil reference; all icons use the same upstream style. `NOTICE` and
+`static/shared/icons/LICENSE` preserve the upstream MIT ownership and terms.
+No icon runtime, CDN or additional dependency is introduced.
+
+The existing disposable `/_design-system` reference now includes server-rendered,
+dynamic, disabled and busy examples. Launch it with the command above. Unit tests
+verify escaped labels/hooks, lifecycle and dynamic controls. Chromium checks cover
+English/French, synthetic RTL, 320px/desktop widths, 100%/125% text and keyboard
+focus/tooltip placement. Workspaces adopt these primitives through UX-05B-G.

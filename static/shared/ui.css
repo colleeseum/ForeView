@@ -106,3 +106,19 @@
   .fv-ui .fv-button:disabled { color: GrayText; }
   .fv-ui .fv-feedback, .fv-ui .fv-badge { border: 1px solid CanvasText; }
 }
+
+/* Shared contextual actions. Primary workflow/confirmation buttons keep labels. */
+.fv-ui .fv-icon-action { inline-size: max(44px, 2.75rem); block-size: max(44px, 2.75rem); padding: .5rem; flex-shrink: 0; }
+.fv-ui .fv-icon { display: inline-block; inline-size: 1.25rem; block-size: 1.25rem; flex-shrink: 0; background: currentColor; mask-position: center; mask-size: contain; mask-repeat: no-repeat; pointer-events: none; }
+.fv-ui .fv-icon--edit { mask-image: url("icons/edit.svg"); }
+.fv-ui .fv-icon--delete { mask-image: url("icons/delete.svg"); }
+.fv-ui .fv-icon--view { mask-image: url("icons/view.svg"); }
+.fv-ui .fv-icon--download { mask-image: url("icons/download.svg"); }
+.fv-ui .fv-icon--add { mask-image: url("icons/add.svg"); }
+.fv-ui .fv-icon--expand { mask-image: url("icons/expand.svg"); }
+.fv-ui .fv-icon--collapse { mask-image: url("icons/collapse.svg"); }
+.fv-ui .fv-icon--close { mask-image: url("icons/close.svg"); }
+.fv-ui .fv-icon--help { mask-image: url("icons/help.svg"); }
+.fv-ui .fv-icon--reset { mask-image: url("icons/reset.svg"); }
+.fv-icon-tooltip { box-sizing: border-box; max-block-size: calc(100dvh - 16px); overflow: auto; overscroll-behavior: contain; position: fixed; z-index: 1000; max-inline-size: min(22rem, calc(100vw - 16px)); padding: .5rem .75rem; border: 1px solid var(--fv-control-border, #71877a); border-radius: var(--fv-radius-control, .5625rem); background: var(--fv-surface, #ffffff); color: var(--fv-text, #20312c); font: var(--fv-type-detail, .875rem)/1.4 var(--fv-font, system-ui, sans-serif); overflow-wrap: anywhere; box-shadow: 0 4px 16px #1731241a; }
+@media (forced-colors: active) { .fv-ui .fv-icon { background: ButtonText; forced-color-adjust: none; } .fv-ui .fv-icon-action:disabled .fv-icon { background: GrayText; } .fv-icon-tooltip { border-color: CanvasText; background: Canvas; color: CanvasText; } }

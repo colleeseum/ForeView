@@ -512,5 +512,17 @@
     "as_of": "As of",
     "total": "Total current value",
     "none": "No real-estate assets yet."
+  },
+  "actions": {
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "view": "View {name}",
+    "download": "Download {name}",
+    "add": "Add {name}",
+    "expand": "Expand {name}",
+    "collapse": "Collapse {name}",
+    "close": "Close {name}",
+    "help": "Help for {name}",
+    "reset": "Reset {name}"
   }
 }

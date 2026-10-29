@@ -34,5 +34,6 @@
   "cancel": "Annuler",
   "preview": "Aperçu seulement",
   "empty": "Aucune donnée supplémentaire. Ajoutez une donnée lorsque vous disposez d’une pièce justificative.",
-  "readonly": "Référence source en lecture seule"
+  "readonly": "Référence source en lecture seule",
+  "icon_actions": "Actions contextuelles avec icônes"
 }

@@ -24,6 +24,7 @@ from web.correction_routes import blueprint as correction_blueprint
 from web.dashboard_routes import blueprint as dashboard_blueprint
 from web.expense_routes import blueprint as expense_blueprint
 from web.help_routes import blueprint as help_blueprint
+from web.icon_actions import validated_icon_label
 from web.income_routes import blueprint as income_blueprint
 from web.institution_routes import blueprint as institution_blueprint
 from web.localization import provider_presentation
@@ -104,6 +105,7 @@ def create_app(runtime: RuntimeConfig) -> Flask:
             abort(403, description="Missing or invalid CSRF token.")
 
     app.jinja_env.globals["csrf_token"] = csrf_token
+    app.jinja_env.filters["validated_icon_label"] = validated_icon_label
 
     @app.context_processor
     def localization_context() -> dict[str, object]:

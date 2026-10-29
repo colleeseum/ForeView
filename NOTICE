@@ -6,3 +6,10 @@ documents, third-party material, imported data, and artifacts incorporating exte
 material retain their respective ownership, notices, and applicable terms. Inclusion in this
 repository does not transfer those rights to Mindstep Corporation or place that material under the
 PolyForm Noncommercial License 1.0.0.
+
+Shared icon assets under static/shared/icons/ are from Feather v4.29.2,
+Copyright (c) 2013-2023 Cole Bemis, under the MIT License. The full upstream
+license is retained at static/shared/icons/LICENSE. These SVGs are third-party
+material and are not licensed under the project's PolyForm license.
+Source: https://github.com/feathericons/feather/tree/v4.29.2/icons
+The edit icon matches the pencil asset used by the maintainer's Tracker application.

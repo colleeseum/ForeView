@@ -34,5 +34,6 @@
   "cancel": "Cancel",
   "preview": "Preview only",
   "empty": "No additional records. Add a record when evidence is available.",
-  "readonly": "Read-only source reference"
+  "readonly": "Read-only source reference",
+  "icon_actions": "Contextual icon actions"
 }

@@ -1,0 +1,136 @@
+// SPDX-FileCopyrightText: 2026 Mindstep Corporation
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {ICON_ACTIONS, iconAction, initializeIconActions} from '../../static/shared/icon-actions.mjs';
+import {configureTestLocalization} from './localization-fixture.mjs';
+import {t} from '../../static/shared/i18n.mjs';
+const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+
+test('shared actions escape labels and hooks and reject executable or reserved attributes', () => {
+  configureTestLocalization('fr-CA');
+  const dom = new JSDOM('<main></main>');
+  for (const action of ICON_ACTIONS) {
+    const label = t(`actions.${action}`, {name: '<script>synthetic</script>'});
+    dom.window.document.querySelector('main').innerHTML = iconAction(action, {label, attributes: {'data-record-id': '7" onclick="evil', 'aria-expanded': 'false'}});
+    const button = dom.window.document.querySelector('button');
+    assert.equal(button.getAttribute('aria-label'), label);
+    assert.equal(button.dataset.recordId, '7" onclick="evil');
+    assert.equal(button.hasAttribute('onclick'), false);
+    assert.equal(button.type, 'button');
+    assert.equal(button.querySelector('span').getAttribute('aria-hidden'), 'true');
+    assert.equal(button.textContent, '');
+    assert.equal(button.classList.contains('fv-button--danger'), action === 'delete');
+    assert.equal(dom.window.document.querySelector('script'), null);
+  }
+  for (const spec of [undefined, {label: ' '}, {label: 7}]) assert.throws(() => iconAction('edit', spec), TypeError);
+  assert.throws(() => iconAction('unknown', {label: 'Name'}), TypeError);
+  for (const name of ['onclick', 'style', 'type', 'data-icon-action']) assert.throws(() => iconAction('edit', {label: 'Edit', attributes: {[name]: 'bad'}}), TypeError);
+  assert.match(iconAction('edit', {label: 'Edit', disabled: true}), / disabled/);
+  assert.match(iconAction('view', {label: 'View', busy: true}), / disabled aria-busy="true"/);
+  dom.window.close();
+});
+
+test('delegated tooltips follow keyboard, hover, Escape and refreshed controls without changing actions', async () => {
+  const dom = new JSDOM('<html lang="fr-CA"><body><main class="fv-ui"></main><input id="outside"></body></html>', {pretendToBeVisual: true});
+  const doc = dom.window.document;
+  const root = doc.querySelector('main');
+  const controller = initializeIconActions(root);
+  const add = (id, label = '<b>synthetic</b>') => {
+    root.insertAdjacentHTML('beforeend', iconAction('edit', {label, attributes: {id, 'aria-describedby': 'existing'}}));
+    return doc.getElementById(id);
+  };
+  const button = add('first');
+  button.style.setProperty('--fv-surface', '#fefefe');
+  button.focus();
+  let tip = doc.querySelector('[role="tooltip"]');
+  assert.equal(tip.textContent, '<b>synthetic</b>');
+  assert.equal(tip.querySelector('b'), null);
+  assert.equal(tip.lang, 'fr-CA');
+  assert.equal(tip.style.getPropertyValue('--fv-surface'), '#fefefe');
+  assert(button.getAttribute('aria-describedby').includes(tip.id));
+  button.dispatchEvent(new dom.window.FocusEvent('focusin', {bubbles: true}));
+  assert.equal(doc.querySelectorAll('[role="tooltip"]').length, 1);
+  const escape = new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true});
+  button.dispatchEvent(escape);
+  assert(escape.defaultPrevented);
+  assert.equal(doc.activeElement, button);
+  assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  assert.equal(button.getAttribute('aria-describedby'), 'existing');
+  doc.querySelector('#outside').focus();
+  button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
+  tip = doc.querySelector('[role="tooltip"]');
+  button.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true, relatedTarget: tip}));
+  assert(tip.isConnected, 'Tooltip remains hoverable');
+  button.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true, relatedTarget: doc.body}));
+  tip.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
+  await new Promise(resolve => setTimeout(resolve, 170));
+  assert(tip.isConnected, 'Entering the tooltip cancels pending hover dismissal');
+  tip.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true}));
+  assert(tip.isConnected);
+  await new Promise(resolve => setTimeout(resolve, 170));
+  assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  button.focus();
+  button.disabled = true;
+  await tick();
+  assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  const second = add('dynamic');
+  second.style.direction = 'rtl';
+  second.focus();
+  assert(doc.querySelector('[role="tooltip"]'));
+  second.remove();
+  await tick();
+  assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  button.disabled = false;
+  button.removeAttribute('aria-describedby');
+  button.focus();
+  button.click();
+  assert.equal(button.hasAttribute('aria-describedby'), false);
+  const dialog = doc.createElement('dialog');
+  dialog.open = true;
+  dialog.innerHTML = iconAction('close', {label: 'Close synthetic dialog'});
+  root.append(dialog);
+  const close = dialog.querySelector('button');
+  close.focus();
+  assert(dialog.querySelector('[role="tooltip"]'), 'Tooltip joins the native modal top layer');
+  dom.window.dispatchEvent(new dom.window.Event('resize'));
+  assert(doc.querySelector('[role="tooltip"]'));
+  dom.window.dispatchEvent(new dom.window.Event('scroll'));
+  assert(doc.querySelector('[role="tooltip"]'), 'Focus-induced scrolling retains the tooltip');
+  controller.destroy();
+  close.dispatchEvent(new dom.window.FocusEvent('focusin', {bubbles: true}));
+  assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  dom.window.close();
+});
+
+test('focus and pointer hover retain a tooltip independently', async () => {
+  const dom = new JSDOM('<main></main><input id="outside">', {pretendToBeVisual: true});
+  const doc = dom.window.document;
+  const root = doc.querySelector('main');
+  root.innerHTML = iconAction('edit', {label: 'Edit synthetic record'});
+  const button = root.querySelector('button');
+  const controller = initializeIconActions(root);
+  try {
+    button.focus();
+    button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
+    doc.querySelector('#outside').focus();
+    assert(doc.querySelector('[role="tooltip"]'), 'Hover survives focus leaving the anchor');
+    button.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true, relatedTarget: doc.body}));
+    await new Promise(resolve => setTimeout(resolve, 170));
+    assert.equal(doc.querySelector('[role="tooltip"]'), null);
+    button.focus();
+    button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
+    button.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true, relatedTarget: doc.body}));
+    assert(doc.querySelector('[role="tooltip"]'), 'Focus survives pointer leaving the anchor');
+    const tip = doc.querySelector('[role="tooltip"]');
+    Object.defineProperties(tip, {scrollHeight: {value: 900}, clientHeight: {value: 200}});
+    button.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'PageDown', bubbles: true, cancelable: true}));
+    assert.equal(tip.scrollTop, 200);
+    button.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'PageUp', bubbles: true, cancelable: true}));
+    assert.equal(tip.scrollTop, 0);
+    doc.querySelector('#outside').focus();
+    assert.equal(doc.querySelector('[role="tooltip"]'), null);
+  } finally {controller.destroy(); dom.window.close();}
+});

@@ -36,6 +36,17 @@
       <button class="fv-button" type="button" data-open-help>? {{ t('ui_examples.full') }}</button>
     </div>
   </section>
+  {% from '_icon_actions.html' import icon_action %}
+  <section id="icon-action-reference" class="fv-card fv-stack">
+    <h2>{{ t('ui_examples.icon_actions') }}</h2>
+    <div class="fv-row" id="icon-action-examples">
+      {% for action in ['edit', 'delete', 'view', 'download', 'add', 'expand', 'collapse', 'close', 'help', 'reset'] %}
+      {{ icon_action(action, t('browser.actions.' ~ action, name=t('ui_examples.account')), attributes={'id': 'icon-' ~ action, 'data-reference-action': action}) }}
+      {% endfor %}
+      {{ icon_action('edit', t('browser.actions.edit', name=t('ui_examples.account')), disabled=true, attributes={'id': 'icon-disabled'}) }}
+      {{ icon_action('download', t('browser.actions.download', name=t('ui_examples.account')), busy=true, attributes={'id': 'icon-busy'}) }}
+    </div>
+  </section>
   <section class="fv-card fv-stack"><h2>{{ t('ui_examples.form') }}</h2>
     <div class="fv-grid">
       <label class="fv-field">{{ t('ui_examples.name') }}<input class="fv-input" value="Synthetic record" aria-describedby="name-hint"><small id="name-hint" class="fv-help">{{ t('ui_examples.hint') }}</small></label>
@@ -75,6 +86,9 @@
   {% include '_browser_localization.html' %}
 </main>
 <script type="module">
+  import {initializeIconActions, iconAction} from '/static/shared/icon-actions.mjs';
+  initializeIconActions();
+  document.querySelector('#icon-action-examples').insertAdjacentHTML('beforeend', iconAction('edit', {label: {{ t('browser.actions.edit', name=t('ui_examples.account')) | tojson }}, attributes: {id: 'icon-dynamic'}}));
   import {createDialog} from '/static/shared/dialog.mjs';
   import '/static/help/help.mjs';
   const trigger = document.querySelector('#open-dialog');

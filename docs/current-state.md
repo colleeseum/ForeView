@@ -4,6 +4,12 @@ Updated: 2026-10-29
 
 ## Development focus
 
+UX-05A (#133) provides shared contextual icon-action controls for Jinja and browser
+renderers, with target-specific translated names, keyboard/hover tooltips, 44px
+minimum targets and vendored Feather assets with upstream notices. The disposable
+component reference demonstrates the pattern; live-workspace adoption is tracked
+separately by UX-05B-G under parent #131. See `docs/design/ui-foundation.md`.
+
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog
 helper are implemented with a disposable bilingual component reference under `docs/design/ux-03b/`;

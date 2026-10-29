@@ -7,6 +7,9 @@ The accepted repository organization plan is recorded separately in
 [`structure/arch-01a-plan.md`](structure/arch-01a-plan.md). Its scope is agreed, but implementation
 PRs still require review and maintainer merge approval. Shared browser modules live under
 `static/shared/`, and all browser feature implementations use capability directories.
+`static/shared/icon-actions.mjs` and `templates/_icon_actions.html` share the contextual
+action contract and `static/shared/ui.css` tokens. Delegated tooltip behavior supports
+refreshed rows without binding business actions; workspace adoption is explicit.
 All application service implementations use capability packages. Synthetic development tools
 live under `devtools/synthetic/`, outside the production dependency graph.
 

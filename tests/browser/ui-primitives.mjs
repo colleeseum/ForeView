@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {chromium, expect} from '@playwright/test';
+import {verifyIconActions} from './icon-actions.mjs';
 import {verifyNavigation} from './navigation.mjs';
 import {verifyDashboard} from './dashboard.mjs';
 import {verifyAssets} from './assets.mjs';
@@ -49,6 +50,7 @@ try {
   assert(!(await page.locator('body').innerText()).includes('⟦'), 'All fixture messages must resolve');
   assert.equal(await page.locator('body').evaluate(node => getComputedStyle(node).fontFamily), legacyFont, 'Opt-in CSS must not restyle body');
   assert.match(await page.locator('main.fv-ui').evaluate(node => getComputedStyle(node).fontFamily), /system-ui/);
+  await verifyIconActions(page, output, locale);
   for (const button of await page.locator('.fv-ui .fv-button').all()) {
     if (!await button.isVisible()) continue;
     const box = await button.boundingBox();
@@ -59,7 +61,7 @@ try {
   assert(compact.height < standard.height);
   assert.equal(await page.locator('#compact table').evaluate(node => getComputedStyle(node).fontSize), '14px');
   assert.match(await page.locator('.fv-number').first().evaluate(node => getComputedStyle(node).fontVariantNumeric), /tabular-nums/);
-  await expect(page.locator('[aria-busy="true"]')).toBeDisabled();
+  for (const busy of await page.locator('[aria-busy="true"]').all()) await expect(busy).toBeDisabled();
   await expect(page.locator('input[readonly]')).toHaveAttribute('readonly', '');
   await expect(page.locator('[aria-invalid="true"]')).toHaveAttribute('aria-describedby', 'field-error');
 

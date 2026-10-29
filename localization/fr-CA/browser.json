@@ -512,5 +512,17 @@
     "as_of": "En date du",
     "total": "Valeur actuelle totale",
     "none": "Aucun bien immobilier pour le moment."
+  },
+  "actions": {
+    "edit": "Modifier {name}",
+    "delete": "Supprimer {name}",
+    "view": "Voir {name}",
+    "download": "Télécharger {name}",
+    "add": "Ajouter {name}",
+    "expand": "Développer {name}",
+    "collapse": "Réduire {name}",
+    "close": "Fermer {name}",
+    "help": "Aide pour {name}",
+    "reset": "Réinitialiser {name}"
   }
 }

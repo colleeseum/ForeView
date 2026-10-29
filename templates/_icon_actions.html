@@ -1,0 +1,9 @@
+{#
+SPDX-FileCopyrightText: 2026 Mindstep Corporation
+SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+#}
+{# Keep the public contract in sync with static/shared/icon-actions.mjs. #}
+{% macro icon_action(action, label, attributes={}, disabled=false, busy=false) -%}
+{% set label = label | validated_icon_label(action) %}
+<button type="button" class="fv-button fv-icon-action{% if action == 'delete' %} fv-button--danger{% endif %}" data-icon-action="{{ action }}" aria-label="{{ label }}"{% for name, value in attributes.items() %}{% if name in ['id', 'name', 'value', 'aria-expanded', 'aria-controls', 'aria-pressed', 'aria-describedby'] or (name.startswith('data-') and name != 'data-icon-action' and name.replace('-', '').isalnum() and name.lower() == name) %} {{ name }}="{{ 'true' if value is sameas true else 'false' if value is sameas false else value }}"{% endif %}{% endfor %}{% if disabled or busy %} disabled{% endif %}{% if busy %} aria-busy="true"{% endif %}><span class="fv-icon fv-icon--{{ action }}" aria-hidden="true"></span></button>
+{%- endmacro %}

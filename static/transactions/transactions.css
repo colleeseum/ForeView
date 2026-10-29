@@ -15,7 +15,7 @@
 .fv-transactions[data-table-density="compact"] .fv-table :is(th, td) { padding-block: var(--fv-space-2); }
 .fv-transactions .fv-table .opening-balance-row td { color: var(--fv-muted); background: var(--fv-navigation); }
 .fv-transactions .fv-dialog { width: min(56rem, calc(100% - 2rem)); }
-.fv-transactions .dialog-dismiss { float: inline-end; }
+.fv-transactions [data-icon-action="close"] { float: inline-end; }
 .fv-transactions .eyebrow { color: var(--fv-primary); font-family: var(--fv-font); }
 .fv-transactions .fv-feedback.error { color: var(--fv-danger); background: var(--fv-danger-surface); border-color: var(--fv-danger); }
 .fv-transactions #import-file-review { padding-inline-start: var(--fv-space-6); overflow-wrap: anywhere; }

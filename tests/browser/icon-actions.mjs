@@ -10,9 +10,14 @@ export async function verifyIconActions(page, output, locale) {
     assert((await button.getAttribute('aria-label')).trim());
     assert.equal((await button.innerText()).trim(), '');
     await expect(button.locator('.fv-icon')).toHaveAttribute('aria-hidden', 'true');
-    assert(await button.locator('.fv-icon').evaluate(node => getComputedStyle(node).maskImage.includes('.svg')));
     const action = await button.getAttribute('data-icon-action');
-    assert(await page.evaluate(async action => (await fetch(`/static/shared/icons/${action}.svg`)).ok, action));
+    if (action === 'help') {
+      assert.deepEqual(await button.locator('.fv-icon').evaluate(node => [getComputedStyle(node).maskImage,
+        getComputedStyle(node, '::before').content]), ['none', '"?"'], 'Only the approved plain question mark is used for Help');
+    } else {
+      assert(await button.locator('.fv-icon').evaluate(node => getComputedStyle(node).maskImage.includes('.svg')));
+      assert(await page.evaluate(async action => (await fetch(`/static/shared/icons/${action}.svg`)).ok, action));
+    }
   }
   await expect(section.locator('#icon-disabled')).toBeDisabled();
   await expect(section.locator('#icon-busy')).toBeDisabled();

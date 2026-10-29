@@ -9,7 +9,10 @@ import {calendarDateSortKey, formatDate, formatMoneyDollars} from '../shared/loc
 import {importMessage} from './transaction-import-message.mjs';
 import {importHistoryHtml, transactionsTableHtml} from './transactions-render.mjs';
 import {createDialog} from '../shared/dialog.mjs';
+import {initializeIconActions} from '../shared/icon-actions.mjs';
 import {initializeTableDensity} from '../shared/table-density.mjs';
+
+initializeIconActions();
 
 const tabs = document.querySelectorAll('.view-tab');
 const importDialog = document.querySelector('#import-dialog');

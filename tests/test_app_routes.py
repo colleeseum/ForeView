@@ -522,6 +522,45 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/import", json={}).status_code, 404)
         self.assertEqual(self.client.get("/api/taxes/years").status_code, 404)
 
+    def test_transaction_context_icons_preserve_localized_targets_and_hooks(self):
+        localization = self.app.extensions["localization"]
+        for locale in ("en-CA", "fr-CA"):
+            with self.subTest(locale=locale):
+                localization.select(locale)
+                html = self.client.get("/transactions").get_data(as_text=True)
+                controls = re.findall(
+                    r'<button\b([^>]*data-icon-action="[^"]+"[^>]*)>(.*?)</button>',
+                    html,
+                    re.DOTALL,
+                )
+                self.assertEqual(len(controls), 4)
+                for attributes, body in controls:
+                    self.assertIn('type="button"', attributes)
+                    self.assertIn('class="fv-button fv-icon-action"', attributes)
+                    self.assertRegex(attributes, r'aria-label="[^"]+"')
+                    self.assertIn('aria-hidden="true"', body)
+                    self.assertEqual(re.sub(r"<[^>]+>", "", body).strip(), "")
+                for selector, title in (
+                    ("close-import-dialog", "import_title"),
+                    ("close-reconcile-dialog", "reconcile_account"),
+                    ("import-inline-help", "bank_documents"),
+                ):
+                    attributes = next(attrs for attrs, _ in controls if f'id="{selector}"' in attrs)
+                    action = "help" if selector == "import-inline-help" else "close"
+                    name = localization.translate(locale, f"pages_server.transactions.{title}")
+                    label = localization.translate(locale, f"browser.actions.{action}", name=name)
+                    self.assertIn(label, unescape(attributes))
+                    if action == "close":
+                        self.assertIn('data-dialog-close=""', attributes)
+                self.assertIn('data-help-article="transaction-import"', html)
+                for selector in (
+                    "open-import-button",
+                    "open-reconcile-button",
+                    "import-submit-button",
+                    "reconcile-submit-button",
+                ):
+                    self.assertRegex(html, rf'<button id="{selector}"[^>]*>[^<]+</button>')
+
     def test_financial_pages_localize_values_without_mutating_records(self):
         category = self.client.post(
             "/api/expenses/categories",

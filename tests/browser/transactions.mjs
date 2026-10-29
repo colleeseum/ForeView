@@ -24,6 +24,22 @@ export async function verifyTransactions(page, baseURL, locale, output) {
     assert(!(await page.locator('main').innerText()).includes('⟦'));
   }
   await goto();
+  const help = page.locator('[data-help-article="transaction-import"]');
+  await expect(help).toHaveAttribute('data-icon-action', 'help');
+  const headerHelp = page.locator('.full-help-button');
+  const appearance = locator => locator.evaluate(node => {
+    const icon = node.querySelector('.fv-icon');
+    const buttonStyle = getComputedStyle(node);
+    const iconStyle = getComputedStyle(icon);
+    return [buttonStyle.color, buttonStyle.borderRadius, buttonStyle.width, buttonStyle.height,
+      iconStyle.maskImage, iconStyle.width, iconStyle.height, getComputedStyle(icon, '::before').content];
+  });
+  assert.equal((await appearance(help)).at(-1), '"?"', 'Help uses the approved plain question mark');
+  assert.deepEqual(await appearance(help), await appearance(headerHelp), 'Header and contextual Help use the same glyph, color, shape and size');
+  await help.click();
+  await expect(page.locator('.help-drawer-backdrop')).toBeVisible();
+  await page.locator('.help-drawer-close').click();
+  await expect(help).toBeFocused();
   const original = await api('/api/model/transactions?account_type=non_registered');
   for (const width of [1280, 390, 320]) {
     await page.setViewportSize({width, height: 1000});
@@ -56,7 +72,24 @@ export async function verifyTransactions(page, baseURL, locale, output) {
     await expect(page.locator('#import-instructions')).toHaveAttribute('open', '');
     const box = await dialog.boundingBox();
     assert(box.x >= 0 && box.x + box.width <= width);
+    for (const selector of ['#close-import-dialog', '#import-inline-help']) {
+      const action = page.locator(selector);
+      const target = await action.boundingBox();
+      assert(target.width >= 44 && target.height >= 44);
+      assert.equal((await action.innerText()).trim(), '');
+      await expect(action.locator('[aria-hidden="true"]')).toHaveCount(1);
+      await action.focus();
+      const tooltip = dialog.locator('[role="tooltip"]');
+      await expect(tooltip).toBeVisible();
+      await expect(tooltip).toHaveText(await action.getAttribute('aria-label'));
+      await page.keyboard.press('Escape');
+      await expect(tooltip).toHaveCount(0);
+      await expect(dialog).toBeVisible();
+      await expect(action).toBeFocused();
+    }
     await page.locator('#close-import-dialog').focus();
+    // Moving focus back creates a new tooltip; dismiss it before testing focus wrap.
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Shift+Tab');
     assert(await dialog.evaluate(node => node.contains(document.activeElement)));
     await page.screenshot({path: `${output}/${locale}-${width}-transaction-import.png`});
@@ -95,6 +128,9 @@ export async function verifyTransactions(page, baseURL, locale, output) {
   await expect(page.locator('#transaction-import-form')).toHaveAttribute('aria-busy', 'true');
   await expect(page.locator('#import-submit-button')).toBeDisabled();
   await expect(page.locator('#close-import-dialog')).toBeDisabled();
+  await expect(page.locator('#import-inline-help')).toBeDisabled();
+  assert.equal(await page.locator('#import-inline-help').evaluate(node => getComputedStyle(node).color),
+    await page.locator('#close-import-dialog').evaluate(node => getComputedStyle(node).color), 'Disabled Help retains the shared disabled color');
   await page.locator('#transaction-import-form').evaluate(node => node.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true})));
   await page.keyboard.press('Escape');
   await expect(page.locator('#import-dialog')).toBeVisible();

@@ -59,6 +59,9 @@ test('help provides quick tooltips, searchable full help, and contextual article
 
   const fullHelp = document.querySelector('.full-help-button');
   assert.ok(fullHelp);
+  assert(fullHelp.classList.contains('fv-icon-action'));
+  assert.equal(fullHelp.textContent, '');
+  assert(fullHelp.querySelector('.fv-icon--help[aria-hidden="true"]'));
   fullHelp.click();
   await tick();
   assert.equal(document.querySelector('.help-drawer-backdrop').hidden, false);

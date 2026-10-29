@@ -245,7 +245,10 @@ style tokens. Removing or disabling an anchor dismisses its tooltip. Existing
 `aria-describedby` references survive tooltip teardown.
 
 The small SVG set is vendored from Feather v4.29.2. Its edit shape matches the
-Tracker pencil reference; all icons use the same upstream style. `NOTICE` and
+Tracker pencil reference. Help has one approved symbol: the plain `?` from the
+component reference, inside the shared rounded-square control. Its glyph is defined
+once in `.fv-icon--help`; header, server and browser controls reuse that class.
+The unapproved circled Help SVG is removed. Other icons retain the upstream style. `NOTICE` and
 `static/shared/icons/LICENSE` preserve the upstream MIT ownership and terms.
 No icon runtime, CDN or additional dependency is introduced.
 

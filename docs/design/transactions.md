@@ -61,3 +61,19 @@ their temporary evidence directory. No private statements or runtime databases a
 Checked examples: [English desktop](ux-03f/evidence/en-CA-1280-transactions.png),
 [French mobile](ux-03f/evidence/fr-CA-390-transactions.png) and
 [synthetic RTL narrow layout](ux-03f/evidence/ar-XB-320-transactions.png).
+
+## Contextual icon actions (UX-05C, #135)
+
+Workspace and inline import Help and the import/reconciliation close controls use
+the shared icon-action macro and delegated tooltips, with localized target names.
+The application header reuses the same Help glyph, Sage color and control dimensions;
+its existing full-help behavior and native title remain unchanged.
+Inline Help still expands the existing provider instructions without leaving the
+file-selection draft. Workspace Help still opens the main help drawer.
+Import, Reconcile, Retry, Cancel and confirmation actions retain visible labels.
+Transaction and import-history tables are read-only and have no row actions to migrate.
+
+Shared keyboard tooltip dismissal takes precedence over modal Escape while a
+tooltip is visible. A subsequent Escape closes an idle dialog and restores focus.
+Existing busy guards disable dismissal and Help during a pending import, and no
+API, monetary value, date ordering, lock or confirmation contract changes.

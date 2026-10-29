@@ -10,7 +10,9 @@ minimum targets and vendored Feather assets with upstream notices. The disposabl
 component reference demonstrates the pattern; live-workspace adoption is tracked
 separately by UX-05B-G under parent #131. UX-05B (#134) now adopts that pattern for
 Assets account/GIC/property row actions and accessible portfolio expansion, retaining
-labelled primary actions and existing financial/save contracts. See `docs/design/ui-foundation.md`.
+labelled primary actions and existing financial/save contracts. UX-05C (#135) applies
+the shared Help and close controls in Transactions, preserving labelled import and
+reconciliation workflows and read-only history. See `docs/design/ui-foundation.md`.
 
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog

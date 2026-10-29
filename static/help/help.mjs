@@ -258,11 +258,14 @@ async function openTooltip(key, anchor) {
 const pageHeader = document.querySelector('main > header');
 if (pageHeader) {
   const fullHelpButton = document.createElement('button');
-  fullHelpButton.className = 'full-help-button fv-ui';
+  fullHelpButton.className = 'full-help-button fv-ui fv-icon-action';
   fullHelpButton.type = 'button';
   fullHelpButton.setAttribute('aria-label', t('help.open'));
   fullHelpButton.title = t('help.full_help');
-  fullHelpButton.textContent = '?';
+  const helpIcon = document.createElement('span');
+  helpIcon.className = 'fv-icon fv-icon--help';
+  helpIcon.setAttribute('aria-hidden', 'true');
+  fullHelpButton.append(helpIcon);
   pageHeader.append(fullHelpButton);
   fullHelpButton.addEventListener('click', () => openFullHelp());
 }

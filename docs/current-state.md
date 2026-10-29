@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-28
+Updated: 2026-10-29
 
 ## Development focus
 
@@ -85,6 +85,11 @@ current actuals with the prior-year pattern for uncovered dates using a displaye
 assumption. A discoverable
 expense-source contract supports previewed and confirmed Hydro-Québec, Énergir and Montréal municipal-tax PDF imports with
 import-batch and parser provenance.
+EXP-02 (#128) adds confirmed permanent deletion of imported expense evidence, including
+excluded duplicates. It checks the displayed record against concurrent changes, preserves
+shared provenance and explicit exclusions, and refreshes only affected overlap flags.
+Deletion updates rows and summaries in place, preserving scroll, expanded groups and
+unrelated notes. Manual evidence retains Edit. See `docs/design/expenses.md` for the deletion boundary.
 Montréal's verified English and French two-page annual accounts import the stated calendar-year
 obligation after reconciling the tax-charge lines and two installments. It does not
 import payments, coupons, optional financing fees or assessed property values.

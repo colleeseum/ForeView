@@ -301,6 +301,9 @@ totals remain factual; recurring statement periods can also produce a separately
 seasonal estimate from current actuals and an explicitly inflation-adjusted, complete
 preceding-year baseline. Import providers must classify the amount basis explicitly. Scenario-level
 household expense plans remain separate projection assumptions.
+Imported expense deletion is a service transaction guarded by a record fingerprint and
+repository writer lock. Repository cleanup preserves shared import batches and explicit
+exclusions, recalculates only affected overlap flags, and removes only orphaned metadata.
 
 The consolidated income and tax read model resolves each same-year concept through assessment,
 filed-return, and supported annual-record precedence. Factual corrections are separate append-only

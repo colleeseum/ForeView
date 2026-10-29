@@ -1,4 +1,6 @@
 {
+  "expense_delete_imported_only": "Only imported expense records can be deleted here",
+  "expense_delete_stale": "The expense changed. Refresh the page before deleting it.",
   "expense_montreal_unreadable": "The Montréal municipal-tax PDF could not be read",
   "expense_montreal_format": "The PDF is not a supported Montréal annual municipal-tax account",
   "expense_montreal_period": "Cannot verify the full calendar-year Montréal taxation period",

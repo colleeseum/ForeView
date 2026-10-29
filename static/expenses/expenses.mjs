@@ -42,7 +42,8 @@ function setDialogBusy(dialog, busy) {
 document.querySelectorAll('.fv-expenses button').forEach(node => node.classList.add('fv-button'));
 document.querySelectorAll('.fv-expenses input, .fv-expenses select').forEach(node => node.classList.add('fv-input'));
 document.querySelectorAll('.fv-expenses button[type="submit"], .fv-expenses .primary-button').forEach(node => node.classList.add('fv-button--primary'));
-document.querySelectorAll('.fv-expenses .table-card').forEach(region => {
+function enhanceExpenseTables(root = document) {
+root.querySelectorAll('.table-card').forEach(region => {
   region.classList.add('fv-table-scroll');
   region.tabIndex = 0;
   region.setAttribute('role', 'region');
@@ -53,6 +54,8 @@ document.querySelectorAll('.fv-expenses .table-card').forEach(region => {
   table.createCaption().textContent = t('expenses.table_label');
   table.querySelectorAll('thead th').forEach(node => {node.scope = 'col';});
 });
+}
+enhanceExpenseTables(document.querySelector('.fv-expenses') || document);
 
 expenseYearSelect?.addEventListener('change', () => expenseYearSelect.form?.requestSubmit());
 
@@ -124,7 +127,9 @@ document.querySelector('#expense-add').addEventListener('click', () => {
   expenseDialog.querySelector('[data-form-message]')?.remove();
   openDialog(expenseDialog);
 });
-document.querySelectorAll('[data-expense-edit]').forEach(button => button.addEventListener('click', () => {
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-expense-edit]');
+  if (!button) return;
   const record = JSON.parse(button.dataset.expenseEdit);
   manualForm.reset();
   prepareManualCategories(record.category_id);
@@ -135,7 +140,7 @@ document.querySelectorAll('[data-expense-edit]').forEach(button => button.addEve
   manualTitle.textContent = t('expenses.edit_expense');
   expenseDialog.querySelector('[data-form-message]')?.remove();
   openDialog(expenseDialog);
-}));
+});
 document.querySelector('#expense-categories').addEventListener('click', () => openDialog(categoryDialog));
 document.querySelector('#expense-dialog-close').addEventListener('click', () => closeDialog(expenseDialog));
 document.querySelector('#expense-dialog-cancel').addEventListener('click', () => closeDialog(expenseDialog));
@@ -466,3 +471,151 @@ function initializeExpenseImport() {
 }
 
 initializeExpenseImport();
+
+function initializeExpenseDeletion() {
+  const dialog = document.querySelector('#expense-delete-dialog');
+  if (!dialog) return;
+  const details = dialog.querySelector('#expense-delete-details');
+  const message = dialog.querySelector('#expense-delete-message');
+  const confirm = dialog.querySelector('#expense-delete-confirm');
+  const retry = dialog.querySelector('#expense-delete-refresh');
+  const records = document.querySelector('#expense-records');
+  const summary = document.querySelector('#expense-summary');
+  const feedback = document.querySelector('#expense-record-feedback');
+  let selected = null;
+  let uncertain = false;
+  let focusTarget = null;
+  let scrollPosition;
+  document.addEventListener('click', event => {
+    const button = event.target.closest('[data-expense-delete]');
+    if (!button || uncertain || dialogs.get(dialog).busy) return;
+    selected = JSON.parse(button.dataset.expenseDelete);
+    const row = button.closest('[data-expense-id]');
+    focusTarget = row?.nextElementSibling?.querySelector('button, input') || row?.previousElementSibling?.querySelector('button, input') || document.querySelector('.expense-record-details summary');
+    scrollPosition = {left: window.scrollX, top: window.scrollY};
+    details.textContent = `${selected.name} · ${selected.source_name} · ${formatMoneyDollars(selected.amount)} · ${formatDisplayDate(selected.period_start)} – ${formatDisplayDate(selected.period_end)}`;
+    message.hidden = true;
+    message.classList.remove('error');
+    confirm.hidden = false;
+    retry.hidden = true;
+    openDialog(dialog);
+  });
+  function dismiss() {
+    if (dialogs.get(dialog).busy) return;
+    closeDialog(dialog);
+    if (!selected) {
+      (focusTarget?.isConnected ? focusTarget : document.querySelector('.expense-record-details summary'))?.focus({preventScroll: true});
+      window.scrollTo(scrollPosition);
+    }
+  }
+  for (const id of ['expense-delete-cancel', 'expense-delete-close']) {
+    dialog.querySelector(`#${id}`).addEventListener('click', dismiss);
+  }
+  dialog.addEventListener('cancel', event => {
+    if (!selected) {event.preventDefault(); dismiss();}
+  });
+  async function refresh() {
+    if (!dialog.open) scrollPosition = {left: window.scrollX, top: window.scrollY};
+    setDialogBusy(dialog, true);
+    try {
+      const url = new URL('/expenses', window.location.origin);
+      url.searchParams.set('year', expenseYearSelect?.value || String(new Date().getFullYear()));
+      const response = await fetch(url, {cache: 'no-store'});
+      if (!response.ok) throw new Error(t('expenses.request_failed_status', {status: response.status}));
+      const fresh = new window.DOMParser().parseFromString(await response.text(), 'text/html');
+      const updatedSummary = fresh.querySelector('#expense-summary');
+      const updatedRecords = fresh.querySelector('#expense-records');
+      if (!updatedSummary || !updatedRecords) throw new Error(t('expenses.refresh_failed'));
+      // Retain unrelated row controls and unsaved overlap notes. Only changed rows
+      // receive new server-rendered statuses, actions and confirmation fingerprints.
+      for (const row of records.querySelectorAll('[data-expense-id]')) {
+        const next = updatedRecords.querySelector(`[data-expense-id="${Number(row.dataset.expenseId)}"]`);
+        if (!next) row.remove();
+        else if (next.dataset.expenseToken !== row.dataset.expenseToken) {
+          const replacement = next.cloneNode(true);
+          row.replaceWith(replacement);
+          if (!focusTarget?.isConnected) focusTarget = replacement.querySelector('button, input');
+        }
+      }
+      const freshRows = [...updatedRecords.querySelectorAll('[data-expense-id]')];
+      if (!freshRows.length || !records.querySelector('tbody')) records.replaceChildren(...updatedRecords.childNodes);
+      else for (const row of freshRows) {
+        const retained = records.querySelector(`[data-expense-id="${Number(row.dataset.expenseId)}"]`);
+        records.querySelector('tbody').append(retained || row);
+      }
+      summary.replaceChildren(...updatedSummary.childNodes);
+      enhanceExpenseTables(summary);
+      records.querySelectorAll('button').forEach(node => node.classList.add('fv-button'));
+      records.querySelectorAll('input').forEach(node => node.classList.add('fv-input'));
+      records.querySelectorAll('button[type="submit"]').forEach(node => node.classList.add('fv-button--primary'));
+      summary.hidden = false;
+      feedback.textContent = t(uncertain ? 'expenses.delete_reconciled' : 'expenses.deleted');
+      uncertain = false;
+      feedback.setAttribute('role', 'status');
+      feedback.hidden = false;
+      setDialogBusy(dialog, false);
+      dismiss();
+    } catch {
+      const failure = t(uncertain ? 'expenses.delete_uncertain' : 'expenses.refresh_failed');
+      message.textContent = failure;
+      message.lang = locale;
+      message.setAttribute('role', 'alert');
+      message.hidden = false;
+      setDialogBusy(dialog, false);
+      retry.hidden = false;
+      if (dialog.open) retry.focus({preventScroll: true});
+      feedback.textContent = failure;
+      feedback.setAttribute('role', 'alert');
+      const retryRead = document.createElement('button');
+      retryRead.type = 'button';
+      retryRead.className = 'fv-button';
+      retryRead.textContent = t('expenses.retry_refresh');
+      retryRead.addEventListener('click', () => {if (!dialogs.get(dialog).busy) refresh();});
+      feedback.append(' ', retryRead);
+    }
+  }
+  retry.addEventListener('click', () => {if (!dialogs.get(dialog).busy) refresh();});
+  confirm.addEventListener('click', async () => {
+    if (!selected || dialogs.get(dialog).busy) return;
+    setDialogBusy(dialog, true);
+    message.hidden = false;
+    message.textContent = t('expenses.deleting');
+    message.classList.remove('error');
+    message.lang = locale;
+    message.setAttribute('role', 'status');
+    let response;
+    try {
+      response = await fetch(`/api/expenses/${selected.id}`, {
+        method: 'DELETE', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({expected_token: selected.expected_token}),
+      });
+      if (!response.ok) await responseJson(response);
+    } catch (error) {
+      if (!response || response.status >= 500) {
+        // A lost response or server failure does not establish whether the write
+        // committed. Reconcile using reads and require a fresh confirmation.
+        uncertain = true;
+        selected = null;
+        confirm.hidden = true;
+        summary.hidden = true;
+        await refresh();
+        return;
+      }
+      message.textContent = error.message;
+      message.lang = error.language || locale;
+      message.setAttribute('role', 'alert');
+      message.classList.add('error');
+      setDialogBusy(dialog, false);
+      return;
+    }
+    records.querySelector(`[data-expense-id="${Number(selected.id)}"]`)?.remove();
+    selected = null;
+    confirm.hidden = true;
+    summary.hidden = true;
+    feedback.textContent = t('expenses.deleted');
+    feedback.hidden = false;
+    await refresh();
+  });
+}
+
+initializeExpenseDeletion();

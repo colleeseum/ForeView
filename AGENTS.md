@@ -69,6 +69,16 @@ For substantial tasks, do not work silently for long periods.
   downloaded government, generated, binary, or otherwise externally owned material. Existing
   applied migrations remain immutable; new migrations should include the notices.
 
+## Application interaction behavior
+
+- Enhanced edit and delete actions should update the affected rows and dependent summaries in
+  place. Preserve scroll position, expanded sections, filters, selection, unrelated drafts and
+  keyboard focus. Do not reload or navigate the whole page merely to show a saved mutation.
+- Announce success and errors in context. After a mutation commits, recovery must retry only
+  read-side refreshes, never repeat the mutation. Keep stale totals unavailable until refreshed.
+- Ordinary form navigation may remain as a progressive-enhancement fallback. Apply this guidance
+  to new and touched workflows; track broader existing-workflow migrations as separate issues.
+
 ## Test integrity and completion
 
 - Treat an existing failing test as evidence about application behavior. Fix production code first.

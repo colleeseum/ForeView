@@ -512,11 +512,44 @@ class ExpenseRepository:
         self._clear_orphaned_overlap_resolutions()
         return self.get_expense(expense_id)
 
-    def _clear_orphaned_overlap_resolutions(self) -> None:
+    def lock_for_deletion(self, expense_id: int) -> None:
+        self._connection.execute("UPDATE expense_records SET id = id WHERE id = ?", (expense_id,))
+
+    def delete_imported_expense(self, expense_id: int) -> ExpenseRecord:
+        current = self.get_expense(expense_id)
+        if current.source_kind != "imported":
+            raise ValidationError(
+                "expense_delete_imported_only", "Only imported expense records can be deleted here"
+            )
+        affected = set(
+            self._overlapping_ids(
+                current.identity_id,
+                date.fromisoformat(current.period_start),
+                date.fromisoformat(current.period_end),
+                exclude_id=current.id,
+            )
+        )
+        if current.source_hash:
+            affected.update(self._source_hash_duplicate_ids(current.source_hash))
+        affected.discard(current.id)
+        self._connection.execute("DELETE FROM expense_records WHERE id = ?", (current.id,))
+        for identifier in affected:
+            if self.get_expense(identifier).overlap_status != "resolved_exclude":
+                self._clear_orphaned_overlap_resolutions(identifier)
+        self._connection.execute(
+            """DELETE FROM expense_identities WHERE id = ? AND NOT EXISTS (
+                   SELECT 1 FROM expense_records WHERE identity_id = ?
+               )""",
+            (current.identity_id, current.identity_id),
+        )
+        return current
+
+    def _clear_orphaned_overlap_resolutions(self, expense_id: int | None = None) -> None:
         self._connection.execute(
             """UPDATE expense_records AS candidate
                   SET overlap_status = 'clear', overlap_resolution_note = NULL
                 WHERE candidate.overlap_status <> 'clear'
+                  AND (? IS NULL OR candidate.id = ?)
                   AND NOT EXISTS (
                       SELECT 1 FROM expense_records AS other
                        WHERE other.id <> candidate.id
@@ -528,7 +561,8 @@ class ExpenseRepository:
                              (candidate.source_hash IS NOT NULL
                               AND other.source_hash = candidate.source_hash)
                          )
-                  )"""
+                  )""",
+            (expense_id, expense_id),
         )
 
     def resolve_overlap(self, expense_id: int, *, include: bool, note: str) -> ExpenseRecord:

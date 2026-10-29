@@ -3,7 +3,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import sqlite3
+from dataclasses import asdict
 from datetime import date
 
 from domain.expense import (
@@ -14,7 +17,9 @@ from domain.expense import (
     ExpenseRecord,
 )
 from domain.money import MoneyInput
+from domain.validation_error import ValidationError
 from repositories.expense_repository import ExpenseRepository
+from repositories.import_batch_repository import ImportBatchRepository
 
 
 class ExpenseService:
@@ -125,3 +130,26 @@ class ExpenseService:
     def resolve_overlap(self, expense_id: int, *, include: bool, note: str) -> ExpenseRecord:
         with self._connection:
             return self.repository.resolve_overlap(expense_id, include=include, note=note)
+
+    @staticmethod
+    def deletion_token(record: ExpenseRecord) -> str:
+        """Guard the exact evidence shown in a destructive confirmation."""
+        return hashlib.sha256(
+            json.dumps(asdict(record), sort_keys=True, default=str).encode()
+        ).hexdigest()
+
+    def delete_imported(self, expense_id: int, *, expected_token: str) -> None:
+        with self._connection:
+            # Acquire the writer lock before reading evidence or checking provenance.
+            self.repository.lock_for_deletion(expense_id)
+            record = self.repository.get_expense(expense_id)
+            if self.deletion_token(record) != expected_token:
+                raise ValidationError(
+                    "expense_delete_stale",
+                    "The expense changed. Refresh the page before deleting it.",
+                )
+            self.repository.delete_imported_expense(expense_id)
+            if record.source_document_id is not None:
+                ImportBatchRepository(self._connection).delete_if_unreferenced(
+                    record.source_document_id
+                )

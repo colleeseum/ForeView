@@ -362,6 +362,8 @@
     "removed": "{label} correction removed. Source precedence restored."
   },
   "expenses": {
+    "deleting": "Deleting expense…",
+    "deleted": "Imported expense deleted.",
     "edit_expense": "Edit factual expense",
     "table_label": "Expense facts and categories",
     "saved": "Expense changes saved.",
@@ -374,7 +376,11 @@
     "statement_progress": "Statement {current} of {total}: {name}",
     "analysing": "Analysing PDF…",
     "saving": "Saving expense…",
-    "request_failed_status": "Request failed ({status})"
+    "request_failed_status": "Request failed ({status})",
+    "refresh_failed": "The expense was deleted, but the view could not be refreshed. Retry refreshing to see current totals.",
+    "retry_refresh": "Retry refresh",
+    "delete_uncertain": "The deletion outcome could not be confirmed. Refresh the view before trying again.",
+    "delete_reconciled": "The view is refreshed. Check the current records before attempting another deletion."
   },
   "accounts": {
     "ownership_share": "{name} ownership (%)",

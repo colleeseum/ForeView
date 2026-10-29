@@ -70,6 +70,7 @@ def _calendar_date(value: object) -> date:
 def _record(record: ExpenseRecord) -> dict[str, object]:
     return {
         "id": record.id,
+        "deletion_token": ExpenseService.deletion_token(record),
         "name": record.name,
         "category_id": record.category_id,
         "category_name": record.category_name,
@@ -155,6 +156,7 @@ def _page(
             people=PersonRepository(connection).list_all(),
             accounts=AccountRepository(connection).summary_rows(),
             real_estate=RealEstateAssetRepository(connection).list_all(),
+            expense_deletion_token=ExpenseService.deletion_token,
             error=error,
             error_language=error_language,
             message=message,
@@ -344,6 +346,23 @@ def create_manual_expense_form():
         return _redirect(year, message=_localized_message("factual_saved"))
     except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
         return _redirect_error(year, error)
+
+
+@blueprint.delete("/api/expenses/<int:expense_id>")
+def delete_expense(expense_id: int):
+    try:
+        token = str(_required(_payload(), "expected_token"))
+        with dependency("connect")() as connection:
+            ExpenseService(connection).delete_imported(expense_id, expected_token=token)
+        return "", 204
+    except ValidationLookupError as error:
+        return jsonify(_expense_error_data(error)), 404
+    except ValidationError as error:
+        return jsonify(
+            _expense_error_data(error)
+        ), 409 if error.code == "expense_delete_stale" else 400
+    except (KeyError, LookupError, TypeError, ValueError, sqlite3.IntegrityError) as error:
+        return jsonify(_expense_error_data(error)), 400
 
 
 @blueprint.put("/api/expenses/<int:expense_id>")

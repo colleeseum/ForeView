@@ -173,3 +173,17 @@ Reviewed synthetic examples:
 - [French mobile](ux-03b/evidence/fr-CA-390.png)
 - [French mobile dialog with visible focus](ux-03b/evidence/fr-CA-390-dialog.png)
 - [Synthetic RTL, French fallback](ux-03b/evidence/ar-XB-390.png)
+
+## In-place edit and delete feedback
+
+Enhanced mutation workflows update affected records and dependent totals in place.
+Preserve page and table scroll positions, expanded groups, filters, selected year,
+unrelated draft inputs and keyboard focus. Saving or deleting must not send users
+back to the top of the page. On deletion, focus a surviving adjacent action or the
+table disclosure without scrolling. Announce success near the affected records.
+
+After a committed mutation, retry only failed read refreshes. Never resend the write
+to recover the display. Hide stale calculated totals until fresh results arrive and
+provide an explicit refresh retry. Normal navigation remains an unenhanced fallback.
+This applies to new and touched edit/delete flows across the application; existing
+workflows can adopt it in separate scoped changes.

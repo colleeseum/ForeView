@@ -250,6 +250,12 @@
     "how_get": "How to get",
     "choose_pdfs": "Choose PDF files",
     "supported_sources": "Supported statements and import help",
+    "delete": "Delete",
+    "delete_named": "Delete {name}",
+    "delete_title": "Delete imported expense",
+    "close_delete": "Close expense deletion",
+    "delete_warning": "This permanently removes the selected expense record. Other records are kept. This action cannot be undone.",
+    "delete_permanently": "Delete permanently",
     "preview": "Preview",
     "analysing": "Analysing PDF…",
     "detected_source": "Detected source:",
@@ -294,7 +300,8 @@
     "category_created": "Expense category created.",
     "category_updated": "Expense category updated.",
     "factual_saved": "Factual expense saved.",
-    "overlap_saved": "Overlap decision saved."
+    "overlap_saved": "Overlap decision saved.",
+    "retry_refresh": "Retry refresh"
   },
   "connections": {
     "title": "Connections",

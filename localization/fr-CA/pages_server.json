@@ -250,6 +250,12 @@
     "how_get": "Comment obtenir",
     "choose_pdfs": "Choisir des fichiers PDF",
     "supported_sources": "Relevés pris en charge et aide à l’importation",
+    "delete": "Supprimer",
+    "delete_named": "Supprimer {name}",
+    "delete_title": "Supprimer une dépense importée",
+    "close_delete": "Fermer la suppression de dépense",
+    "delete_warning": "La dépense sélectionnée sera supprimée définitivement. Les autres données seront conservées. Cette action est irréversible.",
+    "delete_permanently": "Supprimer définitivement",
     "preview": "Aperçu",
     "analysing": "Analyse du PDF…",
     "detected_source": "Source détectée :",
@@ -294,7 +300,8 @@
     "category_created": "Catégorie de dépenses créée.",
     "category_updated": "Catégorie de dépenses mise à jour.",
     "factual_saved": "Dépense factuelle enregistrée.",
-    "overlap_saved": "Décision de chevauchement enregistrée."
+    "overlap_saved": "Décision de chevauchement enregistrée.",
+    "retry_refresh": "Réessayer l’actualisation"
   },
   "connections": {
     "title": "Connexions",

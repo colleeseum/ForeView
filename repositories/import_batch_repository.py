@@ -105,6 +105,32 @@ class ImportBatchRepository:
             (row_count, batch_id),
         )
 
+    def delete_if_unreferenced(self, batch_id: int) -> bool:
+        """Remove orphaned metadata without cascading into any source consumer."""
+        tables = self._connection.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table'"
+        ).fetchall()
+        for (table,) in tables:
+            quoted_table = '"' + str(table).replace('"', '""') + '"'
+            foreign_keys = self._connection.execute(
+                f"PRAGMA foreign_key_list({quoted_table})"
+            ).fetchall()
+            for foreign_key in foreign_keys:
+                if str(foreign_key[2]).casefold() != "import_batches":
+                    continue
+                # Unknown non-primary-key references are conservatively retained.
+                if foreign_key[4] not in (None, "id"):
+                    return False
+                column = '"' + str(foreign_key[3]).replace('"', '""') + '"'
+                # Schema identifiers are quote-escaped above; values remain bound.
+                if self._connection.execute(
+                    f"SELECT 1 FROM {quoted_table} WHERE {column} = ? LIMIT 1",  # nosec B608
+                    (batch_id,),
+                ).fetchone():
+                    return False
+        cursor = self._connection.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
+        return cursor.rowcount == 1
+
     def update_row_count_from_transactions(self, batch_id: int) -> None:
         self._connection.execute(
             """UPDATE import_batches SET row_count = (

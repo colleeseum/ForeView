@@ -10,7 +10,8 @@ labelled from actual facts, with the existing base-year, inflation and method he
 Tables retain their columns, wrapping source identifiers and overlap audit notes.
 Captioned, labelled keyboard scroll regions contain wide data on narrow screens.
 Add/Edit remain explicit actions; manual evidence can be edited through the existing
-update API while imported evidence stays read-only. A name-only edit must preserve
+update API while imported factual fields stay read-only. Imported records can be permanently
+deleted through the separate confirmation described below. A name-only edit must preserve
 the recorded amount, dates, amount basis, association and historical category snapshot.
 Archived categories remain selectable only for their existing manual records; they
 cannot be chosen for new records or moves from another category. Changing the category
@@ -73,8 +74,8 @@ immutability and the selected property, and requires overlap review for language
 copies of the same obligation. Agent verification parsed both private bills
 read-only without importing private financial data into a runtime.
 The maintainer reported functional manual testing passed on 2026-10-28.
-Separate follow-ups cover import help/action layout (UX-04, #127) and permanent
-deletion of accidentally imported expense evidence (EXP-02, #128).
+UX-04 (#127) supplies the import help/action layout; EXP-02 (#128) adds permanent
+deletion of accidentally imported expense evidence.
 
 EXP-01B (#42) adds the verified two-page bilingual Énergir PDF layout through the
 same provider-neutral preview/confirm workflow. It reads the current gas-period
@@ -123,10 +124,41 @@ be replaced without dropping previously saved queue progress. Dismissing an idle
 partially saved queue navigates to its saved evidence instead of implying rollback.
 Duplicate-source bytes still enter the existing overlap-resolution workflow.
 
-Provider help is rendered from the existing help API inside the native modal, with
-safe text nodes and per-field language metadata. Empty-category onboarding retains
+Import help opens the main Help through its existing contextual article handler,
+with safe text nodes and per-field language metadata. Empty-category onboarding retains
 the direct Create category action. The incompatible legacy backdrop module URL is
 invalidated with a new versioned entry URL. No extra parser or framework is added.
+
+## Permanent deletion
+
+EXP-02 (#128) adds Delete to imported supporting records, including excluded duplicates.
+Manual records retain their existing Edit action. Confirmation identifies the selected
+record, filename, amount and service period, warns that deletion is permanent, and
+focuses Cancel initially. Exclude remains available for evidence that should be retained
+but omitted from totals.
+
+The DELETE endpoint requires CSRF protection and a fingerprint of the exact record shown.
+A writer lock precedes the fingerprint check, preventing concurrent changes or a reused
+record ID from silently changing the deletion target. A stale confirmation returns 409.
+Deletion and cleanup are atomic. Only unreferenced identity and import-batch metadata
+are removed; foreign-key consumers, including cascading references, preserve shared
+provenance. No uploaded original document is deleted from the user's filesystem.
+
+Only records overlapping the removed identity/period or source hash are reconsidered.
+Genuine conflicts remain flagged, orphaned overlap flags are cleared, and explicit
+exclusions retain their note and excluded status. Annual totals and estimates derive
+from the remaining evidence through the existing calculations.
+
+Definitive client rejection retains the confirmation and permits retry. A transport
+failure or server error has an uncertain outcome, so it hides stale totals and
+reconciles with a read before requiring a fresh deletion confirmation. Busy dismissal and
+repeated submissions are blocked. A successful deletion removes the selected row in
+place and reads fresh server-rendered summaries and affected overlap rows, preserving
+unrelated notes, expanded state, filters and page/table scroll. Success is announced
+near the records; focus moves to a surviving action without scrolling. If display
+refresh fails after deletion commits, stale totals stay hidden and Retry refresh
+performs only a GET and receives keyboard focus while the dialog is open. It never
+repeats the DELETE or navigates the whole page.
 
 ## Verification
 

@@ -362,6 +362,8 @@
     "removed": "Correction de {label} supprimée. La priorité des sources est rétablie."
   },
   "expenses": {
+    "deleting": "Suppression de la dépense…",
+    "deleted": "Dépense importée supprimée.",
     "edit_expense": "Modifier une dépense factuelle",
     "table_label": "Données et catégories de dépenses",
     "saved": "Modifications des dépenses enregistrées.",
@@ -374,7 +376,11 @@
     "statement_progress": "Relevé {current} sur {total} : {name}",
     "analysing": "Analyse du PDF…",
     "saving": "Enregistrement de la dépense…",
-    "request_failed_status": "Échec de la demande ({status})"
+    "request_failed_status": "Échec de la demande ({status})",
+    "refresh_failed": "La dépense a été supprimée, mais la vue n’a pas pu être actualisée. Réessayez pour voir les totaux actuels.",
+    "retry_refresh": "Réessayer l’actualisation",
+    "delete_uncertain": "Le résultat de la suppression n’a pas pu être confirmé. Actualisez la vue avant de réessayer.",
+    "delete_reconciled": "La vue a été actualisée. Vérifiez les enregistrements actuels avant de tenter une autre suppression."
   },
   "accounts": {
     "ownership_share": "Part de propriété de {name} (%)",

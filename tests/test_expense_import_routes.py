@@ -141,6 +141,111 @@ class ExpenseImportRouteTest(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.get_json())
 
+    def test_delete_excluded_duplicate_updates_totals_and_preserves_shared_provenance(self):
+        first = self._confirm().get_json()
+        duplicate = self._confirm().get_json()
+        for record, include in ((first, True), (duplicate, False)):
+            response = self.client.post(
+                f"/api/expenses/{record['id']}/overlap",
+                json={"include": include, "note": "Synthetic duplicate review"},
+            )
+            self.assertEqual(response.status_code, 200)
+        records = self.client.get("/api/expenses").get_json()
+        target = next(r for r in records if r["id"] == duplicate["id"])
+        page = self.client.get("/expenses?year=2026").text
+        self.assertIn("data-expense-delete=", page)
+        response = self.client.delete(
+            f"/api/expenses/{target['id']}", json={"expected_token": target["deletion_token"]}
+        )
+        self.assertEqual(response.status_code, 204)
+        remaining = self.client.get("/api/expenses").get_json()
+        self.assertNotIn(target["id"], [r["id"] for r in remaining])
+        kept = next(r for r in remaining if r["id"] == first["id"])
+        self.assertEqual(kept["overlap_status"], "clear")
+        self.assertEqual(kept["source_hash"], first["source_hash"])
+        with self.runtime.connect() as connection:
+            self.assertIsNotNone(
+                connection.execute(
+                    "SELECT 1 FROM import_batches WHERE id = ?", (kept["source_document_id"],)
+                ).fetchone()
+            )
+        repeated = self.client.delete(
+            f"/api/expenses/{target['id']}", json={"expected_token": target["deletion_token"]}
+        )
+        self.assertEqual(repeated.status_code, 404)
+        self.assertNotIn(f'"id": {target["id"]},', self.client.get("/api/expenses").text)
+
+    def test_expense_deletion_requires_csrf_current_confirmation_and_imported_source(self):
+        record = self._confirm().get_json()
+        url = f"/api/expenses/{record['id']}"
+        before = self.runtime.database_path.read_bytes()
+        self.assertEqual(
+            self.app.test_client()
+            .delete(url, json={"expected_token": record["deletion_token"]})
+            .status_code,
+            403,
+        )
+        self.assertEqual(self.client.delete(url, json={}).status_code, 400)
+        self.assertEqual(self.runtime.database_path.read_bytes(), before)
+        for locale in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(locale)
+            response = self.client.delete(url, json={"expected_token": "stale"})
+            self.assertEqual(response.status_code, 409)
+            self.assertEqual(response.get_json()["error_code"], "expense_delete_stale")
+            self.assertEqual(response.get_json()["error_language"], locale)
+            self.assertEqual(self.runtime.database_path.read_bytes(), before)
+        manual = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Keep manual evidence",
+                "category_id": self.category_id,
+                "amount": "1.00",
+                "period_start": "2026-01-01",
+                "period_end": "2026-01-31",
+            },
+        ).get_json()
+        response = self.client.delete(
+            f"/api/expenses/{manual['id']}", json={"expected_token": manual["deletion_token"]}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error_code"], "expense_delete_imported_only")
+
+    def test_failed_deletion_rolls_back_and_reused_id_cannot_delete_new_evidence(self):
+        record = self._confirm().get_json()
+        with self.runtime.connect() as connection:
+            connection.execute(
+                "CREATE TRIGGER reject_expense_cleanup BEFORE DELETE ON import_batches BEGIN SELECT RAISE(ABORT, 'Synthetic rejection'); END"
+            )
+            connection.commit()
+        before = self.runtime.database_path.read_bytes()
+        url = f"/api/expenses/{record['id']}"
+        response = self.client.delete(url, json={"expected_token": record["deletion_token"]})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.runtime.database_path.read_bytes(), before)
+        with self.runtime.connect() as connection:
+            connection.execute("DROP TRIGGER reject_expense_cleanup")
+            connection.commit()
+        self.assertEqual(
+            self.client.delete(url, json={"expected_token": record["deletion_token"]}).status_code,
+            204,
+        )
+        replacement = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": "Different evidence",
+                "category_id": self.category_id,
+                "amount": "1.00",
+                "period_start": "2026-01-01",
+                "period_end": "2026-01-31",
+            },
+        ).get_json()
+        self.assertEqual(replacement["id"], record["id"])
+        self.assertEqual(
+            self.client.delete(url, json={"expected_token": record["deletion_token"]}).status_code,
+            409,
+        )
+        self.assertIn("Different evidence", self.client.get("/api/expenses").text)
+
     def test_main_help_topic_footer_actions_and_registry_sources_before_category_setup(self):
         for has_categories in (True, False):
             if not has_categories:

@@ -296,10 +296,117 @@ def create_synthetic_energir_statement(path: Path, *, front_note: str = "") -> P
     return path
 
 
+def create_synthetic_montreal_tax_statement(
+    path: Path, *, total: str = "4 000,03", language: str = "en"
+) -> Path:
+    """Invent an annual obligation with unequal installments and separate coupons."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = canvas.Canvas(str(path), pagesize=(612, 1008), pageCompression=1)
+    document.setTitle("Synthetic Montréal annual municipal-tax account")
+    translations = {
+        "Municipal Tax Account 2026": "Compte de taxes municipales 2026",
+        "Account number Reference number Access code Taxation period Billing date": "Numéro de compte Numéro de référence Code d'accès Période d'imposition Date de facturation",
+        "000001-00 00000001-26-01-00 Day Month Year Day Month Year Day Month Year": "000001-00 00000001-26-01-00 Jour Mois Année Jour Mois Année Jour Mois Année",
+        "01 01 2026 to 31 12 2026 28 01 2026": "01 01 2026 au 31 12 2026 28 01 2026",
+        "Debtor(s) of the account": "Débiteur(s) du compte",
+        "Property location": "Emplacement de la propriété",
+        "Borough: Synthetic Borough": "Arrondissement : Quartier fictif",
+        "Taxable value(s) on December 31, 2025: 600 000": "Valeur(s) imposable(s) au 31 décembre 2025 : 600 000",
+        "Breakdown of account (See the appendix) Tax base Rate Amount": "Détail du compte (Consulter l'annexe jointe au compte) Base d'imposition Taux Montant",
+        "GENERAL TAX 600 000 0,5000 /$100 3 000,01": "TAXE GÉNÉRALE 600 000 0,5000 /100$ 3 000,01",
+        "TAX CONTRIBUTION 600 000 0,0167 /$100 100,01": "TAXE CONTRIBUTION 600 000 0,0167 /100$ 100,01",
+        "BOROUGH": "ARRONDISSEMENT",
+        "TAX CONCERNING SERVICES 600 000 0,1500 /$100 900,01": "TAXE RELATIVE AUX SERVICES 600 000 0,1500 /100$ 900,01",
+        "Due date(s) Day Month Year Amount Day Month Year Amount Account total": "Total du compte\nDate(s) limite(s) Jour Mois Année Montant Jour Mois Année Montant",
+        f"1st: 02 03 2026 2 000,01 2nd: 01 06 2026 2 000,02 {total}": f"versement(s) 1er : 02 03 2026 2 000,01 2e : 01 06 2026 2 000,02 {total}",
+        "Interest and penalty may apply to overdue payments.": "Tout versement tardif entraîne des intérêts et pénalités.",
+        "This account must be paid in full.": "Ce compte doit être payé en totalité.",
+        "2nd Instalment - Please attach to your 2nd payment": "Versement 2 - À joindre à votre 2e paiement",
+        "1st Instalment - Please attach to your 1st payment": "Versement 1 - À joindre à votre 1er paiement",
+        "Reference number - Online payment 00000001-26-01-00": "Numéro de référence - Paiement Internet 00000001-26-01-00",
+        "Instalment payable Amount paid": "Montant à payer Montant versé",
+        "Terms of payment": "Modalités de paiement",
+        "Option - 6 instalments with interests and penalty": "Option - 6 versements avec intérêts et pénalité",
+        "Optional monthly payment $700,00 including interest and fees.": "Paiement mensuel optionnel de 700,00 $ avec intérêts et frais.",
+        "The downloadable account does not include payments or later changes.": "La copie téléchargée ne comprend ni paiements ni modifications ultérieures.",
+    }
+
+    def draw(x: float, y: float, value: str) -> None:
+        translated = translations.get(value, value) if language == "fr" else value
+        for offset, line in enumerate(translated.splitlines()):
+            document.drawString(x, y - offset * 11, line)
+
+    document.setFont("Helvetica", 9)
+    for index, line in enumerate(
+        [
+            SYNTHETIC_NOTICE,
+            "Municipal Tax Account 2026",
+            "Account number Reference number Access code Taxation period Billing date",
+            "000001-00 00000001-26-01-00 Day Month Year Day Month Year Day Month Year",
+            "01 01 2026 to 31 12 2026 28 01 2026",
+        ]
+    ):
+        draw(30, 980 - index * 20, line)
+    draw(30, 870, "Debtor(s) of the account")
+    # The real source has a sub-point offset between header and value columns.
+    draw(310.01, 870, "Property location")
+    # Both columns share a text line. The importer must not absorb the debtor's name.
+    draw(30, 850, "Alex Example")
+    draw(310, 850, "123 Example Street")
+    draw(310, 830, "Borough: Synthetic Borough")
+    for index, line in enumerate(
+        [
+            "Taxable value(s) on December 31, 2025: 600 000",
+            "Breakdown of account (See the appendix) Tax base Rate Amount",
+            "VILLE DE MONTRÉAL",
+            "GENERAL TAX 600 000 0,5000 /$100 3 000,01",
+            "TAX CONTRIBUTION 600 000 0,0167 /$100 100,01",
+            "BOROUGH",
+            "TAX CONCERNING SERVICES 600 000 0,1500 /$100 900,01",
+            "Due date(s) Day Month Year Amount Day Month Year Amount Account total",
+            f"1st: 02 03 2026 2 000,01 2nd: 01 06 2026 2 000,02 {total}",
+            "Interest and penalty may apply to overdue payments.",
+            "This account must be paid in full.",
+            "2nd Instalment - Please attach to your 2nd payment",
+            "Reference number - Online payment 00000001-26-01-00",
+            "Instalment payable Amount paid",
+            "2 000,02",
+            "1st Instalment - Please attach to your 1st payment",
+            "Instalment payable Amount paid",
+            "2 000,01",
+        ]
+    ):
+        draw(30, 790 - index * 28, line)
+    document.showPage()
+    document.setFont("Helvetica", 10)
+    for index, line in enumerate(
+        [
+            SYNTHETIC_NOTICE,
+            "Terms of payment",
+            "Option - 6 instalments with interests and penalty",
+            "Optional monthly payment $700,00 including interest and fees.",
+            "The downloadable account does not include payments or later changes.",
+        ]
+    ):
+        draw(30, 960 - index * 25, line)
+    document.save()
+    return path
+
+
+def create_synthetic_montreal_tax_statement_fr(path: Path) -> Path:
+    """Create the French form of the invented annual obligation."""
+    return create_synthetic_montreal_tax_statement(path, language="fr")
+
+
 def create_synthetic_fixture_set(directory: Path) -> dict[str, Path]:
     """Create every supported synthetic PDF and CSV fixture."""
     directory.mkdir(parents=True, exist_ok=True)
     creators = {
+        "montreal_tax_fr_pdf": (
+            "montreal-municipal-tax-fr.pdf",
+            create_synthetic_montreal_tax_statement_fr,
+        ),
+        "montreal_tax_pdf": ("montreal-municipal-tax.pdf", create_synthetic_montreal_tax_statement),
         "energir_pdf": ("energir-gas-bill.pdf", create_synthetic_energir_statement),
         "eq_pdf": ("eq-monthly-statement.pdf", create_synthetic_eq_statement),
         "achieva_gic_pdf": ("achieva-gic-history.pdf", create_synthetic_achieva_gic),

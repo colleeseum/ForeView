@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {expect} from '@playwright/test';
 
-export async function verifyExpenses(page, baseURL, locale, output, hydroPath, energirPath) {
+export async function verifyExpenses(page, baseURL, locale, output, hydroPath, energirPath, montrealPath, montrealFrenchPath) {
   const legacyModule = route => route.fulfill({contentType: 'text/javascript', body: 'throw new Error("Legacy Expense module requested");'});
   await page.route('**/expenses/expenses.mjs?v=20261006-1', legacyModule);
   async function api() {
@@ -176,6 +176,49 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   assert.equal(gas[0].amount, '114.98');
   assert.equal(gas[0].period_start, '2025-12-15');
   assert.equal(gas[0].period_end, '2026-01-14');
+  const beforeTaxPreview = await api();
+  await page.locator('#expense-import').click();
+  await page.locator('#expense-import-dialog-backdrop [data-help-article="expense-source-montreal-tax"]').click();
+  await expect(page.locator('[data-import-help] strong')).toContainText('Montréal');
+  await page.locator('#expense-import-file').setInputFiles(montrealPath);
+  await page.locator('#import-preview-btn').click();
+  await expect(page.locator('#import-step-preview')).toBeVisible();
+  await expect(page.locator('#import-provider-key')).toHaveValue('montreal-tax');
+  await expect(page.locator('#import-provider')).toHaveAttribute('lang', locale === 'en-CA' ? 'en-CA' : 'fr-CA');
+  await expect(page.locator('#import-name')).toHaveValue('Montréal municipal property tax · 123 Example Street · 000001-00');
+  assert.deepEqual(await api(), beforeTaxPreview, 'Tax preview never persists expense evidence');
+  await page.locator('#import-name').fill(`Synthetic municipal tax ${locale}`);
+  await page.locator('#import-category').selectOption(categoryId);
+  const property = await page.locator('#import-association option[value^="real_estate:"]').first().getAttribute('value');
+  assert(property, 'Synthetic runtime supplies a property association');
+  await page.locator('#import-association').selectOption(property);
+  await page.locator('#import-confirm').click();
+  await expect(page.locator('#expense-import-dialog-backdrop')).toBeHidden();
+  const tax = (await api()).filter(item => item.name === `Synthetic municipal tax ${locale}`);
+  assert.equal(tax.length, 1);
+  assert.equal(tax[0].amount, '4000.03');
+  assert.equal(tax[0].period_start, '2026-01-01');
+  assert.equal(tax[0].period_end, '2026-12-31');
+  assert.equal(tax[0].period_kind, 'annual_or_one_time');
+  assert.equal(tax[0].association_kind, 'real_estate');
+  assert.equal(tax[0].association_id, Number(property.split(':')[1]));
+  assert.equal(tax[0].parser_name, 'montreal-tax');
+  const beforeFrenchTaxPreview = await api();
+  await page.locator('#expense-import').click();
+  await page.locator('#expense-import-file').setInputFiles(montrealFrenchPath);
+  await page.locator('#import-preview-btn').click();
+  await expect(page.locator('#import-step-preview')).toBeVisible();
+  await expect(page.locator('#import-name')).toHaveValue('Montréal municipal property tax · 123 Example Street · 000001-00');
+  assert.deepEqual(await api(), beforeFrenchTaxPreview, 'French source preview is read-only');
+  await page.locator('#import-name').fill(`Synthetic municipal tax ${locale}`);
+  await page.locator('#import-category').selectOption(categoryId);
+  await page.locator('#import-association').selectOption(property);
+  await page.locator('#import-confirm').click();
+  await expect(page.locator('#expense-import-dialog-backdrop')).toBeHidden();
+  const languageCopies = (await api()).filter(item => item.name === `Synthetic municipal tax ${locale}`);
+  assert.equal(languageCopies.length, 2);
+  assert(languageCopies.every(item => item.amount === '4000.03' && item.period_kind === 'annual_or_one_time'));
+  assert(languageCopies.every(item => item.overlap_status === 'potential'), 'Language copies require explicit overlap review');
   await page.locator('#expense-import').click();
   await page.locator('#expense-import-file').setInputFiles({name: 'invalid.pdf', mimeType: 'application/pdf', buffer: Buffer.from('Synthetic invalid PDF')});
   await page.locator('#import-preview-btn').click();

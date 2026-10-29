@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-27
+Updated: 2026-10-28
 
 ## Development focus
 
@@ -83,8 +83,13 @@ factual total is available. Irregular recurring statement periods retain their f
 When a complete preceding year is available, a separately labelled seasonal estimate combines
 current actuals with the prior-year pattern for uncovered dates using a displayed 2% inflation
 assumption. A discoverable
-expense-source contract supports previewed and confirmed Hydro-Québec and Énergir PDF imports with
+expense-source contract supports previewed and confirmed Hydro-Québec, Énergir and Montréal municipal-tax PDF imports with
 import-batch and parser provenance.
+Montréal's verified English and French two-page annual accounts import the stated calendar-year
+obligation after reconciling the tax-charge lines and two installments. It does not
+import payments, coupons, optional financing fees or assessed property values.
+Its suggested identity retains the property location and account number for review;
+the user confirms category and property association. The annual amount is not extrapolated.
 
 A registry-backed localization foundation supports English and French Canadian message catalogs,
 declared locale fallback chains, text direction, and a language preference stored with each
@@ -133,7 +138,9 @@ independently of other logins' failures.
 - Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec and
   the verified two-page bilingual Énergir gas-bill layout are supported. Énergir rental bundles,
   equal-payment plans, corrected bills, scans and older unverified layouts remain unsupported;
-  property-tax imports remain future work. Spreadsheet expense imports are not implemented.
+  Montréal property-tax imports support the verified English and French annual two-installment
+  layouts. Partial-year/supplementary accounts, receipts and
+  balance statements remain unverified. Spreadsheet expense imports are not implemented.
 - Account-type providers describe classification and presentation behavior but do not yet supply
   full projection, beneficiary, contribution-room, or withdrawal contracts. RESP beneficiary
   modeling is therefore absent.

@@ -16,7 +16,7 @@ import {verifyHelp} from './help.mjs';
 import {verifyAcceptance, verifyAcceptanceGuards} from './acceptance.mjs';
 import {verifyTextSize} from './text-size.mjs';
 
-const [baseURL, locale, output, taxPath, hydroPath, energirPath] = process.argv.slice(2);
+const [baseURL, locale, output, taxPath, hydroPath, energirPath, montrealPath, montrealFrenchPath] = process.argv.slice(2);
 assert.match(baseURL, /^http:\/\/127\.0\.0\.1:\d+$/);
 const browser = await chromium.launch();
 const page = await browser.newPage({viewport: {width: 1280, height: 1000}});
@@ -262,7 +262,7 @@ try {
   await verifyAssets(page, baseURL, locale, output);
   await verifyTransactions(page, baseURL, locale, output);
   await verifyIncome(page, baseURL, locale, output, taxPath);
-  await verifyExpenses(page, baseURL, locale, output, hydroPath, energirPath);
+  await verifyExpenses(page, baseURL, locale, output, hydroPath, energirPath, montrealPath, montrealFrenchPath);
   await verifyEmployment(page, baseURL, locale, output);
   await verifyAdministration(page, baseURL, locale, output);
   await verifyHelp(page, baseURL, locale, output);

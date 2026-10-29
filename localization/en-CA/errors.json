@@ -1,4 +1,9 @@
 {
+  "expense_montreal_unreadable": "The Montréal municipal-tax PDF could not be read",
+  "expense_montreal_format": "The PDF is not a supported Montréal annual municipal-tax account",
+  "expense_montreal_period": "Cannot verify the full calendar-year Montréal taxation period",
+  "expense_montreal_amount": "Cannot reconcile the Montréal annual account total, charges and installments",
+  "expense_montreal_identity": "Cannot verify the Montréal tax account and property location",
   "expense_energir_unreadable": "The Énergir PDF could not be read",
   "expense_energir_format": "The PDF is not a supported bilingual Énergir gas bill",
   "expense_energir_unsupported": "Énergir bundled, equal-payment, corrected or multi-bill documents require manual entry",

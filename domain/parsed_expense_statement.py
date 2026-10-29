@@ -17,7 +17,8 @@ class ParsedExpenseStatement:
     """Extracted evidence from one expense-statement PDF.
 
     The provider must return only the amount attributable to the current
-    billing period and the actual service-period start/end dates.  Prior
+    billing period and the actual service-period start/end dates, or the
+    stated annual obligation and its full applicable year. Prior
     balances, payments, outstanding amounts, or total-due figures that
     bundle other periods are rejected.
     """
@@ -29,10 +30,10 @@ class ParsedExpenseStatement:
     """Current-period expense amount in dollars, represented exactly."""
 
     period_start: date
-    """First calendar day represented by the recurring expense evidence."""
+    """First calendar day represented by this expense evidence."""
 
     period_end: date
-    """Last calendar day represented by the recurring expense evidence."""
+    """Last calendar day represented by this expense evidence."""
 
     period_kind: ExpensePeriodKind
     """Whether the statement covers a recurring billing period or not."""

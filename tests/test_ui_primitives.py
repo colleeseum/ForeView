@@ -90,6 +90,8 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
                     str(tax),
                     str(hydro),
                     str(runtime_dir / "fixtures" / "energir-gas-bill.pdf"),
+                    str(runtime_dir / "fixtures" / "montreal-municipal-tax.pdf"),
+                    str(runtime_dir / "fixtures" / "montreal-municipal-tax-fr.pdf"),
                 ],
                 cwd=root,
                 capture_output=True,

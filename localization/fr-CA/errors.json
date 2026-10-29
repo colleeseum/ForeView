@@ -1,4 +1,9 @@
 {
+  "expense_montreal_unreadable": "Le PDF de taxes municipales de Montréal ne peut pas être lu",
+  "expense_montreal_format": "Le PDF n’est pas un compte annuel de taxes municipales de Montréal pris en charge",
+  "expense_montreal_period": "Impossible de vérifier la période d’imposition annuelle complète de Montréal",
+  "expense_montreal_amount": "Impossible de concilier le total annuel, les taxes et les versements de Montréal",
+  "expense_montreal_identity": "Impossible de vérifier le numéro de compte et l’adresse de l’immeuble de Montréal",
   "expense_energir_unreadable": "Impossible de lire le PDF d’Énergir",
   "expense_energir_format": "Le PDF n’est pas une facture bilingue de gaz d’Énergir prise en charge",
   "expense_energir_unsupported": "Les factures d’Énergir groupées, corrigées, avec location ou mode de paiements égaux nécessitent une saisie manuelle",

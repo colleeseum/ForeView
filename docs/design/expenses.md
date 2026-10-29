@@ -18,6 +18,34 @@ explicitly adopts the new category's current name and classification.
 
 ## Dialog and save lifecycle
 
+EXP-01C (#43) adds the verified English and French Montréal annual municipal-tax accounts
+through the same preview and confirmation workflow. The printed account total is
+an annual billed obligation over its stated January-December taxation period,
+not a payment. Charge lines and two scheduled installments must reconcile to it.
+Coupons, optional payment-plan interest and taxable property values are excluded.
+The suggested identity includes the property address and account number; the user
+confirms its category and property association. Use a consistent identity and
+association when recording related manual installments so overlap review can
+exclude duplicate evidence. Identical document reimports also require review.
+The synthetic fixtures are `fixtures/montreal-municipal-tax.pdf` and
+`fixtures/montreal-municipal-tax-fr.pdf` in new synthetic runtimes. The suggested
+identity is independent of source/interface language; importing both language
+copies for the same identity/category/association requires overlap review.
+The private sources and personal details are not repository fixtures.
+See [provider guidance](../../expense_sources/montreal_tax/HELP.md) for format limits
+and official sources distinguishing the original annual account from later payments.
+
+EXP-01C verification on 2026-10-28 passed full `make qa`: 762 Python tests,
+176 integration tests and 112 JavaScript tests, with 91.86% overall branch-aware
+Python coverage and unchanged thresholds. Chromium acceptance imports both source
+languages through English, French and synthetic RTL interfaces, verifies preview
+immutability and the selected property, and requires overlap review for language
+copies of the same obligation. Agent verification parsed both private bills
+read-only without importing private financial data into a runtime.
+The maintainer reported functional manual testing passed on 2026-10-28.
+Separate follow-ups cover import help/action layout (UX-04, #127) and permanent
+deletion of accidentally imported expense evidence (EXP-02, #128).
+
 EXP-01B (#42) adds the verified two-page bilingual Énergir PDF layout through the
 same provider-neutral preview/confirm workflow. It reads the current gas-period
 charge including taxes, not payment balances or total due. Header, charge and

@@ -254,6 +254,11 @@ The detailed provider contract and extension procedure are maintained in
   Énergir cross-checks its current gas-period subtotal, taxes, total and three period references
   with the inclusive day count. Payment balances are not expenses. Bundled rental, equal-payment,
   corrected and unverified layouts are rejected rather than combined into fabricated periods.
+  Montréal annual municipal-tax accounts support verified English and French two-page layouts:
+  full-year dates, charge lines and two installments reconcile to the annual billed obligation.
+  Property location is read from its labelled PDF column, separate from debtor names;
+  the user confirms identity, category and real-estate association. Payment coupons,
+  optional interest-bearing plans and assessed property values are not imported as expenses.
 - `projection/rule_update/` uses an explicit provider registry for official public-rule retrieval.
 
 The institution, account-type, and expense-source registries use package discovery. Income,

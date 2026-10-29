@@ -8,18 +8,22 @@ from __future__ import annotations
 import io
 import tempfile
 import unittest
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import app as application
 from devtools.synthetic.synthetic_documents import (
     create_synthetic_energir_statement,
     create_synthetic_hydro_qc_statement,
+    create_synthetic_montreal_tax_statement,
 )
 from devtools.synthetic.synthetic_runtime import create_synthetic_runtime
 from infrastructure.runtime_config import RuntimeConfig
 from ingestion.statement_import import content_hash
 from repositories.expense_repository import ExpenseRepository
 from repositories.person_repository import PersonRepository
+from repositories.real_estate_asset_repository import RealEstateAssetRepository
 
 
 class ExpenseImportRouteTest(unittest.TestCase):
@@ -239,6 +243,183 @@ class ExpenseImportRouteTest(unittest.TestCase):
             .status_code,
             403,
         )
+
+    def _montreal_import(self, content, *, name="Municipal tax", association="household"):
+        return self.client.post(
+            "/api/expenses/import/confirm",
+            data={
+                "file": (io.BytesIO(content), "synthetic-municipal-tax.pdf"),
+                "provider_key": "montreal-tax",
+                "name": name,
+                "category_id": str(self.category_id),
+                "association": association,
+                "amount": "1.00",
+                "period_start": "1900-01-01",
+                "period_end": "1900-12-31",
+                "period_kind": "recurring_statement",
+            },
+        )
+
+    def test_montreal_annual_obligation_preview_confirm_property_and_provenance(self):
+        content = create_synthetic_montreal_tax_statement(
+            self.runtime.data_dir / "tax.pdf"
+        ).read_bytes()
+        with self.runtime.connect() as connection:
+            self.category_id = (
+                ExpenseRepository(connection)
+                .create_category("Synthetic municipal tax", "required")
+                .id
+            )
+            asset = RealEstateAssetRepository(connection).create(
+                "Synthetic test property", Decimal("500000.00"), "2026-01-01"
+            )
+            connection.commit()
+        before = self.runtime.database_path.read_bytes()
+        response = self.client.post(
+            "/api/expenses/import/preview", data={"file": (io.BytesIO(content), "tax.pdf")}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.runtime.database_path.read_bytes(), before)
+        preview = response.get_json()["preview"]
+        self.assertEqual(preview["provider_key"], "montreal-tax")
+        self.assertIn("123 Example Street", preview["suggested_identity"])
+        self.assertNotIn("Alex Example", preview["suggested_identity"])
+        record_response = self._montreal_import(content, association=f"real_estate:{asset.id}")
+        self.assertEqual(record_response.status_code, 201)
+        record = record_response.get_json()
+        self.assertEqual(record["name"], "Municipal tax")
+        self.assertEqual(record["amount"], "4000.03")
+        self.assertEqual(record["period_start"], "2026-01-01")
+        self.assertEqual(record["period_end"], "2026-12-31")
+        self.assertEqual(record["period_kind"], "annual_or_one_time")
+        self.assertEqual(record["category_id"], self.category_id)
+        self.assertEqual(record["association_kind"], "real_estate")
+        self.assertEqual(record["association_id"], asset.id)
+        self.assertEqual(record["source_hash"], content_hash(content))
+        self.assertEqual(record["parser_name"], "montreal-tax")
+        self.assertEqual(record["parser_version"], "2026.10.28")
+        with self.runtime.connect() as connection:
+            category = next(
+                c
+                for c in ExpenseRepository(connection).totals_for_year(2026)["categories"]
+                if c["category_id"] == self.category_id
+            )
+            self.assertEqual(category["amount"], Decimal("4000.03"))
+            # An annual obligation never becomes a recurring seasonal estimate.
+            self.assertEqual(category["annualized_estimate"], Decimal("4000.03"))
+            self.assertEqual(
+                RealEstateAssetRepository(connection).get(asset.id).estimated_value,
+                asset.estimated_value,
+            )
+
+    def test_montreal_annual_bill_and_manual_installment_require_overlap_review(self):
+        content = create_synthetic_montreal_tax_statement(
+            self.runtime.data_dir / "tax.pdf"
+        ).read_bytes()
+        with self.runtime.connect() as connection:
+            manual = ExpenseRepository(connection).create_manual_expense(
+                name="Municipal tax",
+                category_id=self.category_id,
+                amount=Decimal("2000.01"),
+                period_start=date(2026, 3, 2),
+                period_end=date(2026, 3, 2),
+            )
+            connection.commit()
+        response = self._montreal_import(content)
+        self.assertEqual(response.status_code, 201)
+        annual = response.get_json()
+        self.assertEqual(annual["overlap_status"], "potential")
+        with self.runtime.connect() as connection:
+            self.assertEqual(
+                ExpenseRepository(connection).totals_for_year(2026)["status"], "needs_resolution"
+            )
+        for id, include in ((manual.id, False), (annual["id"], True)):
+            result = self.client.post(
+                f"/api/expenses/{id}/overlap",
+                json={
+                    "include": include,
+                    "note": "Annual obligation retained; installment is not extra spending",
+                },
+            )
+            self.assertEqual(result.status_code, 200)
+        duplicate = self._montreal_import(content, name="Renamed municipal tax")
+        self.assertEqual(duplicate.status_code, 201)
+        self.assertEqual(duplicate.get_json()["overlap_status"], "potential")
+
+    def test_montreal_invalid_amounts_create_no_facts_and_localize(self):
+        content = create_synthetic_montreal_tax_statement(
+            self.runtime.data_dir / "bad-tax.pdf", total="4 000,04"
+        ).read_bytes()
+        for locale in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(locale)
+            before = self.runtime.database_path.read_bytes()
+            for path in ("/api/expenses/import/preview", "/api/expenses/import/confirm"):
+                response = self.client.post(
+                    path,
+                    data={
+                        "file": (io.BytesIO(content), "invalid-tax.pdf"),
+                        "provider_key": "montreal-tax",
+                        "name": "Invalid tax",
+                        "category_id": str(self.category_id),
+                    },
+                )
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.get_json()["error_code"], "expense_montreal_amount")
+                self.assertEqual(response.get_json()["error_language"], locale)
+                self.assertEqual(self.runtime.database_path.read_bytes(), before)
+
+    def test_montreal_french_and_english_copies_share_identity_and_require_overlap_review(self):
+        ids = []
+        identity = None
+        for source_language, locale in (("en", "fr-CA"), ("fr", "en-CA")):
+            self.app.extensions["localization"].select(locale)
+            content = create_synthetic_montreal_tax_statement(
+                self.runtime.data_dir / f"tax-{source_language}.pdf", language=source_language
+            ).read_bytes()
+            before = self.runtime.database_path.read_bytes()
+            response = self.client.post(
+                "/api/expenses/import/preview",
+                data={"file": (io.BytesIO(content), f"tax-{source_language}.pdf")},
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(self.runtime.database_path.read_bytes(), before)
+            preview = response.get_json()["preview"]
+            identity = identity or preview["suggested_identity"]
+            self.assertEqual(preview["suggested_identity"], identity)
+            self.assertEqual(preview["provider_display_language"], locale)
+            response = self._montreal_import(content, name=identity)
+            self.assertEqual(response.status_code, 201)
+            record = response.get_json()
+            self.assertEqual(record["amount"], "4000.03")
+            self.assertEqual(record["period_kind"], "annual_or_one_time")
+            ids.append(record["id"])
+        with self.runtime.connect() as connection:
+            repository = ExpenseRepository(connection)
+            first, second = (repository.get_expense(id) for id in ids)
+            self.assertEqual(first.identity_id, second.identity_id)
+            self.assertNotEqual(first.source_hash, second.source_hash)
+            self.assertEqual(
+                [first.overlap_status, second.overlap_status], ["potential", "potential"]
+            )
+            self.assertEqual(repository.totals_for_year(2026)["status"], "needs_resolution")
+
+    def test_montreal_help_and_preview_are_translated_without_changing_source_identity(self):
+        content = create_synthetic_montreal_tax_statement(
+            self.runtime.data_dir / "tax.pdf"
+        ).read_bytes()
+        for locale in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(locale)
+            response = self.client.post(
+                "/api/expenses/import/preview", data={"file": (io.BytesIO(content), "tax.pdf")}
+            )
+            self.assertEqual(response.status_code, 200)
+            preview = response.get_json()["preview"]
+            self.assertEqual(preview["provider_display_language"], locale)
+            self.assertEqual(preview["amount"], "4000.03")
+            self.assertIn("000001-00", preview["suggested_identity"])
+            articles = self.client.get("/api/help").get_json()["articles"]
+            article = next(a for a in articles if a["key"] == "expense-source-montreal-tax")
+            self.assertEqual(article["field_languages"]["body"], locale)
 
     def test_energir_help_is_discovered_and_translated(self):
         self.app.extensions["localization"].select("fr-CA")

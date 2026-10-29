@@ -18,6 +18,28 @@ explicitly adopts the new category's current name and classification.
 
 ## Dialog and save lifecycle
 
+EXP-01B (#42) adds the verified two-page bilingual Énergir PDF layout through the
+same provider-neutral preview/confirm workflow. It reads the current gas-period
+charge including taxes, not payment balances or total due. Header, charge and
+detail dates must agree with the inclusive printed day count. The subtotal and
+both taxes must reconcile to one unambiguous total; duplicate printed columns
+must agree. Unsupported rental bundles, equal-payment plans, corrected bills,
+scans and unverified layouts are rejected. See the provider's
+[import guidance](../../expense_sources/energir/HELP.md) for supported formats.
+
+The supplied private PDF was inspected and parsed outside the repository. Only
+invented identities, dates, amounts and document bytes appear in committed tests
+and fixtures. The fixture generator produces `fixtures/energir-gas-bill.pdf` in new
+synthetic runtimes, and browser acceptance imports it in English/French/synthetic RTL.
+Preview provider labels use the shared resolver and resolved-language metadata;
+the provider's stable key and persisted provenance remain unchanged.
+
+For EXP-01B on 2026-10-27, full `make qa` passed: 686 Python tests, 171
+integration tests and 112 JavaScript tests, plus formatting, type, identity,
+license, security and dependency checks. Overall Python branch-aware coverage
+was 91.7%, with no reduced thresholds. The private source PDF and extracted
+personal details are not test fixtures or repository artifacts.
+
 Manual evidence, category management/editing and statement review use the shared
 native modal controller. A category editor returns to management on Cancel/Escape.
 Successful category saves return to the same management context, with a visible

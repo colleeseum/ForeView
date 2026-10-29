@@ -57,7 +57,8 @@ test('expense import reviews parser evidence and displays confirmation errors', 
         status: 200,
         json: async () => ({preview: {
             provider_key: 'hydro-quebec',
-            provider_display_name: 'Hydro-Québec electricity bill',
+            provider_display_name: third ? 'Facture d’électricité d’Hydro-Québec' : 'Hydro-Québec electricity bill',
+            provider_display_language: third ? 'fr-CA' : undefined,
             amount: third ? '52.00' : second ? '45.00' : '31.00',
             period_start: third ? '2026-03-01' : second ? '2026-02-01' : '2026-01-01',
             period_end: third ? '2026-03-31' : second ? '2026-02-28' : '2026-01-31',
@@ -153,6 +154,7 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.equal(document.querySelector('#expense-import-progress').hidden, true);
   assert.equal(document.querySelector('#import-step-preview').hidden, false);
   assert.equal(document.querySelector('#import-amount').textContent, '$31.00');
+  assert.equal(document.querySelector('#import-provider').lang, 'en-CA');
   assert.equal(document.querySelector('#import-amount').tagName, 'SPAN');
   assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-01-01'));
   assert.equal(document.querySelector('#import-period-start').tagName, 'SPAN');
@@ -204,6 +206,8 @@ test('expense import reviews parser evidence and displays confirmation errors', 
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /2 saved/);
   assert.match(document.querySelector('#expense-import-queue-status').textContent, /hydro-march/);
   assert.equal(document.querySelector('#import-amount').textContent, '$52.00');
+  assert.equal(document.querySelector('#import-provider').lang, 'fr-CA');
+  assert.equal(document.querySelector('#import-provider').textContent, 'Facture d’électricité d’Hydro-Québec');
   assert.equal(document.querySelector('#import-period-start').textContent, formatDate('2026-03-01'));
 
   document.querySelector('#import-confirm').click();

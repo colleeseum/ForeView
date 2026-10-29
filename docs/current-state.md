@@ -83,7 +83,7 @@ factual total is available. Irregular recurring statement periods retain their f
 When a complete preceding year is available, a separately labelled seasonal estimate combines
 current actuals with the prior-year pattern for uncovered dates using a displayed 2% inflation
 assumption. A discoverable
-expense-source contract supports previewed and confirmed Hydro-Québec bill imports with
+expense-source contract supports previewed and confirmed Hydro-Québec and Énergir PDF imports with
 import-batch and parser provenance.
 
 A registry-backed localization foundation supports English and French Canadian message catalogs,
@@ -130,8 +130,10 @@ independently of other logins' failures.
 - Employment projection rate edits currently pass through cents-rounded HTTP conversion,
   so fractional-percent assumptions can lose precision. Issue #116 tracks the separate
   rate-input fix. An unchanged UI clone preserves stored settings without resubmitting them.
-- Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec is the
-  only implemented expense-statement source; Énergir and property-tax imports remain future work.
+- Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec and
+  the verified two-page bilingual Énergir gas-bill layout are supported. Énergir rental bundles,
+  equal-payment plans, corrected bills, scans and older unverified layouts remain unsupported;
+  property-tax imports remain future work. Spreadsheet expense imports are not implemented.
 - Account-type providers describe classification and presentation behavior but do not yet supply
   full projection, beneficiary, contribution-room, or withdrawal contracts. RESP beneficiary
   modeling is therefore absent.

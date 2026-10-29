@@ -406,6 +406,7 @@ function initializeExpenseImport() {
       });
       const {preview} = await responseJson(response);
       provider.textContent = preview.provider_display_name;
+      provider.lang = preview.provider_display_language || 'en-CA';
       providerKey.value = preview.provider_key;
       amount.textContent = formatMoneyDollars(preview.amount);
       periodStart.textContent = formatDisplayDate(preview.period_start);

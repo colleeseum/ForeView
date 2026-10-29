@@ -89,6 +89,7 @@ def test_sage_primitives_in_real_browser(tmp_path: Path) -> None:
                     str(tmp_path / "evidence"),
                     str(tax),
                     str(hydro),
+                    str(runtime_dir / "fixtures" / "energir-gas-bill.pdf"),
                 ],
                 cwd=root,
                 capture_output=True,

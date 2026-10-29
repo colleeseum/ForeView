@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {expect} from '@playwright/test';
 
-export async function verifyExpenses(page, baseURL, locale, output, hydroPath) {
+export async function verifyExpenses(page, baseURL, locale, output, hydroPath, energirPath) {
   const legacyModule = route => route.fulfill({contentType: 'text/javascript', body: 'throw new Error("Legacy Expense module requested");'});
   await page.route('**/expenses/expenses.mjs?v=20261006-1', legacyModule);
   async function api() {
@@ -156,6 +156,26 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath) {
   await remaining.locator('button[value="true"]').click();
   const resolved = (await api()).filter(item => imports.some(record => record.id === item.id));
   assert.deepEqual(resolved.map(item => item.overlap_status).sort(), ['resolved_exclude', 'resolved_include']);
+  await page.locator('#expense-import').click();
+  await page.locator('#expense-import-dialog-backdrop [data-help-article="expense-source-energir"]').click();
+  await expect(page.locator('[data-import-help] strong')).toContainText('Énergir');
+  await page.locator('#expense-import-file').setInputFiles(energirPath);
+  await page.locator('#import-preview-btn').click();
+  await expect(page.locator('#import-step-preview')).toBeVisible();
+  await expect(page.locator('#import-provider-key')).toHaveValue('energir');
+  await expect(page.locator('#import-provider')).toHaveAttribute('lang', locale === 'en-CA' ? 'en-CA' : 'fr-CA');
+  await expect(page.locator('#import-name')).toHaveValue('Énergir');
+  await page.locator('#import-name').fill(`Synthetic gas ${locale}`);
+  await page.locator('#import-category').selectOption(categoryId);
+  await page.screenshot({path: `${output}/${locale}-energir-preview.png`, fullPage: true});
+  await page.locator('#import-confirm').click();
+  await expect(page.locator('#expense-import-dialog-backdrop')).toBeHidden();
+  const gas = (await api()).filter(item => item.name === `Synthetic gas ${locale}`);
+  assert.equal(gas.length, 1);
+  assert.equal(gas[0].parser_name, 'energir');
+  assert.equal(gas[0].amount, '114.98');
+  assert.equal(gas[0].period_start, '2025-12-15');
+  assert.equal(gas[0].period_end, '2026-01-14');
   await page.locator('#expense-import').click();
   await page.locator('#expense-import-file').setInputFiles({name: 'invalid.pdf', mimeType: 'application/pdf', buffer: Buffer.from('Synthetic invalid PDF')});
   await page.locator('#import-preview-btn').click();

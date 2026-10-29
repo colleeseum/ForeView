@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import date
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 
@@ -21,7 +21,7 @@ from repositories.real_estate_asset_repository import RealEstateAssetRepository
 from services.expenses.expense_import_service import ExpenseImportService
 from services.expenses.expense_service import ExpenseService
 from web.dependencies import dependency
-from web.localization import localized_api_error, localized_error_data
+from web.localization import localized_api_error, localized_error_data, provider_presentation
 
 blueprint = Blueprint("expenses", __name__)
 
@@ -417,7 +417,14 @@ def import_expense_preview():
         with dependency("connect")() as connection:
             preview = ExpenseImportService(connection).preview(content, source_filename=filename)
 
-        return jsonify({"preview": preview.to_dict()})
+        provider = expense_source_registry.get(preview.provider_key)
+        presentation = provider_presentation(provider.display_name, provider.translations)
+        payload = preview.to_dict()
+        payload["provider_display_name"] = presentation["display_name"]
+        payload["provider_display_language"] = cast(
+            dict[str, str], presentation["field_languages"]
+        )["display_name"]
+        return jsonify({"preview": payload})
     except (TypeError, ValueError, LookupError) as error:
         return jsonify(_expense_error_data(error)), 400
 

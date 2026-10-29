@@ -1,4 +1,9 @@
 {
+  "expense_energir_unreadable": "The Énergir PDF could not be read",
+  "expense_energir_format": "The PDF is not a supported bilingual Énergir gas bill",
+  "expense_energir_unsupported": "Énergir bundled, equal-payment, corrected or multi-bill documents require manual entry",
+  "expense_energir_period": "Cannot verify the Énergir service dates and billed day count",
+  "expense_energir_amount": "Cannot verify the current-period Énergir charge including taxes",
   "questrade_authorization_rejected": "Questrade rejected this authorization. Reconnect this login.",
   "questrade_refresh_unavailable": "Questrade is temporarily unavailable. Retry synchronization later; your saved authorization has been kept.",
   "questrade_refresh_invalid": "Questrade refresh could not be completed. Review this connection’s configuration before retrying.",

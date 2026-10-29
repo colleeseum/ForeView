@@ -244,10 +244,63 @@ def create_synthetic_hydro_qc_statement(path: Path) -> Path:
     )
 
 
+def create_synthetic_energir_statement(path: Path, *, front_note: str = "") -> Path:
+    """Invent a bilingual two-page gas bill, including an automatic payment."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = canvas.Canvas(str(path), pagesize=letter, pageCompression=1)
+    document.setTitle("Synthetic Énergir fixture")
+    for lines in (
+        [
+            SYNTHETIC_NOTICE,
+            "Énergir, s.e.c. / Énergir, L.P.",
+            "Facture émise le 2026 JA 16",
+            "Pour la période du 2025 DE 15 au / to 2026 JA 14",
+            "For the period of",
+            "Facture no / Bill # 000000000001",
+            "Alex Example - Synthetic address",
+            front_note,
+            "Historique de consommation / Consumption History",
+            "2025 NO 15 2025 DE 14 30 80R 90,00",
+            "Détails du solde précédent / Previous balance details",
+            "Solde précédent 90,00 $",
+            "Paiement reçu / Payment received 90,00 $CR",
+            "Détails du montant courant",
+            "2025 OC 15 2025 NO 14 31 90R 85,00 Current amount details",
+            "Montant facturé pour la période du /",
+            "Amount Billed for the Period from",
+            "2025 DE 15 au / to 2026 JA 14",
+            "Volume facturé / Volume billed: 100 m3 (voir verso / see reverse) 100,00 $",
+            "TPS / GST (no / # 000000001) 5,00 $",
+            "Total de l'année courante / Total of Current Year TVQ / PST (no / # 000000002) 9,98 $",
+            "2024 DE 15 2025 DE 14 365 1500 1 999,99 Total 114,98 $ 114,98 $",
+            "Montant courant / Current amount 114,98 $",
+            "Prélèvement automatique / Automatic payment 114,98 $CR",
+            "Montant total à payer / Total Amount to Pay 0,00 $",
+        ],
+        [
+            SYNTHETIC_NOTICE,
+            "Énergir - Numéro de compte / Account number : 0000 0000 001",
+            "Période / Period : 2025 DE 15 au / to 2026 JA 14 31 jours / days",
+            "Calcul du volume facturé / Calculation of the Billed Volume",
+            "Détail du calcul du montant facturé / Calculation of the Amount Billed",
+            "Gaz naturel fourni / Natural Gas Supplied",
+            "Distribution total 60,00 $",
+            "Total avant taxes / Total before taxes 100,00 $",
+        ],
+    ):
+        document.setFont("Helvetica", 10)
+        for index, line in enumerate(lines):
+            document.drawString(30, 760 - index * 22, line)
+        document.showPage()
+    document.save()
+    return path
+
+
 def create_synthetic_fixture_set(directory: Path) -> dict[str, Path]:
     """Create every supported synthetic PDF and CSV fixture."""
     directory.mkdir(parents=True, exist_ok=True)
     creators = {
+        "energir_pdf": ("energir-gas-bill.pdf", create_synthetic_energir_statement),
         "eq_pdf": ("eq-monthly-statement.pdf", create_synthetic_eq_statement),
         "achieva_gic_pdf": ("achieva-gic-history.pdf", create_synthetic_achieva_gic),
         "rbc_gic_pdf": ("rbc-gic-history.pdf", create_synthetic_rbc_gic_history),

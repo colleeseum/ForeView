@@ -1,4 +1,9 @@
 {
+  "expense_energir_unreadable": "Impossible de lire le PDF d’Énergir",
+  "expense_energir_format": "Le PDF n’est pas une facture bilingue de gaz d’Énergir prise en charge",
+  "expense_energir_unsupported": "Les factures d’Énergir groupées, corrigées, avec location ou mode de paiements égaux nécessitent une saisie manuelle",
+  "expense_energir_period": "Impossible de vérifier les dates de service et le nombre de jours facturés d’Énergir",
+  "expense_energir_amount": "Impossible de vérifier le montant de gaz d’Énergir pour la période, taxes incluses",
   "questrade_authorization_rejected": "Questrade a refusé cette autorisation. Reconnectez cet identifiant.",
   "questrade_refresh_unavailable": "Questrade est temporairement indisponible. Réessayez la synchronisation plus tard; votre autorisation enregistrée est conservée.",
   "questrade_refresh_invalid": "L’actualisation Questrade n’a pas pu être effectuée. Vérifiez la configuration de cette connexion avant de réessayer.",

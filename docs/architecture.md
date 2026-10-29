@@ -250,7 +250,10 @@ The detailed provider contract and extension procedure are maintained in
 - `public_pension_sources/` registers public-pension statement parsers. A Retraite Québec
   participation statement is currently supported.
 - `expense_sources/` discovers household expense-statement providers. Hydro-Québec electricity
-  bills are currently supported.
+  bills and the verified two-page bilingual Énergir gas-bill layout are supported.
+  Énergir cross-checks its current gas-period subtotal, taxes, total and three period references
+  with the inclusive day count. Payment balances are not expenses. Bundled rental, equal-payment,
+  corrected and unverified layouts are rejected rather than combined into fabricated periods.
 - `projection/rule_update/` uses an explicit provider registry for official public-rule retrieval.
 
 The institution, account-type, and expense-source registries use package discovery. Income,

@@ -215,6 +215,7 @@
     "seasonal_estimate": "Estimation saisonnière",
     "category": "Catégorie",
     "classification": "Classification",
+    "record_actions": "Actions",
     "recorded": "Enregistré",
     "show_records": "Afficher les données justificatives",
     "hide_records": "Masquer les données justificatives",
@@ -252,7 +253,7 @@
     "supported_sources": "Relevés pris en charge et aide à l’importation",
     "delete": "Supprimer",
     "delete_named": "Supprimer {name}",
-    "delete_title": "Supprimer une dépense importée",
+    "delete_title": "Supprimer une dépense",
     "close_delete": "Fermer la suppression de dépense",
     "delete_warning": "La dépense sélectionnée sera supprimée définitivement. Les autres données seront conservées. Cette action est irréversible.",
     "delete_permanently": "Supprimer définitivement",
@@ -301,7 +302,13 @@
     "category_updated": "Catégorie de dépenses mise à jour.",
     "factual_saved": "Dépense factuelle enregistrée.",
     "overlap_saved": "Décision de chevauchement enregistrée.",
-    "retry_refresh": "Réessayer l’actualisation"
+    "retry_refresh": "Réessayer l’actualisation",
+    "record_details": "Donnée de dépense",
+    "close_record_details": "Fermer la donnée de dépense",
+    "source_file": "Fichier importé",
+    "source_parser": "Analyseur et version",
+    "source_fingerprint": "Empreinte du document",
+    "recorded_at": "Date d’enregistrement"
   },
   "connections": {
     "title": "Connexions",

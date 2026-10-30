@@ -215,6 +215,7 @@
     "seasonal_estimate": "Seasonal estimate",
     "category": "Category",
     "classification": "Classification",
+    "record_actions": "Actions",
     "recorded": "Recorded",
     "show_records": "Show supporting records",
     "hide_records": "Hide supporting records",
@@ -252,7 +253,7 @@
     "supported_sources": "Supported statements and import help",
     "delete": "Delete",
     "delete_named": "Delete {name}",
-    "delete_title": "Delete imported expense",
+    "delete_title": "Delete expense",
     "close_delete": "Close expense deletion",
     "delete_warning": "This permanently removes the selected expense record. Other records are kept. This action cannot be undone.",
     "delete_permanently": "Delete permanently",
@@ -301,7 +302,13 @@
     "category_updated": "Expense category updated.",
     "factual_saved": "Factual expense saved.",
     "overlap_saved": "Overlap decision saved.",
-    "retry_refresh": "Retry refresh"
+    "retry_refresh": "Retry refresh",
+    "record_details": "Expense record",
+    "close_record_details": "Close expense record",
+    "source_file": "Imported file",
+    "source_parser": "Parser and version",
+    "source_fingerprint": "Document fingerprint",
+    "recorded_at": "Recorded at"
   },
   "connections": {
     "title": "Connections",

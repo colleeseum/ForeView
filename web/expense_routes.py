@@ -353,7 +353,7 @@ def delete_expense(expense_id: int):
     try:
         token = str(_required(_payload(), "expected_token"))
         with dependency("connect")() as connection:
-            ExpenseService(connection).delete_imported(expense_id, expected_token=token)
+            ExpenseService(connection).delete_expense(expense_id, expected_token=token)
         return "", 204
     except ValidationLookupError as error:
         return jsonify(_expense_error_data(error)), 404

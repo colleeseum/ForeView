@@ -138,7 +138,7 @@ class ExpenseService:
             json.dumps(asdict(record), sort_keys=True, default=str).encode()
         ).hexdigest()
 
-    def delete_imported(self, expense_id: int, *, expected_token: str) -> None:
+    def delete_expense(self, expense_id: int, *, expected_token: str) -> None:
         with self._connection:
             # Acquire the writer lock before reading evidence or checking provenance.
             self.repository.lock_for_deletion(expense_id)
@@ -148,7 +148,7 @@ class ExpenseService:
                     "expense_delete_stale",
                     "The expense changed. Refresh the page before deleting it.",
                 )
-            self.repository.delete_imported_expense(expense_id)
+            self.repository.delete_expense(expense_id)
             if record.source_document_id is not None:
                 ImportBatchRepository(self._connection).delete_if_unreferenced(
                     record.source_document_id

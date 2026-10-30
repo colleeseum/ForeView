@@ -131,8 +131,9 @@ invalidated with a new versioned entry URL. No extra parser or framework is adde
 
 ## Permanent deletion
 
-EXP-02 (#128) adds Delete to imported supporting records, including excluded duplicates.
-Manual records retain their existing Edit action. Confirmation identifies the selected
+EXP-02 (#128) established permanent deletion for imported records. UX-05E (#137)
+extends the same guarded workflow to manual evidence. Imported records offer View
+and Delete; manual records offer Edit and Delete. Confirmation identifies the selected
 record, filename, amount and service period, warns that deletion is permanent, and
 focuses Cancel initially. Exclude remains available for evidence that should be retained
 but omitted from totals.
@@ -182,3 +183,29 @@ Before-state evidence remains under `ux-03a/baseline/`. Reviewed after-state exa
 - [English desktop](ux-03h/evidence/en-CA-1280-expenses.png)
 - [French mobile](ux-03h/evidence/fr-CA-390-expenses.png)
 - [Synthetic RTL](ux-03h/evidence/ar-XB-320-expenses.png)
+
+## Contextual icon actions (UX-05E, #137)
+
+Each supporting-record row has a dedicated Actions column with two shared controls:
+View/Delete for imported evidence, Edit/Delete for manual evidence. Category Edit
+and modal Close use the same primitives. Accessible names identify the record/category.
+Date endpoints appear on separate lines, and Required/Discretionary is a compact
+text badge below the category name. Source kind and filename are omitted from the table.
+
+View opens a native read-only record dialog with the amount, period, category,
+association, overlap status and import provenance: filename, parser/version, document
+fingerprint and creation time where available. Content is server-rendered and escaped;
+viewing requires no mutation. Deletion confirmation retains the filename when present.
+Both manual and imported records use the existing fingerprint, writer-lock, overlap
+cleanup and in-place recovery contract. No original user document is deleted.
+
+Primary Add/import, Include/Exclude, Save/Cancel and permanent-delete confirmation
+retain visible labels. Delegated tooltips cover server-rendered and refreshed rows.
+The maintainer explicitly extended #137 beyond presentation to allow manual deletion;
+this remains one cohesive, independently reviewed expense-record actions PR.
+
+Seasonal-estimate Help sits beside its category-table column heading as the shared
+plain `?` icon and opens the existing explanation article. On the dark header it
+uses a white glyph and border on the green background, preserving the 44px target and a
+visible white keyboard-focus outline. It is included in read
+refreshes with the summary; delegated tooltips and Help handlers remain available.

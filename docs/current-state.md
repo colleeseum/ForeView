@@ -14,7 +14,10 @@ labelled primary actions and existing financial/save contracts. UX-05C (#135) ap
 the shared Help and close controls in Transactions, preserving labelled import and
 reconciliation workflows and read-only history. UX-05D (#136) adopts shared Edit,
 correction Details/Review and dialog-close icons in Income while retaining explicit
-correction lifecycle labels and financial contracts. See `docs/design/ui-foundation.md`.
+correction lifecycle labels and financial contracts. UX-05E (#137) adopts shared
+record/category Edit, imported-record View and record Delete icons in Expenses.
+Manual and imported evidence share guarded permanent deletion and in-place recovery;
+a read-only record dialog exposes import provenance outside the compact table. See `docs/design/ui-foundation.md`.
 
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog
@@ -100,6 +103,7 @@ import-batch and parser provenance.
 EXP-02 (#128) adds confirmed permanent deletion of imported expense evidence, including
 excluded duplicates. It checks the displayed record against concurrent changes, preserves
 shared provenance and explicit exclusions, and refreshes only affected overlap flags.
+UX-05E (#137) extends the same deletion safeguards to manual evidence.
 Deletion updates rows and summaries in place, preserving scroll, expanded groups and
 unrelated notes. Manual evidence retains Edit. See `docs/design/expenses.md` for the deletion boundary.
 Montréal's verified English and French two-page annual accounts import the stated calendar-year

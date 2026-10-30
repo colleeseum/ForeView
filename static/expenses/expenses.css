@@ -13,7 +13,7 @@
 .fv-expenses .fv-table :is(th, td) { position: static; min-width: 0; max-width: none; padding: var(--fv-space-3); white-space: normal; overflow: visible; text-overflow: clip; text-align: start; }
 .fv-expenses .fv-table thead th { color: var(--fv-surface); background: var(--fv-primary); }
 .fv-expenses .fv-dialog { width: min(60rem, calc(100% - 2rem)); }
-.fv-expenses .dialog-close { position: static; float: inline-end; }
+.fv-expenses [data-icon-action="close"] { position: static; float: inline-end; }
 .fv-expenses .connection-notice { padding: var(--fv-space-3); border: 1px solid var(--fv-border); border-radius: var(--fv-radius-control); color: var(--fv-success); background: var(--fv-success-surface); font: var(--fv-type-detail)/1.5 var(--fv-font); }
 .fv-expenses .connection-notice.error, .fv-expenses .fv-feedback.error { color: var(--fv-danger); background: var(--fv-danger-surface); border-color: var(--fv-danger); }
 .fv-expenses .income-import-progress { font: var(--fv-type-detail)/1.5 var(--fv-font); color: var(--fv-muted); }
@@ -24,3 +24,21 @@
 .fv-expenses .expense-import-heading h2 { min-width: 0; margin: 0; }
 .fv-expenses #expense-delete-details { overflow-wrap: anywhere; }
 .fv-expenses .expense-import-heading .expense-import-help-button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: var(--fv-control-min); height: var(--fv-control-min); padding: 0; border-radius: var(--fv-radius-control); color: var(--fv-primary); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); }
+
+.fv-expenses .expense-record-category { display: grid; gap: var(--fv-space-1); }
+.fv-expenses .expense-record-category .expense-classification { justify-self: start; }
+.fv-expenses .fv-table .expense-record-actions { width: 1%; white-space: nowrap; text-align: center; }
+
+
+.fv-expenses .expense-record-period time { display: block; white-space: nowrap; }
+.fv-expenses .expense-record-action-group { display: inline-flex; gap: var(--fv-space-2); }
+.fv-expenses .expense-record-info { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--fv-space-3); }
+.fv-expenses .expense-record-info dt { font-weight: 650; }
+.fv-expenses .expense-record-info dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 32rem) { .fv-expenses .expense-record-info { grid-template-columns: minmax(0, 1fr); gap: var(--fv-space-2); } }
+
+.fv-expenses .expense-estimate-heading { display: inline-flex; align-items: center; gap: var(--fv-space-2); }
+
+.fv-expenses .expense-estimate-heading > .fv-icon-action { color: inherit; background: transparent; border-color: currentColor; }
+.fv-expenses .expense-estimate-heading > .fv-icon-action:hover { background: var(--fv-primary-hover); }
+.fv-expenses .expense-estimate-heading > .fv-icon-action:focus-visible { outline-color: var(--fv-surface); }

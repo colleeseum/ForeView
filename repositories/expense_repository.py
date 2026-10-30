@@ -515,12 +515,8 @@ class ExpenseRepository:
     def lock_for_deletion(self, expense_id: int) -> None:
         self._connection.execute("UPDATE expense_records SET id = id WHERE id = ?", (expense_id,))
 
-    def delete_imported_expense(self, expense_id: int) -> ExpenseRecord:
+    def delete_expense(self, expense_id: int) -> ExpenseRecord:
         current = self.get_expense(expense_id)
-        if current.source_kind != "imported":
-            raise ValidationError(
-                "expense_delete_imported_only", "Only imported expense records can be deleted here"
-            )
         affected = set(
             self._overlapping_ids(
                 current.identity_id,

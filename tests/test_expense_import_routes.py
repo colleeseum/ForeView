@@ -6,11 +6,13 @@
 from __future__ import annotations
 
 import io
+import json
 import re
 import tempfile
 import unittest
 from datetime import date
 from decimal import Decimal
+from html.parser import HTMLParser
 from pathlib import Path
 
 import app as application
@@ -108,6 +110,76 @@ class ExpenseImportRouteTest(unittest.TestCase):
         self.assertEqual(record["parser_name"], "hydro-quebec")
         self.assertTrue(record["source_hash"])
 
+    def test_icon_actions_preserve_escaped_payloads_and_localized_targets(self):
+        class ActionParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.buttons = []
+                self.unsafe = []
+
+            def handle_starttag(self, tag, attrs):
+                attributes = dict(attrs)
+                if tag == "button":
+                    self.buttons.append(attributes)
+                if tag in {"script", "img", "svg"} and (
+                    "onerror" in attributes or "onload" in attributes
+                ):
+                    self.unsafe.append(attributes)
+
+        name = "Synthetic 'quote' \"double\" & <img onerror=alert(1)>"
+        category = self.client.post(
+            "/api/expenses/categories", json={"name": name, "classification": "required"}
+        ).get_json()
+        record = self.client.post(
+            "/api/expenses/manual",
+            json={
+                "name": name,
+                "category_id": category["id"],
+                "amount": "12.34",
+                "period_start": "2026-02-01",
+                "period_end": "2026-02-28",
+            },
+        ).get_json()
+        imported = self._confirm(filename="Synthetic 'quotes' & file.pdf").get_json()
+        localization = self.app.extensions["localization"]
+        for locale in ("en-CA", "fr-CA"):
+            with self.subTest(locale=locale):
+                localization.select(locale)
+                parser = ActionParser()
+                parser.feed(self.client.get("/expenses?year=2026").text)
+                self.assertFalse(parser.unsafe)
+                edit = next(
+                    button
+                    for button in parser.buttons
+                    if "data-expense-edit" in button
+                    and json.loads(button["data-expense-edit"])["id"] == record["id"]
+                )
+                self.assertEqual(json.loads(edit["data-expense-edit"])["name"], name)
+                self.assertEqual(edit["data-icon-action"], "edit")
+                self.assertEqual(
+                    edit["aria-label"],
+                    localization.translate(locale, "browser.actions.edit", name=name),
+                )
+                category_edit = next(
+                    button for button in parser.buttons if button.get("data-name") == name
+                )
+                self.assertEqual(category_edit["data-active"], "true")
+                self.assertIn("data-category-edit", category_edit)
+                delete = next(
+                    button
+                    for button in parser.buttons
+                    if "data-expense-delete" in button
+                    and json.loads(button["data-expense-delete"])["id"] == imported["id"]
+                )
+                payload = json.loads(delete["data-expense-delete"])
+                self.assertEqual(payload["source_name"], "Synthetic 'quotes' & file.pdf")
+                self.assertTrue(payload["expected_token"])
+                self.assertEqual(delete["data-icon-action"], "delete")
+                self.assertIn("fv-button--danger", delete["class"])
+                self.assertEqual(
+                    sum(button.get("data-icon-action") == "close" for button in parser.buttons), 6
+                )
+
     def test_reimport_flags_overlapping_records(self) -> None:
         first = self._confirm()
         second = self._confirm()
@@ -175,7 +247,7 @@ class ExpenseImportRouteTest(unittest.TestCase):
         self.assertEqual(repeated.status_code, 404)
         self.assertNotIn(f'"id": {target["id"]},', self.client.get("/api/expenses").text)
 
-    def test_expense_deletion_requires_csrf_current_confirmation_and_imported_source(self):
+    def test_expense_deletion_requires_csrf_current_confirmation_for_all_sources(self):
         record = self._confirm().get_json()
         url = f"/api/expenses/{record['id']}"
         before = self.runtime.database_path.read_bytes()
@@ -207,8 +279,10 @@ class ExpenseImportRouteTest(unittest.TestCase):
         response = self.client.delete(
             f"/api/expenses/{manual['id']}", json={"expected_token": manual["deletion_token"]}
         )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.get_json()["error_code"], "expense_delete_imported_only")
+        self.assertEqual(response.status_code, 204)
+        self.assertNotIn(
+            manual["id"], [record["id"] for record in self.client.get("/api/expenses").get_json()]
+        )
 
     def test_failed_deletion_rolls_back_and_reused_id_cannot_delete_new_evidence(self):
         record = self._confirm().get_json()

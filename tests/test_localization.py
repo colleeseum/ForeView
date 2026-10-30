@@ -681,11 +681,15 @@ def test_french_expense_association_selector_is_localized(tmp_path):
     page = response.get_data(as_text=True)
     assert response.status_code == 200
     assert "Personne: Synthetic Person" in page
-    assert "Utilities · Obligatoire" in page
-    assert "1 janv. 2026 au 31 janv. 2026" in page
+    assert (
+        '<span>Utilities</span><span class="fv-badge expense-classification">Obligatoire</span>'
+        in page
+    )
+    assert '<time datetime="2026-01-01">1 janv. 2026</time>' in page
+    assert '<time datetime="2026-01-31">31 janv. 2026</time>' in page
     assert "Période de relevé récurrente" in page
     assert f"Personne #{person_id}" in page
-    assert "Manuelle" in page
+    assert "<td>Manuelle</td>" not in page
     assert "Aucun chevauchement" in page
     assert "Résidence principale" == flask_app.extensions["localization"].translate(
         "fr-CA", "pages_server.assets.principal_residence"

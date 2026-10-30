@@ -257,3 +257,10 @@ dynamic, disabled and busy examples. Launch it with the command above. Unit test
 verify escaped labels/hooks, lifecycle and dynamic controls. Chromium checks cover
 English/French, synthetic RTL, 320px/desktop widths, 100%/125% text and keyboard
 focus/tooltip placement. Workspaces adopt these primitives through UX-05B-G.
+
+### Contextual help placement
+
+Place Help beside the field, column heading or result it explains, using the
+approved plain `?` control and a meaningful accessible name. Prefer this local
+placement over a detached help button below a section. Page-level Help remains
+available for general navigation; contextual controls select the relevant article.

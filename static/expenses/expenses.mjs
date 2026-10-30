@@ -4,7 +4,10 @@
 import {formatMoneyDollars, formatDisplayDate} from '../shared/locale-format.mjs';
 
 import {t, locale} from '../shared/i18n.mjs';
+import {initializeIconActions} from '../shared/icon-actions.mjs';
 import {createDialog} from '../shared/dialog.mjs';
+
+initializeIconActions();
 
 const expenseDialog = document.querySelector('#expense-dialog-backdrop');
 const categoryDialog = document.querySelector('#category-dialog-backdrop');
@@ -493,7 +496,8 @@ function initializeExpenseDeletion() {
     const row = button.closest('[data-expense-id]');
     focusTarget = row?.nextElementSibling?.querySelector('button, input') || row?.previousElementSibling?.querySelector('button, input') || document.querySelector('.expense-record-details summary');
     scrollPosition = {left: window.scrollX, top: window.scrollY};
-    details.textContent = `${selected.name} · ${selected.source_name} · ${formatMoneyDollars(selected.amount)} · ${formatDisplayDate(selected.period_start)} – ${formatDisplayDate(selected.period_end)}`;
+    details.textContent = [selected.name, selected.source_name, formatMoneyDollars(selected.amount),
+      `${formatDisplayDate(selected.period_start)} – ${formatDisplayDate(selected.period_end)}`].filter(Boolean).join(' · ');
     message.hidden = true;
     message.classList.remove('error');
     confirm.hidden = false;
@@ -619,3 +623,13 @@ function initializeExpenseDeletion() {
 }
 
 initializeExpenseDeletion();
+
+// Read-only server-rendered provenance stays out of the compact table.
+document.addEventListener('click', event => {
+  const action = event.target.closest('[data-expense-view]');
+  if (!action) return;
+  const template = document.getElementById(`expense-details-${Number(action.dataset.expenseView)}`);
+  if (!template) return;
+  document.querySelector('#expense-details-content').replaceChildren(template.content.cloneNode(true));
+  openDialog(document.querySelector('#expense-details-dialog'));
+});

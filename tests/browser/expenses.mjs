@@ -61,6 +61,30 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
     assert(position.primary.y > position.cancel.y || (position.rtl ? position.primary.x < position.cancel.x : position.primary.x > position.cancel.x));
   }
   await goto();
+  const estimateHelp = page.locator('#expense-summary [data-help-article="expense-seasonal-estimate"]');
+  if (locale === 'en-CA') await expect(estimateHelp).toHaveCount(1);
+  if (await page.locator('#expense-summary .expense-estimate-heading').count()) {
+    await expect(estimateHelp).toHaveCount(1);
+    await expect(estimateHelp).toHaveAttribute('data-icon-action', 'help');
+    await expect(estimateHelp).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(estimateHelp).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(estimateHelp).toHaveCSS('border-top-color', 'rgb(255, 255, 255)');
+    await expect(estimateHelp).toHaveCSS('border-top-width', '1px');
+    const helpTarget = await estimateHelp.boundingBox();
+    assert(helpTarget.width >= 44 && helpTarget.height >= 44);
+    await estimateHelp.focus();
+    await expect(estimateHelp).toHaveCSS('outline-width', '3px');
+    await expect(estimateHelp).toHaveCSS('outline-color', 'rgb(255, 255, 255)');
+    assert(await estimateHelp.evaluate(node => Boolean(node.closest('th'))), 'Estimate Help is next to its column heading');
+    assert.equal((await estimateHelp.innerText()).trim(), '');
+    await estimateHelp.click();
+    await expect(page.locator('[data-help-result="expense-seasonal-estimate"]')).toHaveAttribute('aria-current', 'true');
+    await page.locator('.help-drawer-close').click();
+    await expect(estimateHelp).toBeFocused();
+  } else {
+    await expect(estimateHelp).toHaveCount(0);
+    await expect(page.locator('#expense-summary .connection-notice.error')).toBeVisible();
+  }
   const original = await api();
   const originalTotals = await page.locator('.expense-summary-grid').allTextContents();
   for (const width of [1280, 390, 320]) {
@@ -78,7 +102,15 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
     await page.locator('#category-add').click();
     const editor = page.locator('#category-editor-backdrop');
     await expect(editor.locator('[name="name"]')).toBeFocused();
-    await page.locator('#category-editor-close').focus();
+    const close = page.locator('#category-editor-close');
+    await expect(close).toHaveAttribute('data-icon-action', 'close');
+    await close.focus();
+    const tooltip = editor.locator('[role="tooltip"]');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toHaveText(await close.getAttribute('aria-label'));
+    await page.keyboard.press('Escape');
+    await expect(tooltip).toHaveCount(0);
+    await expect(editor).toBeVisible();
     await page.keyboard.press('Shift+Tab');
     assert(await editor.evaluate(node => node.contains(document.activeElement)));
     await page.keyboard.press('Escape');
@@ -103,12 +135,16 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   await expect(page.locator('#category-dialog-backdrop [role="status"]')).toBeVisible();
   const categoryRow = page.locator('#category-dialog-backdrop tbody tr').filter({hasText: name});
   await expect(categoryRow).toBeVisible();
+  await expect(categoryRow.locator('[data-category-edit]')).toHaveAttribute('data-icon-action', 'edit');
   await categoryRow.locator('[data-category-edit]').click();
   await page.locator('#category-editor-form [name="name"]').fill(`${name} edited`);
   await page.locator('#category-editor-save').click();
   await expect(page.locator('#category-dialog-backdrop')).toHaveJSProperty('open', true);
   await expect(page.locator('#category-dialog-backdrop')).toContainText(`${name} edited`);
+  await page.waitForLoadState('networkidle');
+  if (await page.locator('.fv-icon-tooltip').count()) await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
+  await expect(page.locator('#category-dialog-backdrop')).toBeHidden();
   await page.locator('#expense-add').click();
   const form = page.locator('#expense-dialog-backdrop form');
   await form.locator('[name="name"]').fill(`Irregular evidence ${locale}`);
@@ -142,6 +178,7 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   const edited = (await api()).find(item => item.id === manual.id);
   assert.equal(edited.name, `Edited irregular evidence ${locale}`);
   for (const field of ['amount', 'period_start', 'period_end', 'period_kind', 'source_kind', 'association_kind', 'association_id', 'category_id', 'category_name', 'classification']) assert.equal(edited[field], manual[field]);
+
   // The following import phase creates new evidence, which requires an active category.
   await page.evaluate(async id => {
     const response = await fetch(`/api/expenses/categories/${id}`, {method: 'PUT',
@@ -216,6 +253,40 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   const deleteButton = deletionButtons.nth(deletionIndex);
   const beforeDeletion = await api();
   await page.locator('.expense-record-details').evaluate(node => {node.open = true;});
+  await expect(deleteButton.locator('xpath=ancestor::td')).toHaveClass('expense-record-actions');
+  const rowLayout = await deleteButton.evaluate(button => {
+    const row = button.closest('tr');
+    const cells = [...row.cells];
+    return {columns: cells.length, actionCell: button.closest('td').cellIndex,
+      statusHasAction: Boolean(cells[6].querySelector('[data-icon-action]')),
+      classification: Boolean(cells[1].querySelector('.fv-badge.expense-classification'))};
+  });
+  assert.deepEqual(rowLayout, {columns: 8, actionCell: 7, statusHasAction: false, classification: true});
+  const view = page.locator(`[data-expense-id="${excluded.id}"] [data-expense-view]`);
+  await expect(view).toHaveAttribute('data-icon-action', 'view');
+  const recordRow = page.locator(`[data-expense-id="${excluded.id}"]`);
+  await expect(recordRow.locator('.expense-record-action-group button')).toHaveCount(2);
+  assert(!(await recordRow.innerText()).includes(excluded.source_name), 'Filename stays out of the table');
+  await expect(recordRow.locator('.expense-record-period time')).toHaveCount(2);
+  await view.click();
+  const recordDialog = page.locator('#expense-details-dialog');
+  await expect(recordDialog).toBeVisible();
+  await expect(recordDialog.locator('[data-record-source-file]')).toHaveText(excluded.source_name);
+  await expect(recordDialog).toContainText(excluded.name);
+  await expect(recordDialog).toContainText(excluded.parser_name);
+  assert.deepEqual(await api(), beforeDeletion, 'Viewing provenance never writes evidence');
+  await page.keyboard.press('Escape');
+  await expect(recordDialog).toBeHidden();
+  await expect(view).toBeFocused();
+  await expect(deleteButton).toHaveAttribute('data-icon-action', 'delete');
+  assert.equal((await deleteButton.innerText()).trim(), '');
+  await expect(deleteButton).toHaveAttribute('aria-label', new RegExp(excluded.name));
+  const target = await deleteButton.boundingBox();
+  assert(target.width >= 44 && target.height >= 44);
+  await deleteButton.focus();
+  await expect(page.locator('.fv-icon-tooltip')).toHaveText(await deleteButton.getAttribute('aria-label'));
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.fv-icon-tooltip')).toHaveCount(0);
   await deleteButton.click();
   const deletionDialog = page.locator('#expense-delete-dialog');
   await expect(deletionDialog).toBeVisible();
@@ -384,4 +455,21 @@ export async function verifyExpenses(page, baseURL, locale, output, hydroPath, e
   await expect(page.locator('#category-dialog-backdrop [role="status"]')).toHaveText('Synthetic fallback confirmation');
   await page.unroute('**/expenses/expenses.mjs?*', noModule);
   await page.unroute('**/expenses/expenses.mjs?v=20261006-1', legacyModule);
+  await page.goto(`${baseURL}/expenses?year=${locale === 'ar-XB' ? 2027 : 2026}`);
+  await page.waitForLoadState('networkidle');
+  await page.locator('.expense-record-details').evaluate(node => {node.open = true;});
+  const manualRow = page.locator(`[data-expense-id="${manual.id}"]`);
+  await expect(manualRow.locator('.expense-record-action-group button')).toHaveCount(2);
+  await expect(manualRow.locator('[data-expense-edit]')).toHaveAttribute('data-icon-action', 'edit');
+  await manualRow.locator('[data-expense-delete]').click();
+  await expect(page.locator('#expense-delete-details')).not.toContainText('null');
+  await page.locator('#expense-delete-cancel').click();
+  assert((await api()).some(record => record.id === manual.id), 'Cancel retains manual evidence');
+  await manualRow.locator('[data-expense-delete]').click();
+  await page.locator('#expense-delete-confirm').click();
+  await expect(page.locator('#expense-delete-dialog')).toBeHidden();
+  await expect(manualRow).toHaveCount(0);
+  assert(!(await api()).some(record => record.id === manual.id), 'Manual evidence can be deleted');
+
+
 }

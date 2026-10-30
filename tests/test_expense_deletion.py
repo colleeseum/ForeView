@@ -59,7 +59,7 @@ def imported(
 
 def delete(env, record):
     token = ExpenseService.deletion_token(env.repository.get_expense(record.id))
-    env.service.delete_imported(record.id, expected_token=token)
+    env.service.delete_expense(record.id, expected_token=token)
 
 
 def test_duplicate_deletion_preserves_retained_evidence_and_shared_batch(env):
@@ -220,21 +220,21 @@ def test_shared_source_cleanup_quotes_schema_identifiers(env):
     assert env.connection.execute('SELECT COUNT(*) FROM "extra ""source"').fetchone()[0] == 1
 
 
-def test_stale_token_reused_id_missing_and_manual_records_cannot_be_deleted(env):
+def test_stale_token_reused_id_missing_and_manual_deletion(env):
     record = imported(env)
     old_token = ExpenseService.deletion_token(record)
     env.repository.resolve_overlap(record.id, include=False, note="Changed since confirmation")
     env.connection.commit()
     with pytest.raises(ValidationError) as error:
-        env.service.delete_imported(record.id, expected_token=old_token)
+        env.service.delete_expense(record.id, expected_token=old_token)
     assert error.value.code == "expense_delete_stale"
     delete(env, record)
     with pytest.raises(ValidationLookupError):
-        env.service.delete_imported(record.id, expected_token=old_token)
+        env.service.delete_expense(record.id, expected_token=old_token)
     replacement = imported(env, name="Different evidence", source_hash="replacement")
     assert replacement.id == record.id
     with pytest.raises(ValidationError, match="changed"):
-        env.service.delete_imported(record.id, expected_token=old_token)
+        env.service.delete_expense(record.id, expected_token=old_token)
     assert env.repository.get_expense(replacement.id).name == "Different evidence"
     manual = env.repository.create_manual_expense(
         name="Manual evidence",
@@ -245,8 +245,12 @@ def test_stale_token_reused_id_missing_and_manual_records_cannot_be_deleted(env)
     )
     env.connection.commit()
     with pytest.raises(ValidationError) as error:
-        env.service.delete_imported(manual.id, expected_token=ExpenseService.deletion_token(manual))
-    assert error.value.code == "expense_delete_imported_only"
+        env.service.delete_expense(manual.id, expected_token="stale")
+    assert error.value.code == "expense_delete_stale"
+    assert env.repository.get_expense(manual.id).name == "Manual evidence"
+    env.service.delete_expense(manual.id, expected_token=ExpenseService.deletion_token(manual))
+    with pytest.raises(ValidationLookupError):
+        env.repository.get_expense(manual.id)
 
 
 def test_batch_cleanup_missing_or_unknown_reference_is_conservative(env):
@@ -258,3 +262,26 @@ def test_batch_cleanup_missing_or_unknown_reference_is_conservative(env):
     env.connection.commit()
     delete(env, record)
     assert env.batches.get(record.source_document_id) is not None
+
+
+def test_deleting_manual_evidence_clears_only_affected_overlap_and_keeps_other_facts(env):
+    records = [
+        env.repository.create_manual_expense(
+            name="Manual utilities",
+            category_id=env.category.id,
+            amount="10",
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 1, 31),
+        )
+        for _ in range(2)
+    ]
+    unrelated = imported(
+        env, name="Other evidence", source_hash="unrelated", start="2026-04-01", end="2026-04-30"
+    )
+    env.connection.commit()
+    assert env.repository.get_expense(records[0].id).overlap_status == "potential"
+    current = env.repository.get_expense(records[0].id)
+    delete(env, current)
+    assert env.repository.get_expense(records[1].id).overlap_status == "clear"
+    assert env.repository.get_expense(unrelated.id) == unrelated
+    assert env.repository.get_expense(records[1].id).amount == Decimal("10")

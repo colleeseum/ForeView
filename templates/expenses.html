@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2026 Mindstep Corporation
 SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
+{% from '_icon_actions.html' import icon_action %}
 <!doctype html>
 <html lang="{{ current_locale }}" dir="{{ locale_direction }}" data-text-size="{{ text_size }}">
 <head>
@@ -12,7 +13,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <title>{{ t('pages_server.expenses.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/ui.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='expenses/expenses.css', v='20261029-1') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='expenses/expenses.css', v='20261029-8') }}">
 </head>
 <body><main class="fv-ui fv-expenses">
   <header data-help-article="expenses"><p class="eyebrow">{{ t('pages_server.common.financial_records') }}</p><h1>{{ t('pages_server.expenses.heading') }}</h1>
@@ -57,13 +58,12 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
             {% if summary.has_partial_coverage %}<article class="summary-pill"><p>{{ t('pages_server.expenses.seasonal_estimate') }} · {{ format_percent(summary.estimate_inflation_rate) }} {{ t('pages_server.expenses.inflation') }}</p><strong>{% if summary.estimated_total is not none %}{{ format_money(summary.estimated_total) }}{% else %}{{ t('pages_server.expenses.unavailable') }}{% endif %}</strong></article>{% endif %}
           </div>
           <h3>{{ t('pages_server.expenses.category_totals') }}</h3>
-          <div class="table-card"><table><thead><tr><th>{{ t('pages_server.expenses.category') }}</th><th>{{ t('pages_server.expenses.classification') }}</th><th>{{ t('pages_server.expenses.recorded') }}</th>{% if summary.has_partial_coverage %}<th>{{ t('pages_server.expenses.seasonal_estimate') }}</th>{% endif %}</tr></thead>
+          <div class="table-card"><table><thead><tr><th>{{ t('pages_server.expenses.category') }}</th><th>{{ t('pages_server.expenses.classification') }}</th><th>{{ t('pages_server.expenses.recorded') }}</th>{% if summary.has_partial_coverage %}<th><span class="expense-estimate-heading"><span>{{ t('pages_server.expenses.seasonal_estimate') }}</span>{{ icon_action('help', t('pages_server.expenses.seasonal_help'), attributes={'data-help-article': 'expense-seasonal-estimate'}) }}</span></th>{% endif %}</tr></thead>
             <tbody>{% for category in summary.categories %}<tr>
               <td>{{ category.name }}</td><td>{{ t('pages_server.expenses.' ~ category.classification ~ '_classification') }}</td><td>{{ format_money(category.amount) }}</td>{% if summary.has_partial_coverage %}<td>{% if category.annualized_estimate is not none %}{{ format_money(category.annualized_estimate) }}{% else %}{{ t('pages_server.expenses.unavailable') }}{% endif %}</td>{% endif %}
             </tr>{% endfor %}</tbody>
           </table></div>
           <p class="dashboard-note">{{ t('pages_server.expenses.recorded_note', year=year) }} {% if summary.has_partial_coverage %}{{ t('pages_server.expenses.seasonal_note', rate=format_number(summary.estimate_inflation_rate * 100)) }}{% else %}{{ t('pages_server.expenses.incomplete_note') }}{% endif %}</p>
-          {% if summary.has_partial_coverage %}<button class="context-help-button" type="button" data-help-article="expense-seasonal-estimate"><span>?</span> {{ t('pages_server.expenses.seasonal_help') }}</button>{% endif %}
         {% endif %}
         </div>
       </section>
@@ -73,13 +73,13 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 <p id="expense-record-feedback" role="status" class="fv-feedback" hidden></p>
         <div id="expense-records">
         {% if expenses %}
-        <div class="table-card"><table><thead><tr><th>{{ t('pages_server.common.name') }}</th><th>{{ t('pages_server.expenses.category') }}</th><th>{{ t('pages_server.expenses.period') }}</th><th>{{ t('pages_server.expenses.amount') }}</th><th>{{ t('pages_server.expenses.amount_basis') }}</th><th>{{ t('pages_server.expenses.association') }}</th><th>{{ t('pages_server.common.source') }}</th><th>{{ t('pages_server.expenses.status') }}</th></tr></thead>
+        <div class="table-card"><table><thead><tr><th>{{ t('pages_server.common.name') }}</th><th>{{ t('pages_server.expenses.category') }}</th><th>{{ t('pages_server.expenses.period') }}</th><th>{{ t('pages_server.expenses.amount') }}</th><th>{{ t('pages_server.expenses.amount_basis') }}</th><th>{{ t('pages_server.expenses.association') }}</th><th>{{ t('pages_server.expenses.status') }}</th><th class="expense-record-actions">{{ t('pages_server.expenses.record_actions') }}</th></tr></thead>
           <tbody>{% for expense in expenses %}<tr data-expense-id="{{ expense.id }}" data-expense-token="{{ expense_deletion_token(expense) }}">
-            <td>{{ expense.name }}</td><td>{{ expense.category_name }} · {{ t('pages_server.expenses.' ~ expense.classification ~ '_classification') }}</td>
-            <td>{{ format_date(expense.period_start) }} {{ t('pages_server.expenses.to') }} {{ format_date(expense.period_end) }}</td><td>{{ format_money(expense.amount) }}</td>
+            <td>{{ expense.name }}</td><td><div class="expense-record-category"><span>{{ expense.category_name }}</span><span class="fv-badge expense-classification">{{ t('pages_server.expenses.' ~ expense.classification ~ '_classification') }}</span></div></td>
+            <td class="expense-record-period"><time datetime="{{ expense.period_start }}">{{ format_date(expense.period_start) }}</time><time datetime="{{ expense.period_end }}">{{ format_date(expense.period_end) }}</time></td><td>{{ format_money(expense.amount) }}</td>
             <td>{{ t('pages_server.expenses.recurring_statement' if expense.period_kind == 'recurring_statement' else 'pages_server.expenses.annual_one_time') }}</td>
             <td>{{ t('pages_server.expenses.association_' ~ expense.association_kind) }}{% if expense.association_id %} #{{ expense.association_id }}{% endif %}</td>
-            <td>{{ t('pages_server.expenses.source_' ~ expense.source_kind) }}{% if expense.source_name %}: {{ expense.source_name }}{% endif %}</td>
+
             <td>{% if expense.overlap_status == 'potential' %}
               <form method="post" action="{{ url_for('expenses.resolve_overlap_form', expense_id=expense.id) }}" class="overlap-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="year" value="{{ year }}">
@@ -87,7 +87,21 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
                 <button name="include" value="true" type="submit">{{ t('pages_server.expenses.include') }}</button><button name="include" value="false" type="submit">{{ t('pages_server.expenses.exclude') }}</button>
               </form>
             {% else %}{{ t('pages_server.expenses.status_' ~ expense.overlap_status) }}{% if expense.overlap_resolution_note %}: {{ expense.overlap_resolution_note }}{% endif %}{% endif %}
-            {% if expense.source_kind == 'manual' %}<button type="button" data-expense-edit='{{ {"id": expense.id, "name": expense.name, "category_id": expense.category_id, "amount": expense.amount|string, "period_start": expense.period_start, "period_end": expense.period_end, "period_kind": expense.period_kind, "association": expense.association_kind ~ (":" ~ expense.association_id if expense.association_id else "")}|tojson }}'>{{ t('pages_server.expenses.edit') }}</button>{% else %}<button type="button" class="fv-button--danger" data-expense-delete='{{ {"id": expense.id, "name": expense.name, "source_name": expense.source_name, "amount": expense.amount|string, "period_start": expense.period_start, "period_end": expense.period_end, "expected_token": expense_deletion_token(expense)}|tojson }}' aria-label="{{ t('pages_server.expenses.delete_named', name=expense.name) }}">{{ t('pages_server.expenses.delete') }}</button>{% endif %}</td>
+            </td><td class="expense-record-actions"><div class="expense-record-action-group">{% if expense.source_kind == 'manual' %}{{ icon_action('edit', t('browser.actions.edit', name=expense.name), attributes={'data-expense-edit': {"id": expense.id, "name": expense.name, "category_id": expense.category_id, "amount": expense.amount|string, "period_start": expense.period_start, "period_end": expense.period_end, "period_kind": expense.period_kind, "association": expense.association_kind ~ (":" ~ expense.association_id if expense.association_id else "")}|tojson|forceescape}) }}{% else %}{{ icon_action('view', t('browser.actions.view', name=expense.name), attributes={'data-expense-view': expense.id}) }}{% endif %}{{ icon_action('delete', t('pages_server.expenses.delete_named', name=expense.name), attributes={'data-expense-delete': {"id": expense.id, "name": expense.name, "source_name": expense.source_name, "amount": expense.amount|string, "period_start": expense.period_start, "period_end": expense.period_end, "expected_token": expense_deletion_token(expense)}|tojson|forceescape}) }}</div>
+            {% if expense.source_kind == 'imported' %}<template id="expense-details-{{ expense.id }}"><dl class="expense-record-info">
+              <dt>{{ t('pages_server.common.name') }}</dt><dd>{{ expense.name }}</dd>
+              <dt>{{ t('pages_server.expenses.category') }}</dt><dd>{{ expense.category_name }} · {{ t('pages_server.expenses.' ~ expense.classification ~ '_classification') }}</dd>
+              <dt>{{ t('pages_server.expenses.amount') }}</dt><dd>{{ format_money(expense.amount) }}</dd>
+              <dt>{{ t('pages_server.expenses.period') }}</dt><dd>{{ format_date(expense.period_start) }} {{ t('pages_server.expenses.to') }} {{ format_date(expense.period_end) }}</dd>
+              <dt>{{ t('pages_server.expenses.amount_basis') }}</dt><dd>{{ t('pages_server.expenses.recurring_statement' if expense.period_kind == 'recurring_statement' else 'pages_server.expenses.annual_one_time') }}</dd>
+              <dt>{{ t('pages_server.expenses.association') }}</dt><dd>{{ t('pages_server.expenses.association_' ~ expense.association_kind) }}{% if expense.association_id %} #{{ expense.association_id }}{% endif %}</dd>
+              <dt>{{ t('pages_server.expenses.status') }}</dt><dd>{{ t('pages_server.expenses.status_' ~ expense.overlap_status) }}{% if expense.overlap_resolution_note %}: {{ expense.overlap_resolution_note }}{% endif %}</dd>
+              <dt>{{ t('pages_server.common.source') }}</dt><dd>{{ t('pages_server.expenses.source_imported') }}</dd>
+              {% if expense.source_name %}<dt>{{ t('pages_server.expenses.source_file') }}</dt><dd data-record-source-file>{{ expense.source_name }}</dd>{% endif %}
+              {% if expense.parser_name %}<dt>{{ t('pages_server.expenses.source_parser') }}</dt><dd>{{ expense.parser_name }}{% if expense.parser_version %} · {{ expense.parser_version }}{% endif %}</dd>{% endif %}
+              {% if expense.source_hash %}<dt>{{ t('pages_server.expenses.source_fingerprint') }}</dt><dd>{{ expense.source_hash }}</dd>{% endif %}
+              <dt>{{ t('pages_server.expenses.recorded_at') }}</dt><dd>{{ expense.created_at }}</dd>
+            </dl></template>{% endif %}</td>
           </tr>{% endfor %}</tbody></table></div>
         {% else %}<p>{{ t('pages_server.expenses.no_records') }}</p>{% endif %}
         </div>
@@ -95,8 +109,14 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
       <p class="dashboard-note">{{ t('pages_server.expenses.imported_note') }}</p>
     </div>
   </div>
+<dialog id="expense-details-dialog" class="fv-dialog" hidden aria-labelledby="expense-details-title">
+    {{ icon_action('close', t('pages_server.expenses.close_record_details'), attributes={'id': 'expense-details-close', 'data-dialog-close': ''}) }}
+    <h2 id="expense-details-title">{{ t('pages_server.expenses.record_details') }}</h2>
+    <div id="expense-details-content"></div>
+    <div class="fv-dialog-actions"><button type="button" data-dialog-close autofocus>{{ t('pages_server.common.close') }}</button></div>
+</dialog>
 <dialog id="expense-delete-dialog" class="fv-dialog" hidden aria-labelledby="expense-delete-title" aria-describedby="expense-delete-warning">
-    <button id="expense-delete-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.expenses.close_delete') }}">×</button>
+    {{ icon_action('close', t('pages_server.expenses.close_delete'), attributes={'id': 'expense-delete-close'}) }}
     <h2 id="expense-delete-title">{{ t('pages_server.expenses.delete_title') }}</h2>
     <p id="expense-delete-warning">{{ t('pages_server.expenses.delete_warning') }}</p>
     <p id="expense-delete-details" class="fv-feedback"></p>
@@ -104,7 +124,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     <div class="dialog-actions fv-dialog-actions"><button id="expense-delete-cancel" type="button" autofocus>{{ t('pages_server.common.cancel') }}</button><button id="expense-delete-refresh" type="button" hidden>{{ t('pages_server.expenses.retry_refresh') }}</button><button id="expense-delete-confirm" type="button" class="fv-button--danger">{{ t('pages_server.expenses.delete_permanently') }}</button></div>
 </dialog>
 <dialog id="expense-dialog-backdrop" class="fv-dialog" hidden aria-labelledby="expense-dialog-title">
-    <button id="expense-dialog-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.expenses.close_expense') }}">×</button>
+    {{ icon_action('close', t('pages_server.expenses.close_expense'), attributes={'id': 'expense-dialog-close'}) }}
     <p class="eyebrow">{{ t('pages_server.expenses.financial_record') }}</p><h2 id="expense-dialog-title">{{ t('pages_server.expenses.add_factual') }}</h2>
     {% if categories %}
     <form method="post" action="{{ url_for('expenses.create_manual_expense_form') }}" class="setup-form"{% if not categories|selectattr('is_active')|list %} hidden{% endif %}>
@@ -123,7 +143,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 </dialog>
 
 <dialog id="category-dialog-backdrop" class="fv-dialog expense-category-dialog"{% if open_dialog == 'categories' %} open{% else %} hidden{% endif %} aria-labelledby="category-dialog-title">
-    <button id="category-dialog-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.expenses.close_categories') }}">×</button>
+    {{ icon_action('close', t('pages_server.expenses.close_categories'), attributes={'id': 'category-dialog-close'}) }}
     <div class="expense-category-heading">
       <div><p class="eyebrow">{{ t('pages_server.expenses.expense_setup') }}</p><h2 id="category-dialog-title">{{ t('pages_server.expenses.manage_categories') }}</h2></div>
       <button id="category-add" class="view-action" type="button" autofocus>{{ t('pages_server.expenses.add_category') }}</button>
@@ -133,13 +153,13 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     {% if categories %}<div class="table-card"><table><thead><tr><th>{{ t('pages_server.common.name') }}</th><th>{{ t('pages_server.expenses.classification') }}</th><th>{{ t('pages_server.expenses.status') }}</th><th></th></tr></thead>
       <tbody>{% for category in categories %}<tr>
         <td>{{ category.name }}</td><td>{{ t('pages_server.expenses.' ~ category.classification ~ '_classification') }}</td><td>{{ t('pages_server.expenses.active' if category.is_active else 'pages_server.expenses.archived') }}</td>
-        <td><button class="table-action" type="button" data-category-edit data-action="{{ url_for('expenses.update_category_form', category_id=category.id) }}" data-name="{{ category.name }}" data-classification="{{ category.classification }}" data-active="{{ 'true' if category.is_active else 'false' }}">{{ t('pages_server.expenses.edit') }}</button></td>
+        <td>{{ icon_action('edit', t('browser.actions.edit', name=category.name), attributes={'data-category-edit': '', 'data-action': url_for('expenses.update_category_form', category_id=category.id), 'data-name': category.name, 'data-classification': category.classification, 'data-active': category.is_active}) }}</td>
       </tr>{% endfor %}</tbody>
     </table></div>{% else %}<p>{{ t('pages_server.expenses.no_categories') }}</p>{% endif %}
 </dialog>
 
 <dialog id="category-editor-backdrop" class="fv-dialog" hidden aria-labelledby="category-editor-title">
-    <button id="category-editor-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.expenses.close_category_editor') }}">×</button>
+    {{ icon_action('close', t('pages_server.expenses.close_category_editor'), attributes={'id': 'category-editor-close'}) }}
     <p class="eyebrow">{{ t('pages_server.expenses.expense_category') }}</p><h2 id="category-editor-title" data-add-text="{{ t('pages_server.expenses.add_category_title') }}" data-edit-text="{{ t('pages_server.expenses.edit_category_title') }}">{{ t('pages_server.expenses.add_category_title') }}</h2>
     <form id="category-editor-form" method="post" action="{{ url_for('expenses.create_category_form') }}" data-create-action="{{ url_for('expenses.create_category_form') }}" class="setup-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="year" value="{{ year }}">
@@ -152,7 +172,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 </dialog>
 
 <dialog id="expense-import-dialog-backdrop" class="fv-dialog expense-import-dialog" hidden aria-labelledby="import-dialog-title">
-    <button id="expense-import-close" class="dialog-close" type="button" aria-label="{{ t('pages_server.expenses.close_import') }}">×</button>
+    {{ icon_action('close', t('pages_server.expenses.close_import'), attributes={'id': 'expense-import-close'}) }}
     <p class="eyebrow">{{ t('pages_server.expenses.import_statement') }}</p>
     <div class="expense-import-heading"><h2 id="import-dialog-title">{{ t('pages_server.expenses.load_statement') }}</h2><button class="expense-import-help-button" type="button" data-help-article="expense-import" aria-label="{{ t('pages_server.expenses.supported_sources') }}" title="{{ t('pages_server.expenses.supported_sources') }}"><span aria-hidden="true">?</span></button></div>
     {% if categories|selectattr('is_active')|list %}
@@ -185,6 +205,6 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 </main>
 
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='expenses/expenses.mjs', v='20261029-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='expenses/expenses.mjs', v='20261029-5') }}"></script>
 </body>
 </html>

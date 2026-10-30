@@ -13,7 +13,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <title>{{ t('pages_server.salary.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/ui.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='projections/salary-projection.css', v='20261030-1') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='projections/salary-projection.css', v='20261030-4') }}">
 </head>
 <body><main class="fv-ui fv-salary">
   <header>
@@ -82,7 +82,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
               class="field-note">{{ t('pages_server.salary.saved_status') }}</span>
       </div>
       <section class="dashboard-panel salary-table-panel">
-        <p id="salary-scroll-hint" class="fv-help">{{ t('assets_ui.scroll_hint') }}</p>
+        <p id="salary-scroll-hint" class="fv-help">{{ t('browser.salary.details_hint') }}</p>
         <div id="salary-table" lang="{{ current_locale }}"><p class="empty-panel">{{ t('pages_server.salary.loading') }}</p></div>
       </section>
     </div>
@@ -101,5 +101,5 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 </dialog>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20261030-1') }}"></script>
+<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20261030-4') }}"></script>
 </body></html>

@@ -44,7 +44,8 @@ function model() {
   };
 }
 
-test('salary projection loads, edits assumptions and annual overrides, and shows household', async () => {
+function installProjectionDom() {
+  configureTestLocalization();
   const dom = new JSDOM(`<!doctype html><body>
     <select id="salary-scenario"></select><input id="salary-start-year"><input id="salary-end-year"><button id="salary-view"></button>
     <button id="salary-discard" disabled></button><button id="salary-save" disabled></button><button id="salary-save-as"></button>
@@ -70,6 +71,11 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   globalThis.FormData = dom.window.FormData;
   globalThis.URLSearchParams = dom.window.URLSearchParams;
   installExpenseDialogs(dom);
+  return dom;
+}
+
+test('salary projection loads, edits assumptions and annual overrides, and shows household', async () => {
+  const dom = installProjectionDom();
   const calls = [];
   let projectionError = false;
   globalThis.fetch = async (url, options = {}) => {
@@ -115,12 +121,37 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
 
   document.querySelector('[name="default_raise"]').value = '4.5';
   document.querySelector('[name="default_raise"]').dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  const yearToggle = document.querySelector('[data-year-details="projection-2027"]');
+  const yearDetails = document.querySelector('#salary-details-projection-2027');
+  assert.equal(yearToggle.getAttribute('aria-expanded'), 'false');
+  assert(yearDetails.hidden);
+  const presentationReads = calls.length;
+  yearToggle.focus();
+  yearToggle.click();
+  assert(!yearDetails.hidden);
+  assert.equal(yearToggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(yearToggle.dataset.iconAction, 'collapse');
+  assert.equal(document.activeElement, yearToggle);
+  assert.equal(calls.length, presentationReads, 'Expanding detail never requests or mutates data');
   const salaryInput = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
   salaryInput.value = '120000';
   salaryInput.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
   assert.equal(document.querySelector('#salary-save').disabled, false);
   assert.equal(document.querySelector('#salary-discard').disabled, false);
   assert.match(document.querySelector('#salary-change-status').textContent, /1 modification annuelle/);
+  yearToggle.click();
+  assert(yearDetails.hidden);
+  yearToggle.click();
+  assert.equal(salaryInput.value, '120000');
+  assert.equal(calls.length, presentationReads, 'Collapsing detail preserves the draft without HTTP requests');
+  dom.window.matchMedia = () => ({matches: true});
+  dom.window.dispatchEvent(new dom.window.Event('resize'));
+  assert.equal(yearDetails.firstElementChild.colSpan, 3);
+  assert.equal(salaryInput.value, '120000');
+  dom.window.matchMedia = () => ({matches: false});
+  dom.window.dispatchEvent(new dom.window.Event('resize'));
+  assert.equal(yearDetails.firstElementChild.colSpan, 4);
+  assert.equal(calls.length, presentationReads, 'Responsive column spans never request or save data');
   assert.equal(calls.some((item) => item.url.endsWith('/draft')), false);
   document.querySelector('#salary-save').click();
   await tick(); await tick();
@@ -131,6 +162,7 @@ test('salary projection loads, edits assumptions and annual overrides, and shows
   assert.equal(document.querySelector('#salary-save').disabled, true);
   assert.equal(calls.some((item) => item.url.endsWith('/baseline')), false);
 
+  assert.equal(document.querySelector('[data-year-details="projection-2027"]').getAttribute('aria-expanded'), 'true');
   const copiedSalary = document.querySelector('.salary-year-input[data-year="2027"][data-field="salary"]');
   copiedSalary.value = '125000';
   copiedSalary.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
@@ -266,6 +298,10 @@ test('salary projection helpers render actual and manual override states', async
   assert.match(html, /manual-override/);
   assert.match(html, /salary-use-default/);
   const icons = new JSDOM(html);
+  assert.equal(icons.window.document.querySelectorAll('thead th').length, 4);
+  assert.equal(icons.window.document.querySelectorAll('.salary-summary-row .salary-disposable').length, 2);
+  assert([...icons.window.document.querySelectorAll('.salary-detail-row')].every(row => row.hidden));
+  assert.equal(icons.window.document.querySelector('[data-year-details="actual-2025"]').getAttribute('aria-controls'), 'salary-details-actual-2025');
   const reset = icons.window.document.querySelector('[data-salary-use-default]');
   assert.equal(reset.dataset.iconAction, 'reset');
   assert.equal(reset.dataset.year, '2026');
@@ -338,4 +374,101 @@ test('salary projection shows defaults and a per-person calculation error', asyn
   assert.equal(document.querySelector('#salary-source-note a').getAttribute('href'), '/income');
   assert.equal(document.querySelector('#salary-source-note a').textContent, 'Go to Income');
   document.querySelector('#salary-tabs').click();
+});
+
+
+test('year detail actions isolate drafts and retry only reads after a committed save', async () => {
+  const dom = installProjectionDom();
+  const server = model();
+  const writes = [];
+  let reject = true;
+  let hold = false;
+  let release;
+  let failRead = false;
+  globalThis.fetch = async (url, options = {}) => {
+    if (options.method === 'PUT') {
+      writes.push({url: String(url), payload: JSON.parse(options.body)});
+      if (hold) await new Promise(resolve => {release = resolve;});
+      if (reject) return {ok: false, json: async () => ({error: 'Rejected year', error_language: 'fr-CA'})};
+      const item = JSON.parse(options.body);
+      server.people[0].overrides.push({...item, year: 2026});
+      server.people[0].projection[0].annual_salary_rate = item.salary;
+      return {ok: true, json: async () => ({saved: true})};
+    }
+    return {ok: !failRead, json: async () => failRead ? {error: 'Synthetic unavailable projection'} : JSON.parse(JSON.stringify(server))};
+  };
+  await import(`../../static/projections/salary-projection.mjs?year-actions=${Date.now()}`);
+  await tick(); await tick();
+  const input = (year, field) => document.querySelector(`.salary-year-input[data-year="${year}"][data-field="${field}"]`);
+  const edit = (year, field, value) => {
+    input(year, field).value = value;
+    input(year, field).dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const action = (kind, year) => document.querySelector(`[data-year-${kind}="${year}"]`);
+  assert(action('save', 2026).disabled);
+  const settings = document.querySelector('[name="default_raise"]');
+  settings.value = '7';
+  settings.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  edit(2026, 'salary', '111111');
+  edit(2027, 'other_income', '2222');
+  document.querySelector('.salary-use-default[data-year="2027"][data-field="salary"]').click();
+  action('cancel', 2026).click();
+  assert.equal(input(2026, 'salary').value, '100000.00');
+  assert.equal(input(2027, 'other_income').value, '2222');
+  assert.equal(settings.value, '7');
+  assert.equal(writes.length, 0);
+  edit(2026, 'salary', '135000');
+  action('save', 2026).click();
+  await tick(); await tick();
+  assert.match(document.querySelector('[data-year-message="2026"]').textContent, /Rejected year/);
+  assert.equal(document.querySelector('[data-year-message="2026"]').lang, 'fr-CA');
+  assert.equal(input(2026, 'salary').value, '135000');
+  assert(!action('save', 2026).disabled);
+  reject = false;
+  hold = true;
+  failRead = true;
+  action('save', 2026).click();
+  action('save', 2026).dispatchEvent(new dom.window.Event('click', {bubbles: true}));
+  action('cancel', 2026).dispatchEvent(new dom.window.Event('click', {bubbles: true}));
+  assert.equal(writes.length, 2, 'Busy year actions send only one additional mutation');
+  assert(action('cancel', 2026).disabled);
+  release();
+  await tick(); await tick(); await tick();
+  assert.equal(writes[1].url, '/api/salary-projection/scenarios/3/people/2/years/2026');
+  assert.equal(writes[1].payload.salary, '135000');
+  assert.equal(writes[1].payload.settings, undefined, 'Year Save does not submit settings');
+  assert.equal(writes[1].payload.other_income, undefined, 'Another year is never included');
+  assert.equal(document.querySelector('#salary-table table'), null, 'Stale calculated results stay unavailable');
+  assert(document.querySelector('#salary-save').disabled);
+  document.querySelector('#salary-table [data-annual-read-retry]').click();
+  await tick(); await tick();
+  assert.equal(writes.length, 2, 'Failed refresh retry never repeats the mutation');
+  failRead = false;
+  server.people[0].id = 99;
+  document.querySelector('#salary-table [data-annual-read-retry]').click();
+  await tick(); await tick(); await tick();
+  assert.equal(document.querySelector('#salary-table table'), null, 'A changed person cannot receive another person’s restored drafts');
+  assert(document.querySelector('#salary-save').disabled);
+  assert.equal(writes.length, 2);
+  server.people[0].id = 2;
+  document.querySelector('#salary-table [data-annual-read-retry]').click();
+  await tick(); await tick(); await tick();
+  assert.equal(writes.length, 2);
+  assert.equal(input(2026, 'salary').value, '135000.00');
+  assert.equal(input(2027, 'other_income').value, '2222');
+  assert.equal(settings.value, '7');
+  assert(action('save', 2026).disabled);
+  assert(!action('save', 2027).disabled);
+  assert(input(2027, 'salary').classList.contains('pending-reset'));
+  assert(!input(2027, 'salary').classList.contains('manual-override'));
+  assert(!document.querySelector('#salary-save').disabled, 'Unrelated settings and annual drafts remain dirty');
+  assert.equal(document.activeElement, document.querySelector('[data-year-message="2026"]'));
+  document.querySelector('.salary-use-default[data-year="2027"][data-field="salary"]').click();
+  action('cancel', 2027).click();
+  assert.equal(input(2027, 'salary').value, '104000.00');
+  assert(input(2027, 'salary').classList.contains('manual-override'));
+  assert.equal(input(2027, 'other_income').value, '0.00');
+  assert.equal(settings.value, '7');
+  assert.equal(writes.length, 2);
+  dom.window.close();
 });

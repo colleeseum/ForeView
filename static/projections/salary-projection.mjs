@@ -3,10 +3,11 @@
 
 import {escapeHtml} from '../shared/html.mjs';
 import {t, locale} from '../shared/i18n.mjs';
-import {formatMoneyDollars, formatPercent} from '../shared/locale-format.mjs';
+import {formatMoneyDollars} from '../shared/locale-format.mjs';
 import {formSignature} from '../shared/form-state.mjs';
-import {incomeSourceLabel} from '../shared/income-source-label.mjs';
-import {iconAction, initializeIconActions} from '../shared/icon-actions.mjs';
+import {initializeIconActions} from '../shared/icon-actions.mjs';
+import {projectionTable} from './projection-table.mjs';
+export {projectionTable};
 import {createDialog} from '../shared/dialog.mjs';
 
 initializeIconActions();
@@ -49,9 +50,12 @@ let savedFormSignature = '';
 let savedExpenseSignature = '';
 const pendingAnnualChanges = new Map();
 const pendingAnnualResets = new Set();
+const expandedYearDetails = new Map();
+const detailContext = () => `${model?.selected_scenario_id}:${selectedKey}`;
 let busy = false;
 let readScenario = null;
 let readGeneration = 0;
+let annualReadRecovery = null;
 const root = document.querySelector('.fv-salary') || document.body;
 const cloneDialog = elements.saveAsBackdrop ? createDialog(elements.saveAsBackdrop, {fallbackFocus: elements.saveAs}) : null;
 elements.saveAsBackdrop?.addEventListener('close', () => {if (!elements.saveAsBackdrop.open) elements.saveAsBackdrop.hidden = true;});
@@ -69,54 +73,6 @@ function lock(value) {
 
 export function money(value) {
   return formatMoneyDollars(value ?? 0);
-}
-
-export function projectionTable(rows, {editable = false, overrides = [], household = false} = {}) {
-  if (!rows.length) return `<p class="empty-panel">${t('salary.no_projection')}</p>`;
-  const overrideByYear = new Map(overrides.map((item) => [item.year, item]));
-  const input = (row, field, value, suffix = '') => {
-    if (!editable) return escapeHtml(value == null ? '—' : suffix ? formatPercent(Number(value), {maximumFractionDigits: 3}) : money(value));
-    const override = overrideByYear.get(row.year)?.[field];
-    const hasOverride = override != null;
-    const shown = field === 'raise_rate'
-      ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
-      : Number(value || 0).toFixed(2);
-    const fieldLabel = t(`salary.${field === 'salary' ? 'annual_salary' : field === 'raise_rate' ? 'raise' : field === 'rrsp_contribution' ? 'rrsp_cash' : field === 'rrsp_deduction' ? 'rrsp_deduction' : 'other_income'}`);
-    const annualLabel = t('salary.annual_field', {year: row.year, field: fieldLabel});
-    const reset = hasOverride
-      ? `<span class="fv-badge">${escapeHtml(t('salary.override'))}</span>${iconAction('reset', {label: t('actions.reset', {name: annualLabel}), attributes: {'data-salary-use-default': '', 'data-year': row.year, 'data-field': field}})}`
-      : '';
-    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(annualLabel)}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
-  };
-  const rowMarkup = (row) => `<tr class="${row.actual ? 'historical-row' : ''}">
-    <th scope="row">${escapeHtml(String(row.year))}${row.actual ? ` ${t('salary.actual')}` : ''}</th>
-    <td>${row.age ?? '—'}</td>
-    <td>${row.actual ? '—' : input(row, 'raise_rate', row.raise_rate, '%')}</td>
-    <td>${row.actual ? money(row.annual_salary_rate) : input(row, 'salary', row.annual_salary_rate)}</td>
-    <td>${row.actual ? money(row.other_income) : input(row, 'other_income', row.other_income)}</td>
-    <td>${money(row.gross_income)}</td>
-    <td>${row.actual ? money(row.rrsp_contribution) : input(row, 'rrsp_contribution', row.rrsp_contribution)}</td>
-    <td>${row.actual ? money(row.rrsp_deduction) : input(row, 'rrsp_deduction', row.rrsp_deduction)}</td>
-    <td>${money(row.cpp_qpp)}</td><td>${money(row.ei)}</td><td>${money(row.qpip)}</td>
-    <td>${money(row.federal_tax)}</td><td>${money(row.quebec_tax)}</td>
-    <td>${money(row.net_income_after_tax)}</td><td><strong>${money(row.disposable_income)}</strong></td>
-    ${household ? `<td>${row.planned_expenses == null ? '—' : money(row.planned_expenses)}</td><td><strong>${row.surplus_deficit == null ? '—' : money(row.surplus_deficit)}</strong></td>` : ''}
-    <td>${row.actual ? escapeHtml(incomeSourceLabel(row.source) || t('salary.recorded')) : `${row.rule_year}${row.rules_held_constant ? ` ${t('salary.held')}` : ''}`}</td>
-  </tr>`;
-  const actualRows = rows.filter((row) => row.actual);
-  const projectedRows = rows.filter((row) => !row.actual);
-  const section = (label, sectionRows, className) => sectionRows.length
-    ? `<tbody class="${className}"><tr class="salary-section-row"><th colspan="${household ? 18 : 16}">${label}</th></tr>${sectionRows.map(rowMarkup).join('')}</tbody>`
-    : '';
-  return `<div class="table-wrap fv-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(t('salary.results'))}" aria-describedby="salary-scroll-hint"><table class="salary-projection-table fv-table"><caption>${escapeHtml(t('salary.results'))}</caption><thead><tr>
-    <th>${t('salary.year')}</th><th>${t('salary.age')}</th><th>${t('salary.raise')}</th><th>${t('salary.annual_salary')}</th>
-    <th>${t('salary.other_income')}</th><th>${t('salary.gross')}</th>
-    <th>${t('salary.rrsp_cash')}</th><th>${t('salary.rrsp_deduction')}</th><th>${t('financial.cpp_qpp')}</th>
-    <th>${t('financial.ei')}</th><th>${t('financial.qpip')}</th><th>${t('salary.federal_tax')}</th><th>${t('salary.quebec_tax')}</th><th>${t('salary.net_after_tax')}</th>
-    <th>${t('salary.disposable')}</th>${household ? `<th>${t('salary.expenses')}</th><th>${t('salary.surplus_deficit')}</th>` : ''}<th>${t('salary.rule_source')}</th></tr></thead>
-    ${section(t('salary.historical'), actualRows, 'salary-history-body')}
-    ${section(t('salary.projected'), projectedRows, 'salary-projection-body')}
-  </table></div>`;
 }
 
 export function householdRows(rows) {
@@ -151,6 +107,11 @@ function expenseDirty() {
 
 function updateSaveState() {
   if (busy) return;
+  if (annualReadRecovery) {
+    root.querySelectorAll('input, select, button:not(.full-help-button)').forEach(node => {node.disabled = true;});
+    root.querySelectorAll('[data-annual-read-retry]').forEach(node => {node.disabled = false;});
+    return;
+  }
   const assumptionsDirty = Boolean(selectedPerson()) && formSignature(elements.form) !== savedFormSignature;
   const dirty = isDirty() || expenseDirty();
   if (elements.save) elements.save.disabled = !isDirty();
@@ -185,8 +146,12 @@ function updateSaveState() {
   }
   elements.tabs?.querySelectorAll('button').forEach((button) => { button.disabled = dirty; });
   elements.form?.querySelectorAll('input').forEach(node => {node.disabled = expenseDirty() || !selectedPerson();});
-  elements.table?.querySelectorAll('input, button').forEach(node => {node.disabled = expenseDirty();});
+  elements.table?.querySelectorAll('input, button:not([data-year-details])').forEach(node => {node.disabled = expenseDirty();});
   elements.expenseForm?.querySelectorAll('input').forEach(node => {node.disabled = isDirty();});
+  elements.table?.querySelectorAll('[data-year-save], [data-year-cancel]').forEach(button => {
+    const year = Number(button.dataset.yearSave || button.dataset.yearCancel);
+    button.disabled = expenseDirty() || !selectedPerson() || !hasYearChanges(year);
+  });
 }
 
 function renderControls() {
@@ -259,16 +224,26 @@ function render() {
   fillExpenseForm();
   if (person) {
     if (person.error) showMessage(person.error, true, person.error_language || 'en-CA'); else showMessage('');
-    elements.table.innerHTML = projectionTable([...person.actuals, ...person.projection], {editable: true, overrides: person.overrides});
+    elements.table.innerHTML = projectionTable([...person.actuals, ...person.projection], {editable: true, overrides: person.overrides, expandedRows: expandedYearDetails.get(detailContext())});
   } else {
     showMessage(t('salary.household_note'));
-    elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true});
+    elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true, expandedRows: expandedYearDetails.get(detailContext())});
   }
   // Preserve the existing reset selector on controls inserted by each refresh.
   elements.table.querySelectorAll('[data-salary-use-default]').forEach(node => node.classList.add('salary-use-default'));
+  resizeSummaryColumns();
   elements.table.querySelectorAll('thead th').forEach(node => {node.scope = 'col';});
   updateSaveState();
 }
+
+// Keep spanning detail/section rows aligned when secondary summary columns hide.
+function resizeSummaryColumns() {
+  const compact = window.matchMedia?.('(max-width: 40rem)').matches ?? false;
+  elements.table?.querySelectorAll('[data-summary-span]').forEach(cell => {
+    cell.colSpan = compact ? 3 : Number(cell.dataset.summarySpan);
+  });
+}
+window.addEventListener('resize', resizeSummaryColumns);
 
 async function api(url, options) {
   const response = await fetch(url, {headers: {'Content-Type': 'application/json'}, ...options});
@@ -301,10 +276,13 @@ export async function loadProjection(scenarioId = elements.scenario.value) {
   return model;
 }
 
-async function readProjection(scenarioId = readScenario ?? elements.scenario.value, savedMessage = '') {
+async function readProjection(scenarioId = readScenario ?? elements.scenario.value, savedMessage = '', annualContext = null) {
+  let refreshed = false;
   lock(true);
   try {
     await loadProjection(scenarioId);
+    annualContext?.restore();
+    refreshed = true;
     if (savedMessage) {
       showMessage(savedMessage);
       const person = selectedPerson();
@@ -327,20 +305,49 @@ async function readProjection(scenarioId = readScenario ?? elements.scenario.val
     retry.type = 'button';
     retry.className = 'fv-button';
     retry.textContent = t('salary.retry');
-    retry.addEventListener('click', () => {if (!busy) readProjection(scenarioId, savedMessage);});
+    if (annualContext) retry.dataset.annualReadRetry = '';
+    retry.addEventListener('click', () => {if (!busy) readProjection(scenarioId, savedMessage, annualContext);});
     elements.message.append(' ', retry);
-  } finally {lock(false);}
+    if (annualContext) {
+      const local = document.createElement('div');
+      local.className = 'fv-feedback fv-feedback--error';
+      local.setAttribute('role', 'alert');
+      local.textContent = `${savedMessage} ${t('salary.refresh_failed')}`;
+      const localRetry = retry.cloneNode(true);
+      localRetry.addEventListener('click', () => {if (!busy) readProjection(scenarioId, savedMessage, annualContext);});
+      local.append(' ', localRetry);
+      elements.table.append(local);
+      elements.message.setAttribute('role', 'status');
+    }
+  } finally {
+    lock(false);
+    if (annualContext) {
+      const region = elements.table.querySelector('.fv-table-scroll');
+      if (region) {region.scrollTop = annualContext.tableTop; region.scrollLeft = annualContext.tableLeft;}
+      if (window.scrollY !== annualContext.top || window.scrollX !== annualContext.left) window.scrollTo(annualContext.left, annualContext.top);
+      let focus = refreshed ? elements.table.querySelector(`[data-year-message="${annualContext.year}"]`) : elements.table.querySelector('[data-annual-read-retry]');
+      if (refreshed && !focus) {
+        focus = document.createElement('p');
+        focus.className = 'fv-feedback';
+        focus.tabIndex = -1;
+        focus.setAttribute('role', 'status');
+        focus.textContent = savedMessage;
+        elements.table.prepend(focus);
+      }
+      focus?.focus({preventScroll: true});
+    }
+  }
 }
 
 elements.tabs?.addEventListener('click', (event) => {
   const tab = event.target.closest('[data-person-key]');
-  if (!tab || busy || isDirty() || expenseDirty()) return;
+  if (!tab || busy || annualReadRecovery || isDirty() || expenseDirty()) return;
   selectedKey = tab.dataset.personKey;
   render();
 });
 
-elements.view?.addEventListener('click', () => {if (!busy && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
-elements.scenario?.addEventListener('change', () => {if (!busy && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
+elements.view?.addEventListener('click', () => {if (!busy && !annualReadRecovery && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
+elements.scenario?.addEventListener('change', () => {if (!busy && !annualReadRecovery && !isDirty() && !expenseDirty()) readProjection(elements.scenario.value);});
 elements.form?.addEventListener('input', updateSaveState);
 elements.form?.addEventListener('change', updateSaveState);
 elements.expenseForm?.addEventListener('input', updateSaveState);
@@ -387,6 +394,89 @@ async function saveCurrentScenario() {
     });
   } catch (error) {lock(false); showError(error); return;}
   await readProjection(scenarioId, t('salary.scenario_saved'));
+}
+
+function hasYearChanges(year) {
+  return [...pendingAnnualChanges.values()].some(change => change.year === year);
+}
+
+function yearMessage(year, message, error = false, language = locale) {
+  const target = elements.table.querySelector(`[data-year-message="${year}"]`);
+  if (!target) return;
+  target.textContent = message;
+  target.lang = language;
+  target.hidden = !message;
+  target.setAttribute('role', error ? 'alert' : 'status');
+  target.classList.toggle('error', error);
+}
+
+function annualInputStatus(input) {
+  const label = input.closest('.salary-input-cell')?.querySelector('[data-input-status]');
+  if (!label) return;
+  const key = input.classList.contains('pending-reset') ? 'reset_pending'
+    : input.classList.contains('pending-change') ? 'unsaved_value'
+      : input.dataset.hasOverride === 'true' ? 'override' : 'calculated_default';
+  label.textContent = t(`salary.${key}`);
+}
+
+function cancelYear(year) {
+  if (busy || annualReadRecovery || expenseDirty() || !hasYearChanges(year)) return;
+  elements.table.querySelectorAll(`.salary-year-input[data-year="${year}"]`).forEach(input => {
+    input.value = input.dataset.original;
+    input.classList.remove('pending-change', 'pending-reset');
+    input.classList.toggle('manual-override', input.dataset.hasOverride === 'true');
+    annualInputStatus(input);
+    const key = `${year}:${input.dataset.field}`;
+    pendingAnnualChanges.delete(key);
+    pendingAnnualResets.delete(key);
+  });
+  updateSaveState();
+  yearMessage(year, t('salary.year_cancelled', {year}));
+  elements.table.querySelector(`[data-year-message="${year}"]`)?.focus({preventScroll: true});
+}
+
+async function saveYear(year) {
+  const person = selectedPerson();
+  if (!person || busy || annualReadRecovery || expenseDirty() || !hasYearChanges(year)) return;
+  for (const input of elements.table.querySelectorAll(`.salary-year-input[data-year="${year}"]`)) {
+    if (!input.reportValidity()) return;
+  }
+  const payload = annualOverridePayload(person).find(item => item.year === year);
+  const scenarioId = model.selected_scenario_id;
+  const settings = formSignature(elements.form) !== savedFormSignature ? Object.fromEntries(new FormData(elements.form)) : null;
+  const changes = [...pendingAnnualChanges.values()].filter(change => change.year !== year).map(change => ({...change}));
+  const resets = [...pendingAnnualResets].filter(key => !key.startsWith(`${year}:`));
+  const region = elements.table.querySelector('.fv-table-scroll');
+  const context = {year, top: window.scrollY, left: window.scrollX, tableTop: region?.scrollTop || 0, tableLeft: region?.scrollLeft || 0, restore() {
+    if (String(selectedPerson()?.id) !== String(person.id) || String(model.selected_scenario_id) !== String(scenarioId)) throw new Error(t('salary.refresh_failed'));
+    if (settings) Object.entries(settings).forEach(([name, value]) => {elements.form.elements[name].value = value;});
+    for (const change of changes) {
+      const key = `${change.year}:${change.field}`;
+      pendingAnnualChanges.set(key, change);
+      const input = elements.table.querySelector(`.salary-year-input[data-year="${change.year}"][data-field="${change.field}"]`);
+      if (input) {
+        input.value = change.value;
+        input.classList.add(resets.includes(key) ? 'pending-reset' : 'pending-change');
+        if (resets.includes(key)) input.classList.remove('manual-override');
+        annualInputStatus(input);
+      }
+    }
+    resets.forEach(key => pendingAnnualResets.add(key));
+    annualReadRecovery = null;
+    yearMessage(year, t('salary.year_saved', {year}));
+  }};
+  lock(true);
+  yearMessage(year, t('salary.year_saving', {year}));
+  try {
+    await api(`/api/salary-projection/scenarios/${scenarioId}/people/${person.id}/years/${year}`, {method: 'PUT', body: JSON.stringify(payload)});
+  } catch (error) {
+    lock(false);
+    yearMessage(year, error.message, true, error.language || 'en-CA');
+    elements.table.querySelector(`[data-year-message="${year}"]`)?.focus({preventScroll: true});
+    return;
+  }
+  annualReadRecovery = context;
+  await readProjection(scenarioId, t('salary.year_saved', {year}), context);
 }
 
 elements.form?.addEventListener('submit', (event) => {
@@ -439,9 +529,32 @@ elements.table?.addEventListener('input', (event) => {
     input.classList.add('pending-change');
   }
   updateSaveState();
+  annualInputStatus(input);
+  yearMessage(Number(input.dataset.year), hasYearChanges(Number(input.dataset.year)) ? t('salary.year_dirty', {year: input.dataset.year}) : '');
 });
 
 elements.table?.addEventListener('click', (event) => {
+  const localSave = event.target.closest('[data-year-save]');
+  if (localSave) {saveYear(Number(localSave.dataset.yearSave)); return;}
+  const localCancel = event.target.closest('[data-year-cancel]');
+  if (localCancel) {cancelYear(Number(localCancel.dataset.yearCancel)); return;}
+  const disclosure = event.target.closest('[data-year-details]');
+  if (disclosure) {
+    if (busy) return;
+    const row = document.getElementById(disclosure.getAttribute('aria-controls'));
+    if (!row) return;
+    const open = row.hidden;
+    row.hidden = !open;
+    const key = disclosure.dataset.yearDetails;
+    const expanded = expandedYearDetails.get(detailContext()) || new Set();
+    if (open) expanded.add(key); else expanded.delete(key);
+    expandedYearDetails.set(detailContext(), expanded);
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.dataset.iconAction = open ? 'collapse' : 'expand';
+    disclosure.setAttribute('aria-label', t(open ? 'actions.collapse' : 'actions.expand', {name: disclosure.dataset.detailName}));
+    disclosure.querySelector('.fv-icon').className = `fv-icon fv-icon--${open ? 'collapse' : 'expand'}`;
+    return;
+  }
   const reset = event.target.closest('.salary-use-default');
   if (!reset || busy || expenseDirty()) return;
   const input = elements.table.querySelector(
@@ -456,7 +569,9 @@ elements.table?.addEventListener('click', (event) => {
   input.classList.remove('manual-override');
   input.classList.remove('pending-change');
   input.classList.add('pending-reset');
+  annualInputStatus(input);
   updateSaveState();
+  yearMessage(Number(reset.dataset.year), t('salary.year_dirty', {year: reset.dataset.year}));
 });
 
 elements.discard?.addEventListener('click', () => {if (!busy && model) render();});

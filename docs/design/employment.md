@@ -8,7 +8,7 @@ retirement-date proration, schema and saved-scenario payload contracts are uncha
 ## Presentation and interaction
 
 Factual salary-anchor outputs remain read-only and link to Income. Scenario assumptions,
-historical actuals and calculated estimates retain separate sections. Annual overrides
+historical actuals and calculated estimates retain separate sections. Annual overrides in expandable yearly details
 have explicit labels, year/field accessible names and a reset action; changing an input
 does not recalculate or persist until Save. The result table retains source/rule-year
 information and is contained in a captioned, keyboard-focusable scroll region. The
@@ -65,3 +65,35 @@ draft locking. Delegated tooltips cover their keyboard and pointer interactions.
 Save As uses the shared Close icon; View, Discard, Save, Save As, spending Save and
 Cancel retain explicit labels. Calculations, scenario cloning, dirty-state isolation,
 financial values, annual input sizes and read-only recovery retain their contracts.
+
+## Summary and yearly details (UX-06, #146)
+
+The default personal table shows Year, Gross and Disposable income, with a yearly
+expand/collapse action. Household summaries also show planned Expenses and Surplus /
+deficit. Disposable income is visually emphasized and kept visible without horizontal
+scrolling. Narrow layouts prioritize Year and Disposable; Gross and household spending
+remain available in the expanded details. Historical and projected sections stay separate.
+
+Each year's details retain every annual input, payroll/tax breakdown, age and rule/source
+information from the previous wide table. Editable fields reserve a consistent status
+line for Calculated default or Override plus Reset; override controls do not increase
+summary-row height. Values and save/reset payloads are unchanged.
+
+Expansion is presentation-only. It hides or reveals existing DOM nodes without fetching,
+recalculating, saving or discarding drafts. Open years are retained in memory per scenario
+and person/household across read refreshes and Save; a full page reload starts collapsed.
+Changing viewport width only updates column spans, preserving field values and focus.
+Expansion remains available while a spending draft locks personal inputs. The overall
+pending-request guard still applies while a server operation is in progress.
+
+
+Editable yearly details include local Save and Cancel actions. Save uses the existing
+single-year override endpoint; Cancel restores only that year's saved/default values
+and pending resets. Other-year and assumption drafts remain untouched. Both actions
+announce their result in the details and preserve the table/page scroll context.
+Field labels distinguish unsaved edits and pending resets from calculated defaults.
+
+After a successful year save, result refresh re-applies unrelated drafts without
+saving them. A refresh failure clears stale results and provides a local read-only
+retry; mutations stay disabled until recovery restores the drafts. Read retries never
+repeat the committed year save. Historical and household details remain read-only.

@@ -265,6 +265,15 @@ test('salary projection helpers render actual and manual override states', async
   assert.match(html, /Assessment/);
   assert.match(html, /manual-override/);
   assert.match(html, /salary-use-default/);
+  const icons = new JSDOM(html);
+  const reset = icons.window.document.querySelector('[data-salary-use-default]');
+  assert.equal(reset.dataset.iconAction, 'reset');
+  assert.equal(reset.dataset.year, '2026');
+  assert.equal(reset.dataset.field, 'salary');
+  assert.match(reset.getAttribute('aria-label'), /Reset.*2026.*Annual salary/);
+  assert.equal(reset.textContent, '');
+  assert(reset.querySelector('.fv-icon--reset[aria-hidden="true"]'));
+  icons.window.close();
   assert.match(module.projectionTable([{...actual, source: null}]), /Recorded/);
   assert.match(module.projectionTable([{...projection(2026), annual_salary_rate: 0, raise_rate: 0}], {editable: true}), /value="0.00"/);
   assert.equal(module.householdRows([{year: 2026}])[0].age, null);

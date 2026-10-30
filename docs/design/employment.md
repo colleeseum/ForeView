@@ -53,3 +53,15 @@ After-state evidence:
 - [English desktop](ux-03i/evidence/en-CA-1280-employment.png)
 - [French mobile](ux-03i/evidence/fr-CA-390-employment.png)
 - [Synthetic RTL](ux-03i/evidence/ar-XB-320-employment.png)
+
+## Contextual icon actions (UX-05F, #138)
+
+Annual overrides use the shared Reset icon instead of a close-shaped glyph. Its
+localized name includes the specific field and year, distinguishing multiple resets
+in the same row. The Override badge remains visible. Refreshed controls retain the
+existing `.salary-use-default` selector, year/field hooks, deferred reset payload and
+draft locking. Delegated tooltips cover their keyboard and pointer interactions.
+
+Save As uses the shared Close icon; View, Discard, Save, Save As, spending Save and
+Cancel retain explicit labels. Calculations, scenario cloning, dirty-state isolation,
+financial values, annual input sizes and read-only recovery retain their contracts.

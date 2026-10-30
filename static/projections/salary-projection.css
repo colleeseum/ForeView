@@ -27,9 +27,8 @@
 .fv-salary .salary-projection-table td:last-child { white-space: normal; }
 .fv-salary .manual-override { border: 2px solid var(--fv-primary); background: var(--fv-info-surface); }
 .fv-salary .pending-change, .fv-salary .pending-reset { border: 2px dashed var(--fv-warning); background: var(--fv-warning-surface); }
-.fv-salary .salary-use-default { min-inline-size: 44px; min-block-size: 44px; }
 .fv-salary .projection-disclaimer { background: var(--fv-info-surface); color: var(--fv-text); border-inline-start: 3px solid var(--fv-info); padding: var(--fv-space-4); }
 .fv-salary .salary-expense-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fv-space-2); }
-.fv-salary .dialog-close { float: inline-end; }
+.fv-salary [data-icon-action="close"] { float: inline-end; }
 .fv-salary .salary-annual-actions { margin-block: var(--fv-space-4); }
 .fv-salary .error { color: var(--fv-danger); }

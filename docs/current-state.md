@@ -17,7 +17,9 @@ correction Details/Review and dialog-close icons in Income while retaining expli
 correction lifecycle labels and financial contracts. UX-05E (#137) adopts shared
 record/category Edit, imported-record View and record Delete icons in Expenses.
 Manual and imported evidence share guarded permanent deletion and in-place recovery;
-a read-only record dialog exposes import provenance outside the compact table. See `docs/design/ui-foundation.md`.
+a read-only record dialog exposes import provenance outside the compact table.
+UX-05F (#138) adopts shared annual-override Reset and Save As Close icons in Projection,
+with field/year names and unchanged draft and calculation contracts. See `docs/design/ui-foundation.md`.
 
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog

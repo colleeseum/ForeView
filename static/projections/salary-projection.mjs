@@ -6,7 +6,10 @@ import {t, locale} from '../shared/i18n.mjs';
 import {formatMoneyDollars, formatPercent} from '../shared/locale-format.mjs';
 import {formSignature} from '../shared/form-state.mjs';
 import {incomeSourceLabel} from '../shared/income-source-label.mjs';
+import {iconAction, initializeIconActions} from '../shared/icon-actions.mjs';
 import {createDialog} from '../shared/dialog.mjs';
+
+initializeIconActions();
 
 const elements = {
   scenario: document.querySelector('#salary-scenario'),
@@ -78,10 +81,12 @@ export function projectionTable(rows, {editable = false, overrides = [], househo
     const shown = field === 'raise_rate'
       ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
       : Number(value || 0).toFixed(2);
+    const fieldLabel = t(`salary.${field === 'salary' ? 'annual_salary' : field === 'raise_rate' ? 'raise' : field === 'rrsp_contribution' ? 'rrsp_cash' : field === 'rrsp_deduction' ? 'rrsp_deduction' : 'other_income'}`);
+    const annualLabel = t('salary.annual_field', {year: row.year, field: fieldLabel});
     const reset = hasOverride
-      ? `<span class="fv-badge">${escapeHtml(t('salary.override'))}</span><button class="salary-use-default fv-button" data-year="${row.year}" data-field="${field}" type="button" title="${t('salary.reset')}" aria-label="${escapeHtml(t('salary.annual_field', {year: row.year, field: t('salary.reset')}))}">×</button>`
+      ? `<span class="fv-badge">${escapeHtml(t('salary.override'))}</span>${iconAction('reset', {label: t('actions.reset', {name: annualLabel}), attributes: {'data-salary-use-default': '', 'data-year': row.year, 'data-field': field}})}`
       : '';
-    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(t('salary.annual_field', {year: row.year, field: t(`salary.${field === 'salary' ? 'annual_salary' : field === 'raise_rate' ? 'raise' : field === 'rrsp_contribution' ? 'rrsp_cash' : field === 'rrsp_deduction' ? 'rrsp_deduction' : 'other_income'}`)}))}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
+    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(annualLabel)}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}">${reset}</span>${suffix}`;
   };
   const rowMarkup = (row) => `<tr class="${row.actual ? 'historical-row' : ''}">
     <th scope="row">${escapeHtml(String(row.year))}${row.actual ? ` ${t('salary.actual')}` : ''}</th>
@@ -259,6 +264,8 @@ function render() {
     showMessage(t('salary.household_note'));
     elements.table.innerHTML = projectionTable(householdRows(model.household), {household: true});
   }
+  // Preserve the existing reset selector on controls inserted by each refresh.
+  elements.table.querySelectorAll('[data-salary-use-default]').forEach(node => node.classList.add('salary-use-default'));
   elements.table.querySelectorAll('thead th').forEach(node => {node.scope = 'col';});
   updateSaveState();
 }

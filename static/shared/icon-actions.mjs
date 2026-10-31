@@ -5,6 +5,7 @@ import {escapeHtml} from './html.mjs';
 
 export const ICON_ACTIONS = Object.freeze(['edit', 'delete', 'view', 'download', 'add', 'expand', 'collapse', 'close', 'help', 'reset']);
 let sequence = 0;
+const controllers = new WeakMap();
 
 // Labels are supplied through the shared translator, including the action target.
 // Only data/ARIA hooks and ordinary button identifiers are accepted, never HTML events.
@@ -20,6 +21,7 @@ export function iconAction(action, {label, attributes = {}, disabled = false, bu
 // Event delegation covers controls inserted by table refreshes. Install once per
 // workspace, and destroy when unmounting. Tooltip text never interprets HTML.
 export function initializeIconActions(root = document) {
+  if (controllers.has(root)) return controllers.get(root);
   const doc = root.ownerDocument || root;
   const win = doc.defaultView;
   let anchor = null;
@@ -93,6 +95,8 @@ export function initializeIconActions(root = document) {
     // Removing a tooltip can synthesize pointer entry on its underlying anchor.
     // Escape remains effective until an actual pointer/focus exit from that control.
     if (suppressed?.contains(event.target) && !suppressed.contains(event.relatedTarget)) suppressed = null;
+    // Pointer exit must clear hover even after Escape has removed the tooltip.
+    if (event.type === 'pointerout' && hovered?.contains(event.target) && !hovered.contains(event.relatedTarget)) hovered = null;
     if (!anchor || (!anchor.contains(event.target) && !tooltip.contains(event.target))) return;
     if (event.type === 'pointerout') {
       if (anchor.contains(event.relatedTarget) || tooltip.contains(event.relatedTarget)) {
@@ -128,12 +132,15 @@ export function initializeIconActions(root = document) {
   win.addEventListener('scroll', position, true);
   const observer = new win.MutationObserver(() => {if (anchor && (!root.contains(anchor) || unavailable(anchor))) hide();});
   observer.observe(root, {childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'aria-busy']});
-  return {destroy() {
+  const controller = {destroy() {
     hide();
     observer.disconnect();
     for (const [name, handler] of events) doc.removeEventListener(name, handler);
     doc.removeEventListener('keydown', keydown, true);
     win.removeEventListener('resize', position);
     win.removeEventListener('scroll', position, true);
+    if (controllers.get(root) === controller) controllers.delete(root);
   }};
+  controllers.set(root, controller);
+  return controller;
 }

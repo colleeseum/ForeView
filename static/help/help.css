@@ -15,7 +15,7 @@
 .help-drawer-backdrop.fv-ui .help-controls { flex: none; min-width: 0; }
 .help-drawer-backdrop.fv-ui h1 { margin-inline-end: 3.5rem; }
 .help-drawer-backdrop.fv-ui .eyebrow { color: var(--fv-primary); font: 650 var(--fv-type-caption)/1.5 var(--fv-font); }
-.help-drawer-backdrop.fv-ui .help-drawer-close { inset-block-start: var(--fv-space-4); inset-inline-end: var(--fv-space-4); padding: var(--fv-space-2); font-size: 1.5rem; }
+.help-drawer-backdrop.fv-ui .help-drawer-close { inset-block-start: var(--fv-space-4); inset-inline-end: var(--fv-space-4); }
 .help-drawer-backdrop.fv-ui .help-search-label { font: 650 var(--fv-type-detail)/1.5 var(--fv-font); color: var(--fv-text); }
 .help-drawer-backdrop.fv-ui .help-status { margin-block: var(--fv-space-2); }
 .help-drawer-backdrop.fv-ui .help-layout { flex: 1; min-height: 0; overflow: auto; align-content: start; grid-template-columns: minmax(15rem, 32%) minmax(0, 1fr); gap: var(--fv-space-6); margin-block-start: var(--fv-space-4); padding: var(--fv-space-1); }

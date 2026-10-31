@@ -4,6 +4,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
 
 <!doctype html>
+{% from '_icon_actions.html' import icon_action %}
 <html lang="{{ current_locale }}" dir="{{ locale_direction }}" data-text-size="{{ text_size }}">
 <head>
   <meta charset="utf-8">
@@ -72,7 +73,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
             {% if row.approval %}
             <div class="public-rule-approval-actions">
               <span class="approval-badge approved">{{ t('pages_server.tax_rules.approved') }} {{ row.approval.approved_at }}</span>
-              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> {{ t('pages_server.tax_rules.approval_help') }}</button>
+              {{ icon_action('help', t('pages_server.tax_rules.approval_help'), attributes={'data-help-article': 'public-rule-approval'}) }}
             </div>
             {% else %}
             <div class="public-rule-approval-actions">
@@ -81,7 +82,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
                 <input type="hidden" name="content_hash" value="{{ package.content_hash }}">
                 <button class="view-action" type="submit">{{ t('pages_server.tax_rules.approve_hash') }}</button>
               </form>
-              <button class="context-help-button" type="button" data-help-article="public-rule-approval"><span>?</span> {{ t('pages_server.tax_rules.approval_help') }}</button>
+              {{ icon_action('help', t('pages_server.tax_rules.approval_help'), attributes={'data-help-article': 'public-rule-approval'}) }}
             </div>
             {% endif %}
           </div>

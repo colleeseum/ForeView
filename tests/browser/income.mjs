@@ -66,6 +66,13 @@ export async function verifyIncome(page, baseURL, locale, output, taxPath) {
     await expect(editor.locator('[name="tax_year"]')).toBeFocused();
     const box = await editor.boundingBox();
     assert(box.x >= 0 && box.x + box.width <= width);
+    for (const fieldHelp of await editor.locator('[data-help-tooltip]').all()) {
+      await expect(fieldHelp).toHaveAttribute('data-icon-action', 'help');
+      const size = await fieldHelp.boundingBox();
+      assert(size.width >= 44 && size.height >= 44);
+    }
+    await editor.locator('[data-help-tooltip="salary-rate"]').click();
+    await expect(editor.locator('[data-inline-help]')).not.toBeEmpty();
     const close = page.locator('#income-dialog-close');
     await expect(close).toHaveAttribute('data-icon-action', 'close');
     await close.focus();

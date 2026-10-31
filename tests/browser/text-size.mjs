@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import {expect} from '@playwright/test';
-import {assertCloseVisible, assertLayout, measureLayout} from './acceptance.mjs';
+import {assertCloseVisible, assertLayout, measureLayout, dismissHelpWithEscape} from './acceptance.mjs';
 
 export async function verifyTextSize(page, baseURL, locale, output) {
   const paths = ['/', '/accounts', '/transactions', '/income', '/expenses', '/salary-projection',
@@ -75,7 +75,7 @@ export async function verifyTextSize(page, baseURL, locale, output) {
       await expect(page.locator('#help-search')).toBeFocused();
       assert.equal(await page.locator('.help-drawer').evaluate(node => parseFloat(getComputedStyle(node).fontSize)), 16 * scale);
       await assertCloseVisible(page);
-      await page.keyboard.press('Escape');
+      await dismissHelpWithEscape(page);
       await expect(opener).toBeFocused();
       // Text-only resize, not a claim of native browser-chrome zoom automation.
       await page.locator('html').evaluate((node, scale) => {node.style.fontSize = `${200 * scale}%`;}, scale);

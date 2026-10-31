@@ -160,6 +160,10 @@ try {
   assert(drawer && drawer.x < 2, 'RTL drawer must anchor at the left inline end');
   await page.keyboard.press('Shift+Tab');
   assert(await page.locator('.help-drawer').evaluate((element) => element.contains(document.activeElement)), 'Focus must stay in help');
+  await expect(page.locator('.help-drawer-backdrop .fv-icon-tooltip')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.help-drawer-backdrop .fv-icon-tooltip')).toHaveCount(0);
+  await expect(page.locator('.help-drawer-backdrop')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.help-drawer-backdrop')).toBeHidden();
   await expect(page.locator('.full-help-button')).toBeFocused();

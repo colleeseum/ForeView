@@ -111,6 +111,10 @@ export async function verifyAssets(page, baseURL, locale, output) {
     const edit = page.locator('[data-edit-account]').first();
     await edit.click();
     await expect(page.locator('#account-dialog-form button[type="submit"]')).toBeDisabled();
+    const close = page.locator('#close-account-dialog');
+    await expect(close).toHaveAttribute('data-icon-action', 'close');
+    await checkIconTooltip(close);
+    await expect(page.locator('#account-dialog')).toBeVisible();
     const box = await page.locator('#account-dialog').boundingBox();
     assert(box.x >= 0 && box.x + box.width <= width);
     await page.screenshot({path: `${output}/${locale}-${width}-account-dialog.png`});
@@ -128,7 +132,7 @@ export async function verifyAssets(page, baseURL, locale, output) {
     await page.locator('#asset-density').selectOption('compact');
     const compact = await page.locator('.table-card tbody tr').first().boundingBox();
     assert(compact.height < standard.height);
-    for (const action of await page.locator('.fv-icon-action').all()) {
+    for (const action of await page.locator('.fv-icon-action:visible').all()) {
       const target = await action.boundingBox();
       assert(target.height >= 44 && target.width >= 44);
       assert.equal((await action.innerText()).trim(), '');

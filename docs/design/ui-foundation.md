@@ -234,7 +234,10 @@ use shared border, focus and destructive/disabled tokens; their target is at lea
 button semantics; busy also sets `aria-busy="true"`. Existing asynchronous workflow
 guards must still own dismissal and repeated submission prevention.
 
-Initialize tooltips once per workspace. Delegated events cover newly rendered rows.
+Initialize tooltips once per workspace. Repeated initialization for the same root
+reuses its controller, so the shared shell and feature modules cannot install
+duplicate tooltip handlers. Destroying that controller permits a fresh installation.
+Delegated events cover newly rendered rows.
 Tooltips open on keyboard focus or hover, remain hoverable, and close on focus/hover
 exit, activation or Escape. Escape dismisses the tooltip before its enclosing modal.
 Focus and pointer hover independently retain a tooltip. Long labels are bounded
@@ -257,6 +260,26 @@ dynamic, disabled and busy examples. Launch it with the command above. Unit test
 verify escaped labels/hooks, lifecycle and dynamic controls. Chromium checks cover
 English/French, synthetic RTL, 320px/desktop widths, 100%/125% text and keyboard
 focus/tooltip placement. Workspaces adopt these primitives through UX-05B-G.
+
+### Cross-workspace adoption audit (UX-05G, #139)
+
+| Surface | Shared contextual actions | Deliberately labelled/native controls |
+| --- | --- | --- |
+| Assets | Edit, Add subaccount, portfolio Expand/Collapse, dialog Close | Add/save/cancel workflows |
+| Transactions | Import Help and dialog Close | Import, Reconcile, confirmations; read-only history |
+| Income | Edit, correction Details/Review, field Help, dialog Close | Correction lifecycle, provider-import Help choices and Save/Cancel |
+| Expenses | Edit, record View, Delete, local/import Help and dialog Close | Import, confirmation and Save/Cancel |
+| Projection | Override Reset, yearly Expand/Collapse, dialog Close | View, Save/Cancel, Save As and spending actions |
+| Administration and shared shell | Page Help, Help drawer Close, rule-approval Help | Setup/settings Save, connection Sync/Retry/Refetch/Connect, rule approval and legal links |
+
+Navigation groups, Help categories, connection Advanced options and official source
+lists retain native `details`/`summary` semantics and their disclosure markers. Do not
+nest icon buttons in their summaries or substitute scripted controls for native links.
+The shared Help drawer and page button use the same factories as workspace actions;
+their existing selectors and contextual topic destinations remain unchanged. The
+drawer respects tooltip Escape handling before closing or returning focus.
+The final audit also replaces residual Assets dialog close glyphs and Income field
+Help markup, preserving their existing close IDs and per-field quick-reference hooks.
 
 ### Contextual help placement
 

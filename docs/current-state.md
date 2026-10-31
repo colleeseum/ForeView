@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-10-29
+Updated: 2026-10-30
 
 ## Development focus
 
@@ -21,7 +21,9 @@ a read-only record dialog exposes import provenance outside the compact table.
 UX-05F (#138) adopts shared annual-override Reset and Save As Close icons in Projection,
 with field/year names and unchanged draft and calculation contracts. UX-06 (#146)
 prioritizes disposable income in a compact summary with expandable yearly inputs and
-calculation details, retaining drafts and all existing financial values. See `docs/design/ui-foundation.md`.
+calculation details, retaining drafts and all existing financial values. UX-05G (#139)
+aligns shared Help/Close and rule-approval Help with the same primitives, retaining
+native disclosures and explicit administration workflow labels. See `docs/design/ui-foundation.md`.
 
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog

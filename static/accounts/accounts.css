@@ -23,7 +23,7 @@
 .fv-assets .section-add-account { min-height: var(--fv-control-min); margin: 0; border-color: var(--fv-primary); border-radius: var(--fv-radius-control); color: var(--fv-surface); background: var(--fv-primary); font: 650 var(--fv-type-detail)/1.4 var(--fv-font); }
 .fv-assets .fv-dialog { width: min(56rem, calc(100% - 2rem)); }
 .fv-assets .fv-dialog h2 { padding-inline-end: var(--fv-space-8); }
-.fv-assets .asset-close { float: inline-end; }
+.fv-assets .fv-dialog > [data-icon-action="close"] { float: inline-end; }
 .fv-assets fieldset { min-width: 0; border: 1px solid var(--fv-border); border-radius: var(--fv-radius-control); padding: var(--fv-space-4); }
 .fv-assets legend { font-weight: 650; }
 .fv-assets .owner-field { display: grid; grid-template-columns: minmax(0, 1fr) 5rem auto; gap: var(--fv-space-2); align-items: center; margin-block: var(--fv-space-2); }

@@ -20,11 +20,22 @@ export async function verifyHelp(page, baseURL, locale, output) {
   const search = page.locator('#help-search');
   const title = page.locator('.help-article h2');
   const opener = page.locator('.full-help-button');
+  await expect(opener).toHaveAttribute('data-icon-action', 'help');
   const expense = catalog.articles.find(article => article.key === 'expenses');
   await opener.click();
   await expect(modal).toBeVisible();
   assert(await modal.evaluate(node => node.matches(':modal')), 'Help uses the native modal top layer');
   await expect(search).toBeFocused();
+  const close = modal.locator('.help-drawer-close');
+  await expect(close).toHaveAttribute('data-icon-action', 'close');
+  await close.focus();
+  await expect(modal.locator('.fv-icon-tooltip')).toHaveText(await close.getAttribute('aria-label'));
+  const closeSize = await close.boundingBox();
+  assert(closeSize.width >= 44 && closeSize.height >= 44);
+  await page.keyboard.press('Escape');
+  await expect(modal.locator('.fv-icon-tooltip')).toHaveCount(0);
+  await expect(modal).toBeVisible();
+  await search.focus();
   await expect(title).toHaveText(expense.title);
   await expect(page.locator('[aria-current="true"][data-help-result]')).toHaveAttribute('data-help-result', 'expenses');
   const selected = page.locator('[data-help-result="expenses"]');
@@ -89,10 +100,13 @@ export async function verifyHelp(page, baseURL, locale, output) {
     const closeBox = await page.locator('.help-drawer-close').boundingBox();
     assert(closeBox.y >= 0 && closeBox.y + closeBox.height <= 1000, 'Close remains reachable while reading long articles');
     await page.screenshot({path: `${output}/${locale}-${width}-help-provider.png`});
+    // Keep the pointer off Close while checking keyboard-only dismissal.
+    await page.locator('.help-article').hover();
     await page.keyboard.press('Tab');
     await expect(page.locator('.help-drawer-close')).toBeFocused();
     await page.keyboard.press('Shift+Tab');
     await expect(page.locator('.help-article')).toBeFocused();
+    await expect(modal.locator('.fv-icon-tooltip')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(opener).toBeFocused();
   }

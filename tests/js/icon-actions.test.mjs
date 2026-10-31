@@ -38,6 +38,7 @@ test('delegated tooltips follow keyboard, hover, Escape and refreshed controls w
   const doc = dom.window.document;
   const root = doc.querySelector('main');
   const controller = initializeIconActions(root);
+  assert.equal(initializeIconActions(root), controller, 'Shell and feature initialization share one controller');
   const add = (id, label = '<b>synthetic</b>') => {
     root.insertAdjacentHTML('beforeend', iconAction('edit', {label, attributes: {id, 'aria-describedby': 'existing'}}));
     return doc.getElementById(id);
@@ -53,12 +54,21 @@ test('delegated tooltips follow keyboard, hover, Escape and refreshed controls w
   assert(button.getAttribute('aria-describedby').includes(tip.id));
   button.dispatchEvent(new dom.window.FocusEvent('focusin', {bubbles: true}));
   assert.equal(doc.querySelectorAll('[role="tooltip"]').length, 1);
+  button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
   const escape = new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true});
   button.dispatchEvent(escape);
   assert(escape.defaultPrevented);
   assert.equal(doc.activeElement, button);
   assert.equal(doc.querySelector('[role="tooltip"]'), null);
   assert.equal(button.getAttribute('aria-describedby'), 'existing');
+  button.dispatchEvent(new dom.window.MouseEvent('pointerout', {bubbles: true, relatedTarget: doc.querySelector('#outside')}));
+  doc.querySelector('#outside').focus();
+  button.focus();
+  assert(doc.querySelector('[role="tooltip"]'));
+  doc.querySelector('#outside').focus();
+  assert.equal(doc.querySelector('[role="tooltip"]'), null, 'Pointer exit after Escape cannot retain a later keyboard tooltip');
+  button.focus();
+  button.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true}));
   button.dispatchEvent(new dom.window.MouseEvent('pointerover', {bubbles: true}));
   assert.equal(doc.querySelector('[role="tooltip"]'), null, 'Escape survives synthetic pointer entry when the popup disappears');
   doc.querySelector('#outside').focus();
@@ -102,6 +112,11 @@ test('delegated tooltips follow keyboard, hover, Escape and refreshed controls w
   dom.window.dispatchEvent(new dom.window.Event('scroll'));
   assert(doc.querySelector('[role="tooltip"]'), 'Focus-induced scrolling retains the tooltip');
   controller.destroy();
+  const replacement = initializeIconActions(root);
+  assert.notEqual(replacement, controller, 'Teardown permits a fresh installation');
+  controller.destroy();
+  assert.equal(initializeIconActions(root), replacement, 'Repeated old teardown cannot remove the new controller');
+  replacement.destroy();
   close.dispatchEvent(new dom.window.FocusEvent('focusin', {bubbles: true}));
   assert.equal(doc.querySelector('[role="tooltip"]'), null);
   dom.window.close();

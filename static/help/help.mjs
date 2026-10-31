@@ -4,6 +4,10 @@
 import {escapeHtml} from '../shared/html.mjs';
 import {t, locale} from '../shared/i18n.mjs';
 import {createDialog} from '../shared/dialog.mjs';
+import {iconAction, initializeIconActions} from '../shared/icon-actions.mjs';
+
+// Shared shell and feature controllers may initialize the same document.
+initializeIconActions();
 
 let catalogPromise;
 function loadCatalog() {
@@ -45,7 +49,7 @@ backdrop.setAttribute('aria-labelledby', 'full-help-title');
 backdrop.hidden = true;
 backdrop.innerHTML = `<section class="help-drawer">
   <div class="help-controls">
-  <button class="help-drawer-close fv-button" type="button" aria-label="${t('help.close')}">×</button>
+  ${iconAction('close', {label: t('help.close'), attributes: {'data-help-close': ''}})}
   <p class="eyebrow">${t('help.reference')}</p>
   <h1 id="full-help-title">${t('help.title')}</h1>
   <label class="help-search-label" for="help-search">${t('help.search')}</label>
@@ -58,6 +62,7 @@ backdrop.innerHTML = `<section class="help-drawer">
   </div>
 </section>`;
 document.body.append(backdrop);
+backdrop.querySelector('[data-help-close]').classList.add('help-drawer-close');
 
 const search = backdrop.querySelector('#help-search');
 const status = backdrop.querySelector('.help-status');
@@ -257,15 +262,10 @@ async function openTooltip(key, anchor) {
 
 const pageHeader = document.querySelector('main > header');
 if (pageHeader) {
-  const fullHelpButton = document.createElement('button');
-  fullHelpButton.className = 'full-help-button fv-ui fv-icon-action';
-  fullHelpButton.type = 'button';
-  fullHelpButton.setAttribute('aria-label', t('help.open'));
-  fullHelpButton.title = t('help.full_help');
-  const helpIcon = document.createElement('span');
-  helpIcon.className = 'fv-icon fv-icon--help';
-  helpIcon.setAttribute('aria-hidden', 'true');
-  fullHelpButton.append(helpIcon);
+  const markup = document.createElement('template');
+  markup.innerHTML = iconAction('help', {label: t('help.open')});
+  const fullHelpButton = markup.content.firstElementChild;
+  fullHelpButton.classList.add('full-help-button', 'fv-ui');
   pageHeader.append(fullHelpButton);
   fullHelpButton.addEventListener('click', () => openFullHelp());
 }
@@ -330,7 +330,7 @@ backdrop.addEventListener('click', (event) => {
   if (event.target === backdrop) closeFullHelp();
 });
 document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape') return;
+  if (event.defaultPrevented || event.key !== 'Escape') return;
   if (!backdrop.hidden) {
     event.preventDefault();
     event.stopImmediatePropagation();

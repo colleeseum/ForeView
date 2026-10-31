@@ -94,7 +94,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         </select>
       </label>
       <input name="payroll_plan" type="hidden">
-      <label><span>{{ t('pages_server.income.employment_income') }} <button class="tooltip-help-button" type="button" data-help-tooltip="employment-income" aria-label="{{ t('pages_server.income.employment_help') }}">?</button></span>
+      <label><span>{{ t('pages_server.income.employment_income') }} {{ icon_action('help', t('pages_server.income.employment_help'), attributes={'data-help-tooltip': 'employment-income'}) }}</span>
         <span class="field-note">{{ t('pages_server.income.t1_line_10100') }}</span>
         <input name="employment_income" type="number" min="0" step="0.01" required>
       </label>
@@ -102,7 +102,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         <span class="field-note">{{ t('pages_server.income.manual') }}</span>
         <input name="bonus" type="number" min="0" step="0.01" value="0">
       </label>
-      <label><span>{{ t('pages_server.income.salary_rate') }} <button class="tooltip-help-button" type="button" data-help-tooltip="salary-rate" aria-label="{{ t('pages_server.income.salary_help') }}">?</button></span>
+      <label><span>{{ t('pages_server.income.salary_rate') }} {{ icon_action('help', t('pages_server.income.salary_help'), attributes={'data-help-tooltip': 'salary-rate'}) }}</span>
         <span class="field-note">{{ t('pages_server.income.salary_note') }}</span>
         <output id="income-salary-rate">$0.00</output>
       </label>
@@ -126,7 +126,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         <span class="field-note">{{ t('pages_server.income.qpip_premiums') }}</span>
         <input name="qpip" type="number" min="0" step="0.01" value="0">
       </label>
-      <label><span>{{ t('pages_server.income.rrsp_contribution') }} <button class="tooltip-help-button" type="button" data-help-tooltip="rrsp-contribution" aria-label="{{ t('pages_server.income.rrsp_help') }}">?</button></span>
+      <label><span>{{ t('pages_server.income.rrsp_contribution') }} {{ icon_action('help', t('pages_server.income.rrsp_help'), attributes={'data-help-tooltip': 'rrsp-contribution'}) }}</span>
         <span class="field-note">{{ t('pages_server.income.rrsp_note') }}</span>
         <input name="rrsp_contribution" type="number" min="0" step="0.01" value="0">
       </label>
@@ -156,7 +156,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
     <p class="eyebrow">{{ t('pages_server.income.factual_correction') }}</p>
     <h2 id="income-correction-title">{{ t('pages_server.income.correct_value') }}</h2>
     <p id="income-correction-context" lang="{{ current_locale }}" class="field-note"></p>
-    <button class="context-help-button" type="button" data-help-article="factual-corrections"><span>?</span> {{ t('pages_server.income.when_correct') }}</button>
+    <button class="context-help-button" type="button" data-help-article="factual-corrections"><span class="fv-icon fv-icon--help" aria-hidden="true"></span> {{ t('pages_server.income.when_correct') }}</button>
     <div id="income-correction-status" lang="{{ current_locale }}" class="income-correction-status" hidden></div>
     <div class="income-correction-comparison">
       <section>
@@ -200,9 +200,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
       <label>{{ t('pages_server.income.pdf') }} <input id="income-import-file" name="file" type="file" accept="application/pdf" required autofocus></label>
       <p class="field-note">{{ t('pages_server.income.pdf_help') }}</p>
       <div class="income-source-help-links">
-        {% for source in income_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span>?</span> {{ t('pages_server.income.how_get') }} <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
-        {% for source in tax_notice_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span>?</span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
-        {% for source in public_pension_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span>?</span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
+        {% for source in income_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="income-source-{{ source.key }}"><span class="fv-icon fv-icon--help" aria-hidden="true"></span> {{ t('pages_server.income.how_get') }} <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
+        {% for source in tax_notice_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="tax-notice-{{ source.key }}"><span class="fv-icon fv-icon--help" aria-hidden="true"></span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
+        {% for source in public_pension_sources %}{% set ui = provider_presentation(source.display_name, source.translations) %}<button class="context-help-button" type="button" data-help-article="public-pension-{{ source.key }}"><span class="fv-icon fv-icon--help" aria-hidden="true"></span> <span lang="{{ ui.field_languages.display_name }}">{{ ui.display_name }}</span></button>{% endfor %}
       </div>
       <div id="income-import-progress" class="income-import-progress" role="status" aria-live="polite" hidden>
         <progress aria-label="{{ t('pages_server.income.analysing') }}"></progress>

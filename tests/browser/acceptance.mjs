@@ -69,6 +69,18 @@ export async function assertCloseVisible(page, timeout = 5000) {
   await expect(close).toBeInViewport({timeout});
 }
 
+export async function dismissHelpWithEscape(page) {
+  const modal = page.locator('dialog.help-drawer-backdrop');
+  const tooltip = modal.locator('.fv-icon-tooltip');
+  if (await tooltip.count()) {
+    await page.keyboard.press('Escape');
+    await expect(tooltip).toHaveCount(0);
+    await expect(modal).toBeVisible();
+  }
+  await page.keyboard.press('Escape');
+  await expect(modal).toBeHidden();
+}
+
 export async function verifyAcceptanceGuards(page) {
   await page.setViewportSize({width: 640, height: 450});
   await page.setContent(`<main><div class="page-content" style="overflow-x:auto">
@@ -171,7 +183,7 @@ export async function verifyAcceptance(page, baseURL, locale, output) {
         await expect(page.locator('#help-search')).toBeFocused();
         assert(await modal.evaluate(node => node.matches(':modal')));
         await assertCloseVisible(page);
-        await page.keyboard.press('Escape');
+        await dismissHelpWithEscape(page);
         await expect(trigger).toBeFocused();
         const image = `${locale}-${viewport.width}x${viewport.height}-${key}-acceptance.png`;
         if (viewport.width !== 640) {

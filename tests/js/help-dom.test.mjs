@@ -62,6 +62,7 @@ test('help provides quick tooltips, searchable full help, and contextual article
   assert(fullHelp.classList.contains('fv-icon-action'));
   assert.equal(fullHelp.textContent, '');
   assert(fullHelp.querySelector('.fv-icon--help[aria-hidden="true"]'));
+  assert.equal(fullHelp.dataset.iconAction, 'help');
   fullHelp.click();
   await tick();
   assert.equal(document.querySelector('.help-drawer-backdrop').hidden, false);
@@ -92,6 +93,27 @@ test('help provides quick tooltips, searchable full help, and contextual article
   document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'}));
   assert.equal(document.querySelector('.help-tooltip').hidden, true);
   assert.equal(document.querySelector('.help-drawer-backdrop').hidden, true);
+  dom.window.close();
+});
+
+test('shared Help close tooltip consumes Escape before dismissing its dialog', async () => {
+  const dom = installDom();
+  globalThis.fetch = async () => ({ok: true, json: async () => catalog});
+  await import('../../static/help/help.mjs?shared-close-escape');
+  document.querySelector('.full-help-button').click();
+  await tick();
+  const modal = document.querySelector('.help-drawer-backdrop');
+  const close = modal.querySelector('.help-drawer-close');
+  assert.equal(close.dataset.iconAction, 'close');
+  assert(close.querySelector('.fv-icon--close[aria-hidden="true"]'));
+  close.focus();
+  assert.equal(document.querySelector('.fv-icon-tooltip').textContent, close.getAttribute('aria-label'));
+  const escape = () => close.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true}));
+  escape();
+  assert.equal(document.querySelector('.fv-icon-tooltip'), null);
+  assert.equal(modal.hidden, false);
+  escape();
+  assert.equal(modal.hidden, true);
   dom.window.close();
 });
 
@@ -235,7 +257,7 @@ test('full help localizes its browser-generated controls', async () => {
   await import(`../../static/help/help.mjs?french=${Date.now()}`);
 
   const fullHelp = document.querySelector('.full-help-button');
-  assert.equal(fullHelp.title, 'Aide complète');
+  assert.equal(fullHelp.hasAttribute('title'), false, 'The shared tooltip replaces the native title');
   fullHelp.click();
   await tick();
   assert.equal(document.querySelector('#full-help-title').textContent, 'Aide');

@@ -2,11 +2,13 @@
 SPDX-FileCopyrightText: 2026 Mindstep Corporation
 SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #}
+{% from '_icon_actions.html' import icon_action %}
 {% macro field(key, name, type='text', required=false, placeholder='') -%}
 <label class="fv-field">{{ t(key) }}<input class="fv-input" name="{{ name }}" type="{{ type }}"{% if required %} required{% endif %}{% if placeholder %} placeholder="{{ t(placeholder) }}"{% endif %}{% if type == 'number' %} min="0" step="0.01"{% endif %}></label>
 {%- endmacro %}
 {% macro close(id) -%}
-<button id="close-{{ id }}-dialog" class="fv-button asset-close" type="button" data-dialog-close aria-label="{{ t('pages_server.common.close') }}">×</button>
+{% set name_key = {'account': 'pages_server.common.account', 'subaccount': 'pages_server.assets.subaccount', 'real-estate': 'pages_server.assets.real_estate'}[id] %}
+{{ icon_action('close', t('browser.actions.close', name=t(name_key)), attributes={'id': 'close-' ~ id ~ '-dialog', 'data-dialog-close': ''}) }}
 {%- endmacro %}
 {% macro heading(id, eyebrow, add, edit) -%}
 <p class="eyebrow">{{ t(eyebrow) }}</p><h2 id="{{ id }}-dialog-title" data-add-text="{{ t(add) }}" data-edit-text="{{ t(edit) }}">{{ t(add) }}</h2>

@@ -91,6 +91,14 @@ export async function verifyAdministration(page, baseURL, locale, output) {
       await page.screenshot({path: `${output}/${locale}-${width}-admin-${name}.png`, fullPage: true});
     }
     if (name === 'rules') {
+      const help = page.locator('[data-help-article="public-rule-approval"]').first();
+      await expect(help).toHaveAttribute('data-icon-action', 'help');
+      await help.click();
+      await expect(page.locator('.help-drawer-backdrop')).toBeVisible();
+      await expect(page.locator('.help-article-body')).not.toBeEmpty();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('.help-drawer-backdrop')).toBeHidden();
+      await expect(help).toBeFocused();
       const federal = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA"]');
       const quebec = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA-QC"]');
       const bc = page.locator('.public-rule-tabs a[href="/settings?jurisdiction=CA-BC"]');

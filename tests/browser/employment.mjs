@@ -159,6 +159,43 @@ export async function verifyEmployment(page, baseURL, locale, output) {
   await page.waitForFunction(() => document.querySelector('main').getAttribute('aria-busy') === 'false');
   assert.equal((await read(scenario)).expense_plan.required_annual_amount, '45678.90');
   assert.deepEqual(rows(await read(original.selected_scenario_id)), rows(original), 'Draft and spending saves never mutate the original scenario');
+  // Full storage precision must remain valid through every browser editor.
+  await page.locator(`[data-person-key="${personId}"]`).click();
+  const defaultRaise = page.locator('[name="default_raise"]');
+  await defaultRaise.fill('2.5123');
+  assert(await defaultRaise.evaluate(node => node.checkValidity()));
+  await page.locator('#salary-save').click();
+  await expect(page.locator('#salary-save')).toBeDisabled();
+  await page.waitForFunction(() => document.querySelector('main').getAttribute('aria-busy') === 'false');
+  await expect(defaultRaise).toHaveValue('2.5123');
+  if (!(await page.locator('.salary-year-input[data-year="2027"]').first().isVisible())) await page.locator('[data-year-details="projection-2027"]').click();
+  const fractionalRaise = page.locator('[data-year="2027"][data-field="raise_rate"]');
+  await expect(fractionalRaise).toHaveValue('2.5123');
+  assert(await fractionalRaise.evaluate(node => node.checkValidity()), 'Inherited fractional raise must not block unrelated annual edits');
+  await page.locator('[data-year="2027"][data-field="other_income"]').fill('1234.56');
+  await page.locator('[data-year-save="2027"]').click();
+  await expect(page.locator('[data-year-save="2027"]')).toBeDisabled();
+  await expect(fractionalRaise).toHaveValue('2.5123');
+  await fractionalRaise.fill('1.5678');
+  await page.locator('[data-year-save="2027"]').click();
+  await expect(page.locator('[data-year-save="2027"]')).toBeDisabled();
+  await expect(fractionalRaise).toHaveValue('1.5678');
+  const fractionalSaved = (await read(scenario)).people.find(person => person.id === personId);
+  assert.equal(fractionalSaved.settings.default_raise, '0.025123');
+  assert.equal(fractionalSaved.overrides.find(row => row.year === 2027).raise_rate, '0.015678');
+  assert.equal(fractionalSaved.overrides.find(row => row.year === 2027).other_income, '1234.56');
+  await page.locator('[data-person-key="household"]').click();
+  for (const [field, value] of [['required_annual_growth', '1.2345'], ['discretionary_annual_growth', '2.3456']]) {
+    const input = page.locator(`#salary-expense-form [name="${field}"]`);
+    await input.fill(value);
+    assert(await input.evaluate(node => node.checkValidity()));
+  }
+  await page.locator('#salary-expense-save').click();
+  await page.waitForFunction(() => document.querySelector('main').getAttribute('aria-busy') === 'false');
+  await expect(page.locator('[name="required_annual_growth"]')).toHaveValue('1.2345');
+  await expect(page.locator('[name="discretionary_annual_growth"]')).toHaveValue('2.3456');
+  assert.equal((await read(scenario)).expense_plan.required_annual_growth, '0.012345');
+  assert.equal((await read(scenario)).expense_plan.discretionary_annual_growth, '0.023456');
   const fail = route => route.fulfill({status: 503, contentType: 'application/json', body: JSON.stringify({error: 'Synthetic unavailable projection'})});
   await page.route('**/api/salary-projection?*', fail);
   await page.locator('#salary-view').click();

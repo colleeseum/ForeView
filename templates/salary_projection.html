@@ -13,7 +13,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
   <title>{{ t('pages_server.salary.title') }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared/ui.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='projections/salary-projection.css', v='20261030-4') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='projections/salary-projection.css', v='20261031-1') }}">
 </head>
 <body><main class="fv-ui fv-salary">
   <header>
@@ -52,7 +52,7 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
           <div class="salary-readonly-field"><span>{{ t('pages_server.salary.rrsp_contribution') }}</span><small>{{ t('pages_server.salary.rrsp_contribution_help') }}</small><output id="salary-current-rrsp-contribution">—</output></div>
           <div class="salary-readonly-field"><span>{{ t('pages_server.salary.rrsp_deduction') }}</span><small>{{ t('pages_server.salary.rrsp_deduction_help') }}</small><output id="salary-current-rrsp-deduction">—</output></div>
           <div class="salary-readonly-field"><span>{{ t('pages_server.salary.other_income') }}</span><output id="salary-current-other-income">—</output></div>
-          <label>{{ t('pages_server.salary.default_raise') }} <input name="default_raise" type="number" step="0.001"></label>
+          <label>{{ t('pages_server.salary.default_raise') }} <input name="default_raise" type="number" step="0.0001"></label>
           <label>{{ t('pages_server.salary.retirement_date') }} <input name="retirement_date" type="date"></label>
         </form>
       </section>
@@ -62,9 +62,9 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
         <form id="salary-expense-form" class="salary-settings-grid">
           <label>{{ t('pages_server.salary.spending_starts') }} <input name="start_year" type="number" min="1900" max="9999" required></label>
           <label>{{ t('pages_server.salary.required_spending') }} <input name="required_annual_amount" type="number" min="0" step="0.01" required></label>
-          <label>{{ t('pages_server.salary.required_growth') }} <input name="required_annual_growth" type="number" step="0.001" required></label>
+          <label>{{ t('pages_server.salary.required_growth') }} <input name="required_annual_growth" type="number" step="0.0001" required></label>
           <label>{{ t('pages_server.salary.discretionary_fund') }} <input name="discretionary_annual_amount" type="number" min="0" step="0.01" required></label>
-          <label>{{ t('pages_server.salary.discretionary_growth') }} <input name="discretionary_annual_growth" type="number" step="0.001" required></label>
+          <label>{{ t('pages_server.salary.discretionary_growth') }} <input name="discretionary_annual_growth" type="number" step="0.0001" required></label>
           <div class="salary-expense-actions"><button id="salary-expense-save" class="view-action" type="submit" disabled>{{ t('pages_server.salary.save_spending') }}</button><span id="salary-expense-status" lang="{{ current_locale }}" class="field-note">{{ t('pages_server.salary.no_spending') }}</span></div>
         </form>
       </section>
@@ -101,5 +101,5 @@ SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 </dialog>
 </main>
 <script src="{{ url_for('static', filename='csrf.js', v='20260928-1') }}"></script>
-<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20261030-4') }}"></script>
+<script type="module" src="{{ url_for('static', filename='projections/salary-projection.mjs', v='20261031-1') }}"></script>
 </body></html>

@@ -1008,6 +1008,151 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn(b'"locale": "fr-CA"', page.data)
         self.assertIn(b'"birth_date": "Date de naissance"', page.data)
 
+    def test_projection_rate_precision_across_save_draft_clone_and_spending(self):
+        person = self._people()[0]["id"]
+        scenario = self.client.post(
+            "/api/model/scenarios", json={"name": "Fractional rate", "baseline_date": "2026-01-01"}
+        ).get_json()["id"]
+        prefix = f"/api/salary-projection/scenarios/{scenario}"
+        personal = f"{prefix}/people/{person}"
+        settings = self.client.put(
+            f"{personal}/settings",
+            json={"default_raise": "0.025123", "recurring_other_income": "123.456"},
+        )
+        self.assertEqual(settings.status_code, 200)
+        self.assertEqual(settings.json["default_raise"], "0.025123")
+        self.assertEqual(settings.json["recurring_other_income"], "123.46")
+        annual = self.client.put(f"{personal}/years/2027", json={"raise_rate": "0.027654"})
+        self.assertEqual(annual.status_code, 200)
+        annual_read = self.client.get(f"/api/salary-projection?scenario_id={scenario}").json
+        annual_person = next(item for item in annual_read["people"] if item["id"] == person)
+        self.assertEqual(annual_person["overrides"][0]["raise_rate"], "0.027654")
+        draft = {
+            "settings": {"default_raise": "0.025"},
+            "overrides": [{"year": 2027, "raise_rate": "0.035678", "other_income": "222.225"}],
+        }
+        self.assertEqual(self.client.put(f"{personal}/draft", json=draft).status_code, 200)
+        expenses = self.client.put(
+            f"{prefix}/expenses",
+            json={
+                "start_year": 2026,
+                "required_annual_amount": "1000.125",
+                "required_annual_growth": "0.025123",
+                "discretionary_annual_amount": "2000.125",
+                "discretionary_annual_growth": "0.015678",
+            },
+        )
+        self.assertEqual(expenses.status_code, 200)
+        self.assertEqual(expenses.json["required_annual_growth"], "0.025123")
+        self.assertEqual(expenses.json["discretionary_annual_growth"], "0.015678")
+        self.assertEqual(expenses.json["required_annual_amount"], "1000.13")
+        clone = self.client.post(
+            f"{prefix}/clone",
+            json={
+                **draft,
+                "person_id": person,
+                "name": "Fractional clone",
+                "settings": {"default_raise": "0.026543"},
+            },
+        )
+        self.assertEqual(clone.status_code, 201)
+
+        def read(identifier):
+            data = self.client.get(
+                f"/api/salary-projection?scenario_id={identifier}&start_year=2026&end_year=2027"
+            ).json
+            return data, next(item for item in data["people"] if item["id"] == person)
+
+        original, saved_person = read(scenario)
+        self.assertEqual(saved_person["settings"]["default_raise"], "0.025")
+        self.assertEqual(saved_person["overrides"][0]["raise_rate"], "0.035678")
+        self.assertEqual(saved_person["overrides"][0]["other_income"], "222.23")
+        cloned, cloned_person = read(clone.json["id"])
+        self.assertEqual(cloned_person["settings"]["default_raise"], "0.026543")
+        self.assertEqual(cloned_person["overrides"], saved_person["overrides"])
+        self.assertEqual(cloned["expense_plan"]["required_annual_growth"], "0.025123")
+        self.assertEqual(cloned["expense_plan"]["discretionary_annual_growth"], "0.015678")
+        self.assertEqual(original["expense_plan"]["required_annual_amount"], "1000.13")
+
+    def test_invalid_projection_rates_are_localized_and_atomic(self):
+        person = self._people()[0]["id"]
+        scenario = self.client.post(
+            "/api/model/scenarios", json={"name": "Rate validation", "baseline_date": "2026-01-01"}
+        ).json["id"]
+        prefix = f"/api/salary-projection/scenarios/{scenario}"
+        personal = f"{prefix}/people/{person}"
+        for locale in ("en-CA", "fr-CA"):
+            self.app.extensions["localization"].select(locale)
+            for value in ("bad", "NaN", "sNaN", "Infinity", "-Infinity", "1e999999", -1.000001):
+                requests = [
+                    ("put", f"{personal}/settings", {"default_raise": value}),
+                    ("put", f"{personal}/years/2027", {"raise_rate": value}),
+                    (
+                        "put",
+                        f"{personal}/draft",
+                        {
+                            "settings": {"default_raise": "0.025"},
+                            "overrides": [{"year": 2027, "raise_rate": value}],
+                        },
+                    ),
+                    (
+                        "post",
+                        f"{prefix}/clone",
+                        {
+                            "name": "Invalid clone",
+                            "person_id": person,
+                            "settings": {"default_raise": value},
+                        },
+                    ),
+                    (
+                        "put",
+                        f"{prefix}/expenses",
+                        {
+                            "start_year": 2026,
+                            "required_annual_amount": 1000,
+                            "required_annual_growth": value,
+                        },
+                    ),
+                    (
+                        "put",
+                        f"{prefix}/expenses",
+                        {
+                            "start_year": 2026,
+                            "required_annual_amount": 1000,
+                            "discretionary_annual_growth": value,
+                        },
+                    ),
+                ]
+                for method, path, payload in requests:
+                    with self.subTest(locale=locale, value=value, path=path):
+                        before = self.client.get(
+                            f"/api/salary-projection?scenario_id={scenario}"
+                        ).json
+                        response = getattr(self.client, method)(path, json=payload)
+                        self.assertEqual(response.status_code, 400)
+                        self.assertEqual(response.json["error_language"], locale)
+                        self.assertEqual(
+                            self.client.get(f"/api/salary-projection?scenario_id={scenario}").json,
+                            before,
+                        )
+        for field, path, extra in (
+            ("default_raise", f"{personal}/settings", {}),
+            ("raise_rate", f"{personal}/years/2027", {}),
+            (
+                "required_annual_growth",
+                f"{prefix}/expenses",
+                {"start_year": 2026, "required_annual_amount": 1000},
+            ),
+        ):
+            response = self.client.put(path, json={**extra, field: "-1"})
+            self.assertEqual(response.status_code, 200)
+            if field == "raise_rate":
+                data = self.client.get(f"/api/salary-projection?scenario_id={scenario}").json
+                saved = next(item for item in data["people"] if item["id"] == person)
+                self.assertEqual(saved["overrides"][0][field], "-1")
+            else:
+                self.assertEqual(response.json[field], "-1")
+
     def test_salary_projection_api_persists_inputs_and_calculates_household(self):
         person_id = self._people()[0]["id"]
         scenario = self.client.post(

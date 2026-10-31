@@ -25,6 +25,11 @@ calculation details, retaining drafts and all existing financial values. UX-05G 
 aligns shared Help/Close and rule-approval Help with the same primitives, retaining
 native disclosures and explicit administration workflow labels. See `docs/design/ui-foundation.md`.
 
+Projection rate-input correction #116 separates millionth-rate precision from
+cents conversion across settings, annual overrides, drafts, clones and spending.
+Malformed/non-finite rates fail with localized errors and atomic rollback; existing
+saved assumptions are unchanged.
+
 The maintainer selected A / Sage for UX-03's visual direction. UX-03A's synthetic evidence and
 design brief are under `docs/design/ux-03a/`. An opt-in shared CSS foundation and native-dialog
 helper are implemented with a disposable bilingual component reference under `docs/design/ux-03b/`;
@@ -166,9 +171,6 @@ independently of other logins' failures.
   use QPP or another province's CPP/EI parameters, but the projection service currently always
   applies the Quebec provincial income-tax calculator.
 - Scenario comparison is not implemented even though scenarios can be saved and cloned.
-- Employment projection rate edits currently pass through cents-rounded HTTP conversion,
-  so fractional-percent assumptions can lose precision. Issue #116 tracks the separate
-  rate-input fix. An unchanged UI clone preserves stored settings without resubmitting them.
 - Expense tracking remains high-level rather than transaction-level budgeting. Hydro-Québec and
   the verified two-page bilingual Énergir gas-bill layout are supported. Énergir rental bundles,
   equal-payment plans, corrected bills, scans and older unverified layouts remain unsupported;

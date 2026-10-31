@@ -1,4 +1,5 @@
 {
+  "input_invalid_rate": "Taux invalide : {detail0}",
   "expense_delete_imported_only": "Seules les dépenses importées peuvent être supprimées ici",
   "expense_delete_stale": "La dépense a changé. Actualisez la page avant de la supprimer.",
   "expense_montreal_unreadable": "Le PDF de taxes municipales de Montréal ne peut pas être lu",

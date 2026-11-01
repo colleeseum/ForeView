@@ -1,8 +1,14 @@
 # Current state
 
-Updated: 2026-10-30
+Updated: 2026-10-31
 
 ## Development focus
+
+IMP-01 (#112) is the next active workstream after UX-05 and projection rate-input
+fix #116. Its first child, IMP-01A (#150), proposes the non-mutating transaction
+preview/confirmation contract and provider-by-provider delivery plan in
+`docs/design/transaction-preview.md`. This is design work; the existing transaction
+import selection review still calls the direct importer and is not a parsed preview.
 
 UX-05A (#133) provides shared contextual icon-action controls for Jinja and browser
 renderers, with target-specific translated names, keyboard/hover tooltips, 44px

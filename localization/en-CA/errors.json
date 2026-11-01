@@ -1,4 +1,5 @@
 {
+  "input_invalid_rate": "Invalid rate: {detail0}",
   "expense_delete_imported_only": "Only imported expense records can be deleted here",
   "expense_delete_stale": "The expense changed. Refresh the page before deleting it.",
   "expense_montreal_unreadable": "The Montréal municipal-tax PDF could not be read",

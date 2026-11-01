@@ -6,7 +6,7 @@ import {t, locale} from '../shared/i18n.mjs';
 import {formatMoneyDollars} from '../shared/locale-format.mjs';
 import {formSignature} from '../shared/form-state.mjs';
 import {initializeIconActions} from '../shared/icon-actions.mjs';
-import {projectionTable} from './projection-table.mjs';
+import {projectionTable, rateInputValue} from './projection-table.mjs';
 export {projectionTable};
 import {createDialog} from '../shared/dialog.mjs';
 
@@ -167,7 +167,7 @@ function fillForm(person) {
   if (!person || !model.selected_scenario_id) return;
   const settings = person.settings || {};
   const values = {
-    default_raise: settings.default_raise == null ? '0' : Number(settings.default_raise) * 100,
+    default_raise: rateInputValue(settings.default_raise),
     retirement_date: settings.retirement_date || '',
   };
   Object.entries(values).forEach(([name, value]) => { elements.form.elements[name].value = value; });
@@ -195,9 +195,9 @@ function fillExpenseForm() {
   const values = {
     start_year: plan?.start_year ?? model.start_year,
     required_annual_amount: plan?.required_annual_amount ?? '0.00',
-    required_annual_growth: plan?.required_annual_growth == null ? '0' : Number(plan.required_annual_growth) * 100,
+    required_annual_growth: rateInputValue(plan?.required_annual_growth),
     discretionary_annual_amount: plan?.discretionary_annual_amount ?? '0.00',
-    discretionary_annual_growth: plan?.discretionary_annual_growth == null ? '0' : Number(plan.discretionary_annual_growth) * 100,
+    discretionary_annual_growth: rateInputValue(plan?.discretionary_annual_growth),
   };
   Object.entries(values).forEach(([name, value]) => { elements.expenseForm.elements[name].value = value; });
   savedExpenseSignature = formSignature(elements.expenseForm);

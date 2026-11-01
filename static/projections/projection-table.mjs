@@ -10,20 +10,23 @@ import {iconAction} from '../shared/icon-actions.mjs';
 const money = value => formatMoneyDollars(value ?? 0);
 const fieldKeys = {raise_rate: 'raise', salary: 'annual_salary', other_income: 'other_income', rrsp_contribution: 'rrsp_cash', rrsp_deduction: 'rrsp_deduction'};
 
+// Millionth-rate storage corresponds to four decimal places in percentage inputs.
+export const rateInputValue = value => (Number(value ?? 0) * 100).toFixed(4).replace(/\.?0+$/, '');
+
 export function projectionTable(rows, {editable = false, overrides = [], household = false, expandedRows = new Set()} = {}) {
   if (!rows.length) return `<p class="empty-panel">${t('salary.no_projection')}</p>`;
   const overrideByYear = new Map(overrides.map(item => [item.year, item]));
   const input = (row, field, value, percent = false) => {
     if (row.actual) return escapeHtml(money(value));
-    if (!editable) return escapeHtml(value == null ? '—' : percent ? formatPercent(Number(value), {maximumFractionDigits: 3}) : money(value));
+    if (!editable) return escapeHtml(value == null ? '—' : percent ? formatPercent(Number(value), {maximumFractionDigits: 4}) : money(value));
     const hasOverride = overrideByYear.get(row.year)?.[field] != null;
-    const shown = percent ? (Number(value || 0) * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') : Number(value || 0).toFixed(2);
+    const shown = percent ? rateInputValue(value) : Number(value || 0).toFixed(2);
     const fieldLabel = `${t(`salary.${fieldKeys[field]}`)}${percent ? ' (%)' : ''}`;
     const label = t('salary.annual_field', {year: row.year, field: fieldLabel});
     const status = hasOverride
       ? `<span class="fv-badge" data-input-status>${escapeHtml(t('salary.override'))}</span>${iconAction('reset', {label: t('actions.reset', {name: label}), attributes: {'data-salary-use-default': '', 'data-year': row.year, 'data-field': field}})}`
       : `<span class="field-note" data-input-status>${escapeHtml(t('salary.calculated_default'))}</span>`;
-    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(label)}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="0.01" value="${escapeHtml(shown)}"><span class="salary-input-status">${status}</span></span>`;
+    return `<span class="salary-input-cell"><input aria-label="${escapeHtml(label)}" class="fv-input salary-year-input${hasOverride ? ' manual-override' : ''}" data-year="${row.year}" data-field="${field}" data-original="${escapeHtml(shown)}" data-has-override="${hasOverride}" type="number" step="${percent ? '0.0001' : '0.01'}" value="${escapeHtml(shown)}"><span class="salary-input-status">${status}</span></span>`;
   };
   const detail = (label, value) => `<div class="salary-detail-field"><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`;
   const record = row => {

@@ -17,6 +17,7 @@ from domain.employment_projection_settings import EmploymentProjectionSettings
 from domain.household_expense_plan import HouseholdExpensePlan
 from domain.money import as_decimal
 from domain.projected_employment_year import ProjectedEmploymentYear
+from domain.rates import as_rate_decimal
 from domain.validation_error import ValidationError
 from repositories.annual_employment_actual_repository import AnnualEmploymentActualRepository
 from repositories.employment_baseline_repository import EmploymentBaselineRepository
@@ -135,11 +136,11 @@ def save_household_expenses(scenario_id: int):
                 required_annual_amount=as_decimal(
                     required_field(payload, "required_annual_amount")
                 ),
-                required_annual_growth=as_decimal(payload.get("required_annual_growth", 0)),
+                required_annual_growth=as_rate_decimal(payload.get("required_annual_growth", 0)),
                 discretionary_annual_amount=as_decimal(
                     payload.get("discretionary_annual_amount", 0)
                 ),
-                discretionary_annual_growth=as_decimal(
+                discretionary_annual_growth=as_rate_decimal(
                     payload.get("discretionary_annual_growth", 0)
                 ),
             )
@@ -176,7 +177,7 @@ def save_employment_settings(scenario_id: int, person_id: int):
             settings = repository.upsert(
                 scenario_id,
                 person_id,
-                default_raise=as_decimal(payload.get("default_raise", 0)),
+                default_raise=as_rate_decimal(payload.get("default_raise", 0)),
                 retirement_date=payload.get("retirement_date") or None,
                 recurring_rrsp_contribution=as_decimal(
                     payload.get(
@@ -335,7 +336,11 @@ def _replace_override(
         person_id,
         year,
         salary=_optional_decimal(payload, "salary"),
-        raise_rate=_optional_decimal(payload, "raise_rate"),
+        raise_rate=(
+            None
+            if payload.get("raise_rate") in (None, "")
+            else as_rate_decimal(str(payload["raise_rate"]))
+        ),
         rrsp_contribution=_optional_decimal(payload, "rrsp_contribution"),
         rrsp_deduction=_optional_decimal(payload, "rrsp_deduction"),
         other_income=_optional_decimal(payload, "other_income"),
@@ -368,7 +373,7 @@ def _save_draft(
     settings_repository.upsert(
         scenario_id,
         person_id,
-        default_raise=as_decimal(settings_payload.get("default_raise", 0)),
+        default_raise=as_rate_decimal(settings_payload.get("default_raise", 0)),
         retirement_date=settings_payload.get("retirement_date") or None,
         recurring_rrsp_contribution=current.recurring_rrsp_contribution if current else 0,
         recurring_rrsp_deduction=current.recurring_rrsp_deduction if current else 0,

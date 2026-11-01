@@ -7,6 +7,12 @@ retirement-date proration, schema and saved-scenario payload contracts are uncha
 
 ## Presentation and interaction
 
+Projection HTTP rate inputs use millionth-rate precision independently of cents-based
+monetary inputs (#116). Settings, annual overrides, saved drafts, clones with drafts
+and household spending growth retain fractional-percent assumptions. Non-finite or
+malformed rates fail with localized validation before committing; failed drafts and
+clones roll back atomically. Existing stored assumptions are not rewritten.
+
 Factual salary-anchor outputs remain read-only and link to Income. Scenario assumptions,
 historical actuals and calculated estimates retain separate sections. Annual overrides in expandable yearly details
 have explicit labels, year/field accessible names and a reset action; changing an input
@@ -31,8 +37,8 @@ cleared and recovery repeats only the read, preserving the selected or newly clo
 scenario ID. Calculation warnings remain visible even when the save itself succeeded.
 An unchanged Save As uses the clone-only request rather than resubmitting stored
 personal settings. A dirty personal draft still uses the existing draft contract.
-The existing HTTP rate-rounding limitation for edited assumptions is tracked in #116;
-this presentation change does not change that financial input contract.
+Edited assumptions retain millionth-rate precision through #116. Percentage inputs
+display and accept four fractional digits, preserving those rates through later edits.
 
 ## Verification
 

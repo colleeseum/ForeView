@@ -312,6 +312,15 @@ test('salary projection helpers render actual and manual override states', async
   icons.window.close();
   assert.match(module.projectionTable([{...actual, source: null}]), /Recorded/);
   assert.match(module.projectionTable([{...projection(2026), annual_salary_rate: 0, raise_rate: 0}], {editable: true}), /value="0.00"/);
+  for (const [rate, shown] of [['0.02512', '2.512'], ['0.025123', '2.5123'], ['0', '0'], ['1', '100'], ['-0.025123', '-2.5123']]) {
+    const rendered = new JSDOM(module.projectionTable([{...projection(2027), raise_rate: rate}], {editable: true}));
+    const input = rendered.window.document.querySelector('[data-field="raise_rate"]');
+    assert.equal(input.value, shown);
+    assert.equal(input.step, '0.0001');
+    assert.equal(input.checkValidity(), true);
+    assert.equal(rendered.window.document.querySelector('[data-field="salary"]').step, '0.01');
+    rendered.window.close();
+  }
   assert.equal(module.householdRows([{year: 2026}])[0].age, null);
 
   configureTestLocalization('fr-CA');

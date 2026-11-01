@@ -88,9 +88,9 @@ Functional state coverage remains executable rather than inferred from captures:
 - A genuine parsed transaction preview remains
   [#112](https://github.com/colleeseum/ForeView/issues/112). The current file-selection
   review must not be described as a non-mutating parsed-data preview.
-- Fractional rate-input precision remains the independently tracked financial
-  defect [#116](https://github.com/colleeseum/ForeView/issues/116). UI validation
-  does not certify that conversion path or authorize a hidden calculation fix.
+- Fractional rate-input precision is fixed separately by
+  [#116](https://github.com/colleeseum/ForeView/issues/116), including API round trips
+  and four-decimal percentage controls. It was not certified by the original UX-03 validation.
 - Jurisdiction-label localization and About institution display-name language handling
   are the separate [#121](https://github.com/colleeseum/ForeView/issues/121) follow-up,
   tracked in the Project under parent #94. Its presentation paths now use existing

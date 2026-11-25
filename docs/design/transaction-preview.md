@@ -1,8 +1,8 @@
 # Transaction import preview design (IMP-01A, #150)
 
 Parent: [IMP-01, #112](https://github.com/colleeseum/ForeView/issues/112).
-Status: proposed design for review. This document does not describe an implemented
-preview API or change the existing direct-import workflow.
+Status: reviewed design, merged in PR #151. This document does not describe an
+implemented preview API or change the existing direct-import workflow.
 
 ## Outcome and delivery boundary
 
@@ -198,12 +198,16 @@ formats not yet migrated, without describing direct import as preview.
 ## Proposed implementation batches
 
 Create and add each implementation child to the Project before starting its code.
-The first implementation batch establishes contracts and proves generic/RBC CSV
-parity without exposing an incomplete preview UI.
+IMP-01B (#152) separates the immutable parsing contracts into their own atomic
+batch under `ingestion/parsing/`. Generic/RBC CSV analysis and parity follow those
+contracts without exposing an incomplete preview UI. Provider-specific effects
+must extend the evidence model before their adapters are considered complete;
+transaction rows alone do not represent holdings, ownership or account changes.
 
 | Batch | Independently reviewable outcome | Dependency |
 | --- | --- | --- |
-| Shared contracts and CSV | Immutable parsed/effect proposals, read-only account/matching/checkpoint analysis and generic/RBC CSV parity tests | Reviewed #150 design |
+| Shared parsing contracts (#152) | Immutable source/context/parser identity and ordered transaction evidence; no persistence or UI | Reviewed #150 design |
+| CSV analysis | Complete CSV effect proposals, read-only account/matching/checkpoint analysis and generic/RBC CSV parity tests | Shared parsing contracts |
 | EQ adapter | Pure EQ PDF proposal and existing import parity, preserving the legacy explicit-account fallback | Shared contracts |
 | RBC deposit adapter | Pure deposit proposal, balance/reconciliation effects and parity | Shared contracts |
 | RBC investment adapters | GIC, RESP and TFSA proposals including child accounts, copied ownership and snapshot semantics; split further if necessary | Shared contracts |

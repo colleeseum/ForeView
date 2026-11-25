@@ -1,14 +1,18 @@
 # Current state
 
-Updated: 2026-10-31
+Updated: 2026-11-25
 
 ## Development focus
 
 IMP-01 (#112) is the next active workstream after UX-05 and projection rate-input
-fix #116. Its first child, IMP-01A (#150), proposes the non-mutating transaction
-preview/confirmation contract and provider-by-provider delivery plan in
-`docs/design/transaction-preview.md`. This is design work; the existing transaction
-import selection review still calls the direct importer and is not a parsed preview.
+fix #116. IMP-01A (#150) delivered the reviewed non-mutating transaction
+preview/confirmation design in `docs/design/transaction-preview.md`. IMP-01B (#152)
+adds immutable, request-local parsing contracts under `ingestion/parsing/`, with
+source identity, versioned parser identity, source-matching hints and ordered
+transaction evidence using integer cents and canonical ISO dates. These contracts
+are not yet wired into existing imports. CSV analysis and provider-specific effects
+remain subsequent work; the existing transaction import selection review still
+calls the direct importer and is not a parsed preview.
 
 UX-05A (#133) provides shared contextual icon-action controls for Jinja and browser
 renderers, with target-specific translated names, keyboard/hover tooltips, 44px

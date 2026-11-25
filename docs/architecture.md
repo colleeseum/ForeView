@@ -241,6 +241,16 @@ repair, and optional live connection routes.
 matching, deduplication, row writing, and reconciled-period guards. Institution parsers normalize
 input; institution import services persist through repositories.
 
+`ingestion/parsing/` defines the new pure transaction-parser boundary independently
+of the existing writing importers. Frozen source/context/identity values and an
+ordered parsed document retain original evidence, normalize dates to ISO calendar
+dates and require integer-cent money. Printed source balances distinguish `None`
+from zero. The parser protocol accepts no connection or runtime dependency; adapter
+purity still requires implementation review and tests. These contracts are not a
+complete financial-effect proposal or authorization to apply a document. Account
+resolution, provider-specific non-transaction evidence and confirmation remain
+separate work under IMP-01 (#112).
+
 The detailed provider contract and extension procedure are maintained in
 `institutions/README.md`.
 

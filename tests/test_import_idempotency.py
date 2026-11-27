@@ -8,13 +8,23 @@ from __future__ import annotations
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
+import pytest
+
 from devtools.synthetic.synthetic_documents import create_synthetic_fixture_set
+from domain.money import optional_cents, to_cents
 from infrastructure.runtime_config import RuntimeConfig
+from ingestion.parsing.generic_csv_parser import GenericCsvParser
+from ingestion.parsing.import_source import ImportSource
+from ingestion.parsing.parse_context import ParseContext
 from institution_support.document_detection import detect_importer
 from institutions.questrade.sync import sync_questrade_connection
+from institutions.rbc.transaction_csv_parser import RbcTransactionCsvParser
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
+from repositories.transaction_repository import TransactionRepository
+from services.imports.csv_import_service import CsvImportService
 from tests.support import (
     create_account,
     create_person,
@@ -28,6 +38,54 @@ from tests.support import (
 # Appending a PDF comment changes the file hash without changing its content,
 # as happens when a statement is downloaded again.
 REDOWNLOADED = b"\n% downloaded again\n"
+
+
+@pytest.mark.parametrize("rbc", [False, True])
+def test_immutable_csv_parsing_is_read_only_and_matches_current_import(tmp_path, rbc):
+    database = tmp_path / "synthetic.sqlite3"
+    with closing(sqlite3.connect(database)) as connection, connection:
+        ensure_domain_schema(connection)
+        account = create_account(
+            connection,
+            "Synthetic",
+            "non_registered",
+            account_number="000001",
+            institution="RBC" if rbc else "Synthetic",
+        )
+    source = ImportSource(
+        "synthetic.csv",
+        (
+            "Date de l'opération,Numéro du compte,CAD$,Description 1,Description 2\n"
+            "01/20/2026,000001,-12.34,Épicerie,\n"
+            "01/20/2026,000001,-12.34,Épicerie,\n"
+            if rbc
+            else "Date,Amount,Description,Balance\n2026-01-20,-12.34,Épicerie,\n"
+            "2026-01-20,-12.34,Épicerie,0\n"
+        ).encode(),
+    )
+    context = ParseContext("RBC" if rbc else "Synthetic", "000001")
+    parser = RbcTransactionCsvParser() if rbc else GenericCsvParser()
+    readonly = sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)
+    try:
+        before = tuple(readonly.iterdump())
+        document = parser.parse(source, context=context)
+        assert parser.parse(source, context=context) == document
+        assert tuple(readonly.iterdump()) == before
+        assert not readonly.in_transaction
+    finally:
+        readonly.close()
+    assert document is not None
+    with closing(sqlite3.connect(database)) as connection, connection:
+        result = CsvImportService(connection).import_transactions(
+            account, source.filename, source.content
+        )
+        assert result["imported"] == len(document.rows) == 2
+        stored = TransactionRepository(connection).list_for_account(account)
+        for parsed, transaction in zip(document.rows, stored, strict=True):
+            assert parsed.transaction_date == transaction.transaction_date
+            assert parsed.description == transaction.description
+            assert parsed.amount_cents == to_cents(transaction.amount)
+            assert parsed.source_balance_cents == optional_cents(transaction.balance_after)
 
 
 def _count(connection: sqlite3.Connection) -> int:

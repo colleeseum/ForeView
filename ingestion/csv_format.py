@@ -13,6 +13,8 @@ from datetime import datetime
 
 from ingestion.raw_sources import CSV_BALANCE_COLUMNS
 
+CSV_AMOUNT_COLUMNS = ("amount", "transaction amount")
+
 
 @dataclass(frozen=True, slots=True)
 class CsvTransactionRow:
@@ -49,9 +51,7 @@ def parse_csv_transactions(
         (fields[key] for key in ("date", "transaction date", "posted date") if key in fields),
         None,
     )
-    amount_field = next(
-        (fields[key] for key in ("amount", "transaction amount") if key in fields), None
-    )
+    amount_field = next((fields[key] for key in CSV_AMOUNT_COLUMNS if key in fields), None)
     description_field = next(
         (fields[key] for key in ("description", "memo", "payee") if key in fields), None
     )
@@ -92,12 +92,17 @@ def parse_csv_transactions(
 
 
 def csv_number(value: object) -> float:
+    return float(csv_numeric_text(value))
+
+
+def csv_numeric_text(value: object) -> str:
+    """Shared source-number syntax; callers choose legacy float or Decimal parsing."""
     text = str(value or "").strip().replace(",", "").replace("$", "")
     if not text:
         raise ValueError("empty amount")
     if text.startswith("(") and text.endswith(")"):
         text = f"-{text[1:-1]}"
-    return float(text)
+    return text
 
 
 def csv_date(value: object) -> str:
@@ -117,7 +122,7 @@ def digits(value: object) -> str:
 def _profile(fieldnames: Sequence[str], institution: str | None) -> str:
     fields = {field.strip().lower() for field in fieldnames if field}
     if any(key in fields for key in ("date", "transaction date", "posted date")) and any(
-        key in fields for key in ("amount", "transaction amount")
+        key in fields for key in CSV_AMOUNT_COLUMNS
     ):
         return "generic"
     label = institution.strip() if institution else "unknown"

@@ -203,11 +203,21 @@ batch under `ingestion/parsing/`. Generic/RBC CSV analysis and parity follow tho
 contracts without exposing an incomplete preview UI. Provider-specific effects
 must extend the evidence model before their adapters are considered complete;
 transaction rows alone do not represent holdings, ownership or account changes.
+IMP-01C (#154) supplies the pure generic/RBC CSV adapters before database analysis.
+They reuse current layout parsing and its raw evidence, but normalize money from
+the original decimal text. They reject invalid/non-finite money and invalid dates;
+the legacy direct-import path remains unchanged. These adapters are not registered
+as complete preview providers and cannot authorize writes.
+The new adapters reject ragged rows, ambiguous headers and malformed quoting as
+`ValueError` before legacy normalization; explicit empty cells remain valid.
+RBC transaction evidence additionally requires non-empty matching account digits.
+These stricter malformed-input checks do not change the legacy direct importer.
 
 | Batch | Independently reviewable outcome | Dependency |
 | --- | --- | --- |
 | Shared parsing contracts (#152) | Immutable source/context/parser identity and ordered transaction evidence; no persistence or UI | Reviewed #150 design |
-| CSV analysis | Complete CSV effect proposals, read-only account/matching/checkpoint analysis and generic/RBC CSV parity tests | Shared parsing contracts |
+| CSV parsing adapters (#154) | Pure generic/RBC CSV evidence with layout/account/raw-row parity tests | Shared parsing contracts |
+| CSV analysis | Complete CSV effect proposals and read-only account/matching/checkpoint analysis | CSV parsing adapters |
 | EQ adapter | Pure EQ PDF proposal and existing import parity, preserving the legacy explicit-account fallback | Shared contracts |
 | RBC deposit adapter | Pure deposit proposal, balance/reconciliation effects and parity | Shared contracts |
 | RBC investment adapters | GIC, RESP and TFSA proposals including child accounts, copied ownership and snapshot semantics; split further if necessary | Shared contracts |

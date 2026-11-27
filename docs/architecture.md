@@ -251,6 +251,13 @@ complete financial-effect proposal or authorization to apply a document. Account
 resolution, provider-specific non-transaction evidence and confirmation remain
 separate work under IMP-01 (#112).
 
+`GenericCsvParser` and the RBC-owned `RbcTransactionCsvParser` implement this new
+boundary without changing the legacy CSV importer. They reuse existing layout
+parsers and raw rows, deriving cents from original decimal source text instead of
+the legacy float amount. RBC returns `None` for unrecognized layouts so a caller
+can try the generic parser; recognized malformed RBC files still fail. They are
+not yet wired into transaction routes or registered as complete preview adapters.
+
 The detailed provider contract and extension procedure are maintained in
 `institutions/README.md`.
 

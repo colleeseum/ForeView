@@ -1,6 +1,6 @@
 # Current state
 
-Updated: 2026-11-25
+Updated: 2026-11-26
 
 ## Development focus
 
@@ -10,8 +10,12 @@ preview/confirmation design in `docs/design/transaction-preview.md`. IMP-01B (#1
 adds immutable, request-local parsing contracts under `ingestion/parsing/`, with
 source identity, versioned parser identity, source-matching hints and ordered
 transaction evidence using integer cents and canonical ISO dates. These contracts
-are not yet wired into existing imports. CSV analysis and provider-specific effects
-remain subsequent work; the existing transaction import selection review still
+are not yet wired into existing imports. IMP-01C (#154) adds pure generic/RBC CSV
+adapters that reuse existing layout policies while deriving integer cents from
+original decimal text rather than legacy float values. Ordered occurrences,
+source-language descriptions, original row evidence, account checks and generic
+fallback are retained. CSV analysis and provider-specific effects remain subsequent
+work; the existing transaction import selection review still
 calls the direct importer and is not a parsed preview.
 
 UX-05A (#133) provides shared contextual icon-action controls for Jinja and browser

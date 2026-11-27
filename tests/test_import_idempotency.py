@@ -22,8 +22,10 @@ from ingestion.parsing.parse_context import ParseContext
 from institution_support.document_detection import detect_importer
 from institutions.questrade.sync import sync_questrade_connection
 from institutions.rbc.transaction_csv_parser import RbcTransactionCsvParser
+from repositories.csv_analysis_repository import CsvAnalysisRepository
 from repositories.questrade_authorization_repository import QuestradeAuthorizationRepository
 from repositories.transaction_repository import TransactionRepository
+from services.imports.csv_analysis_service import CsvAnalysisService
 from services.imports.csv_import_service import CsvImportService
 from tests.support import (
     create_account,
@@ -75,6 +77,15 @@ def test_immutable_csv_parsing_is_read_only_and_matches_current_import(tmp_path,
     finally:
         readonly.close()
     assert document is not None
+    analysis_service = CsvAnalysisService(CsvAnalysisRepository(database))
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as reader:
+        dump_before_analysis = tuple(reader.iterdump())
+    analysis = analysis_service.analyse(account, document)
+    assert analysis.status == "analysed"
+    assert analysis.new_count == 2 and analysis.duplicate_count == 0
+    assert analysis.reconciled_period_count == 0
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as reader:
+        assert tuple(reader.iterdump()) == dump_before_analysis
     with closing(sqlite3.connect(database)) as connection, connection:
         result = CsvImportService(connection).import_transactions(
             account, source.filename, source.content
@@ -86,10 +97,48 @@ def test_immutable_csv_parsing_is_read_only_and_matches_current_import(tmp_path,
             assert parsed.description == transaction.description
             assert parsed.amount_cents == to_cents(transaction.amount)
             assert parsed.source_balance_cents == optional_cents(transaction.balance_after)
+    repeated = analysis_service.analyse(account, document)
+    assert repeated.status == "already_imported"
+    assert repeated.duplicate_count == 2 and repeated.new_count == 0
+    redownloaded = parser.parse(
+        ImportSource("redownloaded.csv", source.content + b"\n"), context=context
+    )
+    assert redownloaded is not None
+    overlapping = analysis_service.analyse(account, redownloaded)
+    assert overlapping.status == "analysed"
+    assert overlapping.duplicate_count == 2 and overlapping.new_count == 0
 
 
 def _count(connection: sqlite3.Connection) -> int:
     return connection.execute("SELECT COUNT(*) FROM transactions").fetchone()[0]
+
+
+@pytest.mark.parametrize("balances", [("0", ""), ("", "0")])
+def test_mixed_printed_balance_rows_match_only_the_imports_starting_ledger(tmp_path, balances):
+    database = tmp_path / "mixed-balances.sqlite3"
+    with closing(sqlite3.connect(database)) as connection, connection:
+        ensure_domain_schema(connection)
+        account = create_account(connection, "Synthetic", "tfsa", account_number="000001")
+    content = (
+        "Date,Amount,Description,Balance\n"
+        + "".join(f"2026-01-20,1,Credit,{balance}\n" for balance in balances)
+    ).encode()
+    source = ImportSource("mixed.csv", content)
+    parsed = GenericCsvParser().parse(source, context=ParseContext())
+    service = CsvAnalysisService(CsvAnalysisRepository(database))
+    analysis = service.analyse(account, parsed)
+    assert (analysis.new_count, analysis.duplicate_count) == (2, 0)
+    with closing(sqlite3.connect(database)) as connection, connection:
+        imported = CsvImportService(connection).import_transactions(
+            account, source.filename, content
+        )
+        assert (imported["imported"], imported["duplicates"]) == (2, 0)
+    # A new file/hash still matches the rows that predate that import.
+    with closing(sqlite3.connect(database)) as connection, connection:
+        repeated = CsvImportService(connection).import_transactions(
+            account, "again.csv", content + b"\n"
+        )
+        assert (repeated["imported"], repeated["duplicates"]) == (0, 2)
 
 
 class DocumentReimportTests(unittest.TestCase):

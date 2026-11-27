@@ -16,7 +16,16 @@ original decimal text rather than legacy float values. Ordered occurrences,
 source-language descriptions, original row evidence, account checks and generic
 fallback are retained. CSV analysis and provider-specific effects remain subsequent
 work; the existing transaction import selection review still
-calls the direct importer and is not a parsed preview.
+calls the direct importer and is not a parsed preview. IMP-01D (#156) adds
+single-document CSV analysis against a dedicated read-only SQLite snapshot. It
+reports occurrence-based duplicates, exact-file batch provenance and new rows
+entering active reconciled periods without storing anything. Legacy ISO date forms
+are compared by calendar day in this analysis. Cumulative multi-file balance and
+checkpoint effects, signing/confirmation and UI delivery remain unimplemented.
+
+Import matching now bounds lazy duplicate queries to the account ledger's starting
+transaction ID. This prevents mixed printed-balance/missing-balance rows in one
+file from treating earlier newly inserted occurrences as pre-existing duplicates.
 
 UX-05A (#133) provides shared contextual icon-action controls for Jinja and browser
 renderers, with target-specific translated names, keyboard/hover tooltips, 44px

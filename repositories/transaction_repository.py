@@ -117,7 +117,16 @@ class TransactionRepository:
         {"transaction_date", "amount", "description", "transaction_type", "balance_after"}
     )
 
-    def count_matching(self, account_id: int, values: Mapping[str, object]) -> int:
+    def latest_id(self, account_id: int) -> int:
+        """Upper transaction identity for an import's starting account ledger."""
+        row = self._connection.execute(
+            "SELECT COALESCE(MAX(id), 0) FROM transactions WHERE account_id = ?", (account_id,)
+        ).fetchone()
+        return int(row[0])
+
+    def count_matching(
+        self, account_id: int, values: Mapping[str, object], *, through_id: int | None = None
+    ) -> int:
         """How many of an account's transactions have exactly these column values."""
         unknown = set(values) - self.MATCHABLE_COLUMNS
         if unknown or not values:
@@ -139,9 +148,14 @@ class TransactionRepository:
         columns = sorted(stored_values)
         # Column names come from the fixed set above; IS compares NULLs as equal.
         conditions = " AND ".join(f"{column} IS ?" for column in columns)
+        boundary = " AND id <= ?" if through_id is not None else ""
         row = self._connection.execute(
-            f"SELECT COUNT(*) FROM transactions WHERE account_id = ? AND {conditions}",  # noqa: S608  # nosec
-            (account_id, *(stored_values[column] for column in columns)),
+            f"SELECT COUNT(*) FROM transactions WHERE account_id = ? AND {conditions}{boundary}",  # noqa: S608  # nosec
+            (
+                account_id,
+                *(stored_values[column] for column in columns),
+                *((through_id,) if through_id is not None else ()),
+            ),
         ).fetchone()
         return int(row[0])
 

@@ -38,6 +38,7 @@ class RecordedTransactionMatcher:
         self._transactions = transactions
         self._account_id = account_id
         self._identity = tuple(identity)
+        self._starting_ledger_id = transactions.latest_id(account_id)
         self._unmatched: dict[tuple[tuple[str, object], ...], int] = {}
 
     def is_recorded(self, values: Mapping[str, object]) -> bool:
@@ -52,7 +53,9 @@ class RecordedTransactionMatcher:
         key = tuple((column, values.get(column)) for column in columns)
         if key not in self._unmatched:
             # Counted before this import stores anything with the same key.
-            self._unmatched[key] = self._transactions.count_matching(self._account_id, dict(key))
+            self._unmatched[key] = self._transactions.count_matching(
+                self._account_id, dict(key), through_id=self._starting_ledger_id
+            )
         if self._unmatched[key] > 0:
             self._unmatched[key] -= 1
             return True

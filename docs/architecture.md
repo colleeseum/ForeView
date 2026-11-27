@@ -258,6 +258,14 @@ the legacy float amount. RBC returns `None` for unrecognized layouts so a caller
 can try the generic parser; recognized malformed RBC files still fail. They are
 not yet wired into transaction routes or registered as complete preview adapters.
 
+`CsvAnalysisRepository` opens a dedicated SQLite `mode=ro` connection and captures
+account, batch, integer-cent ledger and active checkpoint facts in one read
+transaction, closing it on success and failure. `CsvAnalysisService` consumes that
+snapshot and parsed evidence to return immutable per-row matching and locked-period
+decisions. It compares equivalent ISO calendar forms without rewriting legacy
+dates. It does not invoke writing importers/guards, calculate cumulative multi-file
+effects or authorize confirmation. The result is not exposed by an HTTP endpoint.
+
 The detailed provider contract and extension procedure are maintained in
 `institutions/README.md`.
 
@@ -350,6 +358,9 @@ Imports retain batches, hashes, and raw rows before producing normalized transac
 uses source content and occurrence counts so overlapping or repeated downloads do not silently
 duplicate transactions. Known balances and statement reconciliations anchor calculated running
 balances. Importing into a reconciled period is guarded and can mark the checkpoint for review.
+Each occurrence matcher captures the starting account transaction ID, so lazy
+queries for later identity variants cannot match rows inserted earlier in the same
+file. Subsequent files get a fresh boundary that includes prior committed rows.
 
 Questrade is the only live account connection. It supports multiple named authorizations,
 encrypted tokens, incremental activity synchronization, overlap lookback, and explicit historical

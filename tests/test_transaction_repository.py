@@ -31,6 +31,22 @@ class TransactionRepositoryTests(unittest.TestCase):
             connection, "Chequing", "non_registered", account_number=number, institution="Test"
         )
 
+    def test_matching_can_be_bounded_to_the_starting_account_ledger(self):
+        with self._connection() as connection:
+            account = self._account(connection)
+            other = self._account(connection, "OTHER-001")
+            repository = TransactionRepository(connection)
+            self.assertEqual(repository.latest_id(account), 0)
+            first = repository.create(account, "2026-01-20", 1, description="Credit")
+            boundary = repository.latest_id(account)
+            repository.create(account, "2026-01-20", 1, description="Credit")
+            repository.create(other, "2026-01-20", 1, description="Credit")
+            values = {"transaction_date": "2026-01-20", "amount": 1, "description": "Credit"}
+            self.assertEqual(boundary, first.id)
+            self.assertEqual(repository.count_matching(account, values), 2)
+            self.assertEqual(repository.count_matching(account, values, through_id=boundary), 1)
+            self.assertEqual(repository.count_matching(account, values, through_id=0), 0)
+
     def test_create_get_list_and_immutable_domain_object(self):
         with self._connection() as connection:
             account = self._account(connection)

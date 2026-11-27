@@ -212,12 +212,20 @@ The new adapters reject ragged rows, ambiguous headers and malformed quoting as
 `ValueError` before legacy normalization; explicit empty cells remain valid.
 RBC transaction evidence additionally requires non-empty matching account digits.
 These stricter malformed-input checks do not change the legacy direct importer.
+IMP-01D (#156) adds single-document transaction analysis with a dedicated read-only
+database snapshot, occurrence decisions, exact-file provenance and locked-period
+warnings. Equivalent legacy ISO dates compare by calendar day without mutation.
+This is not yet a complete financial-effect proposal: cumulative balance/checkpoint
+effects, fingerprints and confirmation remain subsequent work. Existing import
+matching also captures its starting ledger boundary to avoid counting a row newly
+inserted in the same file when a later row uses a different printed-balance key.
 
 | Batch | Independently reviewable outcome | Dependency |
 | --- | --- | --- |
 | Shared parsing contracts (#152) | Immutable source/context/parser identity and ordered transaction evidence; no persistence or UI | Reviewed #150 design |
 | CSV parsing adapters (#154) | Pure generic/RBC CSV evidence with layout/account/raw-row parity tests | Shared parsing contracts |
-| CSV analysis | Complete CSV effect proposals and read-only account/matching/checkpoint analysis | CSV parsing adapters |
+| CSV transaction analysis (#156) | Consistent read-only account/batch/ledger/checkpoint snapshot, occurrence decisions and locked-period warnings for one document | CSV parsing adapters |
+| CSV cumulative effects | Complete ordered CSV effect proposals, including balance/checkpoint changes and fingerprints | CSV transaction analysis |
 | EQ adapter | Pure EQ PDF proposal and existing import parity, preserving the legacy explicit-account fallback | Shared contracts |
 | RBC deposit adapter | Pure deposit proposal, balance/reconciliation effects and parity | Shared contracts |
 | RBC investment adapters | GIC, RESP and TFSA proposals including child accounts, copied ownership and snapshot semantics; split further if necessary | Shared contracts |
